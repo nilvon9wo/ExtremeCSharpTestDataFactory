@@ -204,3 +204,75 @@ around):**
   (`Predicates.Predicates`) was the alternative and read worse; `...Factory`
   also matches `coding-standards.md`'s own "name a doer class for what it
   produces" rule (its `XFTY_RecordCloneFactory` example).
+
+## 2026-09-04: `values/` partially ported (plain expressions only) - then blocked on local test execution
+
+**What's done:** `IValueExpression` (→ `XFTY_ValueExpressionIntf`) and its 7
+self-contained implementations - `LiteralExpression`, `IncrementingDecimalExpression`,
+`IncrementingStringExpression`, `UniqueStringExpression`, `UniqueEmailExpression`,
+`UniqueStringOfLengthExpression`, `UniqueAcrossRunsExpression` - plus one test
+class per implementation (splitting Apex's single grab-bag `XFTY_ValueExpressionTest`,
+matching the one-test-class-per-unit shape already used for `predicates/`).
+`dotnet build` is clean (0 warnings/errors, full analyzer set). **Not** ported:
+`XFTY_ContextAwareExpressionIntf` and `XFTY_DeferredExpressionIntf` (and their
+implementations: `CopyFromAncestorExpression`, `CopyFromSiblingExpression`,
+`CopyFromDescendantExpression`) - both depend on `XFTY_GenerationContext`/
+`XFTY_DeferredGraph`, which are `core/`-level types that don't exist in C# yet.
+Porting those now would mean designing the bundle/context representation
+unattended and blind (no test execution to check it against, see below) -
+too big a call to make solo mid-flight; natural next unit of work once `core/`
+is scoped, not a blocker for anything else.
+
+**Design decisions, same spirit as `predicates/`:**
+- `IncrementingStringExpression`'s two Apex constructors (Apex has no default
+  parameter values) collapsed into one C# constructor with a default parameter
+  (`separatePrefix = SeparatePrefix`) - the `SeparatePrefix`/`DontSeparatePrefix`
+  named-constant pair stays, per `coding-standards.md`'s "magic booleans get a
+  name" rule.
+- `UniqueStringOfLengthExpression`'s base-26 `for` loop became a recursive
+  `GenerateNextString` - no `for`/`while` anywhere, per the style rules.
+- **A real Apex/C# static-lifetime difference, not just a style choice:** Apex
+  resets `static` fields before every `@IsTest` method; a C# `private static`
+  field on `UniqueStringExpression`/`UniqueEmailExpression`/`UniqueStringOfLengthExpression`
+  persists for the whole test-process run, across every test in the assembly.
+  None of the ported tests depend on an *exact* counter value except the Apex
+  original's `countsSeparatelyPerLength` test (which asserted literal `'AAA'`/
+  `'AAAA'` starting values) - its C# equivalent uses lengths no other test in
+  the class touches and asserts *relative* behaviour (shared counter within a
+  length, independent counters across lengths) instead of exact literals, so
+  it isn't order-dependent across a whole `dotnet test` run. Flagging this
+  since it's the kind of thing that should be loud, not silently patched over.
+
+**Blocked on: local test execution, not on anything about the code.**
+Partway through this module, `dotnet test` started failing with `An
+Application Control policy has blocked this file` loading
+`Xfty.Core.Test.dll` from `testhost.exe`. Confirmed via
+`Microsoft-Windows-CodeIntegrity/Operational` (events 3077/3033/3118): this is
+**Windows Smart App Control** (`VerifiedAndReputablePolicyState = 1`,
+i.e. Evaluation mode) blocking an unsigned, freshly-compiled local dev DLL
+from being reflection-loaded (Policy ID `{0283ac0f-fff1-49ae-ada1-8a933130cad6}`).
+It is **not deterministic** - `predicates/` ran clean at 43/43 (and the
+original scaffold at 45/45) earlier in this same session on the same kind of
+unsigned local DLL, then this same command started being blocked with no code
+change that plausibly explains it. Retried ~5 times (including a full
+`bin`/`obj` clean rebuild) without success.
+
+I did not attempt to change this myself - Microsoft's own guidance is that
+Smart App Control, once turned off, **cannot be turned back on without
+reinstalling Windows**, so that's squarely Brian's call, not mine to make
+unattended. `values/`'s new tests are therefore **build-verified (0
+warnings/errors under the full analyzer set) and manually traced through by
+hand against the Apex originals' expected behaviour, but not
+execution-confirmed** - unlike `predicates/`, which has an actual 43/43 green
+run behind it. Worth running `dotnet test` yourself first thing to confirm,
+once Smart App Control is sorted out (Windows Security → App & browser
+control → Smart App Control, or check whether this machine has an
+organization-managed code integrity policy layered on top - the "Enterprise
+signing level requirements" wording in the event log is oddly enterprise-y
+for what looks like a personal dev box).
+
+**Still open when picked back up:** `core/`'s `GenerationContext`/bundle
+representation (needed to unblock `XFTY_ContextAwareExpressionIntf`, and
+therefore `CopyFromAncestor/Sibling/DescendantExpression`) - the next real
+design decision, deliberately not attempted unattended. Confirm `values/`'s
+tests actually pass once `dotnet test` works again locally.
