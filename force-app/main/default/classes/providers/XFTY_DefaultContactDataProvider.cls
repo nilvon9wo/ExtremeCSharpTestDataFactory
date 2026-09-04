@@ -1,0 +1,32 @@
+@IsTest
+public class XFTY_DefaultContactDataProvider implements XFTY_DummySobjectProviderIntf {
+    public static final String DEFAULT_FIRST_NAME_PREFIX = 'Contact First Name';
+    public static final String DEFAULT_LAST_NAME_PREFIX = 'Contact Last Name';
+    public static final String DEFAULT_EMAIL_PREFIX = 'test.contact';
+    public static final String DEFAULT_ACCOUNT_DESCRIPTION = 'Account for contact';
+
+    private static final SObjectField PRIMARY_TARGET_FIELD = Contact.Id;
+
+    private static final XFTY_DummySObjectMasterTemplate MASTER_TEMPLATE = new XFTY_DummySObjectMasterTemplate(PRIMARY_TARGET_FIELD)
+            .putRequired(Contact.AccountId, new XFTY_DummyDefaultRelationship(new Account(
+                    Description = DEFAULT_ACCOUNT_DESCRIPTION
+            )))
+            .put(Contact.Email, new XFTY_UniqueEmailExpression(DEFAULT_EMAIL_PREFIX))
+            .put(Contact.FirstName, new XFTY_IncrementingStringExpression(DEFAULT_FIRST_NAME_PREFIX))
+            .put(Contact.LastName, new XFTY_IncrementingStringExpression(DEFAULT_LAST_NAME_PREFIX));
+
+    public SObjectField getPrimaryTargetField() {
+        return PRIMARY_TARGET_FIELD;
+    }
+
+    public XFTY_DummySObjectMasterTemplate getMasterTemplate() {
+        return MASTER_TEMPLATE;
+    }
+
+    public XFTY_DummySObjectBundle createBundle(
+            XFTY_GenerationContext context,
+            List<SObject> templateSObjectList
+    ) {
+        return XFTY_DummySObjectFactory.createBundle(context, MASTER_TEMPLATE, templateSObjectList);
+    }
+}

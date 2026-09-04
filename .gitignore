@@ -1,0 +1,37 @@
+/.idea/
+.sf/
+.sfdx/
+.localdev/
+.localdevserver/
+
+# Salesforce CLI
+**/.sf/
+**/.sfdx/
+deploy-options.json
+test-result*.json
+**/lwc/jsconfig.json
+/IlluminatedCloud/
+/out/
+target/
+node_modules/
+/.illuminatedCloud/
+**/tsconfig*.json
+**/*.tsbuildinfo
+**/graphql.config.yml
+
+# Nimbus local Apex runtime — generated
+.nimbus/
+manifest/nimbus-missing.xml
+
+# Python
+__pycache__/
+*.pyc
+
+# local org-seeding spike scratch (not part of the package)
+spike/
+
+# .NET
+bin/
+obj/
+*.user
+.vs/

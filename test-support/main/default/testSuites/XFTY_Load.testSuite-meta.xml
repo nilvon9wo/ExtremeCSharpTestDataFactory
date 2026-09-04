@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApexTestSuite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!--
+        Volume tests: push generation toward the per-transaction governor limits
+        and record where each breaks (docs/reference/volume-and-limits.md). The
+        slowest suite and the one most likely to need re-tuning as the engine
+        changes. Run on demand with: sf apex run test, suite-names XFTY_Load
+    -->
+    <testClassName>XFTY_DeferredLoadTest</testClassName>
+    <testClassName>XFTY_LoadTest</testClassName>
+    <testClassName>XFTY_EnrichmentLoadTest</testClassName>
+    <testClassName>XFTY_SharedAncestorLoadTest</testClassName>
+</ApexTestSuite>

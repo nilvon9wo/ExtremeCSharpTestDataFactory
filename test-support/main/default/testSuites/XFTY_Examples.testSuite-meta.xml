@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApexTestSuite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!--
+      Runnable proofs for the fenced examples in docs/use/** and docs/extend/**.
+      Every XFTY_Ex_*Test method is one documentation example; a page's
+      "▶ Runnable" line names its class. test-support/ only.
+      Run with: sf apex run test, suite name XFTY_Examples.
+    -->
+    <testClassName>XFTY_Ex_Adv_DeepSetupChainsTest</testClassName>
+    <testClassName>XFTY_Ex_Adv_LargeGraphsTest</testClassName>
+    <testClassName>XFTY_Ex_Adv_MatchingValuesTest</testClassName>
+    <testClassName>XFTY_Ex_Adv_StaticDeferredFixtureTest</testClassName>
+    <testClassName>XFTY_Ex_Adv_UnitVsIntegrationTest</testClassName>
+    <testClassName>XFTY_Ex_BundlesTest</testClassName>
+    <testClassName>XFTY_Ex_EnrichmentTest</testClassName>
+    <testClassName>XFTY_Ex_SObjectInjectorTest</testClassName>
+    <testClassName>XFTY_Ex_ContextAwareTest</testClassName>
+    <testClassName>XFTY_Ex_DeferredInsertTest</testClassName>
+    <testClassName>XFTY_Ex_Extend_CustomExpressionsTest</testClassName>
+    <testClassName>XFTY_Ex_GeneratingRecordsTest</testClassName>
+    <testClassName>XFTY_Ex_InsertModesTest</testClassName>
+    <testClassName>XFTY_Ex_OrgSeedingTest</testClassName>
+    <testClassName>XFTY_Ex_OverrideTemplatesTest</testClassName>
+    <testClassName>XFTY_Ex_PerCallRelationshipsTest</testClassName>
+    <testClassName>XFTY_Ex_ProviderVariantsTest</testClassName>
+    <testClassName>XFTY_Ex_RelationshipsTest</testClassName>
+    <testClassName>XFTY_Ex_TestUserHelpersTest</testClassName>
+    <testClassName>XFTY_Ex_ValueExpressionsTest</testClassName>
+</ApexTestSuite>
