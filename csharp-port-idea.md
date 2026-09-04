@@ -76,8 +76,11 @@ directly on top of.
 - Tests: carry over the *scenarios* (what's verified) as the spec for new
   xUnit tests, not the Apex `Assert`/AAA syntax verbatim.
 
-**Conventions to match** (found by inspecting `E:\projects\CSharp\Skroob5000`,
-Brian's most recent/best-configured C# project — treat as the template):
+**Conventions to match** (found by inspecting `E:\projects\CSharp\Skroob5000`
+as a template — Brian later clarified (2026-09-04) it's *not* confirmed to be
+his most recent/best-configured C# project, maybe Certara is, he wasn't sure
+and said it isn't important; treat Skroob5000's setup below as one reasonable
+precedent, not gospel):
 - `net10.0`, `ImplicitUsings`/`Nullable` enabled.
 - Test stack: `xunit` + `xunit.runner.visualstudio` + `FluentAssertions` +
   `NSubstitute` + `coverlet.collector` + `Microsoft.NET.Test.Sdk`.
@@ -121,15 +124,83 @@ port — only the Apex JSON-serialize/deserialize **mechanism** is the dead end
 (a workaround for Apex lacking real reflection). The C# port implements
 enrichment directly via reflection instead.
 
-**Testing conventions carry over from Apex, not just the values/predicates
-logic.** `docs/contribute/coding-standards.md` is written in Apex but Brian
-confirmed (2026-09-04) it holds "just as true for C#" — treat it as the style
-authority for the port generally, not only for the mechanically-portable
-classes. Concretely for ported/new xUnit tests: keep the same AAA structural
-comments — `// Arrange`, `// Act`, `// Assert`, and `// Sanity Check` (a
-pre-Act assertion that arranged state matches what the test assumes) — and
-carry over the rest of the "Testing and coverage" section's shape (one test
-class per unit under test, one behaviour per test method, the Act is exactly
-one statement, `test<Method>_when<Condition>_<expectedOutcome>` naming
-translated to C# idiom, parameterised tests as a thin `[Theory]`/data-row
-layer over a shared runner holding the AAA comments).
+**Testing conventions carry over from Apex in spirit, not literally.** Brian
+confirmed (2026-09-04) `docs/contribute/coding-standards.md` holds "just as
+true for C#", then clarified same day: it's the *spirit* of the doc that
+survives, not its Apex-syntax examples — idiomatic C# is preferred throughout,
+and naming conventions are expected to be the biggest visible difference (e.g.
+PascalCase test method names instead of the `test`-prefixed camelCase Apex
+uses, FluentAssertions `.Should()` instead of `Assert.areEqual`, `[Theory]`/
+`[InlineData]` instead of a runner called from thin `@IsTest` data-row
+methods). The one piece kept **literal**, not just in spirit: the AAA
+structural comments — `// Arrange`, `// Act`, `// Assert`, and
+`// Sanity Check` (a pre-Act assertion that arranged state matches what the
+test assumes) — stay verbatim in every xUnit test. Everything else in the
+"Testing and coverage" section (one test class per unit, one behaviour per
+test method, the Act is exactly one statement, parameterised tests as a thin
+data-row layer over a shared AAA-commented runner, catch the specific
+exception type) carries over as *intent*, expressed idiomatically in C#.
+
+## 2026-09-04: `predicates/` ported (first completed module, unattended)
+
+Brian stepped away and asked me to get as much done autonomously as possible,
+after confirming there were no more real open decisions on the overall
+approach. `predicates/` is done: all 11 source classes + their test classes,
+`dotnet build`/`dotnet test` clean, 43/43 passing. `values/` is next but not
+started - see "Still open" at the end of this file.
+
+**Design decisions made along the way (nothing here was previously agreed;
+flagging for review, not asking permission mid-flight since nobody was
+around):**
+
+- **`SObjectField` → a real typed field accessor, not a string/reflection
+  stand-in.** Apex's predicates take a `Schema.SObjectField` token and read it
+  off an untyped `SObject` via `record.get(field)`. C# has no such dynamic
+  record base type, so `IRecordPredicate<TRecord>` is generic per record type,
+  and the field predicates (`FieldEqualToPredicate<TRecord,TValue>` etc.) take
+  a real `Func<TRecord,TValue>` accessor - e.g. `a => a.Industry` - not a
+  string or a bare `PropertyInfo`. This is strictly more type-safe than the
+  Apex original, not a compromise. (Considered `Expression<Func<TRecord,
+  TValue>>` instead, for future EF/LINQ-provider pushdown - deferred: nothing
+  today would consume the expression tree, only the compiled delegate. Easy
+  to widen later if `lookup/`'s EF integration wants it; flagging here so it
+  isn't forgotten.)
+- **`XFTY_ValueComparison` doesn't exist in C# - `Comparer<TValue>.Default`
+  replaces its whole runtime type-sniffing switch** (`instanceof Decimal`,
+  `instanceof Date` before `instanceof Datetime` because Apex `Date` is also
+  `instanceof Datetime`, etc.). Generics make the numeric/date/lexical
+  dispatch unnecessary - `TValue` is one concrete type per call site, so
+  `Comparer<TValue>.Default.Compare(...)` is correct for numbers, `DateTime`,
+  `string`, or anything else `IComparable` for free. Deliberately **not**
+  constrained to `TValue : IComparable<TValue>`: a nullable value type like
+  `int?` can never satisfy that constraint (`Nullable<T>` doesn't implement
+  `IComparable<Nullable<T>>`), and the demo/record fields are routinely
+  nullable, so the constraint is dropped and the null guard that already
+  existed (matching Apex's "null is never greater/less") runs first.
+  `XFTY_ValueComparisonTest`'s scenarios are still covered - just as inline
+  cases inside `FieldGreaterThanPredicateTest`/`FieldLessThanPredicateTest`
+  rather than a standalone class, since there's no longer a standalone class
+  to test.
+- **`XFTY_DummySObjectFtyProviderException` → `XftyConfigurationException`.**
+  One shared, C#-idiomatic name (no `XFTY_` prefix - real namespaces make that
+  Apex workaround unnecessary) for the "loud, named error" `coding-
+  standards.md` asks for. Lives at `Net.Nowhereatall.Xfty.Core` root since
+  every future module needs it, not just `predicates/`.
+- **Demo domain scaffolding started:** `Xfty.Core/Demo/Account.cs`, a minimal
+  POCO (`Name`, `Industry`, `Type`, `NumberOfEmployees`, `AnnualRevenue`) with
+  only the fields the ported predicate tests exercise. Will grow when
+  `providers/`-equivalent work starts; not meant to be exhaustive yet, and a
+  `Contact` counterpart doesn't exist yet either.
+- **`XFTY_PredicatesTest`'s `XFTY_FlavouredLookupKey` scenarios were dropped**,
+  not ported - they exercise `lookup/`, which isn't ported yet. Only the
+  facade-delegation tests (`AllOf`/`AnyOf`/`Negate` wiring) came across in
+  `PredicateFactoryTest`. Revisit once `lookup/` lands.
+- **Folder/namespace shape:** `Xfty.Core/Predicates/` →
+  `Net.Nowhereatall.Xfty.Core.Predicates` (mirrors the Apex package folder,
+  matches `dotnet_style_namespace_match_folder`). `XFTY_Predicates` (the AND/
+  OR/NOT facade) became `PredicateFactory` and `XFTY_FieldPredicate` became
+  `FieldPredicateFactory` rather than keeping the Apex names verbatim - a
+  class named the same as its own containing namespace segment
+  (`Predicates.Predicates`) was the alternative and read worse; `...Factory`
+  also matches `coding-standards.md`'s own "name a doer class for what it
+  produces" rule (its `XFTY_RecordCloneFactory` example).
