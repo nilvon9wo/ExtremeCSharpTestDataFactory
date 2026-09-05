@@ -103,6 +103,32 @@ public sealed class MasterTemplate
             _ => this.Put(field, new LiteralExpression(value)),
         };
 
+    // Lambda overloads - naming field by lambda instead of Field.Of<TRecord>(...) --------
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public MasterTemplate Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression valueTemplate) =>
+        this.Put(Field.Of(field), valueTemplate);
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public MasterTemplate Put<TRecord>(Expression<Func<TRecord, object?>> field, IContextAwareExpression contextAwareExpression) =>
+        this.Put(Field.Of(field), contextAwareExpression);
+
+    /// <summary>An up-flowing value - resolved during the DEFERRED flush. Naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public MasterTemplate Put<TRecord>(Expression<Func<TRecord, object?>> field, IDeferredExpression deferredValue) =>
+        this.Put(Field.Of(field), deferredValue);
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public MasterTemplate Put<TRecord>(Expression<Func<TRecord, object?>> field, object? value) =>
+        this.Put(Field.Of(field), value);
+
+    /// <summary>PutRequired(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public MasterTemplate PutRequired<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
+        this.PutRequired(Field.Of(field), relationshipTemplate);
+
+    /// <summary>PutOptional(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public MasterTemplate PutOptional<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
+        this.PutOptional(Field.Of(field), relationshipTemplate);
+
     /// <summary>Every value field (plain + context-aware) in the order it was Put.</summary>
     public List<PropertyInfo> OrderedValueFields() => [.. this.valueFieldOrder];
 

@@ -28,8 +28,8 @@ public class EnrichmentTargetTest
         // Arrange
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account()]);
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), new Bundle());
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account()]);
+        _ = bundle.Put<Contact>(x => x.AccountId, new Bundle());
 
         // Act
         EnrichmentTarget target = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(x => x.AccountId));
@@ -91,7 +91,7 @@ public class EnrichmentTargetTest
         // Arrange
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), new Bundle());
+        _ = bundle.Put<Contact>(x => x.AccountId, new Bundle());
 
         // Act
         bool anything = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(x => x.Id)).HasAnythingToInject();

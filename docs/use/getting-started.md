@@ -177,8 +177,8 @@ The resulting Bundle contains both the requested Contacts and any related
 records generated during the operation.
 
 ```csharp
-object contact = bundle.GetList(Field.Of<Contact>(x => x.Id))![0];
-object account = bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0];
+object contact = bundle.GetList<Contact>(x => x.Id)![0];
+object account = bundle.GetList<Contact>(x => x.AccountId)![0];
 ```
 
 ```text
@@ -212,13 +212,13 @@ lookups.
 Lists are extracted using the relationship field that produced them.
 
 ```csharp
-List<object> accounts = bundle.GetList(Field.Of<Case>(x => x.AccountId))!;
+List<object> accounts = bundle.GetList<Case>(x => x.AccountId)!;
 ```
 
 Nested Bundles can also be traversed.
 
 ```csharp
-Bundle? accountBundle = bundle.GetBundle(Field.Of<Case>(x => x.AccountId));
+Bundle? accountBundle = bundle.GetBundle<Case>(x => x.AccountId);
 ```
 
 ---

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using Net.Nowhereatall.Xfty.Core;
 using Net.Nowhereatall.Xfty.Engine;
@@ -54,6 +55,10 @@ public sealed class SharedAncestorProvider
         return this;
     }
 
+    /// <summary>CopyingRelatedField(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public SharedAncestorProvider CopyingRelatedField<TRecord>(Expression<Func<TRecord, object?>> relatedField) =>
+        this.CopyingRelatedField(Field.Of(relatedField));
+
     /// <summary>Inclusivity for the shared record's own relationships (default Required).</summary>
     public SharedAncestorProvider SetInclusivity(InsertInclusivity inclusivity)
     {
@@ -91,6 +96,10 @@ public sealed class SharedAncestorProvider
         return this;
     }
 
+    /// <summary>IncludeOptional(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public SharedAncestorProvider IncludeOptional<TRecord>(Expression<Func<TRecord, object?>> relationshipField) =>
+        this.IncludeOptional(Field.Of(relationshipField));
+
     public SharedAncestorProvider Put(List<PropertyInfo> path, IValueExpression expression) =>
         this.AddPathValue(PathValue.OfExpression(path, expression));
 
@@ -105,6 +114,28 @@ public sealed class SharedAncestorProvider
 
     public SharedAncestorProvider PutOptional(List<PropertyInfo> path, IDefaultRelationship relationship) =>
         this.AddPathValue(PathValue.OfOptionalRelationship(path, relationship));
+
+    // Lambda overloads (single field) - naming field by lambda instead of Field.Of<TRecord>(...) --------
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public SharedAncestorProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression expression) =>
+        this.Put(Field.Of(field), expression);
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public SharedAncestorProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IContextAwareExpression expression) =>
+        this.Put(Field.Of(field), expression);
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public SharedAncestorProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, object? literal) =>
+        this.Put(Field.Of(field), literal);
+
+    /// <summary>PutRequired(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public SharedAncestorProvider PutRequired<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship) =>
+        this.PutRequired(Field.Of(field), relationship);
+
+    /// <summary>PutOptional(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public SharedAncestorProvider PutOptional<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship) =>
+        this.PutOptional(Field.Of(field), relationship);
 
     private SharedAncestorProvider AddValue(PropertyInfo field, object? value)
     {

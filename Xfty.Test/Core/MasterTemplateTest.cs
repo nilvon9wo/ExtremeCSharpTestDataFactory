@@ -36,7 +36,7 @@ public class MasterTemplateTest
 
         // Act
         MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-            .Put(Field.Of<Contact>(x => x.LastName), new LiteralExpression("Doe"));
+            .Put<Contact>(x => x.LastName, new LiteralExpression("Doe"));
 
         // Assert
         Assert.True(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.LastName)));
@@ -48,13 +48,13 @@ public class MasterTemplateTest
     public void Put_ForAContextAwareExpression_RoutesItToTheContextAwareMap(bool passAsObject)
     {
         // Arrange
-        IContextAwareExpression contextAware = new CopyFromSiblingExpression(Field.Of<Contact>(x => x.FirstName));
+        IContextAwareExpression contextAware = CopyFromSiblingExpression.From<Contact>(x => x.FirstName);
         MasterTemplate template = new(Field.Of<Contact>(x => x.Id));
 
         // Act
         _ = passAsObject
-            ? template.Put(Field.Of<Contact>(x => x.LastName), (object)contextAware)
-            : template.Put(Field.Of<Contact>(x => x.LastName), contextAware);
+            ? template.Put<Contact>(x => x.LastName, (object)contextAware)
+            : template.Put<Contact>(x => x.LastName, contextAware);
 
         // Assert
         Assert.Equal(contextAware, template.ContextAwareByField[Field.Of<Contact>(x => x.LastName)]);
@@ -70,8 +70,8 @@ public class MasterTemplateTest
 
         // Act
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("plain"))
-            .Put(Field.Of<Account>(x => x.Name), new CopyFromSiblingExpression(Field.Of<Account>(x => x.AccountNumber)));
+            .Put<Account>(x => x.Name, new LiteralExpression("plain"))
+            .Put<Account>(x => x.Name, CopyFromSiblingExpression.From<Account>(x => x.AccountNumber));
 
         // Assert
         Assert.False(template.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Name))); // left the plain-value map
@@ -86,7 +86,7 @@ public class MasterTemplateTest
 
         // Act
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Type), "Customer");
+            .Put<Account>(x => x.Type, "Customer");
 
         // Assert
         Assert.True(template.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Type)));
@@ -101,7 +101,7 @@ public class MasterTemplateTest
 
         // Act
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), (object)expression);
+            .Put<Account>(x => x.Name, (object)expression);
 
         // Assert
         Assert.Same(expression, template.DefaultByField[Field.Of<Account>(x => x.Name)]);
@@ -116,7 +116,7 @@ public class MasterTemplateTest
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() =>
             new MasterTemplate(Field.Of<Contact>(x => x.Id))
-                .Put(Field.Of<Contact>(x => x.AccountId), (object)new DefaultRelationship(new Account())));
+                .Put<Contact>(x => x.AccountId, (object)new DefaultRelationship(new Account())));
 
         // Assert
         Assert.Contains("PutRequired", thrown.Message);
@@ -132,7 +132,7 @@ public class MasterTemplateTest
 
         // Act
         MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), required);
+            .PutRequired<Contact>(x => x.AccountId, required);
 
         // Assert
         Assert.Same(required, template.RequiredRelationshipByField[Field.Of<Contact>(x => x.AccountId)]);
@@ -147,7 +147,7 @@ public class MasterTemplateTest
 
         // Act
         MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-            .PutOptional(Field.Of<Contact>(x => x.ReportsToId), optional);
+            .PutOptional<Contact>(x => x.ReportsToId, optional);
 
         // Assert
         Assert.Same(optional, template.OptionalRelationshipByField[Field.Of<Contact>(x => x.ReportsToId)]);
@@ -160,8 +160,8 @@ public class MasterTemplateTest
     {
         // Arrange
         MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-            .Put(Field.Of<Contact>(x => x.LastName), new LiteralExpression("Doe"))
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account()));
+            .Put<Contact>(x => x.LastName, new LiteralExpression("Doe"))
+            .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account()));
 
         // Act
         _ = template.Remove(Field.Of<Contact>(x => x.LastName));
@@ -180,9 +180,9 @@ public class MasterTemplateTest
     {
         // Arrange
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("n"))
-            .Put(Field.Of<Account>(x => x.Industry), new LiteralExpression("i"))
-            .Put(Field.Of<Account>(x => x.Type), new LiteralExpression("t"));
+            .Put<Account>(x => x.Name, new LiteralExpression("n"))
+            .Put<Account>(x => x.Industry, new LiteralExpression("i"))
+            .Put<Account>(x => x.Type, new LiteralExpression("t"));
 
         // Act
         List<System.Reflection.PropertyInfo> ordered = template.OrderedValueFields();
@@ -198,13 +198,13 @@ public class MasterTemplateTest
     {
         // Arrange
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("n"))
-            .Put(Field.Of<Account>(x => x.Industry), new LiteralExpression("i"))
-            .Put(Field.Of<Account>(x => x.Type), new LiteralExpression("t"));
+            .Put<Account>(x => x.Name, new LiteralExpression("n"))
+            .Put<Account>(x => x.Industry, new LiteralExpression("i"))
+            .Put<Account>(x => x.Type, new LiteralExpression("t"));
         _ = template.Remove(Field.Of<Account>(x => x.Industry));
 
         // Act
-        _ = template.Put(Field.Of<Account>(x => x.Name), new LiteralExpression("n2"));
+        _ = template.Put<Account>(x => x.Name, new LiteralExpression("n2"));
 
         // Assert
         Assert.Equal([Field.Of<Account>(x => x.Name), Field.Of<Account>(x => x.Type)], template.OrderedValueFields());
@@ -217,11 +217,11 @@ public class MasterTemplateTest
     {
         // Arrange
         MasterTemplate original = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("Original"));
+            .Put<Account>(x => x.Name, new LiteralExpression("Original"));
 
         // Act
         MasterTemplate copy = original.Copy();
-        _ = copy.Put(Field.Of<Account>(x => x.Industry), new LiteralExpression("Tech"));
+        _ = copy.Put<Account>(x => x.Industry, new LiteralExpression("Tech"));
         _ = copy.Remove(Field.Of<Account>(x => x.Name));
 
         // Assert
@@ -235,11 +235,11 @@ public class MasterTemplateTest
     {
         // Arrange
         MasterTemplate original = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("Original"));
+            .Put<Account>(x => x.Name, new LiteralExpression("Original"));
 
         // Act
         MasterTemplate copy = original.Copy();
-        _ = copy.Put(Field.Of<Account>(x => x.Industry), new LiteralExpression("Tech"));
+        _ = copy.Put<Account>(x => x.Industry, new LiteralExpression("Tech"));
         _ = copy.Remove(Field.Of<Account>(x => x.Name));
 
         // Assert
@@ -252,7 +252,7 @@ public class MasterTemplateTest
     {
         // Arrange
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new CopyFromSiblingExpression(Field.Of<Account>(x => x.AccountNumber)));
+            .Put<Account>(x => x.Name, CopyFromSiblingExpression.From<Account>(x => x.AccountNumber));
 
         // Act
         MasterTemplate copy = template.Copy();

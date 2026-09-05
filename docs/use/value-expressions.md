@@ -10,7 +10,7 @@ Provider produces.
 
 ```csharp
 new RecordProvider(typeof(Contact), lookup)
-    .Put(Field.Of<Contact>(x => x.FirstName), new IncrementingStringExpression("Test Contact"))
+    .Put<Contact>(x => x.FirstName, new IncrementingStringExpression("Test Contact"))
     .SupplyBundle();
 // -> "Test Contact 1", "Test Contact 2", "Test Contact 3", ...
 ```
@@ -23,15 +23,15 @@ new RecordProvider(typeof(Contact), lookup)
 expression or a relationship is wrapped in `LiteralExpression` automatically.
 
 ```csharp
-.Put(Field.Of<Account>(x => x.Type), "Customer")
-.Put(Field.Of<Account>(x => x.NumberOfEmployees), 500)
+.Put<Account>(x => x.Type, "Customer")
+.Put<Account>(x => x.NumberOfEmployees, 500)
 ```
 
 is exactly
 
 ```csharp
-.Put(Field.Of<Account>(x => x.Type), new LiteralExpression("Customer"))
-.Put(Field.Of<Account>(x => x.NumberOfEmployees), new LiteralExpression(500))
+.Put<Account>(x => x.Type, new LiteralExpression("Customer"))
+.Put<Account>(x => x.NumberOfEmployees, new LiteralExpression(500))
 ```
 
 This works both on a Provider's Master Template and on `RecordProvider` itself.
@@ -77,7 +77,7 @@ new RecordProvider(typeof(Contact), lookup)
 
     // a context-aware value - evaluated against that ancestor
     .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Site)],
-         new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name)))
+         CopyFromSiblingExpression.From<Account>(x => x.Name))
 
     // a relationship - give the ancestor its own generated parent
     .PutRequired([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)],

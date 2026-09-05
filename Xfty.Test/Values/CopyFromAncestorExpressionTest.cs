@@ -39,8 +39,8 @@ public class CopyFromAncestorExpressionTest
         Bundle accountBundle = new();
         accountBundle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "Wired Parent" }]);
         Bundle contactBundle = new();
-        _ = contactBundle.Put(Field.Of<Contact>(x => x.AccountId), accountBundle);
-        _ = contactBundle.Put(Field.Of<Contact>(x => x.AccountId), accountBundle.PrimaryRecords()!);
+        _ = contactBundle.Put<Contact>(x => x.AccountId, accountBundle);
+        _ = contactBundle.Put<Contact>(x => x.AccountId, accountBundle.PrimaryRecords()!);
         GenerationContext context = new GenerationContext(Lookup, InsertMode.Mock, InsertInclusivity.Required)
             .ForRecord(new Contact(), contactBundle, 0);
         CopyFromAncestorExpression expression = new(

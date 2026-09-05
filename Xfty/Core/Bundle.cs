@@ -25,11 +25,19 @@ public sealed class Bundle
         return this;
     }
 
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public Bundle Put<TRecord>(Expression<Func<TRecord, object?>> field, List<object> records) =>
+        this.Put(Field.Of(field), records);
+
     public Bundle Put(PropertyInfo field, Bundle bundle)
     {
         this.bundleByField[field] = bundle;
         return this;
     }
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public Bundle Put<TRecord>(Expression<Func<TRecord, object?>> field, Bundle bundle) =>
+        this.Put(Field.Of(field), bundle);
 
     public Bundle? GetBundle(PropertyInfo field) =>
         this.bundleByField.GetValueOrDefault(field);
@@ -127,11 +135,19 @@ public sealed class Bundle
             : all[0];
     }
 
+    /// <summary>GetChild(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public object? GetChild<TChild>(Expression<Func<TChild, object?>> childRelationshipField) =>
+        this.GetChild(Field.Of(childRelationshipField));
+
     /// <summary>Every child generated for childRelationshipField, merged across configs, in the documented order.</summary>
     public List<object> GetChildList(PropertyInfo childRelationshipField) =>
         this.ChildBundles(childRelationshipField)
             .SelectMany(childBundle => childBundle.PrimaryRecords() ?? [])
             .ToList();
+
+    /// <summary>GetChildList(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public List<object> GetChildList<TChild>(Expression<Func<TChild, object?>> childRelationshipField) =>
+        this.GetChildList(Field.Of(childRelationshipField));
 
     /// <summary>Just the children of one primary row - the slice of GetChildList that belongs to that row.</summary>
     public List<object> ChildRecordsOf(int parentRowIndex, PropertyInfo childRelationshipField) =>
@@ -151,6 +167,10 @@ public sealed class Bundle
             _ => BundleMerger.Combine(bundles),
         };
     }
+
+    /// <summary>GetChildBundle(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public Bundle? GetChildBundle<TChild>(Expression<Func<TChild, object?>> childRelationshipField) =>
+        this.GetChildBundle(Field.Of(childRelationshipField));
 
     /// <summary>
     /// New instances of the records at GetList(field), enriched per config -

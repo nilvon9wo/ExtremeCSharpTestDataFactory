@@ -22,13 +22,13 @@ public class LookupKeyTest
     // Flavoured keys are interned flyweights whose .Matching(...) predicates
     // mutate the shared instance - build each exactly once, here.
     private static readonly FlavouredLookupKey EnterpriseFlavour =
-        FlavouredLookupKey.Get(typeof(Account), "enterprise").Matching(FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.NumberOfEmployees), 500));
+        FlavouredLookupKey.Get(typeof(Account), "enterprise").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 500));
 
     private static readonly FlavouredLookupKey NamedFlavour =
-        FlavouredLookupKey.Get(typeof(Account), "named-runner").Matching(FieldPredicateFactory.IsNotNull(Field.Of<Account>(x => x.Name)));
+        FlavouredLookupKey.Get(typeof(Account), "named-runner").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
 
     private static readonly FlavouredLookupKey BigAccount =
-        FlavouredLookupKey.Get(typeof(Account), "big").Matching(FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.NumberOfEmployees), 100));
+        FlavouredLookupKey.Get(typeof(Account), "big").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 100));
 
     // LookupKey ---------------------------------------------------------------
 
@@ -142,10 +142,10 @@ public class LookupKeyTest
     public void Specificity_ForAFlavouredKey_GrowsWithEachPredicateAndBeatsAPlainKey()
     {
         // Arrange
-        FlavouredLookupKey onePredicate = FlavouredLookupKey.Get(typeof(Account), "hashkey-a").Matching(FieldPredicateFactory.IsNotNull(Field.Of<Account>(x => x.Name)));
+        FlavouredLookupKey onePredicate = FlavouredLookupKey.Get(typeof(Account), "hashkey-a").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
         FlavouredLookupKey twoPredicates = FlavouredLookupKey.Get(typeof(Account), "hashkey-b")
-            .Matching(FieldPredicateFactory.IsNotNull(Field.Of<Account>(x => x.Name)))
-            .Matching(FieldPredicateFactory.IsNotNull(Field.Of<Account>(x => x.Industry)));
+            .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))
+            .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Industry));
 
         // Act
         int oneSpecificity = onePredicate.Specificity;
@@ -346,8 +346,8 @@ public class LookupKeyTest
         // Arrange
         IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
         {
-            [FlavouredLookupKey.Get(typeof(Account), "ambiguous-a").Matching(FieldPredicateFactory.IsNotNull(Field.Of<Account>(x => x.Name)))] = typeof(AccountDataProvider),
-            [FlavouredLookupKey.Get(typeof(Account), "ambiguous-b").Matching(FieldPredicateFactory.IsNotNull(Field.Of<Account>(x => x.Name)))] = typeof(AccountDataProvider),
+            [FlavouredLookupKey.Get(typeof(Account), "ambiguous-a").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] = typeof(AccountDataProvider),
+            [FlavouredLookupKey.Get(typeof(Account), "ambiguous-b").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] = typeof(AccountDataProvider),
         });
 
         // Act

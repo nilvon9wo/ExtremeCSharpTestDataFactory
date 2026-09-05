@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Reflection;
 
 using Net.Nowhereatall.Xfty.Core;
@@ -8,8 +9,8 @@ namespace Net.Nowhereatall.Xfty.Values;
 /// A context-aware value that copies another field from the *same* record.
 ///
 /// <code>
-/// .Put(Field.Of&lt;Account&gt;(nameof(Account.Name)), new LiteralExpression("Acme"))
-/// .Put(Field.Of&lt;Account&gt;(nameof(Account.Industry)), new CopyFromSiblingExpression(Field.Of&lt;Account&gt;(nameof(Account.Name))))
+/// .Put(x => x.Name, "Acme")
+/// .Put(x => x.Industry, CopyFromSiblingExpression.From&lt;Account&gt;(x => x.Name))
 /// </code>
 ///
 /// The sibling must be resolvable when this runs: a plain value (always), or
@@ -24,6 +25,10 @@ public sealed class CopyFromSiblingExpression : IContextAwareExpression
 
     public CopyFromSiblingExpression(PropertyInfo sourceField) =>
         this.sourceField = sourceField ?? throw new XftyConfigurationException("CopyFromSiblingExpression needs a source field.");
+
+    /// <summary>CopyFromSiblingExpression(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public static CopyFromSiblingExpression From<TRecord>(Expression<Func<TRecord, object?>> sourceField) =>
+        new(Field.Of(sourceField));
 
     public object? Get(GenerationContext context) =>
         context.SiblingValue(this.sourceField);

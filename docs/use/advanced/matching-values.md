@@ -15,8 +15,8 @@ write your own small class against the same interface.
 ## Same record — a context-aware sibling
 
 ```csharp
-.Put(Field.Of<Account>(x => x.ShippingCountry), "Germany")
-.Put(Field.Of<Account>(x => x.BillingCity), new CopyFromSiblingExpression(Field.Of<Account>(x => x.ShippingCountry)))
+.Put<Account>(x => x.ShippingCountry, "Germany")
+.Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCountry))
 ```
 
 Set `ShippingCountry` in one place (Provider default or override template);
@@ -27,7 +27,7 @@ Set `ShippingCountry` in one place (Provider default or override template);
 
 <!-- sketch -->
 ```csharp
-.Put(Field.Of<Contact>(x => x.Department), new SiblingCountryLabel())   // "Billing: Germany"
+.Put<Contact>(x => x.Department, new SiblingCountryLabel())   // "Billing: Germany"
 ```
 
 <!-- sketch -->
@@ -51,12 +51,13 @@ Writing and shipping one: [extend/custom-value-expressions](../../extend/custom-
 When many children must all carry a value that lives on their **one** shared
 parent:
 
+<!-- sketch -->
 ```csharp
 SharedAncestor.Put("hq", new Account { Name = "HQ", OwnerId = someOwnerId })
-    .CopyingRelatedField(Field.Of<Account>(x => x.OwnerId));   // children get the Account's OwnerId, not its Id
+    .CopyingRelatedField<Account>(x => x.OwnerId);   // children get the Account's OwnerId, not its Id
 
 new MasterTemplate(Field.Of<Case>(x => x.Id))
-    .PutRequired(Field.Of<Case>(x => x.AccountId), SharedAncestor.Get("hq"));
+    .PutRequired<Case>(x => x.AccountId, SharedAncestor.Get("hq"));
 ```
 
 Every `Case` now carries the shared Account's `OwnerId`. See
@@ -72,8 +73,7 @@ when the deferred graph is flattened:
 
 ```csharp
 // on the Account Provider
-.Put(Field.Of<Account>(x => x.Site), new CopyFromDescendantExpression(
-    Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department)))
+.Put<Account>(x => x.Site, CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department))
 ```
 
 Any other insert mode throws — the whole graph has to exist first. See

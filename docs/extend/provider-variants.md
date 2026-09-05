@@ -51,10 +51,10 @@ Use those classes directly if you prefer.)
 ```csharp
 FlavouredLookupKey.Get(typeof(Account), "strategic")
     .Matching(PredicateFactory.AnyOf([
-        FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.AnnualRevenue), 1_000_000m),
-        FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.NumberOfEmployees), 5000),
+        FieldPredicateFactory.GreaterThan<Account>(x => x.AnnualRevenue, 1_000_000m),
+        FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 5000),
     ]))
-    .Matching(PredicateFactory.Negate(FieldPredicateFactory.EqualTo(Field.Of<Account>(x => x.Type), "Prospect")));
+    .Matching(PredicateFactory.Negate(FieldPredicateFactory.EqualTo<Account>(x => x.Type, "Prospect")));
 ```
 
 `AllOf(list)` / `AnyOf(list)` / `Negate(one)` return an `IRecordPredicate`, so
@@ -88,7 +88,7 @@ public static class MyProjectLookupKeys
 {
     public static readonly ILookupKey EnterpriseAccount =
         FlavouredLookupKey.Get(typeof(Account), "enterprise")
-            .Matching(FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.NumberOfEmployees), 1000));
+            .Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 1000));
 }
 ```
 

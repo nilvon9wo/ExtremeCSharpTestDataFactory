@@ -36,15 +36,17 @@ per process.
 
 ## The simplest case
 
+<!-- sketch -->
 ```csharp
 // register once - centrally for shipped Providers (see "Packaged defaults"), or in the test
 SharedAncestor.Put("acme-hq", new Account { Name = "ACME HQ" });
 
 // reference it from any Master Template, any field, required or optional
 new MasterTemplate(Field.Of<Contact>(x => x.Id))
-    .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get("acme-hq"));
+    .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get("acme-hq"));
 ```
 
+<!-- sketch -->
 ```csharp
 List<object> contacts = new RecordProvider(typeof(Contact), lookup)
     .SetQuantityPerTemplate(50)
@@ -70,11 +72,12 @@ List<object> contacts = new RecordProvider(typeof(Contact), lookup)
 
 Nothing extra to do — configure the rungs and reference the leaf:
 
+<!-- sketch -->
 ```csharp
 // once, centrally
 SharedAncestor.Put("root", new Account { Name = "Global HQ" });
 SharedAncestor.Put("region", new Account { Name = "Region HQ" })
-    .PutRequired(Field.Of<Account>(x => x.ParentId), SharedAncestor.Get("root"));
+    .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get("root"));
 // a Contact Provider does PutRequired(Contact.AccountId, SharedAncestor.Get("region"))
 ```
 
@@ -115,12 +118,13 @@ When a bare template / key is not enough — value expressions on the shared
 record, or its *own* ancestors — chain the same `Put` API a generated parent
 takes straight onto `Put(name, …)`:
 
+<!-- sketch -->
 ```csharp
 SharedAncestor.Put("hq", new Account { Name = "HQ Ltd" })
-    .Put(Field.Of<Account>(x => x.Site), "Berlin")
-    .PutRequired(Field.Of<Account>(x => x.ParentId), new DefaultRelationship(new Account { Name = "Global HQ" }))
+    .Put<Account>(x => x.Site, "Berlin")
+    .PutRequired<Account>(x => x.ParentId, new DefaultRelationship(new Account { Name = "Global HQ" }))
     .SetInclusivity(InsertInclusivity.Required)
-    .IncludeOptional(Field.Of<Account>(x => x.OwnerId))
+    .IncludeOptional<Account>(x => x.OwnerId)
     .Put([Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Site)], "Global");
 ```
 

@@ -312,8 +312,8 @@ public class SharedAncestorHierarchyTest
         // Arrange - a literal and a context-aware expression on the shared Account
         const string name = "hierarchy-shared-value-expressions";
         _ = SharedAncestor.Put(name, new Account { Name = "HQ Ltd" })
-            .Put(Field.Of<Account>(x => x.Site), "Berlin")
-            .Put(Field.Of<Account>(x => x.Description), new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name)));
+            .Put<Account>(x => x.Site, "Berlin")
+            .Put<Account>(x => x.Description, CopyFromSiblingExpression.From<Account>(x => x.Name));
 
         // Act
         Contact leaf = SupplyOneContactUnder(name);
@@ -332,7 +332,7 @@ public class SharedAncestorHierarchyTest
         // Arrange - the shared Account gets a parent Account of its own
         const string name = "hierarchy-shared-shapes-ancestor";
         _ = SharedAncestor.Put(name, new Account { Name = "HQ" })
-            .PutRequired(Field.Of<Account>(x => x.ParentId), new DefaultRelationship(new Account { Name = "HQ Parent" }))
+            .PutRequired<Account>(x => x.ParentId, new DefaultRelationship(new Account { Name = "HQ Parent" }))
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
@@ -367,7 +367,7 @@ public class SharedAncestorHierarchyTest
             .SupplyBundle();
 
         // Assert - the shared ancestor was wired in through a path value, nothing declared on the Provider
-        Account generatedAccount = (Account)bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()![0];
+        Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
         Assert.Equal(SharedAncestor.GetId(name), generatedAccount.OwnerId);
     }
 
@@ -445,9 +445,9 @@ public class SharedAncestorHierarchyTest
             .SupplyBundle();
 
         // Assert - the shared record is present at every level of the bundle
-        Bundle regionBundle = leafBundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!;
-        Bundle divisionBundle = regionBundle.GetBundle(Field.Of<Account>(x => x.ParentId))!;
-        Bundle rootBundle = divisionBundle.GetBundle(Field.Of<Account>(x => x.ParentId))!;
+        Bundle regionBundle = leafBundle.GetBundle<Contact>(x => x.AccountId)!;
+        Bundle divisionBundle = regionBundle.GetBundle<Account>(x => x.ParentId)!;
+        Bundle rootBundle = divisionBundle.GetBundle<Account>(x => x.ParentId)!;
         Assert.Equal("Region", ((Account)regionBundle.PrimaryRecords()![0]).Name);
         Assert.Equal("Division", ((Account)divisionBundle.PrimaryRecords()![0]).Name); // present two levels down
         Assert.Equal("Global Root", ((Account)rootBundle.PrimaryRecords()![0]).Name); // and three levels down
@@ -464,7 +464,7 @@ public class SharedAncestorHierarchyTest
 
     private static void SharedAccountUnder(string name, string accountName, string sharedParentName) =>
         SharedAncestor.Put(name, new Account { Name = accountName })
-            .PutRequired(Field.Of<Account>(x => x.ParentId), SharedAncestor.Get(sharedParentName))
+            .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(sharedParentName))
             .SetInclusivity(InsertInclusivity.Required);
 
     // Fixture - supply helpers -------------------------------------------
@@ -515,7 +515,7 @@ file sealed class LeafUserProvider : IRecordProvider
     public static readonly LeafUserProvider Instance = new();
 
     private static MasterTemplate Template { get; } = new MasterTemplate(Field.Of<User>(x => x.Id))
-        .Put(Field.Of<User>(x => x.LastName), new IncrementingStringExpression("User"));
+        .Put<User>(x => x.LastName, new IncrementingStringExpression("User"));
 
     public PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
 

@@ -72,7 +72,7 @@ the relationship:
 
 <!-- sketch -->
 ```csharp
-.PutRequired(Field.Of<Case>(x => x.AccountId), new DefaultRelationship(
+.PutRequired<Case>(x => x.AccountId, new DefaultRelationship(
     MyProjectLookupKeys.VipAccount, new Account()))
 ```
 

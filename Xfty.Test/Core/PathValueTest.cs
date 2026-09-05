@@ -59,7 +59,7 @@ public class PathValueTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - the path literal overrode the Account Provider default
-        Account generatedAccount = (Account)bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()![0];
+        Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
         Assert.Equal("Aerospace", generatedAccount.Industry);
     }
 
@@ -78,7 +78,7 @@ public class PathValueTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        List<object> accounts = bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()!;
+        List<object> accounts = bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()!;
         Assert.Equal(3, accounts.Count);
         HashSet<string?> names = [.. accounts.Cast<Account>().Select(account => account.Name)];
         Assert.Equal(3, names.Count); // the incrementing strategy ran once per generated Account
@@ -93,13 +93,13 @@ public class PathValueTest
             .SetInsertMode(InsertMode.Mock)
             .Put(
                 [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Site)],
-                new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name)));
+                CopyFromSiblingExpression.From<Account>(x => x.Name));
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Account generatedAccount = (Account)bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()![0];
+        Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
         Assert.Equal(generatedAccount.Name, generatedAccount.Site); // context-aware value evaluated on the ancestor
     }
 
@@ -118,7 +118,7 @@ public class PathValueTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Account generatedAccount = (Account)bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()![0];
+        Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
         Assert.NotNull(generatedAccount.OwnerId); // the Account got a generated Owner via the path
     }
 
@@ -138,9 +138,9 @@ public class PathValueTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Bundle accountBundle = bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!;
+        Bundle accountBundle = bundle.GetBundle<Contact>(x => x.AccountId)!;
         Account generatedParent = (Account)accountBundle.PrimaryRecords()![0];
-        Account generatedGrandparent = (Account)accountBundle.GetBundle(Field.Of<Account>(x => x.ParentId))!.PrimaryRecords()![0];
+        Account generatedGrandparent = (Account)accountBundle.GetBundle<Account>(x => x.ParentId)!.PrimaryRecords()![0];
         Assert.NotNull(generatedParent.Id);
         Assert.Equal("DeepValue", generatedGrandparent.Industry);
     }
@@ -157,7 +157,7 @@ public class PathValueTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Account generatedAccount = (Account)bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()![0];
+        Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
         Assert.Equal("Aerospace", generatedAccount.Industry);
     }
 
@@ -187,19 +187,19 @@ public class PathValueTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - every level of the chain generated
-        Bundle accountBundle = bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!;
+        Bundle accountBundle = bundle.GetBundle<Contact>(x => x.AccountId)!;
         Assert.NotNull(accountBundle); // Account forced by the path
         Account generatedAccount = (Account)accountBundle.PrimaryRecords()![0];
         Assert.NotNull(generatedAccount.OwnerId); // Account.OwnerId forced by the relationship path value
 
-        Bundle ownerBundle = accountBundle.GetBundle(Field.Of<Account>(x => x.OwnerId))!;
+        Bundle ownerBundle = accountBundle.GetBundle<Account>(x => x.OwnerId)!;
         Assert.NotNull(ownerBundle); // the owner User generated
         Assert.NotNull(((User)ownerBundle.PrimaryRecords()![0]).ManagerId); // the owner generated its own Manager
 
-        Bundle managerBundle = ownerBundle.GetBundle(Field.Of<User>(x => x.ManagerId))!;
+        Bundle managerBundle = ownerBundle.GetBundle<User>(x => x.ManagerId)!;
         Assert.NotNull(managerBundle); // the Manager User (distinct Provider) generated
         Assert.NotNull(((User)managerBundle.PrimaryRecords()![0]).ManagerId); // the Manager generated its skip-level Manager
-        Assert.NotNull(managerBundle.GetBundle(Field.Of<User>(x => x.ManagerId))); // and that skip-level User is in the bundle
+        Assert.NotNull(managerBundle.GetBundle<User>(x => x.ManagerId)); // and that skip-level User is in the bundle
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public class PathValueTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Contact manager = (Contact)bundle.GetBundle(Field.Of<Contact>(x => x.ReportsToId))!.PrimaryRecords()![0];
+        Contact manager = (Contact)bundle.GetBundle<Contact>(x => x.ReportsToId)!.PrimaryRecords()![0];
         Assert.Equal("Exec", manager.Department);
     }
 
@@ -271,10 +271,10 @@ public class PathValueTest
 file sealed class ContactWithOptionalManagerProvider : IRecordProvider
 {
     private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-        .Put(Field.Of<Contact>(x => x.LastName), new IncrementingStringExpression("Contact"))
-        .Put(Field.Of<Contact>(x => x.Email), new UniqueEmailExpression("test.contact"))
-        .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account()))
-        .PutOptional(Field.Of<Contact>(x => x.ReportsToId), new DefaultRelationship(new Contact()));
+        .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Contact"))
+        .Put<Contact>(x => x.Email, new UniqueEmailExpression("test.contact"))
+        .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account()))
+        .PutOptional<Contact>(x => x.ReportsToId, new DefaultRelationship(new Contact()));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 
@@ -287,8 +287,8 @@ file sealed class ContactWithOptionalManagerProvider : IRecordProvider
 file sealed class ContactUnderSharedAccountProvider : IRecordProvider
 {
     private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-        .Put(Field.Of<Contact>(x => x.LastName), new IncrementingStringExpression("Contact"))
-        .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get("path-value-test-shared-acct"));
+        .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Contact"))
+        .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get("path-value-test-shared-acct"));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 
@@ -302,8 +302,8 @@ file sealed class ContactUnderSharedAccountProvider : IRecordProvider
 file sealed class AccountWithOptionalParentProvider : IRecordProvider
 {
     private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
-        .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Account"))
-        .PutOptional(Field.Of<Account>(x => x.ParentId), new DefaultRelationship(new Account()));
+        .Put<Account>(x => x.Name, new IncrementingStringExpression("Account"))
+        .PutOptional<Account>(x => x.ParentId, new DefaultRelationship(new Account()));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
@@ -320,7 +320,7 @@ file sealed class ChainedUserProvider : IRecordProvider
 
     public ChainedUserProvider(ILookupKey nextKey) =>
         this._template = LeafUserTemplate()
-            .PutRequired(Field.Of<User>(x => x.ManagerId), new DefaultRelationship(nextKey, new User()));
+            .PutRequired<User>(x => x.ManagerId, new DefaultRelationship(nextKey, new User()));
 
     public PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
 
@@ -331,8 +331,8 @@ file sealed class ChainedUserProvider : IRecordProvider
 
     internal static MasterTemplate LeafUserTemplate() =>
         new MasterTemplate(Field.Of<User>(x => x.Id))
-            .Put(Field.Of<User>(x => x.LastName), new IncrementingStringExpression("User"))
-            .Put(Field.Of<User>(x => x.Email), new UniqueEmailExpression("test.user"));
+            .Put<User>(x => x.LastName, new IncrementingStringExpression("User"))
+            .Put<User>(x => x.Email, new UniqueEmailExpression("test.user"));
 }
 
 file sealed class LeafUserProvider : IRecordProvider

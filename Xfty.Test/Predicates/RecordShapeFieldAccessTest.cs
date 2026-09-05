@@ -17,7 +17,7 @@ public class RecordShapeFieldAccessTest
     {
         // Arrange
         Account account = new() { Industry = "Technology" };
-        IRecordPredicate predicate = FieldPredicateFactory.EqualTo(Field.Of<Account>(x => x.Industry), "Technology");
+        IRecordPredicate predicate = FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology");
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(account);
@@ -31,7 +31,7 @@ public class RecordShapeFieldAccessTest
     {
         // Arrange
         Contact contact = new() { FirstName = "Ada", LastName = "Lovelace" };
-        IRecordPredicate predicate = FieldPredicateFactory.EqualTo(Field.Of<Contact>(x => x.LastName), "Lovelace");
+        IRecordPredicate predicate = FieldPredicateFactory.EqualTo<Contact>(x => x.LastName, "Lovelace");
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(contact);

@@ -20,7 +20,7 @@ public class PredicateFactoryTest
         AssertIsSatisfiedBy(
             PredicateFactory.AllOf(new List<IRecordPredicate>
             {
-                FieldPredicateFactory.EqualTo(Field.Of<Account>(x => x.Industry), "Technology")
+                FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology")
             }),
             new Account { Industry = "Retail" }, false);
 
@@ -29,14 +29,14 @@ public class PredicateFactoryTest
         AssertIsSatisfiedBy(
             PredicateFactory.AnyOf(new List<IRecordPredicate>
             {
-                FieldPredicateFactory.EqualTo(Field.Of<Account>(x => x.Industry), "Technology")
+                FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology")
             }),
             new Account { Industry = "Technology" }, true);
 
     [Fact]
     public void Negate_WhenTheInnerPredicateIsNotSatisfied_ReturnsTrue() =>
         AssertIsSatisfiedBy(
-            PredicateFactory.Negate(FieldPredicateFactory.EqualTo(Field.Of<Account>(x => x.Type), "Prospect")),
+            PredicateFactory.Negate(FieldPredicateFactory.EqualTo<Account>(x => x.Type, "Prospect")),
             new Account { Type = "Customer" }, true);
 
     private static void AssertIsSatisfiedBy(IRecordPredicate predicate, Account? record, bool expectedResult)

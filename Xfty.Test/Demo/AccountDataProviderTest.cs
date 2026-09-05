@@ -38,7 +38,7 @@ public class AccountDataProviderTest
         Bundle bundle = provider.CreateBundle(context, [new Account()]);
 
         // Assert
-        Account generatedAccount = (Account)bundle.GetList(Field.Of<Account>(x => x.Id))![0];
+        Account generatedAccount = (Account)bundle.GetList<Account>(x => x.Id)![0];
         Assert.NotNull(generatedAccount.Id);
         Assert.Equal(AccountDataProvider.DefaultIndustry, generatedAccount.Industry);
         Assert.Equal(AccountDataProvider.DefaultShippingCountry, generatedAccount.ShippingCountry);

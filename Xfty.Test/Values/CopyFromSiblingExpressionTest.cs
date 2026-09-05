@@ -70,7 +70,7 @@ public class CopyFromSiblingExpressionTest
         // Arrange - nothing to arrange
 
         // Act
-        object expression = new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name));
+        object expression = CopyFromSiblingExpression.From<Account>(x => x.Name);
 
         // Assert - a context-aware value, not a plain one: no misleading no-arg Get() to call
         Assert.False(expression is IValueExpression);

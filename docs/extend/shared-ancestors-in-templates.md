@@ -7,7 +7,7 @@ instead, put a `SharedAncestor` in the same slot:
 <!-- sketch -->
 ```csharp
 new MasterTemplate(Field.Of<Contact>(x => x.Id))
-    .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get("primary-account"));
+    .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get("primary-account"));
 ```
 
 `SharedAncestor` implements the relationship interface (`IDefaultRelationship`),
@@ -34,7 +34,7 @@ SharedAncestor.Put("primary-account", new Account { Name = "Primary" });
 // depth-batched sub-graph, built once
 SharedAncestor.Put("root", new Account { Name = "Global HQ" });
 SharedAncestor.Put("region", new Account { Name = "Region HQ" })
-    .PutRequired(Field.Of<Account>(x => x.ParentId), SharedAncestor.Get("root"));
+    .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get("root"));
 ```
 
 XFTY decides which by inspecting the ancestor's Provider's Master Template.

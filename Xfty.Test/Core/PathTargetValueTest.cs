@@ -69,7 +69,7 @@ public class PathTargetValueTest
     public void OfContextAware_AppliesAsAContextAwareExpression()
     {
         // Arrange
-        PathTargetValue value = PathTargetValue.OfContextAware(new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name)));
+        PathTargetValue value = PathTargetValue.OfContextAware(CopyFromSiblingExpression.From<Account>(x => x.Name));
         MasterTemplate template = new(Field.Of<Account>(x => x.Id));
 
         // Act

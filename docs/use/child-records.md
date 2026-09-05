@@ -7,11 +7,11 @@ that hang **below** a Provider's primaries.
 ```csharp
 Bundle bundle = new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Mock)
-    .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "Buyer" }).SetQuantity(3))
+    .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buyer" }).SetQuantity(3))
     .SupplyBundle();
 
 object account       = bundle.PrimaryRecords()![0];
-List<object> contacts = bundle.GetChildList(Field.Of<Contact>(x => x.AccountId));
+List<object> contacts = bundle.GetChildList<Contact>(x => x.AccountId);
 // 1 Account, 3 Contacts, each contact.AccountId == account.Id
 ```
 
@@ -25,8 +25,8 @@ property on `Contact`, so the children are Contacts. There is no type argument t
 keep in sync.
 
 ```csharp
-new ChildProvider(Field.Of<Contact>(x => x.AccountId))                       // blank template
-new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "Buyer" })
+ChildProvider.For<Contact>(x => x.AccountId)                       // blank template
+ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buyer" })
 ```
 
 | Method | |
@@ -55,9 +55,9 @@ new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department 
 
 ```csharp
 new RecordProvider(typeof(Account), lookup)
-    .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "A" }).SetQuantity(3))
-    .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "B" }).SetQuantity(2))  // additive
-    .With(new ChildProvider(Field.Of<Case>(x => x.AccountId)).SetQuantity(2))                                          // another type
+    .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "A" }).SetQuantity(3))
+    .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(2))  // additive
+    .With(ChildProvider.For<Case>(x => x.AccountId).SetQuantity(2))                                          // another type
 ```
 
 ---
@@ -91,8 +91,8 @@ new RecordProvider(typeof(Account), lookup)
     .SetOverrideTemplateList([new Account(), new Account()])
     .SetQuantityPerTemplate(4)                                                          // 8 Account primaries
     .SetInsertMode(InsertMode.Mock)
-    .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "A" }).SetQuantity(3))
-    .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "B" }).SetQuantity(2))
+    .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "A" }).SetQuantity(3))
+    .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(2))
     .SupplyBundle();
 // 8 primaries × 3 -> 24 department-A Contacts ; 8 x 2 -> 16 department-B ; 40 total
 ```
@@ -107,13 +107,13 @@ new RecordProvider(typeof(Account), lookup)
 new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Mock)
     .With(
-        new ChildProvider(Field.Of<Contact>(x => x.AccountId)).SetQuantity(3)
-            .With(new ChildProvider(Field.Of<Case>(x => x.ContactId)).SetQuantity(2)))
+        ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(3)
+            .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2)))
     .SupplyBundle();
 // per Account: 3 Contacts, and 2 Cases under each Contact (6 Cases)
 ```
 
-Read them with `bundle.GetChildBundle(Field.Of<Contact>(x => x.AccountId))!.GetChildList(Field.Of<Case>(x => x.ContactId))`.
+Read them with `bundle.GetChildBundle<Contact>(x => x.AccountId)!.GetChildList<Case>(x => x.ContactId)`.
 
 The row count **multiplies** down the tree.
 

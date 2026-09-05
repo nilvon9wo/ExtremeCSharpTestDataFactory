@@ -35,9 +35,9 @@ public class RecordProviderScenarioTest
 
         // Assert
         AssertContactGenerated(bundle);
-        Assert.NotNull(bundle.GetList(Field.Of<Contact>(x => x.AccountId)));
-        Assert.NotNull(bundle.GetBundle(Field.Of<Contact>(x => x.AccountId)));
-        Assert.NotNull(((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).AccountId); // the FK is wired
+        Assert.NotNull(bundle.GetList<Contact>(x => x.AccountId));
+        Assert.NotNull(bundle.GetBundle<Contact>(x => x.AccountId));
+        Assert.NotNull(((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId); // the FK is wired
     }
 
     [Fact]
@@ -56,8 +56,8 @@ public class RecordProviderScenarioTest
         AssertContactGenerated(bundle);
         AssertAccountGenerated(bundle);
         Assert.Equal(
-            ((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).AccountId,
-            ((Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0]).Id); // mock Ids still wire the FK
+            ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId,
+            ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id); // mock Ids still wire the FK
     }
 
     [Fact]
@@ -96,8 +96,8 @@ public class RecordProviderScenarioTest
 
     private static void AssertAccountGenerated(Bundle bundle)
     {
-        Assert.NotNull(bundle.GetBundle(Field.Of<Contact>(x => x.AccountId)));
-        List<object>? accounts = bundle.GetList(Field.Of<Contact>(x => x.AccountId));
+        Assert.NotNull(bundle.GetBundle<Contact>(x => x.AccountId));
+        List<object>? accounts = bundle.GetList<Contact>(x => x.AccountId);
         Assert.NotNull(accounts);
 
         Account generatedAccount = (Account)accounts![0];
@@ -108,7 +108,7 @@ public class RecordProviderScenarioTest
 
     private static void AssertContactGenerated(Bundle bundle)
     {
-        List<object>? contacts = bundle.GetList(Field.Of<Contact>(x => x.Id));
+        List<object>? contacts = bundle.GetList<Contact>(x => x.Id);
         Assert.NotNull(contacts);
         AssertContactGenerated((Contact)contacts![0]);
     }

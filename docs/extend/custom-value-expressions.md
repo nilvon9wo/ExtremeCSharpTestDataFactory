@@ -43,7 +43,7 @@ public sealed class NextWeekday : IValueExpression
 
 <!-- sketch -->
 ```csharp
-.Put(Field.Of<Contact>(x => x.Birthdate), new NextWeekday())
+.Put<Contact>(x => x.Birthdate, new NextWeekday())
 ```
 
 Stateful expressions (incrementing, unique) are fine and common.
@@ -110,7 +110,7 @@ public sealed class AccountNamePlusCountry : IContextAwareExpression
             return null;
         }
 
-        List<object>? accounts = context.BundleSoFar.GetList(Field.Of<Contact>(x => x.AccountId));
+        List<object>? accounts = context.BundleSoFar.GetList<Contact>(x => x.AccountId);
         return accounts is null || context.RowIndex >= accounts.Count
             ? null
             : (Account)accounts[context.RowIndex];
@@ -162,7 +162,7 @@ public sealed class HasAnyWebOriginCase : IDeferredExpression
 
 <!-- sketch -->
 ```csharp
-.Put(Field.Of<Account>(x => x.Description), new HasAnyWebOriginCase())
+.Put<Account>(x => x.Description, new HasAnyWebOriginCase())
 ```
 
 `graph.ChildrenOf(recordIndex, childLookupField)` returns every generated

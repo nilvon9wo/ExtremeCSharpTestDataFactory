@@ -86,7 +86,7 @@ public class PerformanceTest
 
         // Assert
         Assert.Equal(15, bundle.PrimaryRecords()!.Count);
-        Assert.Equal(150, bundle.GetChildList(Field.Of<Contact>(x => x.AccountId)).Count);
+        Assert.Equal(150, bundle.GetChildList<Contact>(x => x.AccountId).Count);
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(2), $"took {stopwatch.Elapsed}");
     }
 
@@ -97,8 +97,8 @@ public class PerformanceTest
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetQuantityPerTemplate(3000)
             .SetInsertMode(InsertMode.Mock)
-            .Put(Field.Of<Contact>(x => x.Department), new IncrementingStringExpression("Dept"))
-            .Put(Field.Of<Contact>(x => x.FirstName), new CopyFromSiblingExpression(Field.Of<Contact>(x => x.Department)));
+            .Put<Contact>(x => x.Department, new IncrementingStringExpression("Dept"))
+            .Put<Contact>(x => x.FirstName, CopyFromSiblingExpression.From<Contact>(x => x.Department));
 
         // Act
         Stopwatch stopwatch = Stopwatch.StartNew();
