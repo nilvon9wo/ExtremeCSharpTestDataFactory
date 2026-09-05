@@ -4,7 +4,7 @@ using Net.Nowhereatall.Xfty.Demo;
 using Net.Nowhereatall.Xfty.Lookup;
 using NSubstitute;
 
-namespace Net.Nowhereatall.Xfty.Test;
+namespace Net.Nowhereatall.Xfty.Test.Core;
 
 /// <summary>
 /// Proves <see cref="GenerationContext"/>'s constructor guards/defaults and

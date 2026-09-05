@@ -3,7 +3,7 @@ using Net.Nowhereatall.Xfty.Demo;
 using Net.Nowhereatall.Xfty.Lookup;
 using Net.Nowhereatall.Xfty.Persistence;
 
-namespace Net.Nowhereatall.Xfty.Test;
+namespace Net.Nowhereatall.Xfty.Test.Core;
 
 /// <summary>
 /// End-to-end proof that the ported engine actually works together:

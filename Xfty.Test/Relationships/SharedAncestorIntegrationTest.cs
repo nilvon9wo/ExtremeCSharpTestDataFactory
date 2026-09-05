@@ -3,7 +3,7 @@ using Net.Nowhereatall.Xfty.Demo;
 using Net.Nowhereatall.Xfty.Lookup;
 using Net.Nowhereatall.Xfty.Relationships;
 
-namespace Net.Nowhereatall.Xfty.Test;
+namespace Net.Nowhereatall.Xfty.Test.Relationships;
 
 /// <summary>
 /// End-to-end proof that SharedAncestor/SharedAncestorResolver actually

@@ -33,6 +33,8 @@ public sealed class Account
 
     public string? OwnerId { get; init; }
 
+    public string? ParentId { get; init; }
+
     public string? AccountNumber { get; init; }
 
     public string? ShippingStreet { get; init; }

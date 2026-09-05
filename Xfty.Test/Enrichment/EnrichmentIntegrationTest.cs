@@ -3,7 +3,7 @@ using Net.Nowhereatall.Xfty.Demo;
 using Net.Nowhereatall.Xfty.Enrichment;
 using Net.Nowhereatall.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.Test;
+namespace Net.Nowhereatall.Xfty.Test.Enrichment;
 
 /// <summary>
 /// End-to-end proof that BundleEnricher actually works through the real
