@@ -34,27 +34,29 @@ relying on that part.
 GitHub can't render a wide table without forcing a horizontal scrollbar, so
 this one stays to symbols only — the two prose sections right below it
 ("real edge" / "genuinely loses") carry the actual explanation for every row
-that needs one.
+that needs one. Rows are grouped by whether XFTY has the capability at all
+(gaps at the bottom), then sorted most-common to least-common within each
+group, by how many of the five tools have it.
 
 ✅ yes · ❌ no · ◐ partial · — not applicable
 
 | Capability | XFTY | AutoFixture | Bogus | AutoBogus | NBuilder |
 |---|:---:|:---:|:---:|:---:|:---:|
-| Realistic fake data out of the box | ❌ | ❌ | ✅ | ✅ | ❌ |
-| Auto-populates every property, no rules written | ❌ | ✅ | ❌ | ✅ | ❌ |
 | Fluent per-record override of specific fields | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Deep extensibility hook (custom strategy per type) | ✅ | ✅ | ✅ | ✅ | ◐ |
 | Recursive nested-object population | ✅ | ✅ | ◐ | ✅ | ❌ |
+| Self-referential / circular relationship cycle guard | ✅ | ◐ | — | ◐ | — |
+| Runtime-conditioned recipe choice for the same type | ✅ | ◐ | ◐ | ❌ | ❌ |
+| Sibling/ancestor/descendant-derived value, with a mis-ordering guard | ✅ | ❌ | ◐ | ❌ | ❌ |
 | Required vs. optional relationship control, per call | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Shared parent deduplicated across many children | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Self-referential / circular relationship cycle guard | ✅ | ◐ | — | ◐ | — |
-| Sibling/ancestor/descendant-derived value, with a mis-ordering guard | ✅ | ❌ | ◐ | ❌ | ❌ |
-| Runtime-conditioned recipe choice for the same type | ✅ | ◐ | ◐ | ❌ | ❌ |
 | Insert-mode abstraction (mock vs. actually persist) | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Dependency-ordered batch insert across mixed types | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Graft onto an `init`-only model a real constructor rejects | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Realistic fake data out of the box | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Auto-populates every property, no rules written | ❌ | ✅ | ❌ | ✅ | ❌ |
 | Auto-mocking of service dependencies (not data) | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Deep extensibility hook (custom strategy per type) | ✅ | ✅ | ✅ | ✅ | ◐ |
-| Maturity / ecosystem | new — first beta | very mature | mature | smaller, less active recently | older, largely superseded |
+| Maturity / ecosystem *(not a capability — kept last, unsorted)* | new — first beta | very mature | mature | smaller, less active recently | older, largely superseded |
 
 ---
 
