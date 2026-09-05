@@ -37,9 +37,7 @@ public static class InjectionPathResolver
     public static PropertyInfo ChildRelationshipField(Type parentType, PropertyInfo childLookupField)
     {
         Type childType = DeclaringTypeOf(childLookupField);
-        List<PropertyInfo> candidates = parentType.GetProperties()
-            .Where(property => ElementTypeOf(property.PropertyType) == childType)
-            .ToList();
+        List<PropertyInfo> candidates = [.. parentType.GetProperties().Where(property => ElementTypeOf(property.PropertyType) == childType)];
         return candidates.Count switch
         {
             1 => candidates[0],

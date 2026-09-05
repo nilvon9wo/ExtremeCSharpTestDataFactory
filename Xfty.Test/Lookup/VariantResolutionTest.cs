@@ -13,10 +13,10 @@ namespace Net.Nowhereatall.Xfty.Test.Lookup;
 public class VariantResolutionTest
 {
     private static readonly ILookupKey Big =
-        FlavouredLookupKey.Get(typeof(Account), "reconcile-big").Matching(FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.NumberOfEmployees), 1000));
+        FlavouredLookupKey.Get(typeof(Account), "reconcile-big").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 1000));
 
     private static readonly ILookupKey Small =
-        FlavouredLookupKey.Get(typeof(Account), "reconcile-small").Matching(FieldPredicateFactory.LessThan(Field.Of<Account>(x => x.NumberOfEmployees), 10));
+        FlavouredLookupKey.Get(typeof(Account), "reconcile-small").Matching(FieldPredicateFactory.LessThan<Account>(x => x.NumberOfEmployees, 10));
 
     private static IProviderLookup Lookup() =>
         ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>

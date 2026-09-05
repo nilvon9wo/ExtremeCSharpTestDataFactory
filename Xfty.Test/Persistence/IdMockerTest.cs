@@ -6,11 +6,10 @@ namespace Net.Nowhereatall.Xfty.Test.Persistence;
 
 /// <summary>
 /// Proves IdMocker, which fabricates a unique placeholder identifier without
-/// touching a database. Not ported: Apex's key-prefix/18-character-Id-shape
-/// tests - this port's mocked Id is a plain "mock-N" string with no per-type
-/// structure at all (see IdMocker's own doc comment: a real Salesforce Id
-/// shape is meaningless outside a Salesforce org), and the SOQL-backed
-/// "not a real record" test has nothing to query against in the first place.
+/// touching a database. The mocked Id is a plain "mock-N" string with no
+/// per-type structure at all - there is no database-specific Id shape to
+/// validate against, and no query layer here to prove "not a real record"
+/// against either.
 /// </summary>
 public class IdMockerTest
 {

@@ -4,7 +4,7 @@ using Net.Nowhereatall.Xfty.Demo;
 
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
-/// <summary>Proves AncestorPathWalker - reading a field several relationship hops up a generated ancestor graph. Pure in-memory, no DML/SOQL.</summary>
+/// <summary>Proves AncestorPathWalker - reading a field several relationship hops up a generated ancestor graph. Pure in-memory, no database access.</summary>
 public class AncestorPathWalkerTest
 {
     [Fact]
@@ -13,7 +13,7 @@ public class AncestorPathWalkerTest
         // Arrange - two Contacts, each with its own parent Account carrying a distinct name
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact(), new Contact()]);
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]);
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]);
         List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
 
         // Act
@@ -28,9 +28,9 @@ public class AncestorPathWalkerTest
     {
         // Arrange - Contact -> Account (sub-bundle) -> parent Account (list), only the deepest name set
         Bundle accountBundle = new();
-        _ = accountBundle.Put(Field.Of<Account>(x => x.ParentId), [new Account { Name = "Grandparent" }]);
+        _ = accountBundle.Put<Account>(x => x.ParentId, [new Account { Name = "Grandparent" }]);
         Bundle bundle = new();
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), accountBundle);
+        _ = bundle.Put<Contact>(x => x.AccountId, accountBundle);
         List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Name)];
 
         // Act
@@ -60,7 +60,7 @@ public class AncestorPathWalkerTest
     {
         // Arrange - one parent, ask for row 5
         Bundle bundle = new();
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account { Name = "Only" }]);
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account { Name = "Only" }]);
         List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
 
         // Act
@@ -75,7 +75,7 @@ public class AncestorPathWalkerTest
     {
         // Arrange
         Bundle bundle = new();
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account { Name = "Only" }]);
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account { Name = "Only" }]);
         List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
 
         // Act

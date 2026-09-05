@@ -1,8 +1,7 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Relationships;
-
 using Net.Nowhereatall.Xfty.Core;
 using Net.Nowhereatall.Xfty.Engine;
+using Net.Nowhereatall.Xfty.Relationships;
 namespace Net.Nowhereatall.Xfty.Engine;
 
 /// <summary>Applies each IncludeOptional(...) path by promoting its head relationship from optional to required, on a copy of the master template.</summary>

@@ -12,7 +12,7 @@ public static class PathValueApplier
 {
     public static MasterTemplate Apply(List<PathValue> pathValues, MasterTemplate template)
     {
-        List<PathValue> atTarget = pathValues.Where(pathValue => pathValue.IsAtTarget()).ToList();
+        List<PathValue> atTarget = [.. pathValues.Where(pathValue => pathValue.IsAtTarget())];
         if (atTarget.Count == 0)
         {
             return template;

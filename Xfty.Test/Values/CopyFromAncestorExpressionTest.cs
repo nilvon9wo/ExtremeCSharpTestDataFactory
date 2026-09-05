@@ -8,10 +8,10 @@ namespace Net.Nowhereatall.Xfty.Test.Values;
 
 /// <summary>
 /// Proves <see cref="CopyFromAncestorExpression"/> by building the
-/// <see cref="GenerationContext"/>/<see cref="Bundle"/> directly - the Apex
-/// original also proved this driven through a Provider; that needs the
-/// child-collection/ancestor-generation engine already exercised end-to-end
-/// in RecordProviderIntegrationTest, so isn't repeated here.
+/// <see cref="GenerationContext"/>/<see cref="Bundle"/> directly, rather than
+/// driven through a Provider - that needs the child-collection/ancestor-
+/// generation engine already exercised end-to-end in
+/// RecordProviderIntegrationTest, so isn't repeated here.
 /// </summary>
 public class CopyFromAncestorExpressionTest
 {
@@ -39,8 +39,8 @@ public class CopyFromAncestorExpressionTest
         Bundle accountBundle = new();
         accountBundle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "Wired Parent" }]);
         Bundle contactBundle = new();
-        _ = contactBundle.Put(Field.Of<Contact>(x => x.AccountId), accountBundle);
-        _ = contactBundle.Put(Field.Of<Contact>(x => x.AccountId), accountBundle.PrimaryRecords()!);
+        _ = contactBundle.Put<Contact>(x => x.AccountId, accountBundle);
+        _ = contactBundle.Put<Contact>(x => x.AccountId, accountBundle.PrimaryRecords()!);
         GenerationContext context = new GenerationContext(Lookup, InsertMode.Mock, InsertInclusivity.Required)
             .ForRecord(new Contact(), contactBundle, 0);
         CopyFromAncestorExpression expression = new(

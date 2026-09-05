@@ -8,12 +8,10 @@ namespace Net.Nowhereatall.Xfty.Test.Core;
 /// and get a valid Account graph too, and Mock mode not touching a database.
 /// Fine-grained API guards live in RecordProviderApiTest.
 ///
-/// Apex's Now-mode scenarios (real DML under System.runAs) and its two
-/// Database.update(...) round-trip tests have no C# equivalent - this port
-/// has no persistence layer, so Now throws NotSupportedException (proven in
-/// RecordProviderIntegrationTest) rather than actually inserting, and there
-/// is nothing to update. Mock mode wires the exact same graph shape/FKs
-/// Apex's Now-mode tests checked; that's what is proven here instead.
+/// Mock mode wires the exact same graph shape/FKs a real insert would; that's
+/// what is proven here. Now against a real persistence gateway (and the
+/// NotSupportedException it throws with none configured) is proven in
+/// PersistenceGatewayTest and RecordProviderIntegrationTest.
 /// </summary>
 public class RecordProviderScenarioTest
 {
@@ -35,9 +33,9 @@ public class RecordProviderScenarioTest
 
         // Assert
         AssertContactGenerated(bundle);
-        Assert.NotNull(bundle.GetList(Field.Of<Contact>(x => x.AccountId)));
-        Assert.NotNull(bundle.GetBundle(Field.Of<Contact>(x => x.AccountId)));
-        Assert.NotNull(((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).AccountId); // the FK is wired
+        Assert.NotNull(bundle.GetList<Contact>(x => x.AccountId));
+        Assert.NotNull(bundle.GetBundle<Contact>(x => x.AccountId));
+        Assert.NotNull(((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId); // the FK is wired
     }
 
     [Fact]
@@ -56,8 +54,8 @@ public class RecordProviderScenarioTest
         AssertContactGenerated(bundle);
         AssertAccountGenerated(bundle);
         Assert.Equal(
-            ((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).AccountId,
-            ((Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0]).Id); // mock Ids still wire the FK
+            ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId,
+            ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id); // mock Ids still wire the FK
     }
 
     [Fact]
@@ -96,8 +94,8 @@ public class RecordProviderScenarioTest
 
     private static void AssertAccountGenerated(Bundle bundle)
     {
-        Assert.NotNull(bundle.GetBundle(Field.Of<Contact>(x => x.AccountId)));
-        List<object>? accounts = bundle.GetList(Field.Of<Contact>(x => x.AccountId));
+        Assert.NotNull(bundle.GetBundle<Contact>(x => x.AccountId));
+        List<object>? accounts = bundle.GetList<Contact>(x => x.AccountId);
         Assert.NotNull(accounts);
 
         Account generatedAccount = (Account)accounts![0];
@@ -108,7 +106,7 @@ public class RecordProviderScenarioTest
 
     private static void AssertContactGenerated(Bundle bundle)
     {
-        List<object>? contacts = bundle.GetList(Field.Of<Contact>(x => x.Id));
+        List<object>? contacts = bundle.GetList<Contact>(x => x.Id);
         Assert.NotNull(contacts);
         AssertContactGenerated((Contact)contacts![0]);
     }

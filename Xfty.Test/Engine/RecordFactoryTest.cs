@@ -12,11 +12,9 @@ namespace Net.Nowhereatall.Xfty.Test.Engine;
 /// <summary>
 /// Proves RecordFactory - the engine that turns a Master Template into an
 /// object graph - along its two axes: relationship inclusivity (None/
-/// Required/All/PreventCascade) and insert mode (Never/Later/Mock). This
-/// port has no persistence layer, so Apex's DML-backed Now/RelatedOnly
-/// scenarios and its governor-limit ("spends no DML") test are not portable
-/// as literal database checks - Mock already proves generation never
-/// touches a database, by construction, in this port.
+/// Required/All/PreventCascade) and insert mode (Never/Later/Mock). Mock
+/// mode proves generation never touches a database, by construction; a real
+/// insert under Now is proven in PersistenceGatewayTest.
 /// </summary>
 public class RecordFactoryTest
 {
@@ -44,8 +42,8 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - no Account is generated
-        Assert.Null(bundle.GetList(Field.Of<Contact>(x => x.AccountId)));
-        Assert.Null(((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).AccountId);
+        Assert.Null(bundle.GetList<Contact>(x => x.AccountId));
+        Assert.Null(((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId);
     }
 
     [Fact]
@@ -58,9 +56,9 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        List<object> accounts = bundle.GetList(Field.Of<Contact>(x => x.AccountId))!;
+        List<object> accounts = bundle.GetList<Contact>(x => x.AccountId)!;
         _ = Assert.Single(accounts);
-        Assert.Equal(((Account)accounts[0]).Id, ((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).AccountId);
+        Assert.Equal(((Account)accounts[0]).Id, ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId);
     }
 
     [Fact]
@@ -73,7 +71,7 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - an optional relationship is skipped for Required
-        Assert.Null(bundle.GetList(Field.Of<Contact>(x => x.AccountId)));
+        Assert.Null(bundle.GetList<Contact>(x => x.AccountId));
     }
 
     [Fact]
@@ -86,7 +84,7 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - an optional relationship is generated for All
-        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(x => x.AccountId))!);
+        _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!);
     }
 
     [Fact]
@@ -99,7 +97,7 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - Required recurses into the grandparent
-        Assert.NotNull(bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.GetList(Field.Of<Account>(x => x.OwnerId)));
+        Assert.NotNull(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId));
     }
 
     [Fact]
@@ -114,8 +112,8 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(x => x.AccountId))!); // the direct Account is still generated
-        Assert.Null(bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.GetList(Field.Of<Account>(x => x.OwnerId))); // PreventCascade stops the second level generating its own relationships
+        _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!); // the direct Account is still generated
+        Assert.Null(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId)); // PreventCascade stops the second level generating its own relationships
     }
 
     [Fact]
@@ -136,7 +134,7 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - Contact.Description is copied from the parent Account.Name
-        Assert.Equal("Wired From Parent", ((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).Department);
+        Assert.Equal("Wired From Parent", ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).Department);
     }
 
     [Fact]
@@ -153,8 +151,8 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Assert.Equal(presetAccountId, ((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).AccountId); // the preset lookup value is kept
-        Assert.NotNull(bundle.GetList(Field.Of<Contact>(x => x.AccountId))); // the Account is still generated into the bundle
+        Assert.Equal(presetAccountId, ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId); // the preset lookup value is kept
+        Assert.NotNull(bundle.GetList<Contact>(x => x.AccountId)); // the Account is still generated into the bundle
     }
 
     [Fact]
@@ -170,8 +168,8 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        List<Contact> contacts = [.. bundle.GetList(Field.Of<Contact>(x => x.Id))!.Cast<Contact>()];
-        List<Account> accounts = [.. bundle.GetList(Field.Of<Contact>(x => x.AccountId))!.Cast<Account>()];
+        List<Contact> contacts = [.. bundle.GetList<Contact>(x => x.Id)!.Cast<Contact>()];
+        List<Account> accounts = [.. bundle.GetList<Contact>(x => x.AccountId)!.Cast<Account>()];
         Assert.Equal(3, contacts.Count);
         Assert.Equal(3, accounts.Count);
         HashSet<string?> accountIds = [];
@@ -205,8 +203,8 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Assert.NotNull(((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).Id);
-        Assert.NotNull(((Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0]).Id);
+        Assert.NotNull(((Contact)bundle.GetList<Contact>(x => x.Id)![0]).Id);
+        Assert.NotNull(((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id);
     }
 
     // IncludeOptional ----------------------------------------
@@ -224,8 +222,8 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(x => x.AccountId))!); // the optional Account is forced
-        Assert.Null(bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.GetList(Field.Of<Account>(x => x.OwnerId))); // but not the Account Owner - the path stopped at one step
+        _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!); // the optional Account is forced
+        Assert.Null(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId)); // but not the Account Owner - the path stopped at one step
     }
 
     [Fact]
@@ -241,8 +239,8 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(x => x.AccountId))!); // the optional Account is forced
-        _ = Assert.Single(bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.GetList(Field.Of<Account>(x => x.OwnerId))!); // and its optional Owner, one step deeper
+        _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!); // the optional Account is forced
+        _ = Assert.Single(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId)!); // and its optional Owner, one step deeper
     }
 
     [Fact]
@@ -257,7 +255,7 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - optional relationship skipped under Required
-        Assert.Null(bundle.GetList(Field.Of<Contact>(x => x.AccountId)));
+        Assert.Null(bundle.GetList<Contact>(x => x.AccountId));
     }
 
     [Fact]
@@ -312,8 +310,8 @@ public class RecordFactoryTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Assert.Null(((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).Id);
-        Assert.Null(((Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0]).Id);
+        Assert.Null(((Contact)bundle.GetList<Contact>(x => x.Id)![0]).Id);
+        Assert.Null(((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id);
     }
 
     private static void AssertIncludeOptionalRejects(List<PropertyInfo> path, string expectedMessagePart)
@@ -345,39 +343,39 @@ file sealed class LeafAccountProvider : BaseProvider
 {
     public LeafAccountProvider() =>
         this.Template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Leaf Account"));
+            .Put<Account>(x => x.Name, new IncrementingStringExpression("Leaf Account"));
 }
 
 file sealed class OptionalParentContactProvider : BaseProvider
 {
     public OptionalParentContactProvider() =>
         this.Template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-            .Put(Field.Of<Contact>(x => x.LastName), new IncrementingStringExpression("Optional Parent Contact"))
-            .PutOptional(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account()));
+            .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Optional Parent Contact"))
+            .PutOptional<Contact>(x => x.AccountId, new DefaultRelationship(new Account()));
 }
 
 file sealed class DeepAccountProvider : BaseProvider
 {
     public DeepAccountProvider() =>
         this.Template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Deep Account"))
-            .PutRequired(Field.Of<Account>(x => x.OwnerId), new DefaultRelationship(new User()));
+            .Put<Account>(x => x.Name, new IncrementingStringExpression("Deep Account"))
+            .PutRequired<Account>(x => x.OwnerId, new DefaultRelationship(new User()));
 }
 
 file sealed class DeepContactProvider : BaseProvider
 {
     public DeepContactProvider() =>
         this.Template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-            .Put(Field.Of<Contact>(x => x.LastName), new IncrementingStringExpression("Deep Contact"))
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account()));
+            .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Deep Contact"))
+            .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account()));
 }
 
-/// <summary>Apex's original copies the parent's Name onto Contact.Description via a related-field relationship; this demo Contact has no writable Description, so Department stands in.</summary>
+/// <summary>Copies the parent Account's Name onto Contact.Department via a related-field relationship (a writable stand-in - Contact.Description isn't settable on this demo type).</summary>
 file sealed class RelatedFieldContactProvider : BaseProvider
 {
     public RelatedFieldContactProvider() =>
         this.Template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-            .Put(Field.Of<Contact>(x => x.LastName), new IncrementingStringExpression("Related Field Contact"))
+            .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Related Field Contact"))
             .PutRequired(
                 Field.Of<Contact>(x => x.Department),
                 new DefaultRelationship(new Account { Name = "Wired From Parent" }, Field.Of<Account>(x => x.Name)));
@@ -387,13 +385,13 @@ file sealed class OptionalOwnerAccountProvider : BaseProvider
 {
     public OptionalOwnerAccountProvider() =>
         this.Template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Opt Owner Account"))
-            .PutOptional(Field.Of<Account>(x => x.OwnerId), new DefaultRelationship(new User()));
+            .Put<Account>(x => x.Name, new IncrementingStringExpression("Opt Owner Account"))
+            .PutOptional<Account>(x => x.OwnerId, new DefaultRelationship(new User()));
 }
 
 file sealed class LeafUserProvider : BaseProvider
 {
     public LeafUserProvider() =>
         this.Template = new MasterTemplate(Field.Of<User>(x => x.Id))
-            .Put(Field.Of<User>(x => x.LastName), new IncrementingStringExpression("User"));
+            .Put<User>(x => x.LastName, new IncrementingStringExpression("User"));
 }

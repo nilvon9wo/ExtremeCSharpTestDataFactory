@@ -4,7 +4,7 @@ using Net.Nowhereatall.Xfty.Persistence;
 
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
-/// <summary>Proves Bundle, the container that preserves the shape of a generated object graph. Pure in-memory structure, no DML/SOQL.</summary>
+/// <summary>Proves Bundle, the container that preserves the shape of a generated object graph. Pure in-memory structure, no database access.</summary>
 public class BundleTest
 {
     // Put / GetList / GetBundle -------------------------------------
@@ -17,11 +17,11 @@ public class BundleTest
         Bundle bundle = new();
 
         // Act
-        Bundle returned = bundle.Put(Field.Of<Account>(x => x.Id), accounts);
+        Bundle returned = bundle.Put<Account>(x => x.Id, accounts);
 
         // Assert - Put is chainable
         Assert.Same(bundle, returned);
-        Assert.Equal(accounts, bundle.GetList(Field.Of<Account>(x => x.Id)));
+        Assert.Equal(accounts, bundle.GetList<Account>(x => x.Id));
     }
 
     [Fact]
@@ -32,10 +32,10 @@ public class BundleTest
         Bundle parent = new();
 
         // Act
-        _ = parent.Put(Field.Of<Contact>(x => x.AccountId), child);
+        _ = parent.Put<Contact>(x => x.AccountId, child);
 
         // Assert
-        Assert.Same(child, parent.GetBundle(Field.Of<Contact>(x => x.AccountId)));
+        Assert.Same(child, parent.GetBundle<Contact>(x => x.AccountId));
     }
 
     [Fact]
@@ -47,12 +47,12 @@ public class BundleTest
 
         // Act
         Bundle bundle = new Bundle()
-            .Put(Field.Of<Contact>(x => x.AccountId), accounts)
-            .Put(Field.Of<Contact>(x => x.AccountId), child);
+            .Put<Contact>(x => x.AccountId, accounts)
+            .Put<Contact>(x => x.AccountId, child);
 
         // Assert
-        Assert.Equal(accounts, bundle.GetList(Field.Of<Contact>(x => x.AccountId)));
-        Assert.Same(child, bundle.GetBundle(Field.Of<Contact>(x => x.AccountId)));
+        Assert.Equal(accounts, bundle.GetList<Contact>(x => x.AccountId));
+        Assert.Same(child, bundle.GetBundle<Contact>(x => x.AccountId));
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class BundleTest
         Bundle bundle = new();
 
         // Act
-        List<object>? missing = bundle.GetList(Field.Of<Account>(x => x.Id));
+        List<object>? missing = bundle.GetList<Account>(x => x.Id);
 
         // Assert
         Assert.Null(missing);
@@ -75,7 +75,7 @@ public class BundleTest
         Bundle bundle = new();
 
         // Act
-        Bundle? missing = bundle.GetBundle(Field.Of<Account>(x => x.Id));
+        Bundle? missing = bundle.GetBundle<Account>(x => x.Id);
 
         // Assert
         Assert.Null(missing);
@@ -88,7 +88,7 @@ public class BundleTest
     {
         // Arrange
         Bundle bundle = new();
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]);
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]);
 
         // Act
         object? rowOneName = bundle.GetValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)], 1);
@@ -102,7 +102,7 @@ public class BundleTest
     {
         // Arrange
         Bundle bundle = new();
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account { Name = "First" }]);
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account { Name = "First" }]);
 
         // Act
         object? firstName = bundle.GetValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)]);
@@ -180,7 +180,7 @@ public class BundleTest
             new Contact { LastName = "C1", AccountId = accountOne },
             new Contact { LastName = "C2", AccountId = accountZero },
         ]);
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account { Id = accountZero }, new Account { Id = accountOne }]);
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account { Id = accountZero }, new Account { Id = accountOne }]);
 
         // Act
         List<object> onAccountZero = bundle.PrimariesResolvingTo(Field.Of<Contact>(x => x.AccountId), 0);
@@ -197,7 +197,7 @@ public class BundleTest
         // Arrange - no Ids anywhere, so ancestor row N pairs with primary row N
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact { LastName = "C0" }, new Contact { LastName = "C1" }]);
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account(), new Account()]);
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account(), new Account()]);
 
         // Act
         List<object> onRowOne = bundle.PrimariesResolvingTo(Field.Of<Contact>(x => x.AccountId), 1);
@@ -213,7 +213,7 @@ public class BundleTest
         // Arrange
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact { LastName = "C0" }]);
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account()]);
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account()]);
 
         // Act
         List<object> none = bundle.PrimariesResolvingTo(Field.Of<Contact>(x => x.AccountId), 5);

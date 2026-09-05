@@ -1,9 +1,9 @@
+using System.Linq.Expressions;
 using System.Reflection;
+using Net.Nowhereatall.Xfty.Engine;
 using Net.Nowhereatall.Xfty.Lookup;
 using Net.Nowhereatall.Xfty.Relationships;
 using Net.Nowhereatall.Xfty.Values;
-
-using Net.Nowhereatall.Xfty.Engine;
 namespace Net.Nowhereatall.Xfty.Core;
 
 /// <summary>
@@ -45,6 +45,14 @@ public sealed class ChildProvider
         this.template = template ?? Activator.CreateInstance(this.ChildType)!;
     }
 
+    /// <summary>ChildProvider(field), naming field by lambda instead of Field.Of&lt;TChild&gt;(...).</summary>
+    public static ChildProvider For<TChild>(Expression<Func<TChild, object?>> relationshipField) =>
+        new(Field.Of(relationshipField));
+
+    /// <summary>ChildProvider(field, template), naming field by lambda instead of Field.Of&lt;TChild&gt;(...).</summary>
+    public static ChildProvider For<TChild>(Expression<Func<TChild, object?>> relationshipField, TChild template) =>
+        new(Field.Of(relationshipField), template);
+
     public PropertyInfo RelationshipField { get; }
 
     public Type ChildType { get; }
@@ -72,6 +80,26 @@ public sealed class ChildProvider
 
     public ChildProvider PutOptional(PropertyInfo field, IDefaultRelationship relationship) =>
         this.AddPendingPut(ChildProviderPendingPut.OfOptionalRelationship(field, relationship));
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public ChildProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression valueExpression) =>
+        this.Put(Field.Of(field), valueExpression);
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public ChildProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IContextAwareExpression contextAwareExpression) =>
+        this.Put(Field.Of(field), contextAwareExpression);
+
+    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public ChildProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, object? literal) =>
+        this.Put(Field.Of(field), literal);
+
+    /// <summary>PutRequired(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public ChildProvider PutRequired<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship) =>
+        this.PutRequired(Field.Of(field), relationship);
+
+    /// <summary>PutOptional(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public ChildProvider PutOptional<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship) =>
+        this.PutOptional(Field.Of(field), relationship);
 
     private ChildProvider AddPendingPut(ChildProviderPendingPut pendingPut)
     {
@@ -121,7 +149,7 @@ public sealed class ChildProvider
 
     /// <summary>Build the quantity child templates for one primary, back-reference set.</summary>
     public List<object> TemplatesForParent(object? parentId) =>
-        Enumerable.Range(0, this.quantity).Select(_ => this.CloneWithBackReference(parentId)).ToList();
+        [.. Enumerable.Range(0, this.quantity).Select(_ => this.CloneWithBackReference(parentId))];
 
     private object CloneWithBackReference(object? parentId)
     {

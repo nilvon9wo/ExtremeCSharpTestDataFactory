@@ -1,8 +1,7 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Relationships;
-
 using Net.Nowhereatall.Xfty.Core;
 using Net.Nowhereatall.Xfty.Engine;
+using Net.Nowhereatall.Xfty.Relationships;
 namespace Net.Nowhereatall.Xfty.Engine;
 
 /// <summary>Points each primary record's lookup at the matching generated ancestor.</summary>
@@ -19,13 +18,16 @@ public sealed class LookupWiring
         this.relationships = MergeRelationships(template);
     }
 
+    /// <summary>
+    /// Wires whatever ancestors are actually present in the bundle. There is no
+    /// need to re-check inclusivity here: <see cref="AncestorGenerator"/> already
+    /// decided what belongs in the bundle, honouring both the call's inclusivity
+    /// and any per-call forced relationship (<c>IncludeOptional</c>) - the latter
+    /// generates fully formed even under <see cref="InsertInclusivity.None"/>, so
+    /// this step must still wire it up.
+    /// </summary>
     public void Wire()
     {
-        if (this.context.Inclusivity == InsertInclusivity.None)
-        {
-            return;
-        }
-
         List<object> records = this.bundle.PrimaryRecords()!;
         records
             .Select((record, row) => (record, row))

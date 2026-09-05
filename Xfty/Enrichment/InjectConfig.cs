@@ -21,10 +21,10 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 ///   the child-lookup hops read downward then the field to set. value is a
 ///   literal (every child gets it), a List&lt;object&gt; (one per child, in
 ///   GetChildList order), or an IValueExpression (resolved fresh per child);
-/// - ParentDepth(n) - cap the ancestor climb (default 5, the SOQL limit);
+/// - ParentDepth(n) - cap the ancestor climb (default 5, a sane query-shape limit);
 /// - ChildDepth(n) - how many levels of nested child collections (default 1;
-///   n &gt; 1 needs BreakSoqlLimits());
-/// - BreakSoqlLimits() - lift the ceiling on ParentDepth, ChildDepth, and the
+///   n &gt; 1 needs AllowDeeperGraph());
+/// - AllowDeeperGraph() - lift the ceiling on ParentDepth, ChildDepth, and the
 ///   InjectParent path length.
 ///
 /// A plain state carrier - the enricher reads the fields, nothing here acts.
@@ -32,8 +32,8 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 /// </summary>
 public sealed class InjectConfig
 {
-    public const int SoqlParentHops = 5;
-    public const int SoqlChildDepth = 1;
+    public const int DefaultParentDepthLimit = 5;
+    public const int DefaultChildDepthLimit = 1;
 
     public bool FromAllParents { get; }
 
@@ -53,11 +53,11 @@ public sealed class InjectConfig
 
     public List<ChildValue> ChildValues { get; } = [];
 
-    public int ParentDepthLimit { get; private set; } = SoqlParentHops;
+    public int ParentDepthLimit { get; private set; } = DefaultParentDepthLimit;
 
-    public int ChildDepthLimit { get; private set; } = SoqlChildDepth;
+    public int ChildDepthLimit { get; private set; } = DefaultChildDepthLimit;
 
-    public bool SoqlLimitsLifted { get; private set; }
+    public bool DepthLimitsLifted { get; private set; }
 
     private InjectConfig(bool fromAllParents, bool fromAllChildren)
     {
@@ -141,17 +141,17 @@ public sealed class InjectConfig
         return this;
     }
 
-    /// <summary>How many levels of nested child collections. Default 1; hops &gt; 1 needs BreakSoqlLimits().</summary>
+    /// <summary>How many levels of nested child collections. Default 1; hops &gt; 1 needs AllowDeeperGraph().</summary>
     public InjectConfig ChildDepth(int hops)
     {
         this.ChildDepthLimit = hops;
         return this;
     }
 
-    /// <summary>Allow ParentDepth, ChildDepth and the InjectParent path length to exceed what one SOQL could return.</summary>
-    public InjectConfig BreakSoqlLimits()
+    /// <summary>Allow ParentDepth, ChildDepth and the InjectParent path length to exceed what one query round-trip should reasonably return.</summary>
+    public InjectConfig AllowDeeperGraph()
     {
-        this.SoqlLimitsLifted = true;
+        this.DepthLimitsLifted = true;
         return this;
     }
 }

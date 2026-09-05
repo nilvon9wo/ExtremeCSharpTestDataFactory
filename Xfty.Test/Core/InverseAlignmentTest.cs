@@ -4,7 +4,7 @@ using Net.Nowhereatall.Xfty.Persistence;
 
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
-/// <summary>Proves InverseAlignment - for each parent, the children pointing back at it. Pure in-memory, no DML/SOQL.</summary>
+/// <summary>Proves InverseAlignment - for each parent, the children pointing back at it. Pure in-memory, no database access.</summary>
 public class InverseAlignmentTest
 {
     [Fact]

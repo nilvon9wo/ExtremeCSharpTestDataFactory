@@ -74,7 +74,7 @@ Three overloads save a call for the common starting points:
 new RecordProvider(new Contact { FirstName = "Alice" }, lookup);
 
 // from a list of templates - derives the record type from the first
-new RecordProvider(new List<object> { new Contact(), new Contact() }, lookup);
+new RecordProvider([new Contact(), new Contact()], lookup);
 
 // from a lookup key - derives the record type from the key and pins that variant
 new RecordProvider(LookupKey.Get(typeof(Contact)), lookup);

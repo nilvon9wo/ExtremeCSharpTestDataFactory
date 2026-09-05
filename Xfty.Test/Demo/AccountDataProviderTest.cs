@@ -5,9 +5,10 @@ namespace Net.Nowhereatall.Xfty.Test.Demo;
 
 /// <summary>
 /// Proves AccountDataProvider - its identity, its Master Template defaults,
-/// and a generated Account carrying them. This port has no persistence layer,
-/// so Apex's NOW/DML-backed test is adapted to Mock, which proves the same
-/// wiring without a database.
+/// and a generated Account carrying them. Uses Mock rather than Now/a real
+/// persistence gateway, since the wiring under test is unaffected by whether
+/// anything actually gets saved - see PersistenceGatewayTest for the
+/// insert-mode proof itself.
 /// </summary>
 public class AccountDataProviderTest
 {
@@ -38,7 +39,7 @@ public class AccountDataProviderTest
         Bundle bundle = provider.CreateBundle(context, [new Account()]);
 
         // Assert
-        Account generatedAccount = (Account)bundle.GetList(Field.Of<Account>(x => x.Id))![0];
+        Account generatedAccount = (Account)bundle.GetList<Account>(x => x.Id)![0];
         Assert.NotNull(generatedAccount.Id);
         Assert.Equal(AccountDataProvider.DefaultIndustry, generatedAccount.Industry);
         Assert.Equal(AccountDataProvider.DefaultShippingCountry, generatedAccount.ShippingCountry);

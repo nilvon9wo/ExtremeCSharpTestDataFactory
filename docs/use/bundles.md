@@ -29,8 +29,8 @@ too.
 Lists are retrieved using the **field that produced them**.
 
 ```csharp
-List<object> contacts = bundle.GetList(Field.Of<Contact>(x => x.Id))!;
-List<object> accounts = bundle.GetList(Field.Of<Contact>(x => x.AccountId))!;
+List<object> contacts = bundle.GetList<Contact>(x => x.Id)!;
+List<object> accounts = bundle.GetList<Contact>(x => x.AccountId)!;
 ```
 
 `bundle.GetList(field)` stays aligned 1:1 with the primary records — entry *i* of
@@ -45,9 +45,9 @@ deep as the graph does. If the Contact's Account is itself generated with a
 parent Account:
 
 ```csharp
-Bundle accountBundle = bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!;
-Bundle parentAccountBundle = accountBundle.GetBundle(Field.Of<Account>(x => x.ParentId))!;
-object parentAccount = parentAccountBundle.GetList(Field.Of<Account>(x => x.Id))![0];
+Bundle accountBundle = bundle.GetBundle<Contact>(x => x.AccountId)!;
+Bundle parentAccountBundle = accountBundle.GetBundle<Account>(x => x.ParentId)!;
+object parentAccount = parentAccountBundle.GetList<Account>(x => x.Id)![0];
 ```
 
 ```text
@@ -91,8 +91,8 @@ off the primaries. Read them back off the same bundle:
 
 ```csharp
 object account            = bundle.PrimaryRecords()![0];
-List<object> contacts     = bundle.GetChildList(Field.Of<Contact>(x => x.AccountId));
-Bundle? kids               = bundle.GetChildBundle(Field.Of<Contact>(x => x.AccountId));   // navigate on to grandchildren / the children's own parents
+List<object> contacts     = bundle.GetChildList<Contact>(x => x.AccountId);
+Bundle? kids               = bundle.GetChildBundle<Contact>(x => x.AccountId);   // navigate on to grandchildren / the children's own parents
 ```
 
 | Call | Returns |

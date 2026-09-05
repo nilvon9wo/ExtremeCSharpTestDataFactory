@@ -35,7 +35,7 @@ public sealed class MapBackedLookup : IProviderLookup, ISharedAncestorDefaults
     {
         ISet<ILookupKey> keys = this.providerByKey is not null
             ? this.providerByKey.Keys.ToHashSet()
-            : this.providerTypeByKey!.Keys.ToHashSet();
+            : [.. this.providerTypeByKey!.Keys];
         return ProviderLookups.KeysFor(keys, record);
     }
 }

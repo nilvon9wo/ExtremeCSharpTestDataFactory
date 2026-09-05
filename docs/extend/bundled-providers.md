@@ -18,11 +18,11 @@ All three live in `Net.Nowhereatall.Xfty.Demo`.
 pattern with this port's two Providers, and the framework uses it for its own
 self-tests.
 
-> Apex also shipped a third bundled Provider, `XFTY_DefaultUserDataProvider`,
-> with test-user helpers (`TEST_ADMIN_USER`, `profileIdFor`, `roleIdFor`). None
-> of that has a C# analog — no live org, no `Profile`/`UserRole` to query — and
-> it is not ported. See [use/test-user-helpers](../use/test-user-helpers.md)
-> and [reference/known-issues.md](../reference/known-issues.md). This port's
+> A bundled Provider exposing ready-made test-user helpers (an admin-
+> equivalent user, role/profile lookups) isn't provided here - there's no
+> role/profile-style schema for it to resolve against. See
+> [use/test-user-helpers](../use/test-user-helpers.md) and
+> [reference/known-issues.md](../reference/known-issues.md). This port's
 > demo `User` (`Id`, `FirstName`, `LastName`, `Email`, `ManagerId`) exists only
 > to exercise deep/hierarchical relationship paths in tests, and has no bundled
 > Provider of its own — register your own `IRecordProvider` for it if your

@@ -22,8 +22,7 @@ public sealed class DeferredGraph
 
     /// <summary>The generated records that reference records[parentIndex] through childLookupField.</summary>
     public List<object> ChildrenOf(int parentIndex, PropertyInfo childLookupField) =>
-        this.links
+        [.. this.links
             .Where(link => link.ParentIndex == parentIndex && link.Field == childLookupField)
-            .Select(link => this.records[link.ChildIndex])
-            .ToList();
+            .Select(link => this.records[link.ChildIndex])];
 }

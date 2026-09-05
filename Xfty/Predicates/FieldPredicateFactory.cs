@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Net.Nowhereatall.Xfty.Predicates;
@@ -44,4 +45,27 @@ public static class FieldPredicateFactory
 
     public static IRecordPredicate InSet(PropertyInfo field, IEnumerable<object?>? acceptedValues) =>
         FieldInSetPredicate.Of(field, acceptedValues);
+
+    // Lambda overloads - naming field by lambda instead of Field.Of<TRecord>(...) --------
+
+    public static IRecordPredicate EqualTo<TRecord>(Expression<Func<TRecord, object?>> field, object? comparisonValue) =>
+        EqualTo(Field.Of(field), comparisonValue);
+
+    public static IRecordPredicate NotEqualTo<TRecord>(Expression<Func<TRecord, object?>> field, object? comparisonValue) =>
+        NotEqualTo(Field.Of(field), comparisonValue);
+
+    public static IRecordPredicate GreaterThan<TRecord>(Expression<Func<TRecord, object?>> field, object? comparisonValue) =>
+        GreaterThan(Field.Of(field), comparisonValue);
+
+    public static IRecordPredicate LessThan<TRecord>(Expression<Func<TRecord, object?>> field, object? comparisonValue) =>
+        LessThan(Field.Of(field), comparisonValue);
+
+    public static IRecordPredicate IsNull<TRecord>(Expression<Func<TRecord, object?>> field) =>
+        IsNull(Field.Of(field));
+
+    public static IRecordPredicate IsNotNull<TRecord>(Expression<Func<TRecord, object?>> field) =>
+        IsNotNull(Field.Of(field));
+
+    public static IRecordPredicate InSet<TRecord>(Expression<Func<TRecord, object?>> field, IEnumerable<object?>? acceptedValues) =>
+        InSet(Field.Of(field), acceptedValues);
 }

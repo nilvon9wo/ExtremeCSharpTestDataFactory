@@ -19,9 +19,9 @@ namespace Net.Nowhereatall.Xfty.Test.Relationships;
 /// different child types, and the end-to-end proof: a three-level all-shared
 /// spine, built once, wired everywhere.
 ///
-/// The plain one-record case is in SharedAncestorTest. Apex's Now-mode/DML-
-/// count assertions are adapted to Mock-mode equivalents proving the same
-/// wiring - this port has no persistence layer.
+/// The plain one-record case is in SharedAncestorTest. Uses Mock mode
+/// throughout to prove the wiring itself; real-insert row counts under Now
+/// are proven separately in PersistenceGatewayTest.
 /// </summary>
 public class SharedAncestorHierarchyTest
 {
@@ -226,14 +226,13 @@ public class SharedAncestorHierarchyTest
         Assert.Contains("disabled", thrown.Message);
     }
 
-    // Apex's three ManualResolutionOnly() tests are not portable to a shared-process
-    // xUnit run: unlike every other piece of SharedAncestor's state, that flag is a
-    // single global bool with no unsetter at all (in Apex or here) - Apex gets away
-    // with it because statics reset between test METHODS; once any test in this
-    // process calls SharedAncestor.ManualResolutionOnly(), every other test class
-    // relying on auto-resolution (nearly all of them) would break for the rest of
-    // the run. A dedicated, isolated test process would be needed to cover this
-    // safely, which is out of scope here.
+    // ManualResolutionOnly() is not covered by a test here: unlike every other piece
+    // of SharedAncestor's state, that flag is a single global bool with no unsetter
+    // at all. Once any test in this process calls
+    // SharedAncestor.ManualResolutionOnly(), every other test class relying on
+    // auto-resolution (nearly all of them) would break for the rest of the run. A
+    // dedicated, isolated test process would be needed to cover this safely, which
+    // is out of scope here.
 
     // Cycles ---------------------------------------------------------
 
@@ -312,8 +311,8 @@ public class SharedAncestorHierarchyTest
         // Arrange - a literal and a context-aware expression on the shared Account
         const string name = "hierarchy-shared-value-expressions";
         _ = SharedAncestor.Put(name, new Account { Name = "HQ Ltd" })
-            .Put(Field.Of<Account>(x => x.Site), "Berlin")
-            .Put(Field.Of<Account>(x => x.Description), new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name)));
+            .Put<Account>(x => x.Site, "Berlin")
+            .Put<Account>(x => x.Description, CopyFromSiblingExpression.From<Account>(x => x.Name));
 
         // Act
         Contact leaf = SupplyOneContactUnder(name);
@@ -332,7 +331,7 @@ public class SharedAncestorHierarchyTest
         // Arrange - the shared Account gets a parent Account of its own
         const string name = "hierarchy-shared-shapes-ancestor";
         _ = SharedAncestor.Put(name, new Account { Name = "HQ" })
-            .PutRequired(Field.Of<Account>(x => x.ParentId), new DefaultRelationship(new Account { Name = "HQ Parent" }))
+            .PutRequired<Account>(x => x.ParentId, new DefaultRelationship(new Account { Name = "HQ Parent" }))
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
@@ -367,7 +366,7 @@ public class SharedAncestorHierarchyTest
             .SupplyBundle();
 
         // Assert - the shared ancestor was wired in through a path value, nothing declared on the Provider
-        Account generatedAccount = (Account)bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()![0];
+        Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
         Assert.Equal(SharedAncestor.GetId(name), generatedAccount.OwnerId);
     }
 
@@ -445,9 +444,9 @@ public class SharedAncestorHierarchyTest
             .SupplyBundle();
 
         // Assert - the shared record is present at every level of the bundle
-        Bundle regionBundle = leafBundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!;
-        Bundle divisionBundle = regionBundle.GetBundle(Field.Of<Account>(x => x.ParentId))!;
-        Bundle rootBundle = divisionBundle.GetBundle(Field.Of<Account>(x => x.ParentId))!;
+        Bundle regionBundle = leafBundle.GetBundle<Contact>(x => x.AccountId)!;
+        Bundle divisionBundle = regionBundle.GetBundle<Account>(x => x.ParentId)!;
+        Bundle rootBundle = divisionBundle.GetBundle<Account>(x => x.ParentId)!;
         Assert.Equal("Region", ((Account)regionBundle.PrimaryRecords()![0]).Name);
         Assert.Equal("Division", ((Account)divisionBundle.PrimaryRecords()![0]).Name); // present two levels down
         Assert.Equal("Global Root", ((Account)rootBundle.PrimaryRecords()![0]).Name); // and three levels down
@@ -464,7 +463,7 @@ public class SharedAncestorHierarchyTest
 
     private static void SharedAccountUnder(string name, string accountName, string sharedParentName) =>
         SharedAncestor.Put(name, new Account { Name = accountName })
-            .PutRequired(Field.Of<Account>(x => x.ParentId), SharedAncestor.Get(sharedParentName))
+            .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(sharedParentName))
             .SetInclusivity(InsertInclusivity.Required);
 
     // Fixture - supply helpers -------------------------------------------
@@ -510,19 +509,12 @@ public class SharedAncestorHierarchyTest
         });
 }
 
-file sealed class LeafUserProvider : IRecordProvider
+file sealed class LeafUserProvider()
+    : SimpleRecordProvider<User>(
+        new MasterTemplate<User>(x => x.Id)
+            .Put(x => x.LastName, new IncrementingStringExpression("User")))
 {
     public static readonly LeafUserProvider Instance = new();
-
-    private static MasterTemplate Template { get; } = new MasterTemplate(Field.Of<User>(x => x.Id))
-        .Put(Field.Of<User>(x => x.LastName), new IncrementingStringExpression("User"));
-
-    public PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, Template, templateRecords);
 }
 
 /// <summary>A Provider with one required lookup to a named shared ancestor, plus an optional label field its generation needs.</summary>

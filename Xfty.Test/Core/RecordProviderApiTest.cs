@@ -122,7 +122,7 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(
-            new List<object> { new Contact { FirstName = "Alice" }, new Contact { FirstName = "Bob" } }, Lookup)
+            [new Contact { FirstName = "Alice" }, new Contact { FirstName = "Bob" }], Lookup)
             .SetInsertMode(InsertMode.Mock);
 
         // Act
@@ -181,7 +181,7 @@ public class RecordProviderApiTest
     public void Constructor_FromAHomogeneousTemplateList_IsAccepted()
     {
         // Arrange
-        RecordProvider provider = new RecordProvider(new List<object> { new Contact { FirstName = "A" }, new Contact { FirstName = "B" } }, Lookup)
+        RecordProvider provider = new RecordProvider([new Contact { FirstName = "A" }, new Contact { FirstName = "B" }], Lookup)
             .SetInsertMode(InsertMode.Mock);
 
         // Act
@@ -241,7 +241,7 @@ public class RecordProviderApiTest
     public void WithVariant_WhenCalledAfterPut_Throws()
     {
         // Arrange
-        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup).Put(Field.Of<Contact>(x => x.FirstName), "x");
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup).Put<Contact>(x => x.FirstName, "x");
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
@@ -257,7 +257,7 @@ public class RecordProviderApiTest
     public void Put_ForAValueExpressionPassedAsObject_RoutesItCorrectly()
     {
         // Arrange
-        RecordProvider provider = ContactProvider().Put(Field.Of<Contact>(x => x.FirstName), (object)new LiteralExpression("RoutedStrategy"));
+        RecordProvider provider = ContactProvider().Put<Contact>(x => x.FirstName, (object)new LiteralExpression("RoutedStrategy"));
 
         // Act
         Contact result = Assert.IsType<Contact>(provider.Supply());
@@ -271,8 +271,8 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = ContactProvider()
-            .Put(Field.Of<Contact>(x => x.FirstName), "Source")
-            .Put(Field.Of<Contact>(x => x.Department), (object)new CopyFromSiblingExpression(Field.Of<Contact>(x => x.FirstName)));
+            .Put<Contact>(x => x.FirstName, "Source")
+            .Put<Contact>(x => x.Department, (object)CopyFromSiblingExpression.From<Contact>(x => x.FirstName));
 
         // Act
         Contact result = Assert.IsType<Contact>(provider.Supply());
@@ -289,7 +289,7 @@ public class RecordProviderApiTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => provider.Put(Field.Of<Contact>(x => x.AccountId), (object)new DefaultRelationship(new Account())));
+            () => provider.Put<Contact>(x => x.AccountId, (object)new DefaultRelationship(new Account())));
 
         // Assert
         Assert.Contains("PutRequired", thrown.Message);
@@ -300,7 +300,7 @@ public class RecordProviderApiTest
     {
         // Regression guard: a defect previously made provider-level Put(...) a no-op.
         // Arrange
-        RecordProvider provider = ContactProvider().Put(Field.Of<Contact>(x => x.FirstName), new LiteralExpression("DeliberateName"));
+        RecordProvider provider = ContactProvider().Put<Contact>(x => x.FirstName, new LiteralExpression("DeliberateName"));
 
         // Act
         Contact result = Assert.IsType<Contact>(provider.Supply());
@@ -313,7 +313,7 @@ public class RecordProviderApiTest
     public void Put_ForABareLiteral_TreatsItAsAnExactValue()
     {
         // Arrange
-        RecordProvider provider = ContactProvider().Put(Field.Of<Contact>(x => x.FirstName), "LiteralFirstName");
+        RecordProvider provider = ContactProvider().Put<Contact>(x => x.FirstName, "LiteralFirstName");
 
         // Act
         Contact result = Assert.IsType<Contact>(provider.Supply());
@@ -327,7 +327,7 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = ContactProvider()
-            .Put(Field.Of<Contact>(x => x.FirstName), new LiteralExpression("FromPut"))
+            .Put<Contact>(x => x.FirstName, new LiteralExpression("FromPut"))
             .SetOverrideTemplate(new Contact { FirstName = "FromOverride" });
 
         // Act
@@ -341,7 +341,7 @@ public class RecordProviderApiTest
     public void Put_OnOneProvider_DoesNotLeakIntoALaterSeparateProvider()
     {
         // Arrange - customise one Provider, then build a pristine one on the same lookup
-        _ = ContactProvider().Put(Field.Of<Contact>(x => x.FirstName), new LiteralExpression("Customized")).Supply();
+        _ = ContactProvider().Put<Contact>(x => x.FirstName, new LiteralExpression("Customized")).Supply();
 
         // Act
         Contact pristine = Assert.IsType<Contact>(ContactProvider().Supply());
@@ -357,7 +357,7 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
-            .RemoveFromMasterTemplate(Field.Of<Contact>(x => x.Email))
+            .RemoveFromMasterTemplate<Contact>(x => x.Email)
             .SetInsertMode(InsertMode.Never);
 
         // Act
@@ -375,8 +375,8 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
-            .PutOptional(Field.Of<Contact>(x => x.ReportsToId), new DefaultRelationship(new Contact()))
-            .RemoveFromMasterTemplate(Field.Of<Contact>(x => x.AccountId))
+            .PutOptional<Contact>(x => x.ReportsToId, new DefaultRelationship(new Contact()))
+            .RemoveFromMasterTemplate<Contact>(x => x.AccountId)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -384,7 +384,7 @@ public class RecordProviderApiTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - an optional relationship is skipped for Required
-        Assert.Null(bundle.GetList(Field.Of<Contact>(x => x.ReportsToId)));
+        Assert.Null(bundle.GetList<Contact>(x => x.ReportsToId));
     }
 
     [Fact]
@@ -392,8 +392,8 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
-            .PutOptional(Field.Of<Contact>(x => x.ReportsToId), new DefaultRelationship(new Contact()))
-            .RemoveFromMasterTemplate(Field.Of<Contact>(x => x.AccountId))
+            .PutOptional<Contact>(x => x.ReportsToId, new DefaultRelationship(new Contact()))
+            .RemoveFromMasterTemplate<Contact>(x => x.AccountId)
             .SetInclusivity(InsertInclusivity.All)
             .SetInsertMode(InsertMode.Mock);
 
@@ -401,7 +401,7 @@ public class RecordProviderApiTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - an optional relationship is generated for All
-        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(x => x.ReportsToId))!);
+        _ = Assert.Single(bundle.GetList<Contact>(x => x.ReportsToId)!);
     }
 
     [Fact]
@@ -409,8 +409,8 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
-            .PutOptional(Field.Of<Contact>(x => x.ReportsToId), new DefaultRelationship(new Contact()))
-            .IncludeOptional(Field.Of<Contact>(x => x.ReportsToId))
+            .PutOptional<Contact>(x => x.ReportsToId, new DefaultRelationship(new Contact()))
+            .IncludeOptional<Contact>(x => x.ReportsToId)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -418,8 +418,8 @@ public class RecordProviderApiTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(x => x.ReportsToId))!); // the included optional relationship is generated
-        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(x => x.AccountId))!); // the required Account is still generated
+        _ = Assert.Single(bundle.GetList<Contact>(x => x.ReportsToId)!); // the included optional relationship is generated
+        _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!); // the required Account is still generated
     }
 
     [Fact]
@@ -427,7 +427,7 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
-            .IncludeOptional(Field.Of<Contact>(x => x.AccountId))
+            .IncludeOptional<Contact>(x => x.AccountId)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -435,7 +435,7 @@ public class RecordProviderApiTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - the required Account is generated, exactly once
-        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(x => x.AccountId))!);
+        _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!);
     }
 
     [Fact]
@@ -443,7 +443,7 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
-            .IncludeOptional(Field.Of<Contact>(x => x.FirstName))
+            .IncludeOptional<Contact>(x => x.FirstName)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -459,7 +459,7 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
-            .ExcludeRelationship(Field.Of<Contact>(x => x.AccountId))
+            .ExcludeRelationship<Contact>(x => x.AccountId)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -467,8 +467,8 @@ public class RecordProviderApiTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Assert.Null(bundle.GetList(Field.Of<Contact>(x => x.AccountId))); // the excluded relationship is not generated
-        Assert.Null(((Contact)bundle.GetList(Field.Of<Contact>(x => x.Id))![0]).AccountId); // and not left as an orphan reference
+        Assert.Null(bundle.GetList<Contact>(x => x.AccountId)); // the excluded relationship is not generated
+        Assert.Null(((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId); // and not left as an orphan reference
     }
 
     [Fact]
@@ -476,7 +476,7 @@ public class RecordProviderApiTest
     {
         // Arrange - a separate Provider on the same lookup, no exclusion
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
-            .ExcludeRelationship(Field.Of<Contact>(x => x.AccountId))
+            .ExcludeRelationship<Contact>(x => x.AccountId)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
         Bundle normal = new RecordProvider(typeof(Contact), Lookup)
@@ -488,8 +488,8 @@ public class RecordProviderApiTest
         Bundle excluded = provider.SupplyBundle();
 
         // Assert
-        Assert.Null(excluded.GetList(Field.Of<Contact>(x => x.AccountId)));
-        _ = Assert.Single(normal.GetList(Field.Of<Contact>(x => x.AccountId))!); // a separate Provider on the same lookup still generates the relationship
+        Assert.Null(excluded.GetList<Contact>(x => x.AccountId));
+        _ = Assert.Single(normal.GetList<Contact>(x => x.AccountId)!); // a separate Provider on the same lookup still generates the relationship
     }
 
     [Fact]
@@ -500,7 +500,7 @@ public class RecordProviderApiTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => provider.ExcludeRelationship(Field.Of<Contact>(x => x.FirstName)));
+            () => provider.ExcludeRelationship<Contact>(x => x.FirstName));
 
         // Assert
         Assert.Contains("no relationship", thrown.Message);

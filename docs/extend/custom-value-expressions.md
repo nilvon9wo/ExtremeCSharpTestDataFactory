@@ -43,7 +43,7 @@ public sealed class NextWeekday : IValueExpression
 
 <!-- sketch -->
 ```csharp
-.Put(Field.Of<Contact>(x => x.Birthdate), new NextWeekday())
+.Put<Contact>(x => x.Birthdate, new NextWeekday())
 ```
 
 Stateful expressions (incrementing, unique) are fine and common.
@@ -110,7 +110,7 @@ public sealed class AccountNamePlusCountry : IContextAwareExpression
             return null;
         }
 
-        List<object>? accounts = context.BundleSoFar.GetList(Field.Of<Contact>(x => x.AccountId));
+        List<object>? accounts = context.BundleSoFar.GetList<Contact>(x => x.AccountId);
         return accounts is null || context.RowIndex >= accounts.Count
             ? null
             : (Account)accounts[context.RowIndex];
@@ -135,8 +135,8 @@ copy.
 - **You see the ancestor before it is persisted.** Its non-Id fields are fully
   generated and safe to read in any mode. Its **`Id`** is a consistent mock
   under `Mock`, and **`null` under `Never` / `Deferred`** — the value pass runs
-  before a deferred graph flattens. (`Now` would give a real Id, but `Now`
-  always throws in this port.) If a child needs the parent's real Id under
+  before a deferred graph flattens. (`Now`, with a gateway configured, gives
+  a real Id - but not yet at this point in the pass.) If a child needs the parent's real Id under
   `Deferred`, put it in the **lookup field** (normal relationship generation —
   the depth-batched resolution wires it); a context-aware value into any other
   field cannot get it.
@@ -162,7 +162,7 @@ public sealed class HasAnyWebOriginCase : IDeferredExpression
 
 <!-- sketch -->
 ```csharp
-.Put(Field.Of<Account>(x => x.Description), new HasAnyWebOriginCase())
+.Put<Account>(x => x.Description, new HasAnyWebOriginCase())
 ```
 
 `graph.ChildrenOf(recordIndex, childLookupField)` returns every generated

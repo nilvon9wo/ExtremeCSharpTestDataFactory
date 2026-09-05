@@ -77,7 +77,7 @@ public class PersistenceGatewayTest
 
         // Assert - both the Contact and its required Account were inserted through the gateway
         Contact contact = (Contact)bundle.PrimaryRecords()![0];
-        Account account = (Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0];
+        Account account = (Account)bundle.GetList<Contact>(x => x.AccountId)![0];
         Assert.NotNull(contact.Id);
         Assert.NotNull(account.Id);
         Assert.Equal(account.Id, contact.AccountId);

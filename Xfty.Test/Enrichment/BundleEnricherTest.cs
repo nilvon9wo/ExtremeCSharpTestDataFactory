@@ -205,7 +205,7 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WhenBreakSoqlLimitsIsNotSet_RejectsAnOverDeepParentDepth()
+    public void Inject_WhenAllowDeeperGraphIsNotSet_RejectsAnOverDeepParentDepth()
     {
         // Arrange
         Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
@@ -219,7 +219,7 @@ public class BundleEnricherTest
             () => bundle.Inject(Field.Of<Contact>(x => x.Id), config));
 
         // Assert - the error points at the escape hatch
-        Assert.Contains("BreakSoqlLimits", thrown.Message);
+        Assert.Contains("AllowDeeperGraph", thrown.Message);
     }
 
     [Fact]
@@ -257,15 +257,15 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithChildDepthTwoAndBreakSoqlLimits_GraftsGrandchildren()
+    public void Inject_WithChildDepthTwoAndAllowDeeperGraph_GraftsGrandchildren()
     {
         // Arrange - Account -> 2 Contacts -> 3 Cases each
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId)).SetQuantity(2)
-                .With(new ChildProvider(Field.Of<Case>(x => x.ContactId)).SetQuantity(3)))
+            .With(ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
+                .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)))
             .SupplyBundle();
-        InjectConfig config = InjectConfig.AllChildren().ChildDepth(2).BreakSoqlLimits();
+        InjectConfig config = InjectConfig.AllChildren().ChildDepth(2).AllowDeeperGraph();
 
         // Act
         List<object> enriched = bundle.Inject(Field.Of<Account>(x => x.Id), config);
@@ -275,7 +275,7 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithChildDepthTwoButNoBreakSoqlLimits_Throws()
+    public void Inject_WithChildDepthTwoButNoAllowDeeperGraph_Throws()
     {
         // Arrange
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
@@ -342,8 +342,8 @@ public class BundleEnricherTest
         childrenSub.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "original c0" }, new Account { Name = "original c1" }]);
         Bundle middle = new();
         middle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "Middle" }]);
-        _ = middle.Put(Field.Of<Account>(x => x.ParentId), parentSub.PrimaryRecords()!);
-        _ = middle.Put(Field.Of<Account>(x => x.ParentId), parentSub);
+        _ = middle.Put<Account>(x => x.ParentId, parentSub.PrimaryRecords()!);
+        _ = middle.Put<Account>(x => x.ParentId, parentSub);
         _ = middle.PutChild(Field.Of<Account>(x => x.ParentId), childrenSub, [0, 0]);
         InjectConfig config = InjectConfig.Nothing()
             .InjectValue([Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Name)], "parent name")
@@ -418,7 +418,7 @@ public class BundleEnricherTest
 file sealed class CaseProvider : IRecordProvider
 {
     private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
-        .Put(Field.Of<Case>(x => x.Subject), new IncrementingStringExpression("Enricher Case"));
+        .Put<Case>(x => x.Subject, new IncrementingStringExpression("Enricher Case"));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
 
@@ -431,8 +431,8 @@ file sealed class CaseProvider : IRecordProvider
 file sealed class AccountWithParentProvider : IRecordProvider
 {
     private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
-        .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Enricher Account"))
-        .PutOptional(Field.Of<Account>(x => x.ParentId), new DefaultRelationship(new Account { Name = "Parent Co" }));
+        .Put<Account>(x => x.Name, new IncrementingStringExpression("Enricher Account"))
+        .PutOptional<Account>(x => x.ParentId, new DefaultRelationship(new Account { Name = "Parent Co" }));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 

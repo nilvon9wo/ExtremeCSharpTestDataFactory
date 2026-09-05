@@ -13,13 +13,12 @@ constant:
 MyProjectLookupKeys.VipAccount   // an ILookupKey
 ```
 
-> Apex's variant system also supported a **record-type** discriminator
-> (Salesforce `RecordTypeId`). That is genuinely Salesforce-specific schema
-> metadata with no C# analog and is not ported — see
-> [reference/known-issues.md](../reference/known-issues.md). This port's
-> variant system is `FlavouredLookupKey`: a record type plus one or more
-> [predicates](../extend/provider-variants.md) evaluated against the override
-> template.
+> A discriminator-field variant - matching a Provider by a field's value, e.g.
+> "`Type == Person`" on a shared record type - is `DiscriminatorLookupKey`,
+> built over the same `FlavouredLookupKey` mechanism as everything else here.
+> The general variant system is `FlavouredLookupKey`: a record type plus one
+> or more [predicates](../extend/provider-variants.md) evaluated against the
+> override template.
 
 ---
 
@@ -72,7 +71,7 @@ the relationship:
 
 <!-- sketch -->
 ```csharp
-.PutRequired(Field.Of<Case>(x => x.AccountId), new DefaultRelationship(
+.PutRequired<Case>(x => x.AccountId, new DefaultRelationship(
     MyProjectLookupKeys.VipAccount, new Account()))
 ```
 

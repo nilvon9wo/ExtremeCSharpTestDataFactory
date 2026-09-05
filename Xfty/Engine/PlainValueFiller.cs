@@ -1,8 +1,7 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Values;
-
 using Net.Nowhereatall.Xfty.Core;
 using Net.Nowhereatall.Xfty.Engine;
+using Net.Nowhereatall.Xfty.Values;
 namespace Net.Nowhereatall.Xfty.Engine;
 
 /// <summary>Fills the plain (non-context-aware) default values on a clone of the test's template.</summary>
@@ -16,7 +15,7 @@ public static class PlainValueFiller
     }
 
     public static List<object> CloneAndCompletePlainValues(MasterTemplate template, List<object> testTemplates) =>
-        testTemplates.Select(testTemplate => CloneAndCompletePlainValues(template, testTemplate)).ToList();
+        [.. testTemplates.Select(testTemplate => CloneAndCompletePlainValues(template, testTemplate))];
 
     private static void FillPlainValue(MasterTemplate template, object record, PropertyInfo field)
     {

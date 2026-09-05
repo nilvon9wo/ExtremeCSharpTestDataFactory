@@ -24,10 +24,8 @@ XFTY inspects each one's Provider:
 Either way: **one record, one Id, everywhere** — and it is generated at most once
 per process.
 
-> **Apex resets `static` state between test methods; this port does not.**
-> `SharedAncestor`'s registry is a `static` `Dictionary` that lives for the whole
-> test run, not per test method — there is no xUnit equivalent of Apex's
-> automatic per-method reset. Give every test's shared ancestors a **name unique
+> **`SharedAncestor`'s registry is `static` and lives for the whole test run,
+> not per test method.** Give every test's shared ancestors a **name unique
 > to that test**, and see
 > [reference/known-issues.md](../reference/known-issues.md) for the cleanup this
 > implies for a test that deliberately leaves one unresolved.
@@ -36,15 +34,17 @@ per process.
 
 ## The simplest case
 
+<!-- sketch -->
 ```csharp
 // register once - centrally for shipped Providers (see "Packaged defaults"), or in the test
 SharedAncestor.Put("acme-hq", new Account { Name = "ACME HQ" });
 
 // reference it from any Master Template, any field, required or optional
 new MasterTemplate(Field.Of<Contact>(x => x.Id))
-    .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get("acme-hq"));
+    .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get("acme-hq"));
 ```
 
+<!-- sketch -->
 ```csharp
 List<object> contacts = new RecordProvider(typeof(Contact), lookup)
     .SetQuantityPerTemplate(50)
@@ -59,8 +59,9 @@ List<object> contacts = new RecordProvider(typeof(Contact), lookup)
 - **Generated once.** Every reference — in the same or a later `Supply*()`
   call — reuses it.
 - **Persistence follows the call.** `Mock` gives it a mock Id, `Never` leaves it
-  Id-less. (`Now` would insert it, but this port's `Now` always throws — see
-  [insert-modes](insert-modes.md).) A `.DepthBatched()` / `Deferred` call
+  Id-less, `Now` inserts it for real through the configured gateway (throws
+  without one — see [insert-modes](insert-modes.md)). A `.DepthBatched()` /
+  `Deferred` call
   resolves its shared ancestors **up front** (so their Ids are ready when the
   deferred graph is flattened) rather than deferring them.
 
@@ -70,11 +71,12 @@ List<object> contacts = new RecordProvider(typeof(Contact), lookup)
 
 Nothing extra to do — configure the rungs and reference the leaf:
 
+<!-- sketch -->
 ```csharp
 // once, centrally
 SharedAncestor.Put("root", new Account { Name = "Global HQ" });
 SharedAncestor.Put("region", new Account { Name = "Region HQ" })
-    .PutRequired(Field.Of<Account>(x => x.ParentId), SharedAncestor.Get("root"));
+    .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get("root"));
 // a Contact Provider does PutRequired(Contact.AccountId, SharedAncestor.Get("region"))
 ```
 
@@ -115,12 +117,13 @@ When a bare template / key is not enough — value expressions on the shared
 record, or its *own* ancestors — chain the same `Put` API a generated parent
 takes straight onto `Put(name, …)`:
 
+<!-- sketch -->
 ```csharp
 SharedAncestor.Put("hq", new Account { Name = "HQ Ltd" })
-    .Put(Field.Of<Account>(x => x.Site), "Berlin")
-    .PutRequired(Field.Of<Account>(x => x.ParentId), new DefaultRelationship(new Account { Name = "Global HQ" }))
+    .Put<Account>(x => x.Site, "Berlin")
+    .PutRequired<Account>(x => x.ParentId, new DefaultRelationship(new Account { Name = "Global HQ" }))
     .SetInclusivity(InsertInclusivity.Required)
-    .IncludeOptional(Field.Of<Account>(x => x.OwnerId))
+    .IncludeOptional<Account>(x => x.OwnerId)
     .Put([Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Site)], "Global");
 ```
 
@@ -247,8 +250,8 @@ SharedAncestor.ResolveNow(lookup, InsertMode.Mock, ["division", "region"]);
 // the package's other shared-ancestor defaults are never built
 ```
 
-> **`ManualResolutionOnly()` has no unsetter, in Apex or here — and here it is a
-> single `static` flag for the whole process, not per test method.** A test that
+> **`ManualResolutionOnly()` has no unsetter - it is a single `static` flag for
+> the whole process, not per test method.** A test that
 > calls it changes every later test in the same run that relies on
 > auto-resolution. Treat it as effectively global and avoid it in a shared xUnit
 > process unless you are certain nothing else in the run depends on the

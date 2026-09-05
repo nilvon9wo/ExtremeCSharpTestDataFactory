@@ -50,7 +50,7 @@ public class MultiVariantProviderTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Assert.Equal("Enterprise", ((Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0]).Industry);
+        Assert.Equal("Enterprise", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Industry);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class MultiVariantProviderTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), NewLookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(Smb, new Account()))
+            .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(Smb, new Account()))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -66,7 +66,7 @@ public class MultiVariantProviderTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Assert.Equal("SMB", ((Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0]).Industry);
+        Assert.Equal("SMB", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Industry);
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class MultiVariantProviderTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), NewLookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account()))
+            .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account()))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -82,7 +82,7 @@ public class MultiVariantProviderTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - the plain-key Provider
-        Assert.Equal("SMB", ((Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0]).Industry);
+        Assert.Equal("SMB", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Industry);
     }
 
     // Runner -------------------------------------------------------
@@ -116,15 +116,15 @@ file sealed class NamedAccountProvider : BaseProvider
 {
     public NamedAccountProvider(string industry) =>
         this.Template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression($"{industry} Account"))
-            .Put(Field.Of<Account>(x => x.Industry), industry);
+            .Put<Account>(x => x.Name, new IncrementingStringExpression($"{industry} Account"))
+            .Put<Account>(x => x.Industry, industry);
 }
 
 file sealed class EnterpriseParentedContactProvider : BaseProvider
 {
     public EnterpriseParentedContactProvider(ILookupKey enterpriseKey) =>
         this.Template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
-            .Put(Field.Of<Contact>(x => x.LastName), new IncrementingStringExpression("Variant Contact"))
+            .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Variant Contact"))
             // The relationship pins the same shared key the lookup registers.
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(enterpriseKey, new Account()));
+            .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(enterpriseKey, new Account()));
 }

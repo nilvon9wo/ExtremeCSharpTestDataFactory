@@ -14,17 +14,12 @@ It takes no bundle and does no persistence. Collect the grafts fluently, then
 grafts. The inputs are never mutated; the return is a `List<object>` of new
 instances.
 
-> Apex's original round-tripped the whole list through `JSON.serialize` /
-> `JSON.deserialize`, because `SObject.put(...)` rejects relationship and
-> read-only fields outright — and needed `XFTY_BlobCarrier` to shepherd a
-> `Blob` field through that round-trip intact, and a `Map` of lowercase
-> component names to compose a compound field. None of that machinery exists
-> here: reflection's `PropertyInfo.SetValue` writes any property directly (it
+> Reflection's `PropertyInfo.SetValue` writes any property directly - it
 > bypasses `init` the same way `IdMocker` and `RecordCloneFactory` already
-> rely on), so there is no round-trip, no `Blob` special-casing, and no
-> compound-field convention to know about — set the property with whatever
-> value its type takes. Polymorphic relationships (Apex's `WhoId` → `Who`) have
-> no analog either — this port's demo domain has no polymorphic lookups, and
+> rely on - so there is no serialization round-trip involved and no special
+> casing needed for any particular field type: set the property with
+> whatever value its type takes. Polymorphic relationships have no analog
+> either - this port's demo domain has no polymorphic lookups, and
 > relationship fields are named `PropertyInfo`s rather than relationship-name
 > strings, so there is nothing to resolve.
 

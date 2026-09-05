@@ -10,9 +10,9 @@ relationship on the `RecordProvider` instance.
 ## The simplest case
 
 ```csharp
-new RecordProvider(typeof(Contact), lookup)
-    .IncludeOptional(Field.Of<Account>(x => x.OwnerId))     // generate this optional one too
-    .ExcludeRelationship(Field.Of<Contact>(x => x.AccountId));   // do not generate this one, even though it is required
+new RecordProvider(typeof(Account), lookup)
+    .IncludeOptional<Account>(x => x.OwnerId)     // generate this optional one too
+    .ExcludeRelationship<Account>(x => x.ParentId);   // do not generate this one, even though it is required
 ```
 
 - **`IncludeOptional(field)`** generates one named relationship for this call,
@@ -43,16 +43,23 @@ call `ExcludeRelationship` before any `Put(...)` (same ordering rule as
 
 ```csharp
 new RecordProvider(typeof(Contact), lookup)
-    .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)])
+    .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)])
     .SetInclusivity(InsertInclusivity.Required);
 ```
 
 generates the Contact's Account (required anyway) **and** that Account's own
-parent Account (optional), leaving everything else at `Required`. Each step must
-be a relationship on the Provider it resolves to; an unknown step throws during
+Owner (optional), leaving everything else at `Required`. Each step must be a
+relationship on the Provider it resolves to; an unknown step throws during
 generation. Whether a step is a plain relationship or a
 [shared ancestor](shared-ancestors.md) makes no difference.
 `IncludeOptional(field)` is shorthand for the one-element path.
+
+> A path that revisits the **same** record type it already passed through -
+> `Account.ParentId` forced a second level deep, say - hits the same
+> self-referential-cycle guard as [relationships](relationships.md#self-referential-relationships):
+> generating the same Provider key twice in one active chain throws, even
+> under `IncludeOptional`. `Account.OwnerId` (a different type, `User`) does
+> not have this problem.
 
 ---
 

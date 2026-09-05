@@ -26,11 +26,11 @@ public sealed class MyContactProvider : IRecordProvider
     private static readonly PropertyInfo PrimaryField = Field.Of<Contact>(x => x.Id);
 
     private static readonly MasterTemplate Template = new MasterTemplate(PrimaryField)
-        .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(
+        .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(
             new Account { Description = DefaultAccountDescription }))
-        .Put(Field.Of<Contact>(x => x.Email), new UniqueEmailExpression(DefaultEmailPrefix))
-        .Put(Field.Of<Contact>(x => x.FirstName), new IncrementingStringExpression("Contact First Name"))
-        .Put(Field.Of<Contact>(x => x.LastName), new IncrementingStringExpression("Contact Last Name"));
+        .Put<Contact>(x => x.Email, new UniqueEmailExpression(DefaultEmailPrefix))
+        .Put<Contact>(x => x.FirstName, new IncrementingStringExpression("Contact First Name"))
+        .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Contact Last Name"));
 
     public PropertyInfo PrimaryTargetField => PrimaryField;
 

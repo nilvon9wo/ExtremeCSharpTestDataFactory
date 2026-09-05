@@ -11,11 +11,11 @@ namespace Net.Nowhereatall.Xfty.Persistence;
 /// </summary>
 public static class DeferredInserter
 {
-    private static DeferredInsertBuffer buffer = new();
+    private static DeferredInsertBuffer _buffer = new();
 
-    public static void Register(Bundle bundle) => buffer.Add(bundle);
+    public static void Register(Bundle bundle) => _buffer.Add(bundle);
 
-    public static int PendingCount() => buffer.PendingCount();
+    public static int PendingCount() => _buffer.PendingCount();
 
     /// <summary>
     /// Save every registered record through <paramref name="gateway"/>,
@@ -26,7 +26,7 @@ public static class DeferredInserter
     /// </summary>
     public static void Flush(IPersistenceGateway? gateway = null)
     {
-        buffer.InsertAll(gateway);
-        buffer = new DeferredInsertBuffer();
+        _buffer.InsertAll(gateway);
+        _buffer = new DeferredInsertBuffer();
     }
 }

@@ -6,4 +6,6 @@
   </Folder>
   <Project Path="Xfty.Test/Xfty.Test.csproj" />
   <Project Path="Xfty/Xfty.csproj" />
+  <Project Path="Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj" />
+  <Project Path="Xfty.EntityFrameworkCore.Test/Xfty.EntityFrameworkCore.Test.csproj" />
 </Solution>

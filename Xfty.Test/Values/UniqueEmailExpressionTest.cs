@@ -13,7 +13,7 @@ public class UniqueEmailExpressionTest
             .Select(_ => new UniqueEmailExpression("test.user"));
 
         // Act
-        List<string> produced = expressions.Select(expression => (string)expression.Get()!).ToList();
+        List<string> produced = [.. expressions.Select(expression => (string)expression.Get()!)];
 
         // Assert
         Assert.Equal(25, produced.Distinct().Count());

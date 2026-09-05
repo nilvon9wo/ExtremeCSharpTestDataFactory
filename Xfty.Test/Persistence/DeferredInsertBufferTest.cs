@@ -6,10 +6,10 @@ namespace Net.Nowhereatall.Xfty.Test.Persistence;
 
 /// <summary>
 /// Proves DeferredInsertBuffer driven directly with hand-built bundles,
-/// including the guards the engine never trips. This port has no
-/// persistence layer, so Apex's InsertGraph(...) scenarios (which always
-/// resolve as Now) are adapted to Add(bundle) + ResolveAll(Mock) - the same
-/// collect/link/layer algorithm, provable without a database.
+/// including the guards the engine never trips, via Add(bundle) +
+/// ResolveAll(Mock) - the same collect/link/layer algorithm a real Now
+/// insert runs, provable here without a database. InsertGraph(...) against a
+/// real persistence gateway is proven in PersistenceGatewayTest.
 /// </summary>
 public class DeferredInsertBufferTest
 {
@@ -42,8 +42,8 @@ public class DeferredInsertBufferTest
         Account parent = new() { Name = "Buffer Parent" };
         Contact child = new() { LastName = "Buffer Child" };
         Bundle childBundle = BundleOf(Field.Of<Contact>(x => x.Id), child);
-        _ = childBundle.Put(Field.Of<Contact>(x => x.AccountId), BundleOf(Field.Of<Account>(x => x.Id), parent));
-        _ = childBundle.Put(Field.Of<Contact>(x => x.AccountId), [parent]);
+        _ = childBundle.Put<Contact>(x => x.AccountId, BundleOf(Field.Of<Account>(x => x.Id), parent));
+        _ = childBundle.Put<Contact>(x => x.AccountId, [parent]);
         DeferredInsertBuffer buffer = new();
         buffer.Add(childBundle);
 
@@ -62,8 +62,8 @@ public class DeferredInsertBufferTest
         Account generatedParent = new() { Name = "Generated Parent" };
         Contact child = new() { LastName = "Pre Linked", AccountId = existing.Id };
         Bundle childBundle = BundleOf(Field.Of<Contact>(x => x.Id), child);
-        _ = childBundle.Put(Field.Of<Contact>(x => x.AccountId), BundleOf(Field.Of<Account>(x => x.Id), generatedParent));
-        _ = childBundle.Put(Field.Of<Contact>(x => x.AccountId), [generatedParent]);
+        _ = childBundle.Put<Contact>(x => x.AccountId, BundleOf(Field.Of<Account>(x => x.Id), generatedParent));
+        _ = childBundle.Put<Contact>(x => x.AccountId, [generatedParent]);
         DeferredInsertBuffer buffer = new();
         buffer.Add(childBundle);
 
@@ -81,7 +81,7 @@ public class DeferredInsertBufferTest
         // Arrange
         Account onlyRecord = new() { Name = "No Parent Bundle" };
         Bundle bundle = BundleOf(Field.Of<Account>(x => x.Id), onlyRecord);
-        _ = bundle.Put(Field.Of<Account>(x => x.ParentId), (Bundle)null!);
+        _ = bundle.Put<Account>(x => x.ParentId, (Bundle)null!);
         DeferredInsertBuffer buffer = new();
         buffer.Add(bundle);
 
@@ -100,8 +100,8 @@ public class DeferredInsertBufferTest
         List<object> contacts = [new Contact { LastName = "A" }, new Contact { LastName = "B" }, new Contact { LastName = "C" }];
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), contacts);
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), BundleOf(Field.Of<Account>(x => x.Id), sharedParent));
-        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [sharedParent]);
+        _ = bundle.Put<Contact>(x => x.AccountId, BundleOf(Field.Of<Account>(x => x.Id), sharedParent));
+        _ = bundle.Put<Contact>(x => x.AccountId, [sharedParent]);
         DeferredInsertBuffer buffer = new();
         buffer.Add(bundle);
 
@@ -119,8 +119,8 @@ public class DeferredInsertBufferTest
         Account parent = new() { Name = "Flatten Parent" };
         Contact child = new() { LastName = "Flatten Child" };
         Bundle childBundle = BundleOf(Field.Of<Contact>(x => x.Id), child);
-        _ = childBundle.Put(Field.Of<Contact>(x => x.AccountId), BundleOf(Field.Of<Account>(x => x.Id), parent));
-        _ = childBundle.Put(Field.Of<Contact>(x => x.AccountId), [parent]);
+        _ = childBundle.Put<Contact>(x => x.AccountId, BundleOf(Field.Of<Account>(x => x.Id), parent));
+        _ = childBundle.Put<Contact>(x => x.AccountId, [parent]);
 
         // Act
         DeferredInsertBuffer graph = DeferredInsertBuffer.Flatten(childBundle);

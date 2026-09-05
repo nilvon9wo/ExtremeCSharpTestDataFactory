@@ -7,11 +7,11 @@ namespace Net.Nowhereatall.Xfty.Values;
 /// </summary>
 public sealed class UniqueStringExpression : IValueExpression
 {
-    private static int counter = 1;
+    private static int _counter = 1;
 
     private readonly string prefix;
 
     public UniqueStringExpression(string prefix) => this.prefix = prefix;
 
-    public object Get() => $"{this.prefix} {counter++}";
+    public object Get() => $"{this.prefix} {_counter++}";
 }

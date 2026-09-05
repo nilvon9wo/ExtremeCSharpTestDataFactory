@@ -9,8 +9,8 @@ namespace Net.Nowhereatall.Xfty.Test.Enrichment;
 /// End-to-end proof that BundleEnricher actually works through the real
 /// engine: a generated ancestor / child collection, injected via reflection
 /// onto the demo domain's Account.Contacts / Contact.Account navigation
-/// properties (added purely so injection has somewhere to land - a plain C#
-/// POCO has no implicit relationship support the way an SObject does).
+/// properties (added purely so injection has somewhere to land - a plain
+/// POCO has no relationship navigation of its own to populate).
 /// </summary>
 public class EnrichmentIntegrationTest
 {

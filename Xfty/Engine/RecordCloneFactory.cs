@@ -16,7 +16,7 @@ public static class RecordCloneFactory
     }
 
     public static List<object> DeepClones(object record, int quantity) =>
-        Enumerable.Range(0, quantity).Select(_ => DeepClone(record)).ToList();
+        [.. Enumerable.Range(0, quantity).Select(_ => DeepClone(record))];
 
     private static void CopyProperty(PropertyInfo property, object source, object destination)
     {

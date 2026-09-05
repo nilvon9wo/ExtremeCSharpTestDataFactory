@@ -30,3 +30,9 @@ jobs:
       - name: Performance suite (informational - wall-clock ceilings are generous but CI runners vary)
         continue-on-error: true
         run: dotnet test Xfty.slnx --no-build --filter "Category=Performance"
+
+      - name: Verify every documented code example is exercised by a real test
+        run: python3 scripts/verify-doc-examples.py
+
+      - name: Verify every relative doc link and anchor resolves
+        run: python3 scripts/verify-doc-links.py

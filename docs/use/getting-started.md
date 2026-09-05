@@ -13,10 +13,11 @@ After reading this guide you should be comfortable:
 
 More advanced topics such as implementing Providers and writing custom value expressions are covered in later guides.
 
-> **This port has no persistence layer yet.** `InsertMode.Now` — Apex's
-> integration-test mode — always throws `NotSupportedException` here (see
-> [insert-modes](insert-modes.md)). Everything below uses `Mock`, which is this
-> port's practical default: realistic-looking Ids, nothing persisted.
+> `InsertMode.Now` inserts for real, through whatever `IPersistenceGateway`
+> you configure (see [insert-modes](insert-modes.md)); with none configured
+> it throws rather than silently doing nothing. Everything below uses `Mock`
+> instead — realistic-looking Ids, nothing persisted — since that's what a
+> unit test usually wants.
 
 ---
 
@@ -120,7 +121,7 @@ Three constructor overloads save a call for the most common starting points:
 new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup);
 
 // from a list of templates - derives the record type from the first
-new RecordProvider(new List<object> { new Contact(), new Contact() }, providerLookup);
+new RecordProvider([new Contact(), new Contact()], providerLookup);
 
 // from a lookup key - derives the record type from the key and pins that variant
 new RecordProvider(LookupKey.Get(typeof(Contact)), providerLookup);
@@ -177,8 +178,8 @@ The resulting Bundle contains both the requested Contacts and any related
 records generated during the operation.
 
 ```csharp
-object contact = bundle.GetList(Field.Of<Contact>(x => x.Id))![0];
-object account = bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0];
+object contact = bundle.GetList<Contact>(x => x.Id)![0];
+object account = bundle.GetList<Contact>(x => x.AccountId)![0];
 ```
 
 ```text
@@ -212,13 +213,13 @@ lookups.
 Lists are extracted using the relationship field that produced them.
 
 ```csharp
-List<object> accounts = bundle.GetList(Field.Of<Case>(x => x.AccountId))!;
+List<object> accounts = bundle.GetList<Case>(x => x.AccountId)!;
 ```
 
 Nested Bundles can also be traversed.
 
 ```csharp
-Bundle? accountBundle = bundle.GetBundle(Field.Of<Case>(x => x.AccountId));
+Bundle? accountBundle = bundle.GetBundle<Case>(x => x.AccountId);
 ```
 
 ---
@@ -234,9 +235,9 @@ XFTY supports six insert modes.
 | `Never` | Generate records without Ids. |
 | `Mock` | Generate realistic-looking Ids without any persistence. |
 | `RelatedOnly` | Mock-Id only related records. |
-| `Now` | Insert every generated record. **Always throws in this port — no persistence layer.** |
+| `Now` | Insert every generated record through the configured `IPersistenceGateway`. **Throws if none is configured.** |
 | `Later` | Behaves like `Never` while documenting that insertion will happen later. |
-| `Deferred` | Generate like `Never` over many calls, registering everything for a single later flush. Flushing to real persistence also throws in this port; see [deferred-insert](deferred-insert.md). |
+| `Deferred` | Generate like `Never` over many calls, registering everything for a single later flush; see [deferred-insert](deferred-insert.md). |
 
 For most tests today:
 
@@ -297,7 +298,5 @@ the [feature matrix](README.md).
 - [advanced/](advanced/) — combining features
 
 To teach XFTY about a new record type, see [extend/providers](../extend/providers.md).
-What carries over from the Apex original (and what doesn't) is in
-[reference/salesforce-considerations](../reference/salesforce-considerations.md).
 
 Runnable: `RecordProviderIntegrationTest`, `RecordFactoryTest`

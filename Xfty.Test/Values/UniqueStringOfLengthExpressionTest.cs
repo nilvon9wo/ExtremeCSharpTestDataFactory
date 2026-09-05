@@ -7,8 +7,7 @@ namespace Net.Nowhereatall.Xfty.Test.Values;
 /// fixed-length, uppercase, unique values, counted separately per length.
 ///
 /// Each test below uses lengths no other test in this class touches. The
-/// per-length counter is a process-static Dictionary that - unlike Apex,
-/// where statics reset before every test method - is not reset between
+/// per-length counter is a process-static Dictionary, not reset between
 /// xUnit tests in the same run, so asserting an exact "first value" (e.g.
 /// "AAA") would be order-dependent across the whole assembly. Distinct
 /// otherwise-unused lengths sidestep that without weakening what's proved.
@@ -22,7 +21,7 @@ public class UniqueStringOfLengthExpressionTest
         UniqueStringOfLengthExpression expression = new(37);
 
         // Act
-        List<string> produced = Enumerable.Range(0, 20).Select(_ => (string)expression.Get()!).ToList();
+        List<string> produced = [.. Enumerable.Range(0, 20).Select(_ => (string)expression.Get()!)];
 
         // Assert
         Assert.Equal(20, produced.Distinct().Count());

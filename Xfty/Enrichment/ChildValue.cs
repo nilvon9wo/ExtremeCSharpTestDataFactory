@@ -15,7 +15,7 @@ public sealed class ChildValue
         this.Value = value;
     }
 
-    public List<PropertyInfo> RelationshipPrefix() => this.Path.Take(this.Path.Count - 1).ToList();
+    public List<PropertyInfo> RelationshipPrefix() => [.. this.Path.Take(this.Path.Count - 1)];
 
     public PropertyInfo TargetField() => this.Path[^1];
 }

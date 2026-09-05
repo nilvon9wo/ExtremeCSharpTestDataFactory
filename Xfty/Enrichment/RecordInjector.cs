@@ -74,7 +74,7 @@ public sealed class RecordInjector
         }
 
         this.RejectMisalignedGrafts();
-        return this.records.Select(this.GraftedRow).ToList();
+        return [.. this.records.Select(this.GraftedRow)];
     }
 
     private object GraftedRow(object record, int row)

@@ -10,10 +10,10 @@ namespace Net.Nowhereatall.Xfty.Test.Relationships;
 /// resolve through the real engine: every child that references a shared
 /// ancestor gets the exact same generated (and persisted-or-mocked) record.
 ///
-/// SharedAncestor's registry is process-static, not reset between xUnit
-/// tests the way Apex resets statics between test methods (same gap already
-/// documented for the unique-value expressions) - each test below uses its
-/// own never-reused shared-ancestor name to stay isolated.
+/// SharedAncestor's registry is process-static, not reset between xUnit test
+/// methods (same gap already documented for the unique-value expressions) -
+/// each test below uses its own never-reused shared-ancestor name to stay
+/// isolated.
 /// </summary>
 public class SharedAncestorIntegrationTest
 {
@@ -33,14 +33,14 @@ public class SharedAncestorIntegrationTest
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(sharedName))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName))
             .SetQuantityPerTemplate(2);
 
         // Act
         List<object> results = provider.SupplyList();
 
         // Assert - both contacts point at the very same generated Account Id
-        List<string?> accountIds = results.Cast<Contact>().Select(contact => contact.AccountId).Distinct().ToList();
+        List<string?> accountIds = [.. results.Cast<Contact>().Select(contact => contact.AccountId).Distinct()];
         _ = Assert.Single(accountIds);
         Assert.NotNull(accountIds[0]);
     }
@@ -88,7 +88,7 @@ public class SharedAncestorIntegrationTest
         RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(sharedName));
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName));
 
         // Act
         Contact result = Assert.IsType<Contact>(provider.Supply());

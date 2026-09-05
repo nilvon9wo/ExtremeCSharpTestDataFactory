@@ -1,7 +1,6 @@
-using Net.Nowhereatall.Xfty.Persistence;
-
 using Net.Nowhereatall.Xfty.Core;
 using Net.Nowhereatall.Xfty.Engine;
+using Net.Nowhereatall.Xfty.Persistence;
 namespace Net.Nowhereatall.Xfty.Engine;
 
 /// <summary>Turns one master template plus the test's own partial templates into a wired Bundle.</summary>

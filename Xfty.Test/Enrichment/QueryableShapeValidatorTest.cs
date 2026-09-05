@@ -5,11 +5,11 @@ using Net.Nowhereatall.Xfty.Enrichment;
 
 namespace Net.Nowhereatall.Xfty.Test.Enrichment;
 
-/// <summary>Proves QueryableShapeValidator - the SOQL-shape rail on an InjectConfig. No persistence.</summary>
+/// <summary>Proves QueryableShapeValidator - the queryable-shape rail on an InjectConfig. No persistence.</summary>
 public class QueryableShapeValidatorTest
 {
     [Fact]
-    public void Validate_WhenTheConfigStaysWithinTheSoqlLimits_Passes()
+    public void Validate_WhenTheConfigStaysWithinTheDefaultLimits_Passes()
     {
         // Arrange
         InjectConfig config = InjectConfig.Everything().ParentDepth(5).ChildDepth(1);
@@ -22,7 +22,7 @@ public class QueryableShapeValidatorTest
     }
 
     [Fact]
-    public void Validate_WhenParentDepthExceedsTheSoqlLimit_Throws()
+    public void Validate_WhenParentDepthExceedsTheDefaultLimit_Throws()
     {
         // Arrange
         InjectConfig config = InjectConfig.AllParents().ParentDepth(6);
@@ -31,11 +31,11 @@ public class QueryableShapeValidatorTest
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
 
         // Assert
-        Assert.Contains("BreakSoqlLimits", thrown.Message);
+        Assert.Contains("AllowDeeperGraph", thrown.Message);
     }
 
     [Fact]
-    public void Validate_WhenChildDepthExceedsOneWithoutBreakSoqlLimits_Throws()
+    public void Validate_WhenChildDepthExceedsOneWithoutAllowDeeperGraph_Throws()
     {
         // Arrange
         InjectConfig config = InjectConfig.AllChildren().ChildDepth(2);
@@ -44,14 +44,14 @@ public class QueryableShapeValidatorTest
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
 
         // Assert - the message points at the escape hatch
-        Assert.Contains("BreakSoqlLimits", thrown.Message);
+        Assert.Contains("AllowDeeperGraph", thrown.Message);
     }
 
     [Fact]
-    public void Validate_WhenChildDepthExceedsOneWithBreakSoqlLimits_Passes()
+    public void Validate_WhenChildDepthExceedsOneWithAllowDeeperGraph_Passes()
     {
         // Arrange
-        InjectConfig config = InjectConfig.AllChildren().ChildDepth(3).BreakSoqlLimits();
+        InjectConfig config = InjectConfig.AllChildren().ChildDepth(3).AllowDeeperGraph();
 
         // Act
         Exception? thrown = Record.Exception(() => QueryableShapeValidator.Validate(config));
@@ -61,7 +61,7 @@ public class QueryableShapeValidatorTest
     }
 
     [Fact]
-    public void Validate_WhenAnInjectParentPathIsLongerThanTheSoqlLimit_Throws()
+    public void Validate_WhenAnInjectParentPathIsLongerThanTheDefaultLimit_Throws()
     {
         // Arrange
         List<PropertyInfo> sixHops = [
@@ -97,7 +97,7 @@ public class QueryableShapeValidatorTest
         // Arrange
         InjectConfig config = InjectConfig.Nothing()
             .ChildDepth(2)
-            .BreakSoqlLimits()
+            .AllowDeeperGraph()
             .InjectChildValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)], "x");
 
         // Act
@@ -108,10 +108,10 @@ public class QueryableShapeValidatorTest
     }
 
     [Fact]
-    public void Validate_WhenBreakSoqlLimitsIsSet_AllowsAnOverDeepConfig()
+    public void Validate_WhenAllowDeeperGraphIsSet_AllowsAnOverDeepConfig()
     {
         // Arrange
-        InjectConfig config = InjectConfig.AllParents().ParentDepth(20).BreakSoqlLimits();
+        InjectConfig config = InjectConfig.AllParents().ParentDepth(20).AllowDeeperGraph();
 
         // Act
         Exception? thrown = Record.Exception(() => QueryableShapeValidator.Validate(config));

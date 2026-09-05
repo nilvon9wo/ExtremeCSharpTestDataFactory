@@ -20,8 +20,8 @@ A relationship is defined with `DefaultRelationship` and placed in either the
 **required** or the **optional** slot of the Master Template.
 
 ```csharp
-.PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account()))
-.PutOptional(Field.Of<Account>(x => x.OwnerId),   new DefaultRelationship(new User()))
+.PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account()))
+.PutOptional<Account>(x => x.OwnerId,   new DefaultRelationship(new User()))
 ```
 
 The supplied record acts as an override template for the generated parent — its

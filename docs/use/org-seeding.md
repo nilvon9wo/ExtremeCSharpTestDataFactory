@@ -1,18 +1,15 @@
-# Seeding an Org — Not Ported
+# Seeding a Long-Lived Environment — Not in Scope
 
-Apex's `XFTY_Seeder.seed(bundle)` leaves a generated graph behind in a live
-Salesforce scratch org, using a Winter '27 developer preview
-(`@IntegrationTest`) that runs real DML with no automatic rollback.
+Leaving a generated graph behind in a shared, long-lived environment (a
+scratch org, a staging database seeded once for manual QA) is a different job
+from what this library does: generating and inserting data **for the
+duration of one test run**, via `.SetInsertMode(InsertMode.Now)` and a
+configured `IPersistenceGateway` (see [insert-modes](insert-modes.md)).
 
-**None of that has a C# analog, and this feature is not ported.** There is no
-"org" this port could seed — no persistence layer at all yet (see
-[insert-modes](insert-modes.md)), and no equivalent of an `@IntegrationTest`
-method that survives past the process that ran it. `seeding/` is out of scope
-for this port entirely — see
-[reference/known-issues.md](../reference/known-issues.md).
-
-If a future persistence layer (e.g. an EF `DbContext` against a real database)
-is ever wired up, seeding a long-lived environment would be a separate,
-deliberate feature built against it — not a mechanical port of this page.
+**Seeding a persistent environment is out of scope for this library
+entirely** - see [reference/known-issues.md](../reference/known-issues.md).
+It would be a separate, deliberate feature (its own tool, its own rollback/
+cleanup story) built on top of the same generation engine, not something this
+page's `Now` mode does today or ever aims to.
 
 See also: [insert-modes](insert-modes.md)

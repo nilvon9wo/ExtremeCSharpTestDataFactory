@@ -5,7 +5,7 @@ using Net.Nowhereatall.Xfty.Values;
 
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
-/// <summary>Proves PathTargetValue - the value half of a PathValue, one of five kinds. ApplyTo lands on a master template (in-memory); no DML/SOQL.</summary>
+/// <summary>Proves PathTargetValue - the value half of a PathValue, one of five kinds. ApplyTo lands on a master template (in-memory); no database access.</summary>
 public class PathTargetValueTest
 {
     [Fact]
@@ -69,7 +69,7 @@ public class PathTargetValueTest
     public void OfContextAware_AppliesAsAContextAwareExpression()
     {
         // Arrange
-        PathTargetValue value = PathTargetValue.OfContextAware(new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name)));
+        PathTargetValue value = PathTargetValue.OfContextAware(CopyFromSiblingExpression.From<Account>(x => x.Name));
         MasterTemplate template = new(Field.Of<Account>(x => x.Id));
 
         // Act

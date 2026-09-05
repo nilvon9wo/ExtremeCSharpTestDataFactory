@@ -14,13 +14,9 @@ after a real query.
 It runs **after** generation, returns a **new list of instances**, and never
 touches the originals.
 
-> Apex's version did this through a `JSON.serialize` / `JSON.deserialize`
-> round-trip, because `SObject.put(...)` rejects relationship and read-only
-> fields outright, and needed `XFTY_BlobCarrier` to shepherd a `Blob` field
-> through that JSON round-trip intact. Neither is needed here: reflection sets
-> any property directly, so there is no round-trip and nothing needs
-> special-casing for a `Blob`-shaped field. See
-> [record-injector](record-injector.md).
+> Reflection sets any property directly - including an `init`-only one - so
+> there is no serialization round-trip involved and no special-casing needed
+> for any particular field type. See [record-injector](record-injector.md).
 
 ---
 
@@ -126,10 +122,10 @@ then layers refiners on it:
 | `.InjectValue(field, value)` | force `value` onto `field` on the **target record**. |
 | `.InjectValue(path, value)` | force `value` onto the field at the end of `path`, on a record several hops **up** (materialises the chain to it). Entry-spine only, like `InjectParent`. |
 | `.InjectChildValue(childField, leafField, value)` | force `value` onto `leafField` on **every record** of the child collection `childField` defines. |
-| `.InjectChildValue(path, value)` | the same, `path` being the child-lookup hops read **downward** then the field to set — a grandchild needs `ChildDepth` (and `BreakSoqlLimits()`) to match. |
+| `.InjectChildValue(path, value)` | the same, `path` being the child-lookup hops read **downward** then the field to set — a grandchild needs `ChildDepth` (and `AllowDeeperGraph()`) to match. |
 | `.ParentDepth(n)` | cap the ancestor climb. Default 5. |
-| `.ChildDepth(n)` | how many levels of nested child collections. Default 1; **`n > 1` needs `BreakSoqlLimits()`**. |
-| `.BreakSoqlLimits()` | let `ParentDepth`, `ChildDepth` and the `InjectParent` path length exceed what one query could return. |
+| `.ChildDepth(n)` | how many levels of nested child collections. Default 1; **`n > 1` needs `AllowDeeperGraph()`**. |
+| `.AllowDeeperGraph()` | let `ParentDepth`, `ChildDepth` and the `InjectParent` path length exceed what one query could return. |
 
 A forced `value` — record, ancestor or child — may be:
 
@@ -144,14 +140,13 @@ shallow) is a **loud error**, not a silent no-op.
 
 ---
 
-## `Depth` defaults reflect a *future* real query backend
+## `Depth` defaults reflect what a real query backend can comfortably load
 
-`ParentDepth` defaulting to 5 and `ChildDepth` to 1 mirror Apex's SOQL
-relationship-hop and nested-subquery limits — this port has no live database to
-actually violate yet, but keeping the same defaults means a graph that would be
-awkward to `SELECT` on a real backend is awkward here too, rather than
-discovering that the day a persistence layer lands. `BreakSoqlLimits()` lifts
-the ceiling when a test genuinely wants a deeper shape.
+`ParentDepth` defaulting to 5 and `ChildDepth` to 1 keep `Inject`'s output
+shaped like what a real query would realistically load in one round trip -
+whatever the actual persistence backend, deeply nested eager-loading tends to
+get awkward and slow well before those limits. `AllowDeeperGraph()` lifts the
+ceiling when a test genuinely wants a deeper shape.
 
 ---
 

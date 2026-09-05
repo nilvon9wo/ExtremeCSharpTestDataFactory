@@ -46,7 +46,7 @@ public sealed class EnrichmentSelection
     /// </summary>
     public HashSet<PropertyInfo> ChildFieldsOn(Bundle subBundle, List<PropertyInfo> childPathHere)
     {
-        HashSet<PropertyInfo> present = subBundle.ChildRelationshipFields().ToHashSet();
+        HashSet<PropertyInfo> present = [.. subBundle.ChildRelationshipFields()];
         HashSet<PropertyInfo> wanted = this.config.FromAllChildren ? [.. present] : [];
         wanted.UnionWith(this.NamedNextHopsFollowing(childPathHere, present));
         wanted.ExceptWith(this.config.ExcludedChildFields);
@@ -56,7 +56,7 @@ public sealed class EnrichmentSelection
     private HashSet<PropertyInfo> NamedNextHopsFollowing(List<PropertyInfo> childPathHere, HashSet<PropertyInfo> present)
     {
         HashSet<PropertyInfo> named = childPathHere.Count == 0
-            ? this.config.IncludedChildFields.Where(present.Contains).ToHashSet()
+            ? [.. this.config.IncludedChildFields.Where(present.Contains)]
             : [];
         named.UnionWith(this.config.ChildValues
             .Select(childValue => NextHopAfter(childPathHere, childValue.RelationshipPrefix()))
@@ -71,8 +71,8 @@ public sealed class EnrichmentSelection
 
     private void IncludeWithPrefixes(List<PropertyInfo> path) =>
         Enumerable.Range(1, path.Count).ToList()
-            .ForEach(length => this.includedParentKeys.Add(PathKey.Of(path.Take(length).ToList())));
+            .ForEach(length => this.includedParentKeys.Add(PathKey.Of([.. path.Take(length)])));
 
     private bool HasExcludedPrefix(List<PropertyInfo> path) =>
-        Enumerable.Range(1, path.Count).Any(length => this.excludedParentKeys.Contains(PathKey.Of(path.Take(length).ToList())));
+        Enumerable.Range(1, path.Count).Any(length => this.excludedParentKeys.Contains(PathKey.Of([.. path.Take(length)])));
 }

@@ -15,7 +15,7 @@ namespace Net.Nowhereatall.Xfty.Engine;
 /// </summary>
 public sealed class SharedAncestorResolver
 {
-    private static bool running;
+    private static bool _running;
     private static readonly HashSet<string> InProgress = [];
 
     private readonly IProviderLookup lookup;
@@ -31,7 +31,7 @@ public sealed class SharedAncestorResolver
     /// <summary>Every shared ancestor configured this test method, resolved against the triggering call's mode.</summary>
     public static void ResolveAllConfigured(IProviderLookup lookup, InsertMode callMode)
     {
-        if (running)
+        if (_running)
         {
             return;
         }
@@ -60,8 +60,8 @@ public sealed class SharedAncestorResolver
 
     public void Resolve(List<SharedAncestor> ancestors)
     {
-        bool owns = !running;
-        running = true;
+        bool owns = !_running;
+        _running = true;
         try
         {
             this.InDependencyOrder(ancestors).Where(ancestor => !ancestor.IsResolved).ToList().ForEach(this.ResolveOne);
@@ -70,7 +70,7 @@ public sealed class SharedAncestorResolver
         {
             if (owns)
             {
-                running = false;
+                _running = false;
             }
         }
     }
@@ -115,10 +115,9 @@ public sealed class SharedAncestorResolver
     private List<SharedAncestor> NestedOf(SharedAncestor ancestor)
     {
         MasterTemplate template = ancestor.Source().MasterTemplate(this.lookup);
-        return template.RequiredRelationshipByField.Values
+        return [.. template.RequiredRelationshipByField.Values
             .Concat(template.OptionalRelationshipByField.Values)
-            .OfType<SharedAncestor>()
-            .ToList();
+            .OfType<SharedAncestor>()];
     }
 
     // S1 generate + S2 depth-batched persist -----------------------------

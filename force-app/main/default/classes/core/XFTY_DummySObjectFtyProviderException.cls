@@ -1,2 +1,0 @@
-public virtual class XFTY_DummySObjectFtyProviderException extends Exception{
-}

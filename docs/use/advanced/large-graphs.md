@@ -14,11 +14,10 @@ relationship can itself generate more relationships.
 For deep or circular models, [`PreventCascade`](../relationships.md#preventcascade)
 generates the first level of relationships and no further.
 
-> Apex's third lever, `.DepthBatched()` (collapsing many `insert` statements
-> into one per dependency depth), has no observable effect in this port yet —
-> it only changes behaviour when combined with `InsertMode.Now`, which always
-> throws here. See [deferred-insert](../deferred-insert.md) and
-> [reference/known-issues.md](../../reference/known-issues.md).
+> A third lever, [`.DepthBatched()`](../deferred-insert.md), collapses many
+> inserts into one per dependency depth - it only changes anything when
+> combined with `InsertMode.Now` and a configured persistence gateway. See
+> [deferred-insert](../deferred-insert.md).
 
 ---
 
@@ -28,10 +27,9 @@ generates the first level of relationships and no further.
 measures wall-clock time and rough memory allocation for large generations —
 3,000 primaries with a required parent, 5,000 primaries held in memory, nested
 child generation, and a context-aware value pass at volume — against
-deliberately generous ceilings. Apex's governor-limit warnings
-(`Limits.getCpuTime()` / `getDmlRows()` / etc.) have no C# meaning and are not
-ported; see [reference/volume-and-limits.md](../../reference/volume-and-limits.md)
-for what this port measures instead. Model your own volume assertions on
-`PerformanceTest.cs`.
+deliberately generous ceilings. There's no fixed CPU-time/row-count budget to
+check against here, so wall-clock time and allocation are what matter — see
+[reference/volume-and-limits.md](../../reference/volume-and-limits.md) for
+details. Model your own volume assertions on `PerformanceTest.cs`.
 
 Runnable: `PerformanceTest`

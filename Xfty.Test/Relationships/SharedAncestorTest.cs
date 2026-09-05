@@ -16,9 +16,9 @@ namespace Net.Nowhereatall.Xfty.Test.Relationships;
 /// detection. Deep chains and the batched pre-phase are covered in
 /// SharedAncestorIntegrationTest.
 ///
-/// Apex's Now-mode scenarios verify real DML row counts; this port has no
-/// persistence layer, so those are adapted to Mock-mode equivalents that
-/// prove the same wiring (every child resolves to the one shared instance/Id).
+/// Uses Mock-mode throughout to prove the wiring itself (every child resolves
+/// to the one shared instance/Id); real-insert row counts under Now are
+/// proven separately in PersistenceGatewayTest.
 ///
 /// SharedAncestor's registry is process-static; each test below uses its own
 /// never-reused shared-ancestor name to stay isolated (see the class's own
@@ -42,7 +42,7 @@ public class SharedAncestorTest
 
         // Act
         List<object> contacts = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetQuantityPerTemplate(50)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -62,19 +62,19 @@ public class SharedAncestorTest
 
         // Act
         Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetQuantityPerTemplate(5)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .SupplyBundle();
 
         // Assert
-        List<object> contacts = bundle.GetList(Field.Of<Contact>(x => x.Id))!;
+        List<object> contacts = bundle.GetList<Contact>(x => x.Id)!;
         Assert.Equal(5, contacts.Count);
-        Assert.Equal(5, bundle.GetList(Field.Of<Contact>(x => x.AccountId))!.Count);
+        Assert.Equal(5, bundle.GetList<Contact>(x => x.AccountId)!.Count);
         HashSet<string?> accountIds = [.. contacts.Cast<Contact>().Select(contact => contact.AccountId)];
         _ = Assert.Single(accountIds); // every Contact points at the one shared Account
-        Assert.Equal(((Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0]).Id, accountIds.First());
+        Assert.Equal(((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id, accountIds.First());
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class SharedAncestorTest
 
         // Act
         List<object> contacts = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetQuantityPerTemplate(4)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -105,15 +105,15 @@ public class SharedAncestorTest
 
         // Act
         Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .SupplyBundle();
 
         // Assert
-        Assert.Equal("Shared HQ", ((Account)bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0]).Name);
-        Assert.NotNull(bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))); // the shared ancestor has a sub-bundle
-        Assert.Equal("Shared HQ", ((Account)bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.GetList(Field.Of<Account>(x => x.Id))![0]).Name);
+        Assert.Equal("Shared HQ", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Name);
+        Assert.NotNull(bundle.GetBundle<Contact>(x => x.AccountId)); // the shared ancestor has a sub-bundle
+        Assert.Equal("Shared HQ", ((Account)bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.Id)![0]).Name);
     }
 
     [Fact]
@@ -123,14 +123,14 @@ public class SharedAncestorTest
         const string name = "shared-ancestor-test-mock-then-now";
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
         _ = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply();
 
         // Act - a Now call that would carry the mock Id onto inserted Contacts
         RecordProvider nowProvider = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Now);
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(nowProvider.Supply);
@@ -149,7 +149,7 @@ public class SharedAncestorTest
 
         // Act
         List<object> contacts = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetQuantityPerTemplate(3)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -168,17 +168,17 @@ public class SharedAncestorTest
 
         // Act
         Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .SupplyBundle();
 
         // Assert - GetBundle is populated even for a Put(...) record
-        Bundle? accountBundle = bundle.GetBundle(Field.Of<Contact>(x => x.AccountId));
+        Bundle? accountBundle = bundle.GetBundle<Contact>(x => x.AccountId);
         Assert.NotNull(accountBundle);
-        Assert.Equal("Supplied HQ", ((Account)accountBundle!.GetList(Field.Of<Account>(x => x.Id))![0]).Name);
+        Assert.Equal("Supplied HQ", ((Account)accountBundle!.GetList<Account>(x => x.Id)![0]).Name);
         // GetList and GetBundle expose the same shared instance
-        Assert.Same(bundle.GetList(Field.Of<Contact>(x => x.AccountId))![0], accountBundle.GetList(Field.Of<Account>(x => x.Id))![0]);
+        Assert.Same(bundle.GetList<Contact>(x => x.AccountId)![0], accountBundle.GetList<Account>(x => x.Id)![0]);
     }
 
     [Fact]
@@ -244,12 +244,12 @@ public class SharedAncestorTest
     {
         // Arrange
         const string name = "shared-ancestor-test-related-field";
-        _ = SharedAncestor.Put(name, new Account { Name = "Named HQ" }).CopyingRelatedField(Field.Of<Account>(x => x.Name));
+        _ = SharedAncestor.Put(name, new Account { Name = "Named HQ" }).CopyingRelatedField<Account>(x => x.Name);
 
         // Act
         Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.Department), SharedAncestor.Get(name))
-            .RemoveFromMasterTemplate(Field.Of<Contact>(x => x.AccountId))
+            .PutRequired<Contact>(x => x.Department, SharedAncestor.Get(name))
+            .RemoveFromMasterTemplate<Contact>(x => x.AccountId)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply();
@@ -267,7 +267,7 @@ public class SharedAncestorTest
 
         // Act
         Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply();
@@ -283,7 +283,7 @@ public class SharedAncestorTest
         const string name = "shared-ancestor-test-name-and-template";
 
         // Act
-        _ = SharedAncestor.Put(name, new Account { Name = "Configured" }).CopyingRelatedField(Field.Of<Account>(x => x.Name));
+        _ = SharedAncestor.Put(name, new Account { Name = "Configured" }).CopyingRelatedField<Account>(x => x.Name);
 
         // Assert
         SharedAncestor ancestor = SharedAncestor.Get(name);
@@ -312,7 +312,7 @@ public class SharedAncestorTest
         // Arrange - nothing to arrange, 'never-registered' is referenced but never given a template
         const string name = "shared-ancestor-test-never-registered";
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -332,7 +332,7 @@ public class SharedAncestorTest
         const string name = "shared-ancestor-test-depth-batched";
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Now)
             .DepthBatched();
@@ -375,7 +375,7 @@ public class SharedAncestorTest
             [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
         });
         RecordProvider provider = new RecordProvider(typeof(Contact), loopy)
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(name))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -408,7 +408,7 @@ public class SharedAncestorTest
             [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
         });
         RecordProvider provider = new RecordProvider(typeof(Contact), ring)
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get("tom"))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get("tom"))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -444,7 +444,7 @@ public class SharedAncestorTest
 
     private static Contact SupplyOneContactUnder(string sharedName) =>
         (Contact)new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(sharedName))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply();
@@ -456,8 +456,8 @@ file sealed class SelfReferencingAccountProvider : IRecordProvider
 
     public SelfReferencingAccountProvider(string loopSharedName) =>
         this._template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Loop"))
-            .PutRequired(Field.Of<Account>(x => x.ParentId), SharedAncestor.Get(loopSharedName));
+            .Put<Account>(x => x.Name, new IncrementingStringExpression("Loop"))
+            .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(loopSharedName));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
@@ -474,8 +474,8 @@ file sealed class ParentedAccountProvider : IRecordProvider
 
     public ParentedAccountProvider(string parentSharedName) =>
         this._template = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Ring"))
-            .PutRequired(Field.Of<Account>(x => x.ParentId), SharedAncestor.Get(parentSharedName));
+            .Put<Account>(x => x.Name, new IncrementingStringExpression("Ring"))
+            .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(parentSharedName));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 

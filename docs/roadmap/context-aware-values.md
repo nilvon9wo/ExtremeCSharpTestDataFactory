@@ -6,7 +6,7 @@ and descendant (up-flowing) reads via `CopyFromDescendantExpression`
 ([descendant-value-reads.md](descendant-value-reads.md)). This page is the
 design record, condensed from the Apex original's decision-by-decision log —
 this port made the identical decisions deliberately, as a faithful port; only
-the syntax and one gap (no persistence layer) differ.
+the syntax differs.
 
 Builds on `GenerationContext`
 ([architecture.md - The Generation Context](../contribute/architecture.md#the-generation-context)).
@@ -59,12 +59,12 @@ exist** when its parent's value pass runs, so it needs a deferred pass.
    always fully built first.
 4. **Descendant (up-flowing) reads need a deferred whole-graph pass** — see
    [descendant-value-reads.md](descendant-value-reads.md) for the full
-   decision. In short: build the entire structure with no persistence, run an
-   up-flow pass over the buffered graph once every record exists, then
-   resolve. In this port that pass is `DescendantValuePass`, runnable via
-   `DeferredInsertBuffer.Flatten(bundle)` even though the final persistence
-   step it would normally precede (`Flush()`) always throws — see
-   [deferred-persistence.md](deferred-persistence.md).
+   decision. In short: build the entire structure first, run an up-flow pass
+   over the buffered graph once every record exists, then resolve. In this
+   port that pass is `DescendantValuePass`, runnable via
+   `DeferredInsertBuffer.Flatten(bundle)` independent of whether the final
+   persistence step it would normally precede (`Flush(gateway)`) actually
+   runs — see [deferred-persistence.md](deferred-persistence.md).
 
 ---
 

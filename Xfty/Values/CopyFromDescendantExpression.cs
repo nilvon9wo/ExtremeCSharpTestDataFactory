@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Reflection;
 
 using Net.Nowhereatall.Xfty.Core;
@@ -25,6 +26,11 @@ public sealed class CopyFromDescendantExpression : IDeferredExpression
         this.sourceField = sourceField ?? throw new XftyConfigurationException(
             "CopyFromDescendantExpression needs the child lookup field and the field to read from the child.");
     }
+
+    /// <summary>CopyFromDescendantExpression(childLookupField, sourceField), naming both fields by lambda.</summary>
+    public static CopyFromDescendantExpression From<TChild>(
+        Expression<Func<TChild, object?>> childLookupField, Expression<Func<TChild, object?>> sourceField) =>
+        new(Field.Of(childLookupField), Field.Of(sourceField));
 
     public object? Get(DeferredGraph graph, int recordIndex)
     {
