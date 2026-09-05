@@ -3,15 +3,9 @@ using System.Reflection;
 namespace Net.Nowhereatall.Xfty.Relationships;
 
 /// <summary>One field configuration queued on a <see cref="SharedAncestorProvider"/>, applied once its Master Template is resolved.</summary>
-public sealed class SharedAncestorFieldValue
+public sealed class SharedAncestorFieldValue(PropertyInfo field, object? value)
 {
-    public PropertyInfo Field { get; }
+    public PropertyInfo Field { get; } = field;
 
-    public object? Value { get; }
-
-    public SharedAncestorFieldValue(PropertyInfo field, object? value)
-    {
-        this.Field = field;
-        this.Value = value;
-    }
+    public object? Value { get; } = value;
 }

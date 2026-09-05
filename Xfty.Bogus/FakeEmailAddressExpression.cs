@@ -9,11 +9,9 @@ namespace Net.Nowhereatall.Xfty.Bogus;
 /// not guaranteed unique within a process, since Bogus generates from a
 /// finite name/domain pool rather than a counter.
 /// </summary>
-public sealed class FakeEmailAddressExpression : IValueExpression
+public sealed class FakeEmailAddressExpression(string locale = "en") : IValueExpression
 {
-    private readonly Faker faker;
-
-    public FakeEmailAddressExpression(string locale = "en") => this.faker = new Faker(locale);
+    private readonly Faker faker = new Faker(locale);
 
     public object Get() => this.faker.Internet.Email();
 }

@@ -20,13 +20,11 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 /// visited position - a typo, an ancestor that was not generated, a child
 /// collection the walk never descended into - is a loud error, not a silent no-op.
 /// </summary>
-public sealed class ForcedValues
+public sealed class ForcedValues(InjectConfig config)
 {
-    private readonly InjectConfig config;
+    private readonly InjectConfig config = config;
     private readonly HashSet<int> reachedAncestorValues = [];
     private readonly HashSet<int> reachedChildValues = [];
-
-    public ForcedValues(InjectConfig config) => this.config = config;
 
     /// <summary>The InjectValue(field, v) scalars - the target record itself.</summary>
     public void ApplyRecordValues(RecordInjector injector, int rowCount) =>

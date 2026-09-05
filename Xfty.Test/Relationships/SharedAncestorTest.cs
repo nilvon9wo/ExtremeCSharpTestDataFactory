@@ -450,12 +450,9 @@ public class SharedAncestorTest
             .Supply();
 }
 
-file sealed class SelfReferencingAccountProvider : IRecordProvider
+file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecordProvider
 {
-    private MasterTemplate _template { get; }
-
-    public SelfReferencingAccountProvider(string loopSharedName) =>
-        this._template = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Loop"))
             .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(loopSharedName));
 
@@ -468,12 +465,9 @@ file sealed class SelfReferencingAccountProvider : IRecordProvider
 }
 
 /// <summary>An Account Provider whose ParentId is the named shared ancestor - for the cycle tests.</summary>
-file sealed class ParentedAccountProvider : IRecordProvider
+file sealed class ParentedAccountProvider(string parentSharedName) : IRecordProvider
 {
-    private MasterTemplate _template { get; }
-
-    public ParentedAccountProvider(string parentSharedName) =>
-        this._template = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Ring"))
             .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(parentSharedName));
 

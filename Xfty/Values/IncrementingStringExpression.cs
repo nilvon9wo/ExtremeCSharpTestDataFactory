@@ -4,21 +4,15 @@ namespace Net.Nowhereatall.Xfty.Values;
 /// An <see cref="IValueExpression"/> producing "prefix 1", "prefix 2", ... per
 /// instance - or "prefix1", "prefix2" with <see cref="DontSeparatePrefix"/>.
 /// </summary>
-public sealed class IncrementingStringExpression : IValueExpression
+public sealed class IncrementingStringExpression(string prefix, bool separatePrefix = IncrementingStringExpression.SeparatePrefix) : IValueExpression
 {
     public const bool SeparatePrefix = true;
     public const bool DontSeparatePrefix = false;
 
-    private readonly string prefix;
-    private readonly bool separatePrefix;
+    private readonly string prefix = prefix;
+    private readonly bool separatePrefix = separatePrefix;
 
     private int counter = 1;
-
-    public IncrementingStringExpression(string prefix, bool separatePrefix = SeparatePrefix)
-    {
-        this.prefix = prefix;
-        this.separatePrefix = separatePrefix;
-    }
 
     public object Get()
     {

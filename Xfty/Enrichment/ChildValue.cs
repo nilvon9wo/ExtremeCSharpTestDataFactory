@@ -3,17 +3,11 @@ using System.Reflection;
 namespace Net.Nowhereatall.Xfty.Enrichment;
 
 /// <summary>A forced scalar on the records of a child collection path reaches downward.</summary>
-public sealed class ChildValue
+public sealed class ChildValue(List<PropertyInfo> path, object? value)
 {
-    public List<PropertyInfo> Path { get; }
+    public List<PropertyInfo> Path { get; } = path;
 
-    public object? Value { get; }
-
-    public ChildValue(List<PropertyInfo> path, object? value)
-    {
-        this.Path = path;
-        this.Value = value;
-    }
+    public object? Value { get; } = value;
 
     public List<PropertyInfo> RelationshipPrefix() => [.. this.Path.Take(this.Path.Count - 1)];
 

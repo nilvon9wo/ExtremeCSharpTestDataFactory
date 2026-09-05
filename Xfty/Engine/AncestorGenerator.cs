@@ -6,18 +6,11 @@ using Net.Nowhereatall.Xfty.Relationships;
 namespace Net.Nowhereatall.Xfty.Engine;
 
 /// <summary>Generates the ancestor sub-bundle for each relationship the inclusivity covers.</summary>
-public sealed class AncestorGenerator
+public sealed class AncestorGenerator(GenerationContext context, int quantity, MasterTemplate template)
 {
-    private readonly GenerationContext context;
-    private readonly int quantity;
-    private readonly MasterTemplate template;
-
-    public AncestorGenerator(GenerationContext context, int quantity, MasterTemplate template)
-    {
-        this.context = context;
-        this.quantity = quantity;
-        this.template = template;
-    }
+    private readonly GenerationContext context = context;
+    private readonly int quantity = quantity;
+    private readonly MasterTemplate template = template;
 
     public Bundle Generate()
     {

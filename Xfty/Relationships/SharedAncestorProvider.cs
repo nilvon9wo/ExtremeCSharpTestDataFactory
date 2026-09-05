@@ -13,9 +13,9 @@ namespace Net.Nowhereatall.Xfty.Relationships;
 /// onto <see cref="SharedAncestor.Put(string,object)"/>; never constructed
 /// directly by a test.
 /// </summary>
-public sealed class SharedAncestorProvider
+public sealed class SharedAncestorProvider(SharedAncestor owner)
 {
-    private readonly SharedAncestor owner;
+    private readonly SharedAncestor owner = owner;
     private readonly List<SharedAncestorFieldValue> valuePuts = [];
     private readonly List<SharedAncestorFieldValue> requiredRelationships = [];
     private readonly List<SharedAncestorFieldValue> optionalRelationships = [];
@@ -27,8 +27,6 @@ public sealed class SharedAncestorProvider
     private ILookupKey? resolvedKey;
     private PropertyInfo? relatedField;
     private InsertInclusivity? inclusivity;
-
-    public SharedAncestorProvider(SharedAncestor owner) => this.owner = owner;
 
     // Configuration ---------------------------------------------------
 

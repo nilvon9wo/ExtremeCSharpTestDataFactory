@@ -20,12 +20,9 @@ namespace Net.Nowhereatall.Xfty.Core;
 /// when <see cref="CreateBundle"/> needs custom behaviour beyond "build the
 /// template".
 /// </summary>
-public abstract class SimpleRecordProvider<TRecord> : IRecordProvider
+public abstract class SimpleRecordProvider<TRecord>(MasterTemplate<TRecord> template) : IRecordProvider
 {
-    protected SimpleRecordProvider(MasterTemplate<TRecord> template) =>
-        this.MasterTemplate = template;
-
-    public MasterTemplate MasterTemplate { get; }
+    public MasterTemplate MasterTemplate { get; } = template;
 
     public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 

@@ -5,18 +5,11 @@ using Net.Nowhereatall.Xfty.Relationships;
 namespace Net.Nowhereatall.Xfty.Engine;
 
 /// <summary>Points each primary record's lookup at the matching generated ancestor.</summary>
-public sealed class LookupWiring
+public sealed class LookupWiring(Bundle bundle, GenerationContext context, MasterTemplate template)
 {
-    private readonly Bundle bundle;
-    private readonly GenerationContext context;
-    private readonly Dictionary<PropertyInfo, IDefaultRelationship> relationships;
-
-    public LookupWiring(Bundle bundle, GenerationContext context, MasterTemplate template)
-    {
-        this.bundle = bundle;
-        this.context = context;
-        this.relationships = MergeRelationships(template);
-    }
+    private readonly Bundle bundle = bundle;
+    private readonly GenerationContext context = context;
+    private readonly Dictionary<PropertyInfo, IDefaultRelationship> relationships = MergeRelationships(template);
 
     /// <summary>
     /// Wires whatever ancestors are actually present in the bundle. There is no

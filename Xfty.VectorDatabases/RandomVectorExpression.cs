@@ -10,23 +10,15 @@ namespace Net.Nowhereatall.Xfty.VectorDatabases;
 /// relationship needs vectors informed by its own domain; see
 /// docs/roadmap/vector-databases.md.
 /// </summary>
-public sealed class RandomVectorExpression : IValueExpression
+public sealed class RandomVectorExpression(int dimensions, float min = RandomVectorExpression.DefaultMin, float max = RandomVectorExpression.DefaultMax, bool normalize = false) : IValueExpression
 {
     private const float DefaultMin = -1f;
     private const float DefaultMax = 1f;
 
-    private readonly int dimensions;
-    private readonly float min;
-    private readonly float max;
-    private readonly bool normalize;
-
-    public RandomVectorExpression(int dimensions, float min = DefaultMin, float max = DefaultMax, bool normalize = false)
-    {
-        this.dimensions = dimensions;
-        this.min = min;
-        this.max = max;
-        this.normalize = normalize;
-    }
+    private readonly int dimensions = dimensions;
+    private readonly float min = min;
+    private readonly float max = max;
+    private readonly bool normalize = normalize;
 
     public object Get() => this.GenerateVector();
 

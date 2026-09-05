@@ -9,11 +9,9 @@ namespace Net.Nowhereatall.Xfty.Bogus;
 /// merely be present. See docs/reference/comparison.md for why this lives in
 /// a separate package instead of core <c>Xfty</c>.
 /// </summary>
-public sealed class FakeFullNameExpression : IValueExpression
+public sealed class FakeFullNameExpression(string locale = "en") : IValueExpression
 {
-    private readonly Faker faker;
-
-    public FakeFullNameExpression(string locale = "en") => this.faker = new Faker(locale);
+    private readonly Faker faker = new Faker(locale);
 
     public object Get() => this.faker.Name.FullName();
 }

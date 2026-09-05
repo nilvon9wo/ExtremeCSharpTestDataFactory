@@ -26,21 +26,15 @@ namespace Net.Nowhereatall.Xfty.Engine;
 /// and Monitor's same-thread reentrancy is well-established, unlike newer
 /// lock primitives this codebase has never needed to reason about before.
 /// </summary>
-public sealed class SharedAncestorResolver
+/// <remarks>mode is the triggering call's insert mode; Deferred/RelatedOnly resolve eagerly, as Now.</remarks>
+public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mode)
 {
-    private static readonly object ResolutionLock = new();
+    private static readonly Lock ResolutionLock = new();
     private static bool _running;
     private static readonly HashSet<string> InProgress = [];
 
-    private readonly IProviderLookup lookup;
-    private readonly InsertMode mode;
-
-    /// <summary>mode is the triggering call's insert mode; Deferred/RelatedOnly resolve eagerly, as Now.</summary>
-    public SharedAncestorResolver(IProviderLookup lookup, InsertMode mode)
-    {
-        this.lookup = lookup;
-        this.mode = Eager(mode);
-    }
+    private readonly IProviderLookup lookup = lookup;
+    private readonly InsertMode mode = Eager(mode);
 
     /// <summary>Every shared ancestor configured this test method, resolved against the triggering call's mode.</summary>
     public static void ResolveAllConfigured(IProviderLookup lookup, InsertMode callMode)

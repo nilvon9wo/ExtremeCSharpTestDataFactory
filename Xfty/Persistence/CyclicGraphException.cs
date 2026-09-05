@@ -1,9 +1,6 @@
 namespace Net.Nowhereatall.Xfty.Persistence;
 
 /// <summary>The lookups leave no order in which every parent lands before its child.</summary>
-public sealed class CyclicGraphException : Exception
+public sealed class CyclicGraphException(string message) : Exception(message)
 {
-    public CyclicGraphException(string message) : base(message)
-    {
-    }
 }

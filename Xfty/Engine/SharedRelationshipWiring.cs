@@ -5,16 +5,10 @@ using Net.Nowhereatall.Xfty.Relationships;
 namespace Net.Nowhereatall.Xfty.Engine;
 
 /// <summary>Wires a shared ancestor into a bundle: one record stands in for every child at its field, resolved once per test, then repeated quantity times.</summary>
-public sealed class SharedRelationshipWiring
+public sealed class SharedRelationshipWiring(GenerationContext context, ISharedRelationship shared)
 {
-    private readonly GenerationContext context;
-    private readonly ISharedRelationship shared;
-
-    public SharedRelationshipWiring(GenerationContext context, ISharedRelationship shared)
-    {
-        this.context = context;
-        this.shared = shared;
-    }
+    private readonly GenerationContext context = context;
+    private readonly ISharedRelationship shared = shared;
 
     public void Wire(Bundle bundle, PropertyInfo field, int quantity)
     {

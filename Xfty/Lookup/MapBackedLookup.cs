@@ -4,22 +4,15 @@ using Net.Nowhereatall.Xfty.Relationships;
 namespace Net.Nowhereatall.Xfty.Lookup;
 
 /// <summary>The lookup <see cref="ProviderLookups.Of(Dictionary{ILookupKey,IRecordProvider})"/> and friends build.</summary>
-public sealed class MapBackedLookup : IProviderLookup, ISharedAncestorDefaults
+public sealed class MapBackedLookup(
+    Dictionary<ILookupKey, Type>? providerTypeByKey,
+    Dictionary<ILookupKey, IRecordProvider>? providerByKey,
+    Dictionary<string, object>? sharedAncestorDefaults) : IProviderLookup, ISharedAncestorDefaults
 {
-    private readonly Dictionary<ILookupKey, Type>? providerTypeByKey;
-    private readonly Dictionary<ILookupKey, IRecordProvider>? providerByKey;
-    private readonly Dictionary<string, object>? sharedAncestorDefaults;
+    private readonly Dictionary<ILookupKey, Type>? providerTypeByKey = providerTypeByKey;
+    private readonly Dictionary<ILookupKey, IRecordProvider>? providerByKey = providerByKey;
+    private readonly Dictionary<string, object>? sharedAncestorDefaults = sharedAncestorDefaults;
     private readonly Dictionary<ILookupKey, IRecordProvider> instanceCache = [];
-
-    public MapBackedLookup(
-        Dictionary<ILookupKey, Type>? providerTypeByKey,
-        Dictionary<ILookupKey, IRecordProvider>? providerByKey,
-        Dictionary<string, object>? sharedAncestorDefaults)
-    {
-        this.providerTypeByKey = providerTypeByKey;
-        this.providerByKey = providerByKey;
-        this.sharedAncestorDefaults = sharedAncestorDefaults;
-    }
 
     public void RegisterSharedAncestorDefaults() =>
         this.sharedAncestorDefaults?.ToList().ForEach(pair => SharedAncestor.PutIfAbsent(pair.Key, pair.Value));

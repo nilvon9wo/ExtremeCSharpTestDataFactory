@@ -21,12 +21,9 @@ namespace Net.Nowhereatall.Xfty.Core;
 /// class in this library works with, so it only needs to exist at the point a
 /// Provider author writes one.
 /// </summary>
-public sealed class MasterTemplate<TRecord>
+public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> primaryTargetField)
 {
-    private readonly MasterTemplate inner;
-
-    public MasterTemplate(Expression<Func<TRecord, object?>> primaryTargetField) =>
-        this.inner = new MasterTemplate(Field.Of(primaryTargetField));
+    private readonly MasterTemplate inner = new MasterTemplate(Field.Of(primaryTargetField));
 
     public object? this[Expression<Func<TRecord, object?>> field]
     {

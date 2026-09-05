@@ -12,19 +12,13 @@ namespace Net.Nowhereatall.Xfty.Values;
 /// insert. `prefix` + a per-run token (time + randomness) + a counter +
 /// `suffix`. Keep `prefix`/`suffix` short - the token adds ~14 characters.
 /// </summary>
-public sealed class UniqueAcrossRunsExpression : IValueExpression
+public sealed class UniqueAcrossRunsExpression(string? prefix, string? suffix) : IValueExpression
 {
     private static readonly string RunToken = BuildRunToken();
     private static int _counter = 1;
 
-    private readonly string prefix;
-    private readonly string suffix;
-
-    public UniqueAcrossRunsExpression(string? prefix, string? suffix)
-    {
-        this.prefix = prefix ?? string.Empty;
-        this.suffix = suffix ?? string.Empty;
-    }
+    private readonly string prefix = prefix ?? string.Empty;
+    private readonly string suffix = suffix ?? string.Empty;
 
     public object Get() => $"{this.prefix}{RunToken}{_counter++}{this.suffix}";
 

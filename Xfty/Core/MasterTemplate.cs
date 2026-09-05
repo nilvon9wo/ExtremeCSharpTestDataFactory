@@ -13,37 +13,28 @@ namespace Net.Nowhereatall.Xfty.Core;
 /// Copy/Remove/field ordering. See also <see cref="MasterTemplate{TRecord}"/>,
 /// the ergonomic lambda-based wrapper for building one of these.
 /// </summary>
-public sealed partial class MasterTemplate
+public sealed partial class MasterTemplate(
+    PropertyInfo primaryTargetField,
+    Dictionary<PropertyInfo, IValueExpression> defaultByField,
+    Dictionary<PropertyInfo, IDefaultRelationship> requiredRelationshipByField,
+    Dictionary<PropertyInfo, IDefaultRelationship> optionalRelationshipByField)
 {
-    public PropertyInfo PrimaryTargetField { get; }
+    public PropertyInfo PrimaryTargetField { get; } = primaryTargetField;
 
-    public Dictionary<PropertyInfo, IValueExpression> DefaultByField { get; }
+    public Dictionary<PropertyInfo, IValueExpression> DefaultByField { get; } = defaultByField;
 
     public Dictionary<PropertyInfo, IContextAwareExpression> ContextAwareByField { get; } = [];
 
     public Dictionary<PropertyInfo, IDeferredExpression> DeferredExpressionByField { get; } = [];
 
-    public Dictionary<PropertyInfo, IDefaultRelationship> RequiredRelationshipByField { get; }
+    public Dictionary<PropertyInfo, IDefaultRelationship> RequiredRelationshipByField { get; } = requiredRelationshipByField;
 
-    public Dictionary<PropertyInfo, IDefaultRelationship> OptionalRelationshipByField { get; }
+    public Dictionary<PropertyInfo, IDefaultRelationship> OptionalRelationshipByField { get; } = optionalRelationshipByField;
 
     // Insertion order of the value fields (plain + context-aware) - a
     // context-aware value may read an earlier one, so the value passes need a
     // deterministic order.
-    private readonly List<PropertyInfo> valueFieldOrder;
-
-    public MasterTemplate(
-        PropertyInfo primaryTargetField,
-        Dictionary<PropertyInfo, IValueExpression> defaultByField,
-        Dictionary<PropertyInfo, IDefaultRelationship> requiredRelationshipByField,
-        Dictionary<PropertyInfo, IDefaultRelationship> optionalRelationshipByField)
-    {
-        this.PrimaryTargetField = primaryTargetField;
-        this.DefaultByField = defaultByField;
-        this.RequiredRelationshipByField = requiredRelationshipByField;
-        this.OptionalRelationshipByField = optionalRelationshipByField;
-        this.valueFieldOrder = [.. defaultByField.Keys];
-    }
+    private readonly List<PropertyInfo> valueFieldOrder = [.. defaultByField.Keys];
 
     public MasterTemplate(PropertyInfo primaryTargetField)
         : this(primaryTargetField, [], [], [])

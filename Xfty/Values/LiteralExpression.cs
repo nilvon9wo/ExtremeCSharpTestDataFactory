@@ -1,11 +1,9 @@
 namespace Net.Nowhereatall.Xfty.Values;
 
 /// <summary>An <see cref="IValueExpression"/> that always returns the same fixed value, null included.</summary>
-public sealed class LiteralExpression : IValueExpression
+public sealed class LiteralExpression(object? value) : IValueExpression
 {
-    private readonly object? value;
-
-    public LiteralExpression(object? value) => this.value = value;
+    private readonly object? value = value;
 
     public object? Get() => this.value;
 }

@@ -9,11 +9,11 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 /// top-level class rather than a nested one - this library keeps no nested
 /// types.
 /// </summary>
-internal sealed class EnrichmentPosition
+internal sealed class EnrichmentPosition(Bundle? subBundle, List<object>? records)
 {
-    public Bundle? SubBundle { get; }
+    public Bundle? SubBundle { get; } = subBundle;
 
-    public List<object>? Records { get; }
+    public List<object>? Records { get; } = records;
 
     /// <summary>Null once the walk turns downward.</summary>
     public List<PropertyInfo>? PathFromEntry { get; set; }
@@ -30,12 +30,6 @@ internal sealed class EnrichmentPosition
     public PropertyInfo? InverseChildField { get; private set; }
 
     public List<List<object>>? InverseChildrenPerRow { get; private set; }
-
-    public EnrichmentPosition(Bundle? subBundle, List<object>? records)
-    {
-        this.SubBundle = subBundle;
-        this.Records = records;
-    }
 
     public void CarryInverse(PropertyInfo childField, List<List<object>> perRow)
     {

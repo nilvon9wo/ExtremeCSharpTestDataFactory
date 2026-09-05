@@ -9,16 +9,10 @@ namespace Net.Nowhereatall.Xfty.Engine;
 /// <see cref="Values.IDeferredExpression"/> to read a value up from a
 /// descendant.
 /// </summary>
-public sealed class DeferredGraph
+public sealed class DeferredGraph(List<object> records, List<DepthBatchedInserterParentLink> links)
 {
-    private readonly List<object> records;
-    private readonly List<DepthBatchedInserterParentLink> links;
-
-    public DeferredGraph(List<object> records, List<DepthBatchedInserterParentLink> links)
-    {
-        this.records = records;
-        this.links = links;
-    }
+    private readonly List<object> records = records;
+    private readonly List<DepthBatchedInserterParentLink> links = links;
 
     /// <summary>The generated records that reference records[parentIndex] through childLookupField.</summary>
     public List<object> ChildrenOf(int parentIndex, PropertyInfo childLookupField) =>

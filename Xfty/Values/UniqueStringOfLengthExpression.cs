@@ -5,16 +5,14 @@ namespace Net.Nowhereatall.Xfty.Values;
 /// unique-within-one-process strings ("AAA", "AAB", ... for length 3) - a
 /// base-26 counter over A-Z, counted separately per requested length.
 /// </summary>
-public sealed class UniqueStringOfLengthExpression : IValueExpression
+public sealed class UniqueStringOfLengthExpression(int length) : IValueExpression
 {
     private const int AAsciiCode = 65;
     private const int AlphabetLength = 26;
 
     private static readonly Dictionary<int, int> LengthToCounter = [];
 
-    private readonly int length;
-
-    public UniqueStringOfLengthExpression(int length) => this.length = length;
+    private readonly int length = length;
 
     public object Get()
     {

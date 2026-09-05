@@ -5,18 +5,11 @@ using Net.Nowhereatall.Xfty.Values;
 namespace Net.Nowhereatall.Xfty.Engine;
 
 /// <summary>The second value pass: the context-aware expressions, run once the plain values, ancestors and lookups are all in place.</summary>
-public sealed class ContextAwareValuePass
+public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext context, MasterTemplate template)
 {
-    private readonly Bundle bundle;
-    private readonly GenerationContext context;
-    private readonly MasterTemplate template;
-
-    public ContextAwareValuePass(Bundle bundle, GenerationContext context, MasterTemplate template)
-    {
-        this.bundle = bundle;
-        this.context = context;
-        this.template = template;
-    }
+    private readonly Bundle bundle = bundle;
+    private readonly GenerationContext context = context;
+    private readonly MasterTemplate template = template;
 
     public void Complete()
     {

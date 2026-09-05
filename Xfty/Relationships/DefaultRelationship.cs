@@ -7,9 +7,9 @@ namespace Net.Nowhereatall.Xfty.Relationships;
 /// The standard relationship implementation: generate a fresh parent record
 /// from the given override template.
 /// </summary>
-public sealed class DefaultRelationship : IDefaultRelationship
+public sealed class DefaultRelationship(ILookupKey? lookupKey, object? overrideTemplate, PropertyInfo? relatedField) : IDefaultRelationship
 {
-    private readonly ILookupKey? explicitLookupKey;
+    private readonly ILookupKey? explicitLookupKey = lookupKey;
     private ILookupKey? resolvedLookupKey;
 
     public DefaultRelationship(object? overrideTemplate) : this(null, overrideTemplate, null)
@@ -24,16 +24,9 @@ public sealed class DefaultRelationship : IDefaultRelationship
     {
     }
 
-    public DefaultRelationship(ILookupKey? lookupKey, object? overrideTemplate, PropertyInfo? relatedField)
-    {
-        this.explicitLookupKey = lookupKey;
-        this.OverrideTemplate = overrideTemplate;
-        this.RelatedField = relatedField;
-    }
+    public object? OverrideTemplate { get; } = overrideTemplate;
 
-    public object? OverrideTemplate { get; }
-
-    public PropertyInfo? RelatedField { get; }
+    public PropertyInfo? RelatedField { get; } = relatedField;
 
     public ILookupKey? ResolveLookupKey(IProviderLookup providerLookup)
     {

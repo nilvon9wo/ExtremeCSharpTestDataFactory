@@ -7,11 +7,9 @@ namespace Net.Nowhereatall.Xfty.Bogus;
 /// An <see cref="IValueExpression"/> producing a realistic-looking street
 /// address via Bogus.
 /// </summary>
-public sealed class FakeStreetAddressExpression : IValueExpression
+public sealed class FakeStreetAddressExpression(string locale = "en") : IValueExpression
 {
-    private readonly Faker faker;
-
-    public FakeStreetAddressExpression(string locale = "en") => this.faker = new Faker(locale);
+    private readonly Faker faker = new Faker(locale);
 
     public object Get() => this.faker.Address.StreetAddress();
 }

@@ -5,13 +5,11 @@ namespace Net.Nowhereatall.Xfty.Values;
 /// counter is process-static, not per-instance) - not across persisted runs;
 /// see <see cref="UniqueAcrossRunsExpression"/> for that.
 /// </summary>
-public sealed class UniqueStringExpression : IValueExpression
+public sealed class UniqueStringExpression(string prefix) : IValueExpression
 {
     private static int _counter = 1;
 
-    private readonly string prefix;
-
-    public UniqueStringExpression(string prefix) => this.prefix = prefix;
+    private readonly string prefix = prefix;
 
     public object Get() => $"{this.prefix} {_counter++}";
 }

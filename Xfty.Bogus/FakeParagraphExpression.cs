@@ -8,18 +8,12 @@ namespace Net.Nowhereatall.Xfty.Bogus;
 /// via Bogus, for a body-text field that needs to look populated rather than
 /// hold a literal placeholder.
 /// </summary>
-public sealed class FakeParagraphExpression : IValueExpression
+public sealed class FakeParagraphExpression(int sentenceCount = FakeParagraphExpression.DefaultSentenceCount, string locale = "en") : IValueExpression
 {
     private const int DefaultSentenceCount = 3;
 
-    private readonly Faker faker;
-    private readonly int sentenceCount;
-
-    public FakeParagraphExpression(int sentenceCount = DefaultSentenceCount, string locale = "en")
-    {
-        this.faker = new Faker(locale);
-        this.sentenceCount = sentenceCount;
-    }
+    private readonly Faker faker = new Faker(locale);
+    private readonly int sentenceCount = sentenceCount;
 
     public object Get() => this.faker.Lorem.Paragraph(this.sentenceCount);
 }
