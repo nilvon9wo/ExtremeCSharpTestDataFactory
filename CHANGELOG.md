@@ -1,32 +1,87 @@
 # Changelog
 
-All notable changes to XFTY are recorded here. The format follows
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/); XFTY aims to follow
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to **this C# port** are recorded here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project aims to
+follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+Everything below the **1.0.0-beta.1** entry is inherited, unmodified, from
+the Apex original's own changelog (a different codebase, in
+[`ExtremeApexTestDataFactory`](https://github.com/nilvon9wo/ExtremeApexTestDataFactory)) -
+kept for reference since this port's design faithfully follows it, not
+because those entries describe a change made in *this* repository.
+
+## [1.0.0-beta.1] – 2026-09-05
+
+First beta of the C# port. Feature-complete against the Apex 4.0 surface
+this port targets, plus one capability the original never had: real
+persistence, via a storage-agnostic seam rather than a Salesforce-specific
+one. **Not yet tested against anything approaching a real production
+workload** - hence beta.
 
 ### Added
 
-- **Predicate combinators** — `XFTY_Predicates.allOf(list)` / `anyOf(list)` /
-  `negate(one)` build AND / OR / NOT trees of `XFTY_SObjectPredicateIntf` for a
-  flavoured lookup key, beyond the implicit AND of repeated `.matching(...)`.
+- The whole generation engine, ported mechanically: `RecordProvider` /
+  `MasterTemplate`, relationship generation (required/optional, per-call
+  `IncludeOptional`/`ExcludeRelationship`, `PreventCascade`, ancestor-cycle
+  guards), downward generation (`With`/`WithChildren`/`ChildProvider`),
+  context-aware values (sibling/ancestor/descendant reads, with the
+  mis-ordering guard), shared ancestors, multi-variant Providers
+  (`FlavouredLookupKey`), predicates, and bundle enrichment
+  (`Inject`/`InjectAll`/`RecordInjector`).
+- **`IPersistenceGateway`** — the one-method seam (`Insert(records, idField)`)
+  that makes `InsertMode.Now`, `.DepthBatched()`, and
+  `DeferredInserter.Flush(gateway)` actually persist, independent of storage
+  technology. Proven with an `NSubstitute`-mocked gateway
+  (`PersistenceGatewayTest`) and, in the new **`Xfty.EntityFrameworkCore`**
+  project, a real `EfPersistenceGateway` proven against SQLite and a real
+  Postgres container (via Testcontainers, skipping gracefully without
+  Docker).
+- **`DiscriminatorLookupKey`** — matching a Provider by a field's value (e.g.
+  `Account.Type == "Person"`) on top of `FlavouredLookupKey`, this port's
+  analog of a record-type discriminator.
+- **Lambda-based field access** throughout the public API -
+  `Field.Of<TRecord>(x => x.Field)` and matching overloads on
+  `RecordProvider`, `Bundle`, `MasterTemplate<TRecord>`, `ChildProvider`,
+  `SharedAncestorProvider`, `FieldPredicateFactory`, and the `CopyFrom*`
+  value expressions - so a field is named without a bare `PropertyInfo` or
+  `nameof(...)` at the call site.
+- **`MasterTemplate<TRecord>`** and **`SimpleRecordProvider<TRecord>`** -
+  ergonomic, strongly-typed wrappers (collection-initializer syntax for a
+  template; a Provider that is nothing but a template needs no boilerplate)
+  over the untyped engine underneath.
+- `scripts/verify-doc-examples.py` / `verify-doc-links.py`, wired into CI -
+  every documented C# example is exercised by a real test, and every
+  relative doc link resolves.
 
 ### Changed
 
-- **Predicate internals split out.** `XFTY_FieldPredicate` and `XFTY_Predicates`
-  are now thin facades over one small, directly-usable class per condition:
-  `XFTY_FieldEqualToPredicate`, `XFTY_FieldGreaterThanPredicate`,
-  `XFTY_FieldLessThanPredicate`, `XFTY_FieldInSetPredicate` (sharing
-  `XFTY_ValueComparison`), and `XFTY_AllOfPredicate` / `XFTY_AnyOfPredicate` /
-  `XFTY_NegationPredicate`. No inner classes, no operator enum, no `switch`;
-  `notEqualTo` / `isNotNull` are a negated `equalTo`. Facade method names are
-  unchanged (`equalTo` / `greaterThan` / `inSet` / …).
-- **Explicit variant vs. override template are now reconciled.** Supplying both
-  `withVariant(key)` (or a relationship's explicit key) *and* an override
-  template that independently matches a *different* refined variant now throws
-  `XFTY_ProviderLookups.LookupException` instead of silently letting the explicit
-  key win. A template with no discriminator is unaffected.
+- Ported onto idiomatic C#, not a literal syntax translation: reflection
+  (`PropertyInfo`/`object`) replaces `SObject`/`SObjectField`; xUnit AAA
+  tests replace Apex `@IsTest`; `this.`-qualified members, one expression per
+  line, and no inner classes (`file sealed class` instead) throughout.
+- Consumers no longer need to know this project's Salesforce origin: every
+  Salesforce/Apex/SObject-specific identifier is renamed to a neutral
+  equivalent (`RecordInjector`, `RecordType`, `AllowDeeperGraph()`, …), and
+  the original Apex source tree (`force-app/`) is no longer carried in this
+  repository.
+- `xUnit v3` / `Microsoft.Testing.Platform` (from `xunit.runner.visualstudio`
+  + VSTest); `dotnet test` opts back in via `global.json`.
+
+### Not ported — deliberate scope boundaries
+
+- Record-type schema auto-detection (no equivalent metadata outside a
+  Salesforce org) - covered instead by `DiscriminatorLookupKey`.
+- Seeding a long-lived, shared environment (a scratch org, a seeded staging
+  database) - a different job from this library's, deliberately not built.
+- Test-user helpers and CPU-time/row-count budget tracking - no equivalent
+  schema or fixed resource quota to build them against.
+
+See [docs/reference/known-issues.md](docs/reference/known-issues.md) for the
+full, current list.
+
+---
+
+## Inherited from the Apex original (reference only - see note above)
 
 ## [4.0.0-beta.1] – 2026-09-01
 
