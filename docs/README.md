@@ -58,6 +58,7 @@ matrix (every feature → its page → the test that proves its examples).
 - [Volume & Limits](reference/volume-and-limits.md) — where generation gets expensive, and how the port measures it
 - [Known Issues](reference/known-issues.md) — the open triage list, including the capability gaps versus the Apex original
 - [API Cheat-Sheet](reference/api-cheatsheet.md) — every public class and method, one line each
+- [Comparison](reference/comparison.md) — an honest feature comparison against AutoFixture, Bogus, AutoBogus, and NBuilder
 
 ## roadmap/
 

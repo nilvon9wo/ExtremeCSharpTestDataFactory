@@ -172,8 +172,8 @@ including where XFTY is a worse fit than any of them.
 
 # Roadmap
 
-Recently landed (see the [CHANGELOG](CHANGELOG.md) for the full 1.0.0-beta.1
-entry):
+Recently landed (see the [CHANGELOG](CHANGELOG.md) for the full detail,
+including everything since the 1.0.0-beta.1 tag):
 
 - Real persistence via `IPersistenceGateway` (`Xfty.EntityFrameworkCore`,
   proven against SQLite and a real Postgres container)

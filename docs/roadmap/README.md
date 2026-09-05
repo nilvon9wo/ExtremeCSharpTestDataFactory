@@ -3,7 +3,7 @@
 What is built, what is left, for this C# port.
 
 Legend: ✅ built and working · ⚠️ built but with a real limitation versus the
-Apex original · ❌ not ported (see [reference/known-issues](../reference/known-issues.md) for why) · 📋 designed, not built · 💡 idea, not designed · 🧪 preview proof-of-concept - works, but not a considered, general-purpose package yet · 🚫 considered and declined - a deliberate non-goal, not a gap.
+Apex original · ❌ not ported (see [reference/known-issues](../reference/known-issues.md) for why) · 💡 idea, not designed · 🧪 preview proof-of-concept - works, but not a considered, general-purpose package yet · 🚫 considered and declined - a deliberate non-goal, not a gap.
 
 ## Built
 

@@ -3,12 +3,12 @@ using System.Reflection;
 namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant;
 
 /// <summary>
-/// Reflection helpers shared by both PoC gateways in this package
-/// (<see cref="QdrantPersistenceGateway"/> via Microsoft.Extensions.VectorData,
-/// <see cref="QdrantDirectPersistenceGateway"/> via the raw Qdrant client) -
-/// the id/vector-field assumptions are the same regardless of which client
-/// API actually talks to Qdrant. See README.md for why these are
-/// PoC-level assumptions, not general-purpose conventions.
+/// Reflection helpers for <see cref="QdrantPersistenceGateway"/> - the
+/// id/vector-field assumptions this PoC makes about a record's shape.
+/// Note the parallel, deliberately un-shared logic in
+/// <c>Xfty.VectorDatabases.MicrosoftExtensionsVectorData</c>'s own gateway:
+/// that one does NOT require a `Guid` key, because that's Qdrant's own
+/// rule, not a universal one - see README.md for both packages' reasoning.
 /// </summary>
 internal static class QdrantRecordReflection
 {
