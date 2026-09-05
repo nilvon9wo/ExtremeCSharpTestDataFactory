@@ -21,7 +21,7 @@ public sealed class DeferredInsertBuffer
     private readonly List<object> pendingRecords = [];
     private readonly List<PendingDeferredValue> pendingDeferredValues = [];
 
-    public static void InsertGraph(Bundle bundle)
+    public static void InsertGraph(Bundle? bundle)
     {
         DeferredInsertBuffer buffer = new();
         buffer.Add(bundle);
@@ -29,7 +29,7 @@ public sealed class DeferredInsertBuffer
     }
 
     /// <summary>The whole graph flattened to its records and parent links, with the up-flow value pass already run.</summary>
-    public static DeferredInsertBuffer Flatten(Bundle bundle)
+    public static DeferredInsertBuffer Flatten(Bundle? bundle)
     {
         DeferredInsertBuffer buffer = new();
         buffer.Add(bundle);
@@ -37,7 +37,7 @@ public sealed class DeferredInsertBuffer
         return buffer;
     }
 
-    public void Add(Bundle bundle) => this.Collect(bundle);
+    public void Add(Bundle? bundle) => this.Collect(bundle);
 
     public int PendingCount() => this.pendingRecords.Count;
 
@@ -63,18 +63,18 @@ public sealed class DeferredInsertBuffer
     private void ResolveUpFlowValues() =>
         new DescendantValuePass(this.pendingRecords, this.pendingLinks, this.pendingDeferredValues).Complete();
 
-    private List<IndexedRecord> Collect(Bundle bundle)
+    private List<IndexedRecord> Collect(Bundle? bundle)
     {
-        List<object>? primaries = bundle.PrimaryRecords();
+        List<object>? primaries = PrimaryRecordsOf(bundle);
         if (primaries is null)
         {
             return [];
         }
 
         List<IndexedRecord> theseRecords = this.Append(primaries);
-        this.CaptureDeferredValues(bundle, theseRecords);
-        this.LinkToParents(bundle, theseRecords);
-        this.LinkToChildCollections(bundle, theseRecords);
+        this.CaptureDeferredValues(bundle!, theseRecords);
+        this.LinkToParents(bundle!, theseRecords);
+        this.LinkToChildCollections(bundle!, theseRecords);
         return theseRecords;
     }
 
@@ -151,4 +151,6 @@ public sealed class DeferredInsertBuffer
         this.pendingRecords.Add(record);
         return new IndexedRecord(index, record);
     }
+
+    private static List<object>? PrimaryRecordsOf(Bundle? bundle) => bundle?.PrimaryRecords();
 }
