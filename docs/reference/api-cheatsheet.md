@@ -70,7 +70,7 @@ under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
 | `.ExcludeParent(path)` | prune a subtree from a breadth start (prefix match) |
 | `.InjectValue(field, value)` / `.InjectValue(path, value)` | force a scalar on the target record / on a record `path` reaches **upward** |
 | `.InjectChildValue(childField, leafField, value)` / `.InjectChildValue(path, value)` | force a scalar on every record of a child collection **downward** — `value` is a literal, a `List<object>` (per child), or an `IValueExpression` (fresh per child) |
-| `.ParentDepth(n)` / `.ChildDepth(n)` / `.BreakSoqlLimits()` | cap the ancestor climb (default 5) · nested-child levels (default 1, `n>1` needs `BreakSoqlLimits`) · lift both ceilings |
+| `.ParentDepth(n)` / `.ChildDepth(n)` / `.AllowDeeperGraph()` | cap the ancestor climb (default 5) · nested-child levels (default 1, `n>1` needs `AllowDeeperGraph`) · lift both ceilings |
 | `RecordInjector.Inject(records).Relationship(navField, parents).ChildRelationship(navField, perRow).Value(field, v).ValuePerRow(field, vs).Result()` | the standalone graft, no bundle — see [record-injector](../use/record-injector.md) |
 
 `Mock`-only in spirit — forced data is fiction if this graph were ever

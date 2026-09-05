@@ -1,17 +1,12 @@
-# Test-User Helpers — Not Ported
+# Test-User Helpers — Not Provided
 
-Apex's `XFTY_DefaultUserDataProvider` exposed `TEST_ADMIN_USER` (an inserted
-System Administrator `User` for `System.runAs(...)`) plus `profileIdFor(...)`
-and `roleIdFor(...)` lookups against a live org's `Profile` / `UserRole`
-records.
-
-**None of this is ported.** There is no `System.runAs`, no `Profile`, no
-`UserRole`, and no live org to query in a C# unit test — this port's demo
-`User` (`Net.Nowhereatall.Xfty.Demo.User`) is deliberately minimal (`Id`,
-`FirstName`, `LastName`, `Email`, `ManagerId`) precisely so it can exercise
-deep/hierarchical relationship paths without needing any of that. A bundled
-`XFTY_DefaultUserDataProvider` equivalent was never attempted for the same
-reason — see [reference/known-issues.md](../reference/known-issues.md).
+There is no bundled Provider exposing ready-made test-user helpers - an
+admin-equivalent inserted user, or role/profile-style lookups - because there
+is no role/profile schema here for such a lookup to resolve against. This
+port's demo `User` (`Net.Nowhereatall.Xfty.Demo.User`) is deliberately
+minimal (`Id`, `FirstName`, `LastName`, `Email`, `ManagerId`) so it can
+exercise deep/hierarchical relationship paths without needing any of that -
+see [reference/known-issues.md](../reference/known-issues.md).
 
 Generating a plain `User` record for a test that just needs *some* user
 reference works exactly like any other type:

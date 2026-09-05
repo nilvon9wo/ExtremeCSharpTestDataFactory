@@ -11,37 +11,30 @@ plan status see [../roadmap/README.md](../roadmap/README.md).
 These are genuine Apex/Salesforce features with **no C# equivalent**, dropped
 rather than approximated:
 
-- **`InsertMode.Now` always throws `NotSupportedException`.** There is no
-  persistence layer (no EF `DbContext`, no database) — see
-  [use/insert-modes](../use/insert-modes.md). This is the single biggest
-  functional gap: it means `RelatedOnly` never actually mock-Ids in a way
-  distinct from `Mock`, `DeferredInserter.Flush()` always throws, and
-  `.DepthBatched()` has **no observable effect at all** through
-  `RecordProvider`'s public API — it only changes behaviour when combined with
-  `Now`, which throws either way. `DepthBatchedInserter.ResolveAll(records,
-  links, InsertMode.Mock)` (the lower-level engine call) is the only way to
-  exercise the depth-batching algorithm directly today.
-- **Salesforce Record Types have no analog.** `XFTY_RecordTypeLookupKey`,
-  `XFTY_RecordTypeDataProvider`, `XFTY_RecordTypeMatching`, and the
-  override-template `RecordTypeId` auto-detection are not ported. This port's
-  variant system, `FlavouredLookupKey`, uses arbitrary predicates instead —
-  see [extend/provider-variants](../extend/provider-variants.md).
-- **Org seeding is entirely out of scope.** `XFTY_Seeder`, `XFTY_SeedResult`,
-  and Apex's `@IntegrationTest`-based preview have no meaning without a real,
-  persistent backing store — see [use/org-seeding](../use/org-seeding.md).
-- **No test-user helpers.** `XFTY_DefaultUserDataProvider`'s
-  `TEST_ADMIN_USER`, `profileIdFor`, `roleIdFor` depend on a live org's
-  `Profile`/`UserRole` schema and `System.runAs` — none of which exist in
-  .NET. See [use/test-user-helpers](../use/test-user-helpers.md).
-- **`XFTY_GovernorBudget` is not ported.** No C# equivalent of
-  `Limits.getCpuTime()` / `getDmlRows()` / etc. exists. This port measures
-  wall-clock time and allocation instead — see
-  [volume-and-limits](volume-and-limits.md).
+- **Record-Type-style schema auto-detection has no analog.** Automatically
+  inferring a variant from an override template's own discriminator-shaped
+  metadata (rather than a field value you name explicitly) needs schema
+  description this port has no equivalent of. `DiscriminatorLookupKey` covers
+  the actual use case (matching a Provider by a named field's value) over the
+  same `FlavouredLookupKey` mechanism as every other variant — see
+  [extend/provider-variants](../extend/provider-variants.md).
+- **Seeding a long-lived, shared environment is entirely out of scope.**
+  Generating and inserting data for the duration of one test run is what this
+  library does; leaving a graph behind in a persistent environment for manual
+  or downstream use is a different job, deliberately not built here — see
+  [use/org-seeding](../use/org-seeding.md).
+- **No test-user helpers.** A bundled Provider exposing a ready-made
+  admin-equivalent test user, resolved against live role/profile-style
+  schema, has no meaning without that schema. See
+  [use/test-user-helpers](../use/test-user-helpers.md).
+- **No CPU-time/row-count budget tracking.** This port measures wall-clock
+  time and allocation instead (see [volume-and-limits](volume-and-limits.md))
+  - there's no fixed per-run resource quota to track against in the first
+    place.
 - **`RecordInjector`'s `Blob`/compound-field/polymorphic-relationship
-  machinery is not needed, not dropped.** Apex's version round-tripped
-  through JSON specifically because `SObject.put(...)` rejects relationship
-  and read-only fields; this port's reflection-based injector sets any
-  property directly, so there is nothing to special-case. See
+  machinery is not needed, not dropped.** This port's reflection-based
+  injector sets any property directly, including relationship and read-only
+  fields, so there is nothing to special-case. See
   [use/record-injector](../use/record-injector.md).
 - **`ChildProvider` cannot validate that a relationship field actually
   belongs to the parent type it's hung off**, the way Apex validated via

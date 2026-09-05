@@ -1,28 +1,18 @@
 # Building Data Across Helper Methods
 
-> This page describes a genuinely different situation from the Apex original,
-> not just a syntax translation — read the note below before assuming the Apex
-> pattern carries over.
-
-Apex's `@TestSetup` runs once per test method and is rolled back with the rest
-of that method's DML; a `static` field on an Apex test class is *also*
-re-initialised fresh for every test method, which is what let the Apex original
-build shared fixtures as plain `static` variables.
-
-**xUnit has neither behaviour.** By default xUnit creates a **new instance of
-the test class per test method**, so ordinary (non-`static`) fields and a
-constructor genuinely do run fresh for every test — that is the direct
-replacement for a small `@TestSetup`. But a `static` field or a `static`
-registry (this port's `SharedAncestor` and `DeferredInserter` are exactly this)
-is **not** reset between test methods — it lives for the whole test run. Relying
-on "static resets automatically" the way the Apex original could is actively
-dangerous here; see the shared-ancestor naming/cleanup notes in
+xUnit creates a **new instance of the test class for every test method**, so
+an ordinary (non-`static`) field and a constructor genuinely run fresh each
+time - that's the natural place for shared setup. A `static` field or
+registry, by contrast, is **not** reset between test methods - it lives for
+the whole test run. This port's `SharedAncestor` and `DeferredInserter` are
+exactly this kind of `static` registry; relying on it resetting itself is
+actively dangerous. See the naming/cleanup notes in
 [shared-ancestors](../shared-ancestors.md) and
 [reference/known-issues.md](../../reference/known-issues.md).
 
 ---
 
-## The instance-based replacement for `@TestSetup`
+## Shared setup, built once per test method
 
 Build the shared data in the constructor, or a plain instance method the
 constructor calls; xUnit gives every test method its own instance, so this
@@ -59,11 +49,10 @@ about that interacts with XFTY specifically.
 
 ## `Deferred` across several helper methods
 
-Apex's pattern — build several bundles across helper methods, `flush()` once —
-still has a genuine reason to exist here: it proves a graph spanning several
-`SupplyBundle()` calls resolves and links correctly as **one** unit before any
-persistence step, even though the flush itself throws in this port (see
-[deferred-insert](../deferred-insert.md)).
+Building several bundles across helper methods, then flushing once, proves a
+graph spanning several `SupplyBundle()` calls resolves and links correctly as
+**one** unit before any persistence step runs — see
+[deferred-insert](../deferred-insert.md).
 
 <!-- sketch -->
 ```csharp
@@ -88,9 +77,9 @@ public void TheWholeGraphRegistersBeforeAnyFlushAttempt()
     Bundle seededContacts = this.SeedContacts();
     int pendingBeforeFlush = DeferredInserter.PendingCount();
 
-    // Act / Assert - Flush() always throws in this port; PendingCount() already proves both bundles registered
+    // Act / Assert - both bundles registered as one pending set before any flush
     Assert.True(pendingBeforeFlush >= 12); // 3 Accounts + 9 Contacts (their own Accounts too, if Required)
-    _ = Assert.Throws<NotSupportedException>(DeferredInserter.Flush);
+    DeferredInserter.Flush(gateway); // one pass, in dependency order, through the given IPersistenceGateway
 }
 ```
 

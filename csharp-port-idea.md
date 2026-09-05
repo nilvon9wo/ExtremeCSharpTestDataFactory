@@ -609,7 +609,7 @@ POCO needs somewhere to write injected data that an `SObject` gets for free.
 
 **Also carried over, not revisited:** the `QueryableShapeValidator`'s
 SOQL-hop-count guard rails (`parentDepth` <= 5, `childDepth` <= 1 unless
-`BreakSoqlLimits()`) - the exact numeric limits are Salesforce trivia with no
+`AllowDeeperGraph()`) - the exact numeric limits are Salesforce trivia with no
 literal C# meaning, but the underlying purpose (bound an otherwise-unbounded
 recursive graft) still holds, so they were ported as-is rather than invented
 away.

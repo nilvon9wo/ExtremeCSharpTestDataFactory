@@ -35,7 +35,7 @@ Then, as needed:
 - [provider-variants](provider-variants.md) — pick a flavour variant
 - [advanced/](advanced/) — combining features
 
-Two Apex pages describe features with no C# analog and are not ported —
+Two pages describe features deliberately not provided —
 [org-seeding](org-seeding.md) and [test-user-helpers](test-user-helpers.md) —
 kept as short stubs explaining why, rather than removed outright.
 
@@ -73,5 +73,5 @@ Every consumer-facing capability and its page.
 
 See [extend/](../extend/README.md) to teach XFTY about a new record type, and
 [reference/known-issues.md](../reference/known-issues.md) for the full list of
-Apex features not carried over (record types, `NOW` persistence, org seeding,
-test-user helpers, and more).
+capability gaps and deliberately out-of-scope features (record-type schema
+auto-detection, org seeding, test-user helpers, and more).

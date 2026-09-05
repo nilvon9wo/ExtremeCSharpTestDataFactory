@@ -205,7 +205,7 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WhenBreakSoqlLimitsIsNotSet_RejectsAnOverDeepParentDepth()
+    public void Inject_WhenAllowDeeperGraphIsNotSet_RejectsAnOverDeepParentDepth()
     {
         // Arrange
         Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
@@ -219,7 +219,7 @@ public class BundleEnricherTest
             () => bundle.Inject(Field.Of<Contact>(x => x.Id), config));
 
         // Assert - the error points at the escape hatch
-        Assert.Contains("BreakSoqlLimits", thrown.Message);
+        Assert.Contains("AllowDeeperGraph", thrown.Message);
     }
 
     [Fact]
@@ -257,7 +257,7 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithChildDepthTwoAndBreakSoqlLimits_GraftsGrandchildren()
+    public void Inject_WithChildDepthTwoAndAllowDeeperGraph_GraftsGrandchildren()
     {
         // Arrange - Account -> 2 Contacts -> 3 Cases each
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
@@ -265,7 +265,7 @@ public class BundleEnricherTest
             .With(ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
                 .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)))
             .SupplyBundle();
-        InjectConfig config = InjectConfig.AllChildren().ChildDepth(2).BreakSoqlLimits();
+        InjectConfig config = InjectConfig.AllChildren().ChildDepth(2).AllowDeeperGraph();
 
         // Act
         List<object> enriched = bundle.Inject(Field.Of<Account>(x => x.Id), config);
@@ -275,7 +275,7 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithChildDepthTwoButNoBreakSoqlLimits_Throws()
+    public void Inject_WithChildDepthTwoButNoAllowDeeperGraph_Throws()
     {
         // Arrange
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())

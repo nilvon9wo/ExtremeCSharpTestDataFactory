@@ -39,11 +39,12 @@ ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buyer" 
 | `.WithVariant(ILookupKey)` | pin the child Provider variant |
 | `.With(ChildProvider)` | nest grandchildren (below) |
 
-> This port has no schema-describe metadata to check that a relationship field
-> actually points at the parent type it's hung off, the way Apex validates via
-> `SObjectField` describe info. A misconfigured field surfaces as a wrong or
-> `null` value instead of failing fast at configuration time. See
-> [reference/known-issues.md](../reference/known-issues.md).
+> There is no runtime metadata for "what type does this foreign-key-shaped
+> property conceptually reference" - a plain reflection `PropertyInfo` only
+> exposes its own declaring type - so a relationship field that doesn't
+> actually point at the parent type it's hung off isn't caught at
+> configuration time. A misconfigured field surfaces as a wrong or `null`
+> value instead. See [reference/known-issues.md](../reference/known-issues.md).
 
 ## Attaching it
 

@@ -74,9 +74,9 @@ public class InjectConfigTest
         int parent = config.ParentDepthLimit;
 
         // Assert
-        Assert.Equal(InjectConfig.SoqlParentHops, parent);
-        Assert.Equal(InjectConfig.SoqlChildDepth, config.ChildDepthLimit);
-        Assert.False(config.SoqlLimitsLifted);
+        Assert.Equal(InjectConfig.DefaultParentDepthLimit, parent);
+        Assert.Equal(InjectConfig.DefaultChildDepthLimit, config.ChildDepthLimit);
+        Assert.False(config.DepthLimitsLifted);
     }
 
     [Fact]
@@ -219,15 +219,15 @@ public class InjectConfigTest
     }
 
     [Fact]
-    public void BreakSoqlLimits_LiftsTheFlag()
+    public void AllowDeeperGraph_LiftsTheFlag()
     {
         // Arrange
         InjectConfig config = InjectConfig.Everything();
 
         // Act
-        _ = config.BreakSoqlLimits();
+        _ = config.AllowDeeperGraph();
 
         // Assert
-        Assert.True(config.SoqlLimitsLifted);
+        Assert.True(config.DepthLimitsLifted);
     }
 }

@@ -4,10 +4,10 @@ A single record type can have several Providers, chosen by a **lookup key**.
 This page is about **registering** variants; selecting one as a consumer is
 [use/provider-variants](../use/provider-variants.md).
 
-> Apex's variant system also had `XFTY_RecordTypeLookupKey` — a Salesforce
-> `RecordTypeId` discriminator, resolved via schema describe with no SOQL. That
-> is genuinely Salesforce-specific and has no C# analog; it is not ported. See
-> [reference/known-issues.md](../reference/known-issues.md).
+> A discriminator-field variant - matching a Provider by a field's value
+> rather than a separate flavour name - is `DiscriminatorLookupKey`. See
+> [reference/known-issues.md](../reference/known-issues.md) for what else
+> doesn't carry over from record-type-based variant matching.
 
 ---
 

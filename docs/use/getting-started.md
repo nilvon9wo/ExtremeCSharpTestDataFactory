@@ -13,10 +13,11 @@ After reading this guide you should be comfortable:
 
 More advanced topics such as implementing Providers and writing custom value expressions are covered in later guides.
 
-> **This port has no persistence layer yet.** `InsertMode.Now` — Apex's
-> integration-test mode — always throws `NotSupportedException` here (see
-> [insert-modes](insert-modes.md)). Everything below uses `Mock`, which is this
-> port's practical default: realistic-looking Ids, nothing persisted.
+> `InsertMode.Now` inserts for real, through whatever `IPersistenceGateway`
+> you configure (see [insert-modes](insert-modes.md)); with none configured
+> it throws rather than silently doing nothing. Everything below uses `Mock`
+> instead — realistic-looking Ids, nothing persisted — since that's what a
+> unit test usually wants.
 
 ---
 
@@ -297,7 +298,5 @@ the [feature matrix](README.md).
 - [advanced/](advanced/) — combining features
 
 To teach XFTY about a new record type, see [extend/providers](../extend/providers.md).
-What carries over from the Apex original (and what doesn't) is in
-[reference/salesforce-considerations](../reference/salesforce-considerations.md).
 
 Runnable: `RecordProviderIntegrationTest`, `RecordFactoryTest`

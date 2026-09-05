@@ -24,10 +24,8 @@ XFTY inspects each one's Provider:
 Either way: **one record, one Id, everywhere** — and it is generated at most once
 per process.
 
-> **Apex resets `static` state between test methods; this port does not.**
-> `SharedAncestor`'s registry is a `static` `Dictionary` that lives for the whole
-> test run, not per test method — there is no xUnit equivalent of Apex's
-> automatic per-method reset. Give every test's shared ancestors a **name unique
+> **`SharedAncestor`'s registry is `static` and lives for the whole test run,
+> not per test method.** Give every test's shared ancestors a **name unique
 > to that test**, and see
 > [reference/known-issues.md](../reference/known-issues.md) for the cleanup this
 > implies for a test that deliberately leaves one unresolved.
@@ -251,8 +249,8 @@ SharedAncestor.ResolveNow(lookup, InsertMode.Mock, ["division", "region"]);
 // the package's other shared-ancestor defaults are never built
 ```
 
-> **`ManualResolutionOnly()` has no unsetter, in Apex or here — and here it is a
-> single `static` flag for the whole process, not per test method.** A test that
+> **`ManualResolutionOnly()` has no unsetter - it is a single `static` flag for
+> the whole process, not per test method.** A test that
 > calls it changes every later test in the same run that relies on
 > auto-resolution. Treat it as effectively global and avoid it in a shared xUnit
 > process unless you are certain nothing else in the run depends on the

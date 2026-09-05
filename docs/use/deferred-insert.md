@@ -1,9 +1,9 @@
 # Deferred & Depth-Batched Insert
 
-Two ways Apex moves DML out of the per-Provider recursion. **Neither actually
-persists anything in this port** — there is no database to insert into (see
-[insert-modes](insert-modes.md)) — but the generation and graph-flattening
-machinery behind both is fully ported and testable on its own.
+Two ways to move persistence out of the per-Provider recursion: build the
+whole graph in memory across several calls, then insert it once, in
+dependency order, regardless of which Provider originally generated each
+record.
 
 ---
 
@@ -20,15 +20,14 @@ Bundle contacts = new RecordProvider(typeof(Contact), lookup)
     .SetInsertMode(InsertMode.Deferred)
     .SupplyBundle();
 
-DeferredInserter.Flush();   // throws NotSupportedException - no persistence layer to flush into
+DeferredInserter.Flush(gateway);   // one pass, in dependency order, through the given IPersistenceGateway
 ```
 
-`Deferred` generates exactly like `Never` — no Ids — but registers every record
-with `DeferredInserter`, the same static registry Apex's `flush()` reads from.
-`DeferredInserter.PendingCount()` genuinely accumulates across every
-`Register()` call, proving the registration side works; `Flush()` always throws
-`NotSupportedException`, because inserting is the one part with no C# analog
-yet.
+`Deferred` generates exactly like `Never` — no Ids — but registers every
+record with `DeferredInserter`'s static registry instead. `Flush(gateway)`
+resolves the whole registered set in dependency order and inserts it through
+`gateway`; call `Flush()` with no gateway and it throws `NotSupportedException`
+rather than silently doing nothing.
 
 - A test that never calls `Flush()` gets `Never` semantics — no surprise
   behaviour.
@@ -71,14 +70,17 @@ new RecordProvider(typeof(Case), lookup)
 ```
 
 > **`.DepthBatched()` only changes anything when combined with `InsertMode.Now`**
-> — and `Now` always throws in this port. With any other insert mode,
-> `RecordProvider` ignores `.DepthBatched()` entirely (it is wired to the same
-> condition that decides whether to flush a deferred graph). There is currently
-> no way to observe `.DepthBatched()`'s effect through `RecordProvider` itself;
-> the underlying algorithm is proven directly against
-> `DepthBatchedInserter.ResolveAll(records, parentLinks, InsertMode.Mock)`
-> instead — see `Xfty.Test/Persistence/DepthBatchedInserterTest.cs`. See
-> [reference/known-issues.md](../reference/known-issues.md).
+> and a configured `.SetPersistenceGateway(...)` - with any other insert mode,
+> or with no gateway, `RecordProvider` ignores it (it is wired to the same
+> condition that decides whether to flush a deferred graph). With both in
+> place it genuinely runs one `gateway.Insert(...)` call per dependency depth
+> instead of one per Provider - see
+> `Xfty.Test/Persistence/PersistenceGatewayTest.cs` and
+> `Xfty.EntityFrameworkCore.Test/SqliteNowPersistenceTest.cs` for the proof
+> against a mock and a real database respectively. The underlying layering
+> algorithm is also proven directly against
+> `DepthBatchedInserter.ResolveAll(records, parentLinks, InsertMode.Mock)` -
+> see `Xfty.Test/Persistence/DepthBatchedInserterTest.cs`.
 
 - Shared ancestors and `CopyFromDescendantExpression` values both resolve
   correctly ahead of the batched step — the whole graph exists in memory first.
@@ -87,4 +89,4 @@ new RecordProvider(typeof(Case), lookup)
 
 See also: [insert-modes](insert-modes.md) · [advanced/deep-setup-chains](advanced/deep-setup-chains.md)
 
-Runnable: `DeferredInserterTest`, `DeferredInsertBufferTest`, `DepthBatchedInserterTest`
+Runnable: `DeferredInserterTest`, `DeferredInsertBufferTest`, `DepthBatchedInserterTest`, `PersistenceGatewayTest`
