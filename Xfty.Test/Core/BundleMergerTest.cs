@@ -28,7 +28,7 @@ public class BundleMergerTest
     {
         // Arrange
         Bundle empty = new();
-        empty.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), []);
+        empty.PutPrimaries(Field.Of<Contact>(x => x.Id), []);
         Bundle populated = ContactBundle([new Contact { LastName = "Only" }]);
 
         // Act
@@ -57,14 +57,14 @@ public class BundleMergerTest
     {
         // Arrange
         Bundle child = ContactBundle([new Contact { LastName = "Child" }]);
-        _ = child.Put(Field.Of<Contact>(nameof(Contact.AccountId)), AccountBundle([new Account { Name = "Parent" }]));
+        _ = child.Put(Field.Of<Contact>(x => x.AccountId), AccountBundle([new Account { Name = "Parent" }]));
         Bundle plain = ContactBundle([new Contact { LastName = "Sibling" }]);
 
         // Act
         Bundle merged = BundleMerger.Combine([child, plain]);
 
         // Assert
-        List<object> parents = merged.GetBundle(Field.Of<Contact>(nameof(Contact.AccountId)))!.PrimaryRecords()!;
+        List<object> parents = merged.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()!;
         _ = Assert.Single(parents);
         Assert.Equal("Parent", ((Account)parents[0]).Name);
     }
@@ -74,29 +74,29 @@ public class BundleMergerTest
     {
         // Arrange
         Bundle first = ContactBundle([new Contact { LastName = "One" }]);
-        _ = first.Put(Field.Of<Contact>(nameof(Contact.AccountId)), AccountBundle([new Account { Name = "Acme" }]));
+        _ = first.Put(Field.Of<Contact>(x => x.AccountId), AccountBundle([new Account { Name = "Acme" }]));
         Bundle second = ContactBundle([new Contact { LastName = "Two" }]);
-        _ = second.Put(Field.Of<Contact>(nameof(Contact.AccountId)), AccountBundle([new Account { Name = "Globex" }]));
+        _ = second.Put(Field.Of<Contact>(x => x.AccountId), AccountBundle([new Account { Name = "Globex" }]));
 
         // Act
         Bundle merged = BundleMerger.Combine([first, second]);
 
         // Assert - both bundles contributed their generated parent
-        List<object> parents = merged.GetBundle(Field.Of<Contact>(nameof(Contact.AccountId)))!.PrimaryRecords()!;
+        List<object> parents = merged.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()!;
         Assert.Equal(2, parents.Count);
     }
 
     private static Bundle ContactBundle(List<object> contacts)
     {
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), contacts);
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), contacts);
         return bundle;
     }
 
     private static Bundle AccountBundle(List<object> accounts)
     {
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), accounts);
+        bundle.PutPrimaries(Field.Of<Account>(x => x.Id), accounts);
         return bundle;
     }
 }

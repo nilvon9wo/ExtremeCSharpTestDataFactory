@@ -34,8 +34,8 @@ public class ContextAwareExpressionTest
     {
         // Arrange
         RecordProvider provider = AccountProvider()
-            .Put(Field.Of<Account>(nameof(Account.ShippingCity)), "Berlin")
-            .Put(Field.Of<Account>(nameof(Account.BillingCity)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.ShippingCity))));
+            .Put(Field.Of<Account>(x => x.ShippingCity), "Berlin")
+            .Put(Field.Of<Account>(x => x.BillingCity), new CopyFromSiblingExpression(Field.Of<Account>(x => x.ShippingCity)));
 
         // Act
         Account result = (Account)provider.Supply();
@@ -49,9 +49,9 @@ public class ContextAwareExpressionTest
     {
         // Arrange - ShippingCity (plain) -> BillingCity (reads ShippingCity) -> BillingStreet (reads BillingCity)
         RecordProvider provider = AccountProvider()
-            .Put(Field.Of<Account>(nameof(Account.ShippingCity)), "Munich")
-            .Put(Field.Of<Account>(nameof(Account.BillingCity)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.ShippingCity))))
-            .Put(Field.Of<Account>(nameof(Account.BillingStreet)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.BillingCity))));
+            .Put(Field.Of<Account>(x => x.ShippingCity), "Munich")
+            .Put(Field.Of<Account>(x => x.BillingCity), new CopyFromSiblingExpression(Field.Of<Account>(x => x.ShippingCity)))
+            .Put(Field.Of<Account>(x => x.BillingStreet), new CopyFromSiblingExpression(Field.Of<Account>(x => x.BillingCity)));
 
         // Act
         Account result = (Account)provider.Supply();
@@ -65,8 +65,8 @@ public class ContextAwareExpressionTest
     {
         // Arrange
         RecordProvider provider = AccountProvider()
-            .Put(Field.Of<Account>(nameof(Account.ShippingCity)), "Hamburg")
-            .Put(Field.Of<Account>(nameof(Account.BillingCity)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.ShippingCity))))
+            .Put(Field.Of<Account>(x => x.ShippingCity), "Hamburg")
+            .Put(Field.Of<Account>(x => x.BillingCity), new CopyFromSiblingExpression(Field.Of<Account>(x => x.ShippingCity)))
             .SetOverrideTemplate(new Account { BillingCity = "Explicit" });
 
         // Act
@@ -81,9 +81,9 @@ public class ContextAwareExpressionTest
     {
         // Arrange - Description (reader) is put before Site (a context-aware value it reads)
         RecordProvider provider = AccountProvider()
-            .Put(Field.Of<Account>(nameof(Account.Description)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.Site))))
-            .Put(Field.Of<Account>(nameof(Account.Site)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.AccountNumber))))
-            .Put(Field.Of<Account>(nameof(Account.AccountNumber)), "seed");
+            .Put(Field.Of<Account>(x => x.Description), new CopyFromSiblingExpression(Field.Of<Account>(x => x.Site)))
+            .Put(Field.Of<Account>(x => x.Site), new CopyFromSiblingExpression(Field.Of<Account>(x => x.AccountNumber)))
+            .Put(Field.Of<Account>(x => x.AccountNumber), "seed");
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => provider.Supply());
@@ -99,8 +99,8 @@ public class ContextAwareExpressionTest
     {
         // Arrange
         RecordProvider provider = AccountProvider()
-            .Put(Field.Of<Account>(nameof(Account.Description)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.Site))))
-            .Put(Field.Of<Account>(nameof(Account.Site)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.Description))));
+            .Put(Field.Of<Account>(x => x.Description), new CopyFromSiblingExpression(Field.Of<Account>(x => x.Site)))
+            .Put(Field.Of<Account>(x => x.Site), new CopyFromSiblingExpression(Field.Of<Account>(x => x.Description)));
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => provider.Supply());
@@ -116,9 +116,9 @@ public class ContextAwareExpressionTest
     {
         // Arrange
         RecordProvider provider = ContactProvider()
-            .PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), new DefaultRelationship(new Account { Name = "Wired Parent" }))
-            .Put(Field.Of<Contact>(nameof(Contact.Department)), new CopyFromAncestorExpression(
-                Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))))
+            .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account { Name = "Wired Parent" }))
+            .Put(Field.Of<Contact>(x => x.Department), new CopyFromAncestorExpression(
+                Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)))
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
@@ -133,9 +133,9 @@ public class ContextAwareExpressionTest
     {
         // Arrange
         RecordProvider provider = ContactProvider()
-            .RemoveFromMasterTemplate(Field.Of<Contact>(nameof(Contact.AccountId)))
-            .Put(Field.Of<Contact>(nameof(Contact.Department)), new CopyFromAncestorExpression(
-                Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))))
+            .RemoveFromMasterTemplate(Field.Of<Contact>(x => x.AccountId))
+            .Put(Field.Of<Contact>(x => x.Department), new CopyFromAncestorExpression(
+                Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)))
             .SetInclusivity(InsertInclusivity.None);
 
         // Act
@@ -150,8 +150,8 @@ public class ContextAwareExpressionTest
     {
         // Arrange - the bundled Account Provider gives each generated Account an incrementing Name
         RecordProvider provider = ContactProvider()
-            .Put(Field.Of<Contact>(nameof(Contact.Department)), new CopyFromAncestorExpression(
-                Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))))
+            .Put(Field.Of<Contact>(x => x.Department), new CopyFromAncestorExpression(
+                Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)))
             .SetQuantityPerTemplate(3)
             .SetInclusivity(InsertInclusivity.Required);
 
@@ -174,8 +174,8 @@ public class ContextAwareExpressionTest
             [LookupKey.Get(typeof(User))] = new LeafUserProvider(),
         });
         RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
-            .Put(Field.Of<Contact>(nameof(Contact.Department)), new CopyFromAncestorExpression([
-                Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.OwnerId)), Field.Of<User>(nameof(User.LastName)),
+            .Put(Field.Of<Contact>(x => x.Department), new CopyFromAncestorExpression([
+                Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId), Field.Of<User>(x => x.LastName),
             ]))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
@@ -194,8 +194,8 @@ public class ContextAwareExpressionTest
     {
         // Arrange
         RecordProvider provider = ContactProvider()
-            .Put(Field.Of<Contact>(nameof(Contact.Birthdate)), new DateTime(2010, 1, 1))
-            .Put(Field.Of<Contact>(nameof(Contact.Department)), new IsMinorFlag(Field.Of<Contact>(nameof(Contact.Birthdate))));
+            .Put(Field.Of<Contact>(x => x.Birthdate), new DateTime(2010, 1, 1))
+            .Put(Field.Of<Contact>(x => x.Department), new IsMinorFlag(Field.Of<Contact>(x => x.Birthdate)));
 
         // Act
         Contact result = (Contact)provider.Supply();
@@ -209,7 +209,7 @@ public class ContextAwareExpressionTest
     {
         // Arrange
         RecordProvider provider = AccountProvider()
-            .Put(Field.Of<Account>(nameof(Account.Description)), new SiblingCountLabel())
+            .Put(Field.Of<Account>(x => x.Description), new SiblingCountLabel())
             .SetQuantityPerTemplate(3);
 
         // Act
@@ -225,11 +225,11 @@ public class ContextAwareExpressionTest
     /// <summary>An Account whose Owner is generated, so multi-hop tests have a second level.</summary>
     private sealed class AccountWithOwnerProvider : IRecordProvider
     {
-        private MasterTemplate Template { get; } = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-            .Put(Field.Of<Account>(nameof(Account.Name)), new IncrementingStringExpression("Acct"))
-            .PutRequired(Field.Of<Account>(nameof(Account.OwnerId)), new DefaultRelationship(new User()));
+        private MasterTemplate Template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Acct"))
+            .PutRequired(Field.Of<Account>(x => x.OwnerId), new DefaultRelationship(new User()));
 
-        public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(nameof(Account.Id));
+        public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
         public MasterTemplate MasterTemplate => this.Template;
 
@@ -239,10 +239,10 @@ public class ContextAwareExpressionTest
 
     private sealed class LeafUserProvider : IRecordProvider
     {
-        private MasterTemplate Template { get; } = new MasterTemplate(Field.Of<User>(nameof(User.Id)))
-            .Put(Field.Of<User>(nameof(User.LastName)), new IncrementingStringExpression("User"));
+        private MasterTemplate Template { get; } = new MasterTemplate(Field.Of<User>(x => x.Id))
+            .Put(Field.Of<User>(x => x.LastName), new IncrementingStringExpression("User"));
 
-        public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<User>(nameof(User.Id));
+        public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
 
         public MasterTemplate MasterTemplate => this.Template;
 
@@ -265,7 +265,7 @@ public class ContextAwareExpressionTest
     {
         public object? Get(GenerationContext context)
         {
-            int siblingCount = context.BundleSoFar!.GetList(Field.Of<Account>(nameof(Account.Id)))!.Count;
+            int siblingCount = context.BundleSoFar!.GetList(Field.Of<Account>(x => x.Id))!.Count;
             return $"{context.RowIndex + 1} of {siblingCount}";
         }
     }

@@ -37,8 +37,8 @@ public class AnyOfPredicateTest
 
     private static List<IRecordPredicate> BigOrTechPredicates() =>
     [
-        FieldPredicateFactory.GreaterThan(Field.Of<Account>(nameof(Account.NumberOfEmployees)), 5000),
-        FieldPredicateFactory.EqualTo(Field.Of<Account>(nameof(Account.Industry)), "Technology")
+        FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.NumberOfEmployees), 5000),
+        FieldPredicateFactory.EqualTo(Field.Of<Account>(x => x.Industry), "Technology")
     ];
 
     private static void AssertIsSatisfiedBy(List<IRecordPredicate> members, Account? record, bool expectedResult)

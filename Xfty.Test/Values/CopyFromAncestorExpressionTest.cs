@@ -23,7 +23,7 @@ public class CopyFromAncestorExpressionTest
         // Arrange
         GenerationContext baseContext = new(Lookup, InsertMode.Mock, InsertInclusivity.None);
         CopyFromAncestorExpression expression = new(
-            Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name)));
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name));
 
         // Act
         object? value = expression.Get(baseContext);
@@ -37,14 +37,14 @@ public class CopyFromAncestorExpressionTest
     {
         // Arrange - a Contact row whose AccountId sub-bundle holds one generated Account
         Bundle accountBundle = new();
-        accountBundle.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), [new Account { Name = "Wired Parent" }]);
+        accountBundle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "Wired Parent" }]);
         Bundle contactBundle = new();
-        _ = contactBundle.Put(Field.Of<Contact>(nameof(Contact.AccountId)), accountBundle);
-        _ = contactBundle.Put(Field.Of<Contact>(nameof(Contact.AccountId)), accountBundle.PrimaryRecords()!);
+        _ = contactBundle.Put(Field.Of<Contact>(x => x.AccountId), accountBundle);
+        _ = contactBundle.Put(Field.Of<Contact>(x => x.AccountId), accountBundle.PrimaryRecords()!);
         GenerationContext context = new GenerationContext(Lookup, InsertMode.Mock, InsertInclusivity.Required)
             .ForRecord(new Contact(), contactBundle, 0);
         CopyFromAncestorExpression expression = new(
-            Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name)));
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name));
 
         // Act
         object? value = expression.Get(context);
@@ -60,7 +60,7 @@ public class CopyFromAncestorExpressionTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => new CopyFromAncestorExpression(null!, Field.Of<Account>(nameof(Account.Name))));
+            () => new CopyFromAncestorExpression(null!, Field.Of<Account>(x => x.Name)));
 
         // Assert
         Assert.Contains("cannot be null", thrown.Message);
@@ -73,7 +73,7 @@ public class CopyFromAncestorExpressionTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => new CopyFromAncestorExpression([Field.Of<Account>(nameof(Account.Name))]));
+            () => new CopyFromAncestorExpression([Field.Of<Account>(x => x.Name)]));
 
         // Assert
         Assert.Contains("at least one relationship field", thrown.Message);

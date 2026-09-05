@@ -35,7 +35,7 @@ public class FieldLessThanPredicateTest
     {
         // Arrange
         IRecordPredicate predicate =
-            FieldLessThanPredicate.Of(Field.Of<Account>(nameof(Account.NumberOfEmployees)), threshold);
+            FieldLessThanPredicate.Of(Field.Of<Account>(x => x.NumberOfEmployees), threshold);
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);

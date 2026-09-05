@@ -20,8 +20,8 @@ A relationship is defined with `DefaultRelationship` and placed in either the
 **required** or the **optional** slot of the Master Template.
 
 ```csharp
-.PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), new DefaultRelationship(new Account()))
-.PutOptional(Field.Of<Account>(nameof(Account.OwnerId)),   new DefaultRelationship(new User()))
+.PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account()))
+.PutOptional(Field.Of<Account>(x => x.OwnerId),   new DefaultRelationship(new User()))
 ```
 
 The supplied record acts as an override template for the generated parent — its
@@ -107,3 +107,5 @@ Every additional relationship increases object count and memory. Prefer
 `Required` over `All`; keep required relationships minimal; use `PreventCascade`
 for deep or circular trees; use `None` only when the test wants total control.
 For large graphs, see [advanced/large-graphs](advanced/large-graphs.md).
+
+Runnable: `RecordFactoryTest`, `AncestorCycleTest`, `AncestorCycleGuardTest`

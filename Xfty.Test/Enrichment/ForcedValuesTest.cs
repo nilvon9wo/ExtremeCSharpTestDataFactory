@@ -12,7 +12,7 @@ public class ForcedValuesTest
     public void ApplyRecordValues_AppliesOnRecordScalars()
     {
         // Arrange
-        InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(nameof(Contact.Birthdate)), new DateTime(2020, 1, 1));
+        InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(x => x.Birthdate), new DateTime(2020, 1, 1));
         SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "X" }]);
 
         // Act
@@ -26,12 +26,12 @@ public class ForcedValuesTest
     public void ApplyAncestorValues_AtAMatchingAncestorPosition_AppliesTheValue()
     {
         // Arrange - InjectValue(path) targets the record at path's relationship prefix
-        List<System.Reflection.PropertyInfo> pathToField = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.AnnualRevenue))];
+        List<System.Reflection.PropertyInfo> pathToField = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)];
         InjectConfig config = InjectConfig.Nothing().InjectValue(pathToField, 5000m);
         SObjectInjector injector = SObjectInjector.Inject([new Account { Name = "A" }]);
 
         // Act
-        new ForcedValues(config).ApplyAncestorValues(injector, [Field.Of<Contact>(nameof(Contact.AccountId))], 1);
+        new ForcedValues(config).ApplyAncestorValues(injector, [Field.Of<Contact>(x => x.AccountId)], 1);
 
         // Assert
         Assert.Equal(5000m, ((Account)injector.Result()[0]).AnnualRevenue);
@@ -41,12 +41,12 @@ public class ForcedValuesTest
     public void ApplyAncestorValues_AtANonMatchingPosition_AppliesNothing()
     {
         // Arrange
-        List<System.Reflection.PropertyInfo> pathToField = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.AnnualRevenue))];
+        List<System.Reflection.PropertyInfo> pathToField = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)];
         InjectConfig config = InjectConfig.Nothing().InjectValue(pathToField, 5000m);
         SObjectInjector injector = SObjectInjector.Inject([new Account { Name = "A" }]);
 
         // Act
-        new ForcedValues(config).ApplyAncestorValues(injector, [Field.Of<Contact>(nameof(Contact.ReportsToId))], 1);
+        new ForcedValues(config).ApplyAncestorValues(injector, [Field.Of<Contact>(x => x.ReportsToId)], 1);
 
         // Assert
         Assert.Null(((Account)injector.Result()[0]).AnnualRevenue);
@@ -57,11 +57,11 @@ public class ForcedValuesTest
     {
         // Arrange - InjectChildValue(childField, leafField, literal) - every child gets it
         InjectConfig config = InjectConfig.Nothing()
-            .InjectChildValue(Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department)), "shared");
+            .InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), "shared");
         SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
 
         // Act
-        new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(nameof(Contact.AccountId))], 2);
+        new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 2);
 
         // Assert
         List<object> enriched = injector.Result();
@@ -74,11 +74,11 @@ public class ForcedValuesTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department)), new IncrementingStringExpression("n"));
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), new IncrementingStringExpression("n"));
         SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
 
         // Act
-        new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(nameof(Contact.AccountId))], 2);
+        new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 2);
 
         // Assert
         List<object> enriched = injector.Result();
@@ -91,11 +91,11 @@ public class ForcedValuesTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department)), new List<object?> { "first", "second" });
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), new List<object?> { "first", "second" });
         SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
 
         // Act
-        new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(nameof(Contact.AccountId))], 2);
+        new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 2);
 
         // Assert
         List<object> enriched = injector.Result();
@@ -108,7 +108,7 @@ public class ForcedValuesTest
     {
         // Arrange - the path was never visited (ApplyAncestorValues never called for it)
         InjectConfig config = InjectConfig.Nothing()
-            .InjectValue([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.AnnualRevenue))], 5000m);
+            .InjectValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)], 5000m);
         ForcedValues forcedValues = new(config);
 
         // Act
@@ -123,10 +123,10 @@ public class ForcedValuesTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing()
-            .InjectChildValue(Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department)), "x");
+            .InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), "x");
         SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "A" }]);
         ForcedValues forcedValues = new(config);
-        forcedValues.ApplyChildValues(injector, [Field.Of<Contact>(nameof(Contact.AccountId))], 1);
+        forcedValues.ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 1);
 
         // Act
         Exception? thrown = Record.Exception(forcedValues.AssertEveryPathWasReached);

@@ -12,10 +12,10 @@ public class EnrichmentTargetTest
     {
         // Arrange
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), [new Contact()]);
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
 
         // Act
-        EnrichmentTarget target = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(nameof(Contact.Id)));
+        EnrichmentTarget target = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(x => x.Id));
 
         // Assert
         _ = Assert.Single(target.Records!);
@@ -27,12 +27,12 @@ public class EnrichmentTargetTest
     {
         // Arrange
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), [new Contact()]);
-        _ = bundle.Put(Field.Of<Contact>(nameof(Contact.AccountId)), [new Account()]);
-        _ = bundle.Put(Field.Of<Contact>(nameof(Contact.AccountId)), new Bundle());
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
+        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account()]);
+        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), new Bundle());
 
         // Act
-        EnrichmentTarget target = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(nameof(Contact.AccountId)));
+        EnrichmentTarget target = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         Assert.True(target.IsGeneratedAncestor);
@@ -43,13 +43,13 @@ public class EnrichmentTargetTest
     {
         // Arrange
         Bundle childBundle = new();
-        childBundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), [new Contact(), new Contact()]);
+        childBundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact(), new Contact()]);
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), [new Account()]);
-        _ = bundle.PutChild(Field.Of<Contact>(nameof(Contact.AccountId)), childBundle, [0, 0]);
+        bundle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account()]);
+        _ = bundle.PutChild(Field.Of<Contact>(x => x.AccountId), childBundle, [0, 0]);
 
         // Act
-        EnrichmentTarget target = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(nameof(Contact.AccountId)));
+        EnrichmentTarget target = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         Assert.Equal(2, target.Records!.Count);
@@ -61,11 +61,11 @@ public class EnrichmentTargetTest
     {
         // Arrange
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), [new Contact()]);
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => EnrichmentTarget.Locate(bundle, Field.Of<Account>(nameof(Account.Name))));
+            () => EnrichmentTarget.Locate(bundle, Field.Of<Account>(x => x.Name)));
 
         // Assert
         Assert.NotNull(thrown);
@@ -76,10 +76,10 @@ public class EnrichmentTargetTest
     {
         // Arrange
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), [new Contact()]);
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
 
         // Act
-        bool anything = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(nameof(Contact.Id))).HasAnythingToInject();
+        bool anything = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(x => x.Id)).HasAnythingToInject();
 
         // Assert
         Assert.False(anything);
@@ -90,11 +90,11 @@ public class EnrichmentTargetTest
     {
         // Arrange
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), [new Contact()]);
-        _ = bundle.Put(Field.Of<Contact>(nameof(Contact.AccountId)), new Bundle());
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
+        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), new Bundle());
 
         // Act
-        bool anything = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(nameof(Contact.Id))).HasAnythingToInject();
+        bool anything = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(x => x.Id)).HasAnythingToInject();
 
         // Assert
         Assert.True(anything);

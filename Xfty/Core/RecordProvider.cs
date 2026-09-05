@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using Net.Nowhereatall.Xfty.Engine;
 using Net.Nowhereatall.Xfty.Lookup;
@@ -199,6 +200,38 @@ public sealed class RecordProvider
 
     public RecordProvider RemoveFromMasterTemplate(PropertyInfo field) =>
         this.PutOnTemplate(() => this.Template.Remove(field));
+
+    // Lambda overloads - `Put<TRecord>(x => x.Field, value)` instead of `Put(Field.Of<TRecord>(x => x.Field), value)` -----
+
+    public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression valueTemplate) =>
+        this.Put(Field.Of(field), valueTemplate);
+
+    public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IContextAwareExpression contextAwareExpression) =>
+        this.Put(Field.Of(field), contextAwareExpression);
+
+    public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IDeferredExpression deferredValue) =>
+        this.Put(Field.Of(field), deferredValue);
+
+    public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, object? value) =>
+        this.Put(Field.Of(field), value);
+
+    public RecordProvider PutRequired<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
+        this.PutRequired(Field.Of(field), relationshipTemplate);
+
+    public RecordProvider PutOptional<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
+        this.PutOptional(Field.Of(field), relationshipTemplate);
+
+    public RecordProvider RemoveFromMasterTemplate<TRecord>(Expression<Func<TRecord, object?>> field) =>
+        this.RemoveFromMasterTemplate(Field.Of(field));
+
+    public RecordProvider IncludeOptional<TRecord>(Expression<Func<TRecord, object?>> field) =>
+        this.IncludeOptional(Field.Of(field));
+
+    public RecordProvider ExcludeRelationship<TRecord>(Expression<Func<TRecord, object?>> field) =>
+        this.ExcludeRelationship(Field.Of(field));
+
+    public RecordProvider ExcludeRelationshipIfPresent<TRecord>(Expression<Func<TRecord, object?>> field) =>
+        this.ExcludeRelationshipIfPresent(Field.Of(field));
 
     private RecordProvider PutOnTemplate(Action mutation)
     {

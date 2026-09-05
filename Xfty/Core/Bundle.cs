@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using Net.Nowhereatall.Xfty.Enrichment;
 using Net.Nowhereatall.Xfty.Values;
@@ -35,6 +36,14 @@ public sealed class Bundle
 
     public List<object>? GetList(PropertyInfo field) =>
         this.sObjectListByField.GetValueOrDefault(field);
+
+    /// <summary>GetList(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public List<object>? GetList<TRecord>(Expression<Func<TRecord, object?>> field) =>
+        this.GetList(Field.Of(field));
+
+    /// <summary>GetBundle(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
+    public Bundle? GetBundle<TRecord>(Expression<Func<TRecord, object?>> field) =>
+        this.GetBundle(Field.Of(field));
 
     /// <summary>Read one field several relationship hops up the generated ancestor graph. See <see cref="AncestorPathWalker"/>.</summary>
     public object? GetValue(List<PropertyInfo> path, int rowIndex) =>

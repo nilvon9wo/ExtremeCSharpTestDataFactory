@@ -32,8 +32,8 @@ public class DeferredValueQueueTest
         DeferredValueQueue queue = new();
         Dictionary<PropertyInfo, IDeferredExpression> byField = new()
         {
-            [Field.Of<Account>(nameof(Account.Name))] = null!,
-            [Field.Of<Account>(nameof(Account.Site))] = null!,
+            [Field.Of<Account>(x => x.Name)] = null!,
+            [Field.Of<Account>(x => x.Site)] = null!,
         };
 
         // Act
@@ -48,7 +48,7 @@ public class DeferredValueQueueTest
     {
         // Arrange
         DeferredValueQueue queue = new();
-        Dictionary<PropertyInfo, IDeferredExpression> byField = new() { [Field.Of<Account>(nameof(Account.Name))] = null! };
+        Dictionary<PropertyInfo, IDeferredExpression> byField = new() { [Field.Of<Account>(x => x.Name)] = null! };
 
         // Act
         queue.AddForEachRow(0, byField);
@@ -62,7 +62,7 @@ public class DeferredValueQueueTest
     {
         // Arrange
         DeferredValueQueue queue = new();
-        Dictionary<PropertyInfo, IDeferredExpression> byField = new() { [Field.Of<Account>(nameof(Account.Name))] = null! };
+        Dictionary<PropertyInfo, IDeferredExpression> byField = new() { [Field.Of<Account>(x => x.Name)] = null! };
 
         // Act
         queue.AddForEachRow(2, byField);
@@ -71,6 +71,6 @@ public class DeferredValueQueueTest
         List<BundleDeferredEntry> entries = queue.Entries();
         Assert.Equal(0, entries[0].PrimaryRow);
         Assert.Equal(1, entries[1].PrimaryRow);
-        Assert.Equal(Field.Of<Account>(nameof(Account.Name)), entries[1].Field);
+        Assert.Equal(Field.Of<Account>(x => x.Name), entries[1].Field);
     }
 }

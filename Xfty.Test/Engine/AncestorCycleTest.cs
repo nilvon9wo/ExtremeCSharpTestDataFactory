@@ -24,17 +24,17 @@ public class AncestorCycleTest
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), SelfReferringLookup())
             .SetInclusivity(InsertInclusivity.Required)
-            .IncludeOptional(Field.Of<Contact>(nameof(Contact.ReportsToId)))
+            .IncludeOptional(Field.Of<Contact>(x => x.ReportsToId))
             .SetInsertMode(InsertMode.Mock);
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Sanity Check
-        Assert.NotNull(bundle.GetBundle(Field.Of<Contact>(nameof(Contact.ReportsToId)))); // the manager Contact was generated
+        Assert.NotNull(bundle.GetBundle(Field.Of<Contact>(x => x.ReportsToId))); // the manager Contact was generated
 
         // Assert - the manager Contact does not get its own manager, the chain stops
-        Assert.Null(bundle.GetBundle(Field.Of<Contact>(nameof(Contact.ReportsToId)))!.GetBundle(Field.Of<Contact>(nameof(Contact.ReportsToId))));
+        Assert.Null(bundle.GetBundle(Field.Of<Contact>(x => x.ReportsToId))!.GetBundle(Field.Of<Contact>(x => x.ReportsToId)));
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class AncestorCycleTest
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), SelfReferringLookup())
             .SetInclusivity(InsertInclusivity.Required)
-            .IncludeOptional([Field.Of<Contact>(nameof(Contact.ReportsToId)), Field.Of<Contact>(nameof(Contact.ReportsToId))])
+            .IncludeOptional([Field.Of<Contact>(x => x.ReportsToId), Field.Of<Contact>(x => x.ReportsToId)])
             .SetInsertMode(InsertMode.Mock);
 
         // Act
@@ -60,7 +60,7 @@ public class AncestorCycleTest
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), SelfReferringLookup())
             .SetInclusivity(InsertInclusivity.Required)
-            .IncludeOptional([Field.Of<Contact>(nameof(Contact.ReportsToId)), Field.Of<Contact>(nameof(Contact.ReportsToId))])
+            .IncludeOptional([Field.Of<Contact>(x => x.ReportsToId), Field.Of<Contact>(x => x.ReportsToId)])
             .AllowAncestorCycles()
             .SetInsertMode(InsertMode.Mock);
 
@@ -68,19 +68,19 @@ public class AncestorCycleTest
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Bundle levelTwo = bundle.GetBundle(Field.Of<Contact>(nameof(Contact.ReportsToId)))!.GetBundle(Field.Of<Contact>(nameof(Contact.ReportsToId)))!;
+        Bundle levelTwo = bundle.GetBundle(Field.Of<Contact>(x => x.ReportsToId))!.GetBundle(Field.Of<Contact>(x => x.ReportsToId))!;
         Assert.NotNull(levelTwo); // the two-hop forced path built a two-deep chain
-        Assert.Null(levelTwo.GetBundle(Field.Of<Contact>(nameof(Contact.ReportsToId)))); // and then it stops
+        Assert.Null(levelTwo.GetBundle(Field.Of<Contact>(x => x.ReportsToId))); // and then it stops
     }
 }
 
 file sealed class SelfReferringContactProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Contact>(nameof(Contact.Id)))
-        .Put(Field.Of<Contact>(nameof(Contact.LastName)), new IncrementingStringExpression("Mgr"))
-        .PutOptional(Field.Of<Contact>(nameof(Contact.ReportsToId)), new DefaultRelationship(new Contact()));
+    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+        .Put(Field.Of<Contact>(x => x.LastName), new IncrementingStringExpression("Mgr"))
+        .PutOptional(Field.Of<Contact>(x => x.ReportsToId), new DefaultRelationship(new Contact()));
 
-    public PropertyInfo PrimaryTargetField => Field.Of<Contact>(nameof(Contact.Id));
+    public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 
     public MasterTemplate MasterTemplate => this._template;
 

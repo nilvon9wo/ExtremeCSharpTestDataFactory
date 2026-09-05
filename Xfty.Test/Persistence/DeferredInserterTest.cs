@@ -27,7 +27,7 @@ public class DeferredInserterTest
     {
         // Arrange
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), [new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
         int before = DeferredInserter.PendingCount();
 
         // Act
@@ -42,9 +42,9 @@ public class DeferredInserterTest
     {
         // Arrange
         Bundle first = new();
-        first.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), [new Account { Name = "A" }]);
+        first.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "A" }]);
         Bundle second = new();
-        second.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), [new Account { Name = "B" }, new Account { Name = "C" }]);
+        second.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "B" }, new Account { Name = "C" }]);
         int before = DeferredInserter.PendingCount();
 
         // Act
@@ -60,7 +60,7 @@ public class DeferredInserterTest
     {
         // Arrange
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), [new Account { Name = "Not Yet Saved" }]);
+        bundle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "Not Yet Saved" }]);
         DeferredInserter.Register(bundle);
         int beforeFlush = DeferredInserter.PendingCount();
 

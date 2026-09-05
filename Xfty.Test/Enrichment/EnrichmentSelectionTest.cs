@@ -12,11 +12,11 @@ namespace Net.Nowhereatall.Xfty.Test.Enrichment;
 /// </summary>
 public class EnrichmentSelectionTest
 {
-    private static List<PropertyInfo> AccountPath() => [Field.Of<Contact>(nameof(Contact.AccountId))];
+    private static List<PropertyInfo> AccountPath() => [Field.Of<Contact>(x => x.AccountId)];
 
-    private static List<PropertyInfo> AccountParent() => [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ParentId))];
+    private static List<PropertyInfo> AccountParent() => [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)];
 
-    private static List<PropertyInfo> Owner() => [Field.Of<Contact>(nameof(Contact.ReportsToId))];
+    private static List<PropertyInfo> Owner() => [Field.Of<Contact>(x => x.ReportsToId)];
 
     [Fact]
     public void WantsAncestor_FromNothing_IsFalse() => AssertWantsAncestor(InjectConfig.Nothing(), AccountPath(), false);
@@ -67,7 +67,7 @@ public class EnrichmentSelectionTest
 
     [Fact]
     public void WantsInverse_WhenTheRelationshipIsExcluded_IsFalse() =>
-        AssertWantsInverse(InjectConfig.AllChildren().ExcludeChild(Field.Of<Contact>(nameof(Contact.AccountId))), false);
+        AssertWantsInverse(InjectConfig.AllChildren().ExcludeChild(Field.Of<Contact>(x => x.AccountId)), false);
 
     private static void AssertWantsInverse(InjectConfig config, bool expected)
     {
@@ -75,7 +75,7 @@ public class EnrichmentSelectionTest
         EnrichmentSelection selection = new(config);
 
         // Act
-        bool wanted = selection.WantsInverse(Field.Of<Contact>(nameof(Contact.AccountId)));
+        bool wanted = selection.WantsInverse(Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         Assert.Equal(expected, wanted);
@@ -83,27 +83,27 @@ public class EnrichmentSelectionTest
 
     private static List<PropertyInfo> RootPath() => [];
 
-    private static List<PropertyInfo> OneChildHop() => [Field.Of<Contact>(nameof(Contact.AccountId))];
+    private static List<PropertyInfo> OneChildHop() => [Field.Of<Contact>(x => x.AccountId)];
 
     [Fact]
     public void ChildFieldsOn_FromAllChildren_IncludesThePresentField() => AssertChildFieldsOnContains(InjectConfig.AllChildren(), RootPath(), true);
 
     [Fact]
     public void ChildFieldsOn_WhenExcluded_DropsTheField() =>
-        AssertChildFieldsOnContains(InjectConfig.AllChildren().ExcludeChild(Field.Of<Contact>(nameof(Contact.AccountId))), RootPath(), false);
+        AssertChildFieldsOnContains(InjectConfig.AllChildren().ExcludeChild(Field.Of<Contact>(x => x.AccountId)), RootPath(), false);
 
     [Fact]
     public void ChildFieldsOn_ForAnInjectChildFieldAtTheRoot_IncludesIt() =>
-        AssertChildFieldsOnContains(InjectConfig.Nothing().InjectChild(Field.Of<Contact>(nameof(Contact.AccountId))), RootPath(), true);
+        AssertChildFieldsOnContains(InjectConfig.Nothing().InjectChild(Field.Of<Contact>(x => x.AccountId)), RootPath(), true);
 
     [Fact]
     public void ChildFieldsOn_ForAnInjectChildFieldNotAtTheRoot_ExcludesIt() =>
-        AssertChildFieldsOnContains(InjectConfig.Nothing().InjectChild(Field.Of<Contact>(nameof(Contact.AccountId))), OneChildHop(), false);
+        AssertChildFieldsOnContains(InjectConfig.Nothing().InjectChild(Field.Of<Contact>(x => x.AccountId)), OneChildHop(), false);
 
     [Fact]
     public void ChildFieldsOn_ForAnInjectChildValuePathAtTheRoot_IncludesItsFirstHop() =>
         AssertChildFieldsOnContains(
-            InjectConfig.Nothing().InjectChildValue(Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department)), "x"),
+            InjectConfig.Nothing().InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), "x"),
             RootPath(),
             true);
 
@@ -111,14 +111,14 @@ public class EnrichmentSelectionTest
     {
         // Arrange
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), [new Account()]);
-        _ = bundle.PutChild(Field.Of<Contact>(nameof(Contact.AccountId)), new Bundle(), []);
+        bundle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account()]);
+        _ = bundle.PutChild(Field.Of<Contact>(x => x.AccountId), new Bundle(), []);
         EnrichmentSelection selection = new(config);
 
         // Act
         HashSet<PropertyInfo> fields = selection.ChildFieldsOn(bundle, childPathHere);
 
         // Assert
-        Assert.Equal(expectedToContain, fields.Contains(Field.Of<Contact>(nameof(Contact.AccountId))));
+        Assert.Equal(expectedToContain, fields.Contains(Field.Of<Contact>(x => x.AccountId)));
     }
 }

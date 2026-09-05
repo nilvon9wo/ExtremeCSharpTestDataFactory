@@ -16,20 +16,21 @@ Related: [provider-lookups](provider-lookups.md) (registering Providers) ·
 
 A Provider implements `IRecordProvider`:
 
+<!-- sketch -->
 ```csharp
 public sealed class MyContactProvider : IRecordProvider
 {
     public const string DefaultEmailPrefix = "test.contact";
     public const string DefaultAccountDescription = "Account for contact";
 
-    private static readonly PropertyInfo PrimaryField = Field.Of<Contact>(nameof(Contact.Id));
+    private static readonly PropertyInfo PrimaryField = Field.Of<Contact>(x => x.Id);
 
     private static readonly MasterTemplate Template = new MasterTemplate(PrimaryField)
-        .PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), new DefaultRelationship(
+        .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(
             new Account { Description = DefaultAccountDescription }))
-        .Put(Field.Of<Contact>(nameof(Contact.Email)), new UniqueEmailExpression(DefaultEmailPrefix))
-        .Put(Field.Of<Contact>(nameof(Contact.FirstName)), new IncrementingStringExpression("Contact First Name"))
-        .Put(Field.Of<Contact>(nameof(Contact.LastName)), new IncrementingStringExpression("Contact Last Name"));
+        .Put(Field.Of<Contact>(x => x.Email), new UniqueEmailExpression(DefaultEmailPrefix))
+        .Put(Field.Of<Contact>(x => x.FirstName), new IncrementingStringExpression("Contact First Name"))
+        .Put(Field.Of<Contact>(x => x.LastName), new IncrementingStringExpression("Contact Last Name"));
 
     public PropertyInfo PrimaryTargetField => PrimaryField;
 
@@ -75,8 +76,9 @@ builds records by hand.
 Every Provider declares the field that identifies its primary records inside a
 [Bundle](../use/bundles.md). For nearly every record type this is `Id`:
 
+<!-- sketch -->
 ```csharp
-private static readonly PropertyInfo PrimaryField = Field.Of<Contact>(nameof(Contact.Id));
+private static readonly PropertyInfo PrimaryField = Field.Of<Contact>(x => x.Id);
 ```
 
 A configurable field (rather than a hard-coded `Id`) keeps the engine
@@ -109,3 +111,5 @@ than dozens of unrelated application tests failing because a data shape
 changed. `Xfty.Test/Demo/AccountDataProviderTest.cs` and
 `ContactDataProviderTest.cs` are worked examples for this port's own bundled
 Providers.
+
+Runnable: `AccountDataProviderTest`, `ContactDataProviderTest`

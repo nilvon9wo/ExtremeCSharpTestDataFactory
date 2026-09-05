@@ -13,7 +13,7 @@ namespace Net.Nowhereatall.Xfty.Test.Predicates;
 public class ValueComparisonTest
 {
     private static readonly DateTime Noon = new(2024, 1, 1, 12, 0, 0, DateTimeKind.Utc);
-    private static readonly PropertyInfo NumberOfEmployees = Field.Of<Account>(nameof(Account.NumberOfEmployees));
+    private static readonly PropertyInfo NumberOfEmployees = Field.Of<Account>(x => x.NumberOfEmployees);
 
     // Compare(left, right) -------------------------------------------
 

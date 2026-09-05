@@ -42,7 +42,7 @@ Master Template  →  Put(...)  →  Override Template
 If more than one customization touches a field, **the override template wins.**
 
 ```csharp
-.Put(Field.Of<Contact>(nameof(Contact.FirstName)), new LiteralExpression("Generated"))
+.Put(Field.Of<Contact>(x => x.FirstName), new LiteralExpression("Generated"))
 .SetOverrideTemplate(new Contact { FirstName = "Alice" })
 // -> "Alice", not "Generated"
 ```
@@ -70,7 +70,7 @@ Sometimes the Master Template supplies a value a test deliberately does not want
 record.
 
 ```csharp
-.RemoveFromMasterTemplate(Field.Of<Contact>(nameof(Contact.Email)))
+.RemoveFromMasterTemplate(Field.Of<Contact>(x => x.Email))
 ```
 
 This removes the field's generation entirely, rather than replacing it with
@@ -78,3 +78,5 @@ another value. For relationships, use
 [`ExcludeRelationship(...)`](per-call-relationships.md) instead.
 
 See also: [generating-records](generating-records.md) · [value-expressions](value-expressions.md)
+
+Runnable: `RecordProviderApiTest`, `RecordFactoryTest`

@@ -12,7 +12,7 @@ Provider.
 ```csharp
 new RecordProvider(typeof(Contact), lookup)
     .SetInclusivity(InsertInclusivity.Required)
-    .Put([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Industry))], "Aerospace")
+    .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace")
     .Supply();
 // -> the generated Account has Industry = "Aerospace"
 ```

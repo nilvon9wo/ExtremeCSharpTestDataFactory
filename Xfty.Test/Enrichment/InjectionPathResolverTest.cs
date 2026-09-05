@@ -23,7 +23,7 @@ public class InjectionPathResolverTest
     public void ParentRelationshipField_ForAStandardLookup_ReturnsTheNavigationProperty()
     {
         // Arrange
-        PropertyInfo lookup = Field.Of<Contact>(nameof(Contact.AccountId));
+        PropertyInfo lookup = Field.Of<Contact>(x => x.AccountId);
 
         // Act
         PropertyInfo field = InjectionPathResolver.ParentRelationshipField(lookup);
@@ -36,7 +36,7 @@ public class InjectionPathResolverTest
     public void ParentRelationshipField_ForASelfLookup_ReturnsTheSelfNavigationProperty()
     {
         // Arrange
-        PropertyInfo selfLookup = Field.Of<Account>(nameof(Account.ParentId));
+        PropertyInfo selfLookup = Field.Of<Account>(x => x.ParentId);
 
         // Act
         PropertyInfo field = InjectionPathResolver.ParentRelationshipField(selfLookup);
@@ -49,7 +49,7 @@ public class InjectionPathResolverTest
     public void ParentRelationshipField_ForANonReferenceField_Throws()
     {
         // Arrange
-        PropertyInfo notALookup = Field.Of<Account>(nameof(Account.Name));
+        PropertyInfo notALookup = Field.Of<Account>(x => x.Name);
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => InjectionPathResolver.ParentRelationshipField(notALookup));
@@ -65,7 +65,7 @@ public class InjectionPathResolverTest
         Type parentType = typeof(Account);
 
         // Act
-        PropertyInfo field = InjectionPathResolver.ChildRelationshipField(parentType, Field.Of<Contact>(nameof(Contact.AccountId)));
+        PropertyInfo field = InjectionPathResolver.ChildRelationshipField(parentType, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         Assert.Equal(nameof(Account.Contacts), field.Name);
@@ -75,7 +75,7 @@ public class InjectionPathResolverTest
     public void ChildRelationshipField_WhenNoChildRelationshipMatches_Throws()
     {
         // Arrange - Contact has no collection property of its own type
-        PropertyInfo notAChildLookup = Field.Of<Contact>(nameof(Contact.Birthdate));
+        PropertyInfo notAChildLookup = Field.Of<Contact>(x => x.Birthdate);
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(

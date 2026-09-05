@@ -33,3 +33,5 @@ deliberately generous ceilings. Apex's governor-limit warnings
 ported; see [reference/volume-and-limits.md](../../reference/volume-and-limits.md)
 for what this port measures instead. Model your own volume assertions on
 `PerformanceTest.cs`.
+
+Runnable: `PerformanceTest`

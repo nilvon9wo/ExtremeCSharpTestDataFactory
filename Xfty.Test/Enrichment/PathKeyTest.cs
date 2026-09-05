@@ -18,8 +18,8 @@ public class PathKeyTest
     public void Of_JoinsTheFieldsPositionally_SoTheSamePathProducesTheSameKey()
     {
         // Arrange
-        List<PropertyInfo> path = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ParentId))];
-        List<PropertyInfo> samePath = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ParentId))];
+        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)];
+        List<PropertyInfo> samePath = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)];
 
         // Act
         string key = PathKey.Of(path);
@@ -35,8 +35,8 @@ public class PathKeyTest
     public void Of_ForADifferentlyOrderedPath_ProducesADifferentKey()
     {
         // Arrange
-        List<PropertyInfo> path = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ParentId))];
-        List<PropertyInfo> reversedFields = [Field.Of<Account>(nameof(Account.Id)), Field.Of<Contact>(nameof(Contact.Id))];
+        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)];
+        List<PropertyInfo> reversedFields = [Field.Of<Account>(x => x.Id), Field.Of<Contact>(x => x.Id)];
 
         // Act
         string key = PathKey.Of(path);

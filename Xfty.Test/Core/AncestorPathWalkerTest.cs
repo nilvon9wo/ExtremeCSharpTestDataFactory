@@ -12,9 +12,9 @@ public class AncestorPathWalkerTest
     {
         // Arrange - two Contacts, each with its own parent Account carrying a distinct name
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), [new Contact(), new Contact()]);
-        _ = bundle.Put(Field.Of<Contact>(nameof(Contact.AccountId)), [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]);
-        List<PropertyInfo> path = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))];
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact(), new Contact()]);
+        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]);
+        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
 
         // Act
         object? rowOneName = AncestorPathWalker.Read(bundle, path, 1);
@@ -28,10 +28,10 @@ public class AncestorPathWalkerTest
     {
         // Arrange - Contact -> Account (sub-bundle) -> parent Account (list), only the deepest name set
         Bundle accountBundle = new();
-        _ = accountBundle.Put(Field.Of<Account>(nameof(Account.ParentId)), [new Account { Name = "Grandparent" }]);
+        _ = accountBundle.Put(Field.Of<Account>(x => x.ParentId), [new Account { Name = "Grandparent" }]);
         Bundle bundle = new();
-        _ = bundle.Put(Field.Of<Contact>(nameof(Contact.AccountId)), accountBundle);
-        List<PropertyInfo> path = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ParentId)), Field.Of<Account>(nameof(Account.Name))];
+        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), accountBundle);
+        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Name)];
 
         // Act
         object? grandparentName = AncestorPathWalker.Read(bundle, path, 0);
@@ -45,8 +45,8 @@ public class AncestorPathWalkerTest
     {
         // Arrange - the relationship the path asks for was never put
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(nameof(Contact.Id)), [new Contact()]);
-        List<PropertyInfo> path = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))];
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
+        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
 
         // Act
         object? missing = AncestorPathWalker.Read(bundle, path, 0);
@@ -60,8 +60,8 @@ public class AncestorPathWalkerTest
     {
         // Arrange - one parent, ask for row 5
         Bundle bundle = new();
-        _ = bundle.Put(Field.Of<Contact>(nameof(Contact.AccountId)), [new Account { Name = "Only" }]);
-        List<PropertyInfo> path = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))];
+        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account { Name = "Only" }]);
+        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
 
         // Act
         object? outOfRange = AncestorPathWalker.Read(bundle, path, 5);
@@ -75,8 +75,8 @@ public class AncestorPathWalkerTest
     {
         // Arrange
         Bundle bundle = new();
-        _ = bundle.Put(Field.Of<Contact>(nameof(Contact.AccountId)), [new Account { Name = "Only" }]);
-        List<PropertyInfo> path = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))];
+        _ = bundle.Put(Field.Of<Contact>(x => x.AccountId), [new Account { Name = "Only" }]);
+        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
 
         // Act
         object? negative = AncestorPathWalker.Read(bundle, path, -1);
@@ -89,7 +89,7 @@ public class AncestorPathWalkerTest
     public void Read_WhenThePathIsTooShortToWalk_Throws()
     {
         // Arrange
-        List<PropertyInfo> justAField = [Field.Of<Account>(nameof(Account.Name))];
+        List<PropertyInfo> justAField = [Field.Of<Account>(x => x.Name)];
         Bundle bundle = new();
 
         // Act
@@ -103,7 +103,7 @@ public class AncestorPathWalkerTest
     public void Read_WhenAPathStepIsNull_Throws()
     {
         // Arrange
-        List<PropertyInfo> withNullStep = [Field.Of<Contact>(nameof(Contact.AccountId)), null!];
+        List<PropertyInfo> withNullStep = [Field.Of<Contact>(x => x.AccountId), null!];
         Bundle bundle = new();
 
         // Act

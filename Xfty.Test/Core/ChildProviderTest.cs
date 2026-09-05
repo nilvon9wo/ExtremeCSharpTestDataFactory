@@ -40,14 +40,14 @@ public class ChildProviderTest
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 3);
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 3);
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
         string accountId = ((Account)bundle.PrimaryRecords()![0]).Id!;
-        List<object> contacts = bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId)));
+        List<object> contacts = bundle.GetChildList(Field.Of<Contact>(x => x.AccountId));
         Assert.Equal(3, contacts.Count);
         Assert.All(contacts.Cast<Contact>(), contact =>
         {
@@ -62,14 +62,14 @@ public class ChildProviderTest
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChild(Field.Of<Contact>(nameof(Contact.AccountId)));
+            .WithChild(Field.Of<Contact>(x => x.AccountId));
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        _ = Assert.Single(bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId))));
-        Assert.NotNull(bundle.GetChild(Field.Of<Contact>(nameof(Contact.AccountId))));
+        _ = Assert.Single(bundle.GetChildList(Field.Of<Contact>(x => x.AccountId)));
+        Assert.NotNull(bundle.GetChild(Field.Of<Contact>(x => x.AccountId)));
     }
 
     [Fact]
@@ -79,11 +79,11 @@ public class ChildProviderTest
         // nothing to arrange
 
         // Act
-        ChildProvider childProvider = new(Field.Of<Contact>(nameof(Contact.AccountId)));
+        ChildProvider childProvider = new(Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         Assert.Equal(typeof(Contact), childProvider.ChildType);
-        Assert.Equal(Field.Of<Contact>(nameof(Contact.AccountId)), childProvider.RelationshipField);
+        Assert.Equal(Field.Of<Contact>(x => x.AccountId), childProvider.RelationshipField);
     }
 
     // Templates + multiple configs ----------------------------
@@ -94,13 +94,13 @@ public class ChildProviderTest
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .With(new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId)), new Contact { Department = "Buying" }).SetQuantity(2));
+            .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "Buying" }).SetQuantity(2));
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        List<object> children = bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId)));
+        List<object> children = bundle.GetChildList(Field.Of<Contact>(x => x.AccountId));
         Assert.Equal(2, children.Count);
         Assert.All(children.Cast<Contact>(), contact => Assert.Equal("Buying", contact.Department));
     }
@@ -114,14 +114,14 @@ public class ChildProviderTest
             .SetOverrideTemplateList([new Account(), new Account()])
             .SetQuantityPerTemplate(4)
             .SetInsertMode(InsertMode.Mock)
-            .With(new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId)), new Contact { Department = "A" }).SetQuantity(3))
-            .With(new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId)), new Contact { Department = "B" }).SetQuantity(2));
+            .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "A" }).SetQuantity(3))
+            .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "B" }).SetQuantity(2));
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        List<Contact> childContacts = [.. bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId))).Cast<Contact>()];
+        List<Contact> childContacts = [.. bundle.GetChildList(Field.Of<Contact>(x => x.AccountId)).Cast<Contact>()];
         int departmentACount = childContacts.Count(contact => contact.Department == "A");
         Assert.Equal(8, bundle.PrimaryRecords()!.Count);
         Assert.Equal(40, childContacts.Count);
@@ -137,8 +137,8 @@ public class ChildProviderTest
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetQuantityPerTemplate(2)
             .SetInsertMode(InsertMode.Mock)
-            .With(new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId)), new Contact { Department = "A" }).SetQuantity(2))
-            .With(new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId)), new Contact { Department = "B" }).SetQuantity(1));
+            .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "A" }).SetQuantity(2))
+            .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId), new Contact { Department = "B" }).SetQuantity(1));
 
         // Act
         Bundle bundle = provider.SupplyBundle();
@@ -146,7 +146,7 @@ public class ChildProviderTest
         // Assert
         string parentZero = ((Account)bundle.PrimaryRecords()![0]).Id!;
         string parentOne = ((Account)bundle.PrimaryRecords()![1]).Id!;
-        List<Contact> children = [.. bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId))).Cast<Contact>()];
+        List<Contact> children = [.. bundle.GetChildList(Field.Of<Contact>(x => x.AccountId)).Cast<Contact>()];
         Assert.Equal(6, children.Count);
         AssertContact(children[0], "A", parentZero);
         AssertContact(children[1], "A", parentZero);
@@ -164,15 +164,15 @@ public class ChildProviderTest
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 2)
-            .WithChildren(Field.Of<Case>(nameof(Case.AccountId)), 3);
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 2)
+            .WithChildren(Field.Of<Case>(x => x.AccountId), 3);
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Assert.Equal(2, bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId))).Count);
-        Assert.Equal(3, bundle.GetChildList(Field.Of<Case>(nameof(Case.AccountId))).Count);
+        Assert.Equal(2, bundle.GetChildList(Field.Of<Contact>(x => x.AccountId)).Count);
+        Assert.Equal(3, bundle.GetChildList(Field.Of<Case>(x => x.AccountId)).Count);
         Assert.Equal(2, bundle.ChildRelationshipFields().Count);
     }
 
@@ -185,21 +185,21 @@ public class ChildProviderTest
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .With(new ChildProvider(Field.Of<Case>(nameof(Case.AccountId))).SetQuantity(2));
+            .With(new ChildProvider(Field.Of<Case>(x => x.AccountId)).SetQuantity(2));
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
         string rootAccountId = ((Account)bundle.PrimaryRecords()![0]).Id!;
-        Bundle caseBundle = bundle.GetChildBundle(Field.Of<Case>(nameof(Case.AccountId)))!;
+        Bundle caseBundle = bundle.GetChildBundle(Field.Of<Case>(x => x.AccountId))!;
         Assert.Equal(2, caseBundle.PrimaryRecords()!.Count);
         Assert.All(caseBundle.PrimaryRecords()!.Cast<Case>(), caseRecord =>
         {
             Assert.Equal(rootAccountId, caseRecord.AccountId); // root link
             Assert.NotNull(caseRecord.ContactId); // own required Contact parent generated
         });
-        List<object> childContacts = caseBundle.GetBundle(Field.Of<Case>(nameof(Case.ContactId)))!.PrimaryRecords()!;
+        List<object> childContacts = caseBundle.GetBundle(Field.Of<Case>(x => x.ContactId))!.PrimaryRecords()!;
         Assert.Equal(2, childContacts.Count);
         Assert.All(childContacts.Cast<Contact>(), contact =>
         {
@@ -217,16 +217,16 @@ public class ChildProviderTest
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .With(
-                new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId))).SetQuantity(2)
-                    .With(new ChildProvider(Field.Of<Case>(nameof(Case.ContactId))).SetQuantity(3)));
+                new ChildProvider(Field.Of<Contact>(x => x.AccountId)).SetQuantity(2)
+                    .With(new ChildProvider(Field.Of<Case>(x => x.ContactId)).SetQuantity(3)));
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        List<object> contacts = bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId)));
+        List<object> contacts = bundle.GetChildList(Field.Of<Contact>(x => x.AccountId));
         Assert.Equal(2, contacts.Count);
-        List<object> cases = bundle.GetChildBundle(Field.Of<Contact>(nameof(Contact.AccountId)))!.GetChildList(Field.Of<Case>(nameof(Case.ContactId)));
+        List<object> cases = bundle.GetChildBundle(Field.Of<Contact>(x => x.AccountId))!.GetChildList(Field.Of<Case>(x => x.ContactId));
         Assert.Equal(6, cases.Count); // 2 Contacts x 3 Cases
         HashSet<string?> contactIds = [.. contacts.Cast<Contact>().Select(contact => contact.Id)];
         Assert.All(cases.Cast<Case>(), caseRecord => Assert.Contains(caseRecord.ContactId, contactIds)); // grandchild points at its Contact
@@ -239,16 +239,16 @@ public class ChildProviderTest
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Deferred)
             .With(
-                new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId))).SetQuantity(2)
-                    .With(new ChildProvider(Field.Of<Case>(nameof(Case.ContactId))).SetQuantity(2)));
+                new ChildProvider(Field.Of<Contact>(x => x.AccountId)).SetQuantity(2)
+                    .With(new ChildProvider(Field.Of<Case>(x => x.ContactId)).SetQuantity(2)));
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - the whole structural graph exists, including grandchildren, before any flush
-        List<object> contacts = bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId)));
+        List<object> contacts = bundle.GetChildList(Field.Of<Contact>(x => x.AccountId));
         Assert.Equal(2, contacts.Count);
-        List<object> cases = bundle.GetChildBundle(Field.Of<Contact>(nameof(Contact.AccountId)))!.GetChildList(Field.Of<Case>(nameof(Case.ContactId)));
+        List<object> cases = bundle.GetChildBundle(Field.Of<Contact>(x => x.AccountId))!.GetChildList(Field.Of<Case>(x => x.ContactId));
         Assert.Equal(4, cases.Count);
         NotSupportedException thrown = Assert.Throws<NotSupportedException>(DeferredInserter.Flush);
         Assert.Contains("persistence layer", thrown.Message);
@@ -260,7 +260,7 @@ public class ChildProviderTest
     public void SetQuantity_BelowOne_Throws()
     {
         // Arrange
-        ChildProvider childProvider = new(Field.Of<Contact>(nameof(Contact.AccountId)));
+        ChildProvider childProvider = new(Field.Of<Contact>(x => x.AccountId));
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => childProvider.SetQuantity(0));
@@ -277,13 +277,13 @@ public class ChildProviderTest
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 2);
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert - the children got mock Ids too, exactly like the parent (no override given)
-        List<object> children = bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId)));
+        List<object> children = bundle.GetChildList(Field.Of<Contact>(x => x.AccountId));
         Assert.Equal(2, children.Count);
         Assert.All(children.Cast<Contact>(), contact => Assert.NotNull(contact.Id));
     }
@@ -294,7 +294,7 @@ public class ChildProviderTest
         // Arrange - parent Never (no persistence attempted), child Now (would be real DML in Apex)
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Never)
-            .With(new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId))).SetQuantity(2).SetInsertMode(InsertMode.Now));
+            .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId)).SetQuantity(2).SetInsertMode(InsertMode.Now));
 
         // Act - the child's Now override is honoured (not silently downgraded to the parent's Never), and Now has no
         // persistence layer in this port, so it throws rather than the Apex original's real insert
@@ -316,13 +316,13 @@ public class ChildProviderTest
         // Arrange - Later is Never-with-intent, all the way down
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Later)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 2);
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        List<Contact> children = [.. bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId))).Cast<Contact>()];
+        List<Contact> children = [.. bundle.GetChildList(Field.Of<Contact>(x => x.AccountId)).Cast<Contact>()];
         Assert.Equal(2, children.Count); // the children are still generated
         Assert.Null(children[0].Id); // just not inserted
         Assert.Null(children[0].AccountId); // and the back-reference is null - no parent Id to point at
@@ -335,13 +335,13 @@ public class ChildProviderTest
         // persisted parent and RelatedOnly flows down
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.RelatedOnly)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 2);
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        List<object> children = bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId)));
+        List<object> children = bundle.GetChildList(Field.Of<Contact>(x => x.AccountId));
         Assert.Equal(2, children.Count);
         Assert.Null(((Contact)children[0]).Id); // children are not inserted
     }
@@ -355,16 +355,16 @@ public class ChildProviderTest
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .With(new ChildProvider(Field.Of<Case>(nameof(Case.AccountId)), new Case { Origin = "Web" }).SetQuantity(1))
-            .With(new ChildProvider(Field.Of<Case>(nameof(Case.AccountId)), new Case { Origin = "Phone" }).SetQuantity(1));
+            .With(new ChildProvider(Field.Of<Case>(x => x.AccountId), new Case { Origin = "Web" }).SetQuantity(1))
+            .With(new ChildProvider(Field.Of<Case>(x => x.AccountId), new Case { Origin = "Phone" }).SetQuantity(1));
 
         // Act
         Bundle bundle = provider.SupplyBundle();
 
         // Assert
-        Bundle merged = bundle.GetChildBundle(Field.Of<Case>(nameof(Case.AccountId)))!;
+        Bundle merged = bundle.GetChildBundle(Field.Of<Case>(x => x.AccountId))!;
         Assert.Equal(2, merged.PrimaryRecords()!.Count);
-        Assert.Equal(2, merged.GetBundle(Field.Of<Case>(nameof(Case.ContactId)))!.PrimaryRecords()!.Count); // the Cases from both configs generated their own Contact parent
+        Assert.Equal(2, merged.GetBundle(Field.Of<Case>(x => x.ContactId))!.PrimaryRecords()!.Count); // the Cases from both configs generated their own Contact parent
     }
 
     // Runners + helpers ----------------------------
@@ -374,7 +374,7 @@ public class ChildProviderTest
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(parentMode)
-            .With(new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId))).SetInsertMode(childMode));
+            .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId)).SetInsertMode(childMode));
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(provider.SupplyBundle);
@@ -393,11 +393,11 @@ public class ChildProviderTest
 /// <summary>Case that needs a Contact (which in turn needs its own Account) - an in-test Provider only used here.</summary>
 file sealed class CaseProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Case>(nameof(Case.Id)))
-        .Put(Field.Of<Case>(nameof(Case.Subject)), new IncrementingStringExpression("Case"))
-        .PutRequired(Field.Of<Case>(nameof(Case.ContactId)), new DefaultRelationship(new Contact()));
+    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
+        .Put(Field.Of<Case>(x => x.Subject), new IncrementingStringExpression("Case"))
+        .PutRequired(Field.Of<Case>(x => x.ContactId), new DefaultRelationship(new Contact()));
 
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Case>(nameof(Case.Id));
+    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
 
     public MasterTemplate MasterTemplate => this._template;
 

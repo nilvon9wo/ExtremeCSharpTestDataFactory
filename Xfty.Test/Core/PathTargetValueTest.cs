@@ -13,14 +13,14 @@ public class PathTargetValueTest
     {
         // Arrange
         PathTargetValue value = PathTargetValue.OfLiteral("Acme");
-        MasterTemplate template = new(Field.Of<Account>(nameof(Account.Id)));
+        MasterTemplate template = new(Field.Of<Account>(x => x.Id));
 
         // Act
-        value.ApplyTo(template, Field.Of<Account>(nameof(Account.Name)));
+        value.ApplyTo(template, Field.Of<Account>(x => x.Name));
 
         // Assert
         Assert.False(value.IsRelationship);
-        Assert.True(template.DefaultByField.ContainsKey(Field.Of<Account>(nameof(Account.Name))));
+        Assert.True(template.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Name)));
     }
 
     [Fact]
@@ -28,13 +28,13 @@ public class PathTargetValueTest
     {
         // Arrange
         PathTargetValue value = PathTargetValue.OfExpression(new LiteralExpression("X"));
-        MasterTemplate template = new(Field.Of<Account>(nameof(Account.Id)));
+        MasterTemplate template = new(Field.Of<Account>(x => x.Id));
 
         // Act
-        value.ApplyTo(template, Field.Of<Account>(nameof(Account.Name)));
+        value.ApplyTo(template, Field.Of<Account>(x => x.Name));
 
         // Assert
-        Assert.True(template.DefaultByField.ContainsKey(Field.Of<Account>(nameof(Account.Name))));
+        Assert.True(template.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Name)));
     }
 
     [Fact]
@@ -56,26 +56,26 @@ public class PathTargetValueTest
     {
         // Arrange
         PathTargetValue value = PathTargetValue.OfOptionalRelationship(new DefaultRelationship(new Account()));
-        MasterTemplate template = new(Field.Of<Contact>(nameof(Contact.Id)));
+        MasterTemplate template = new(Field.Of<Contact>(x => x.Id));
 
         // Act
-        value.ApplyTo(template, Field.Of<Contact>(nameof(Contact.AccountId)));
+        value.ApplyTo(template, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
-        Assert.True(template.OptionalRelationshipByField.ContainsKey(Field.Of<Contact>(nameof(Contact.AccountId))));
+        Assert.True(template.OptionalRelationshipByField.ContainsKey(Field.Of<Contact>(x => x.AccountId)));
     }
 
     [Fact]
     public void OfContextAware_AppliesAsAContextAwareExpression()
     {
         // Arrange
-        PathTargetValue value = PathTargetValue.OfContextAware(new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.Name))));
-        MasterTemplate template = new(Field.Of<Account>(nameof(Account.Id)));
+        PathTargetValue value = PathTargetValue.OfContextAware(new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name)));
+        MasterTemplate template = new(Field.Of<Account>(x => x.Id));
 
         // Act
-        value.ApplyTo(template, Field.Of<Account>(nameof(Account.Site)));
+        value.ApplyTo(template, Field.Of<Account>(x => x.Site));
 
         // Assert
-        Assert.True(template.ContextAwareByField.ContainsKey(Field.Of<Account>(nameof(Account.Site))));
+        Assert.True(template.ContextAwareByField.ContainsKey(Field.Of<Account>(x => x.Site)));
     }
 }

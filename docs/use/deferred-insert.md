@@ -86,3 +86,5 @@ new RecordProvider(typeof(Case), lookup)
   throws `CyclicGraphException`.
 
 See also: [insert-modes](insert-modes.md) · [advanced/deep-setup-chains](advanced/deep-setup-chains.md)
+
+Runnable: `DeferredInserterTest`, `DeferredInsertBufferTest`, `DepthBatchedInserterTest`

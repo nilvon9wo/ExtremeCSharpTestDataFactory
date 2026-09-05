@@ -84,7 +84,7 @@ public class InjectConfigTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing();
-        List<PropertyInfo> path = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ParentId))];
+        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)];
 
         // Act
         InjectConfig returned = config.InjectParent(path);
@@ -101,10 +101,10 @@ public class InjectConfigTest
         InjectConfig config = InjectConfig.Nothing();
 
         // Act
-        _ = config.InjectChild(Field.Of<Contact>(nameof(Contact.AccountId)));
+        _ = config.InjectChild(Field.Of<Contact>(x => x.AccountId));
 
         // Assert
-        Assert.Contains(Field.Of<Contact>(nameof(Contact.AccountId)), config.IncludedChildFields);
+        Assert.Contains(Field.Of<Contact>(x => x.AccountId), config.IncludedChildFields);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class InjectConfigTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Everything();
-        List<PropertyInfo> path = [Field.Of<Case>(nameof(Case.Origin))];
+        List<PropertyInfo> path = [Field.Of<Case>(x => x.Origin)];
 
         // Act
         _ = config.ExcludeParent(path);
@@ -128,10 +128,10 @@ public class InjectConfigTest
         InjectConfig config = InjectConfig.Everything();
 
         // Act
-        _ = config.ExcludeChild(Field.Of<Contact>(nameof(Contact.AccountId)));
+        _ = config.ExcludeChild(Field.Of<Contact>(x => x.AccountId));
 
         // Assert
-        Assert.Contains(Field.Of<Contact>(nameof(Contact.AccountId)), config.ExcludedChildFields);
+        Assert.Contains(Field.Of<Contact>(x => x.AccountId), config.ExcludedChildFields);
     }
 
     [Fact]
@@ -141,10 +141,10 @@ public class InjectConfigTest
         InjectConfig config = InjectConfig.Nothing();
 
         // Act
-        _ = config.InjectValue(Field.Of<Account>(nameof(Account.AnnualRevenue)), 5000m);
+        _ = config.InjectValue(Field.Of<Account>(x => x.AnnualRevenue), 5000m);
 
         // Assert
-        Assert.Equal(5000m, config.OnRecordValues[Field.Of<Account>(nameof(Account.AnnualRevenue))]);
+        Assert.Equal(5000m, config.OnRecordValues[Field.Of<Account>(x => x.AnnualRevenue)]);
     }
 
     [Fact]
@@ -152,14 +152,14 @@ public class InjectConfigTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing();
-        List<PropertyInfo> pathToField = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))];
+        List<PropertyInfo> pathToField = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
 
         // Act
         _ = config.InjectValue(pathToField, "Forced");
 
         // Assert
         Assert.Equal("Forced", config.AncestorValues[0].Value);
-        Assert.Equal(Field.Of<Account>(nameof(Account.Name)), config.AncestorValues[0].TargetField());
+        Assert.Equal(Field.Of<Account>(x => x.Name), config.AncestorValues[0].TargetField());
     }
 
     [Fact]
@@ -169,12 +169,12 @@ public class InjectConfigTest
         InjectConfig config = InjectConfig.Nothing();
 
         // Act
-        _ = config.InjectChildValue(Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department)), "note");
+        _ = config.InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), "note");
 
         // Assert
         Assert.Equal("note", config.ChildValues[0].Value);
-        Assert.Equal(Field.Of<Contact>(nameof(Contact.Department)), config.ChildValues[0].TargetField());
-        Assert.Equal([Field.Of<Contact>(nameof(Contact.AccountId))], config.ChildValues[0].RelationshipPrefix());
+        Assert.Equal(Field.Of<Contact>(x => x.Department), config.ChildValues[0].TargetField());
+        Assert.Equal([Field.Of<Contact>(x => x.AccountId)], config.ChildValues[0].RelationshipPrefix());
     }
 
     [Fact]
@@ -182,14 +182,14 @@ public class InjectConfigTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing();
-        List<PropertyInfo> path = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Case>(nameof(Case.ContactId)), Field.Of<Case>(nameof(Case.Subject))];
+        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)];
 
         // Act
         _ = config.InjectChildValue(path, "x");
 
         // Assert
         Assert.Equal(path, config.ChildValues[0].Path);
-        Assert.Equal(Field.Of<Case>(nameof(Case.Subject)), config.ChildValues[0].TargetField());
+        Assert.Equal(Field.Of<Case>(x => x.Subject), config.ChildValues[0].TargetField());
     }
 
     [Fact]

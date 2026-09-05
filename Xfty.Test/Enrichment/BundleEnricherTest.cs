@@ -34,7 +34,7 @@ public class BundleEnricherTest
             .SupplyBundle();
 
         // Act
-        List<object> enriched = bundle.InjectAll(Field.Of<Contact>(nameof(Contact.Id)));
+        List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
 
         // Assert
         List<Contact> contacts = [.. enriched.Cast<Contact>()];
@@ -49,13 +49,13 @@ public class BundleEnricherTest
         Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .IncludeOptional([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ParentId))])
+            .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)])
             .AllowAncestorCycles()
             .SupplyBundle();
         InjectConfig config = InjectConfig.AllParents();
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), config);
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), config);
 
         // Assert
         Contact enrichedContact = (Contact)enriched[0];
@@ -69,13 +69,13 @@ public class BundleEnricherTest
         Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .IncludeOptional([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ParentId))])
+            .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)])
             .AllowAncestorCycles()
             .SupplyBundle();
         InjectConfig config = InjectConfig.AllParents().ParentDepth(1);
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), config);
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), config);
 
         // Assert
         Contact enrichedContact = (Contact)enriched[0];
@@ -89,11 +89,11 @@ public class BundleEnricherTest
         // Arrange
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 3)
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
             .SupplyBundle();
 
         // Act
-        List<object> enriched = bundle.InjectAllChildren(Field.Of<Account>(nameof(Account.Id)));
+        List<object> enriched = bundle.InjectAllChildren(Field.Of<Account>(x => x.Id));
 
         // Assert
         Account enrichedAccount = (Account)enriched[0];
@@ -111,7 +111,7 @@ public class BundleEnricherTest
             .SupplyBundle();
 
         // Act
-        List<object> enriched = bundle.InjectAll(Field.Of<Contact>(nameof(Contact.AccountId)));
+        List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         Account firstAccount = (Account)enriched[0];
@@ -127,10 +127,10 @@ public class BundleEnricherTest
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
         DateTime forced = new(2020, 1, 1, 0, 0, 0);
-        InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(nameof(Contact.Birthdate)), forced);
+        InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(x => x.Birthdate), forced);
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), config);
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), config);
 
         // Assert
         Assert.Equal(forced, ((Contact)enriched[0]).Birthdate);
@@ -145,10 +145,10 @@ public class BundleEnricherTest
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
         InjectConfig config = InjectConfig.Nothing()
-            .InjectValue([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.AnnualRevenue))], 9999m);
+            .InjectValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)], 9999m);
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), config);
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), config);
 
         // Assert
         Assert.Equal(9999m, ((Contact)enriched[0]).Account!.AnnualRevenue);
@@ -162,10 +162,10 @@ public class BundleEnricherTest
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
-        InjectConfig config = InjectConfig.Everything().ExcludeParent([Field.Of<Contact>(nameof(Contact.AccountId))]);
+        InjectConfig config = InjectConfig.Everything().ExcludeParent([Field.Of<Contact>(x => x.AccountId)]);
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), config);
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), config);
 
         // Assert
         Assert.Null(((Contact)enriched[0]).Account); // the excluded ancestor was not grafted
@@ -182,7 +182,7 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.InjectAll(Field.Of<Contact>(nameof(Contact.Id))));
+            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id)));
 
         // Assert - nothing generated, InjectAll has nothing to inject
         Assert.NotNull(thrown);
@@ -198,7 +198,7 @@ public class BundleEnricherTest
             .SupplyBundle();
 
         // Act
-        _ = bundle.InjectAll(Field.Of<Contact>(nameof(Contact.Id)));
+        _ = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
 
         // Assert - the source record was not mutated
         Assert.Null(((Contact)bundle.PrimaryRecords()![0]).Account);
@@ -216,7 +216,7 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), config));
+            () => bundle.Inject(Field.Of<Contact>(x => x.Id), config));
 
         // Assert - the error points at the escape hatch
         Assert.Contains("BreakSoqlLimits", thrown.Message);
@@ -232,7 +232,7 @@ public class BundleEnricherTest
             .SupplyBundle();
 
         // Act
-        List<object> enriched = bundle.InjectAll(Field.Of<Contact>(nameof(Contact.Id)));
+        List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
 
         // Assert
         Contact enrichedContact = (Contact)enriched[0];
@@ -246,11 +246,11 @@ public class BundleEnricherTest
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 2)
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 2)
             .SupplyBundle();
 
         // Act - Everything() covers ancestors at every position, including inside a subquery
-        List<object> enriched = bundle.InjectAll(Field.Of<Account>(nameof(Account.Id)));
+        List<object> enriched = bundle.InjectAll(Field.Of<Account>(x => x.Id));
 
         // Assert
         Assert.NotNull(((Account)enriched[0]).Contacts![0].Account); // the child Contact carries its generated Account
@@ -262,13 +262,13 @@ public class BundleEnricherTest
         // Arrange - Account -> 2 Contacts -> 3 Cases each
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .With(new ChildProvider(Field.Of<Contact>(nameof(Contact.AccountId))).SetQuantity(2)
-                .With(new ChildProvider(Field.Of<Case>(nameof(Case.ContactId))).SetQuantity(3)))
+            .With(new ChildProvider(Field.Of<Contact>(x => x.AccountId)).SetQuantity(2)
+                .With(new ChildProvider(Field.Of<Case>(x => x.ContactId)).SetQuantity(3)))
             .SupplyBundle();
         InjectConfig config = InjectConfig.AllChildren().ChildDepth(2).BreakSoqlLimits();
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Account>(nameof(Account.Id)), config);
+        List<object> enriched = bundle.Inject(Field.Of<Account>(x => x.Id), config);
 
         // Assert - the nested subquery is grafted
         Assert.Equal(3, ((Account)enriched[0]).Contacts![0].Cases!.Count);
@@ -280,13 +280,13 @@ public class BundleEnricherTest
         // Arrange
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 1)
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
             .SupplyBundle();
         InjectConfig config = InjectConfig.AllChildren().ChildDepth(2);
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Account>(nameof(Account.Id)), config));
+            () => bundle.Inject(Field.Of<Account>(x => x.Id), config));
 
         // Assert
         Assert.NotNull(thrown);
@@ -298,13 +298,13 @@ public class BundleEnricherTest
         // Arrange - Account with 3 Contacts
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 3)
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
             .SupplyBundle();
         InjectConfig config = InjectConfig.Nothing()
-            .InjectChildValue(Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Birthdate)), new DateTime(2021, 6, 1));
+            .InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Birthdate), new DateTime(2021, 6, 1));
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Account>(nameof(Account.Id)), config);
+        List<object> enriched = bundle.Inject(Field.Of<Account>(x => x.Id), config);
 
         // Assert
         List<Contact> children = ((Account)enriched[0]).Contacts!;
@@ -318,13 +318,13 @@ public class BundleEnricherTest
         // Arrange
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 3)
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
             .SupplyBundle();
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department)), new IncrementingStringExpression("note"));
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), new IncrementingStringExpression("note"));
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Account>(nameof(Account.Id)), config);
+        List<object> enriched = bundle.Inject(Field.Of<Account>(x => x.Id), config);
 
         // Assert
         List<Contact> children = ((Account)enriched[0]).Contacts!;
@@ -337,20 +337,20 @@ public class BundleEnricherTest
     {
         // Arrange - a middle Account, one parent Account and two child Accounts, all via Account.ParentId
         Bundle parentSub = new();
-        parentSub.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), [new Account { Name = "original parent" }]);
+        parentSub.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "original parent" }]);
         Bundle childrenSub = new();
-        childrenSub.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), [new Account { Name = "original c0" }, new Account { Name = "original c1" }]);
+        childrenSub.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "original c0" }, new Account { Name = "original c1" }]);
         Bundle middle = new();
-        middle.PutPrimaries(Field.Of<Account>(nameof(Account.Id)), [new Account { Name = "Middle" }]);
-        _ = middle.Put(Field.Of<Account>(nameof(Account.ParentId)), parentSub.PrimaryRecords()!);
-        _ = middle.Put(Field.Of<Account>(nameof(Account.ParentId)), parentSub);
-        _ = middle.PutChild(Field.Of<Account>(nameof(Account.ParentId)), childrenSub, [0, 0]);
+        middle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "Middle" }]);
+        _ = middle.Put(Field.Of<Account>(x => x.ParentId), parentSub.PrimaryRecords()!);
+        _ = middle.Put(Field.Of<Account>(x => x.ParentId), parentSub);
+        _ = middle.PutChild(Field.Of<Account>(x => x.ParentId), childrenSub, [0, 0]);
         InjectConfig config = InjectConfig.Nothing()
-            .InjectValue([Field.Of<Account>(nameof(Account.ParentId)), Field.Of<Account>(nameof(Account.Name))], "parent name")
-            .InjectChildValue(Field.Of<Account>(nameof(Account.ParentId)), Field.Of<Account>(nameof(Account.Name)), "child name");
+            .InjectValue([Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Name)], "parent name")
+            .InjectChildValue(Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Name), "child name");
 
         // Act
-        List<object> enriched = middle.Inject(Field.Of<Account>(nameof(Account.Id)), config);
+        List<object> enriched = middle.Inject(Field.Of<Account>(x => x.Id), config);
 
         // Assert
         Account enrichedMiddle = (Account)enriched[0];
@@ -365,13 +365,13 @@ public class BundleEnricherTest
         // Arrange - no Cases generated, so the InjectChildValue path is never reached
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 1)
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
             .SupplyBundle();
-        InjectConfig config = InjectConfig.Nothing().InjectChildValue(Field.Of<Case>(nameof(Case.ContactId)), Field.Of<Case>(nameof(Case.Subject)), "x");
+        InjectConfig config = InjectConfig.Nothing().InjectChildValue(Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject), "x");
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Account>(nameof(Account.Id)), config));
+            () => bundle.Inject(Field.Of<Account>(x => x.Id), config));
 
         // Assert - the error names the unreached path
         Assert.Contains("InjectChildValue", thrown.Message);
@@ -383,14 +383,14 @@ public class BundleEnricherTest
         // Arrange
         Bundle bundle = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 1)
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
             .SupplyBundle();
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Case>(nameof(Case.ContactId)), Field.Of<Case>(nameof(Case.Subject))], "x");
+            [Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)], "x");
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Account>(nameof(Account.Id)), config));
+            () => bundle.Inject(Field.Of<Account>(x => x.Id), config));
 
         // Assert - the error points at childDepth
         Assert.Contains("childDepth", thrown.Message);
@@ -407,7 +407,7 @@ public class BundleEnricherTest
             .SupplyBundle();
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), InjectConfig.AllParents());
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), InjectConfig.AllParents());
 
         // Assert
         Assert.Equal(2, enriched.Count);
@@ -417,10 +417,10 @@ public class BundleEnricherTest
 
 file sealed class CaseProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Case>(nameof(Case.Id)))
-        .Put(Field.Of<Case>(nameof(Case.Subject)), new IncrementingStringExpression("Enricher Case"));
+    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
+        .Put(Field.Of<Case>(x => x.Subject), new IncrementingStringExpression("Enricher Case"));
 
-    public PropertyInfo PrimaryTargetField => Field.Of<Case>(nameof(Case.Id));
+    public PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
 
     public MasterTemplate MasterTemplate => this._template;
 
@@ -430,11 +430,11 @@ file sealed class CaseProvider : IRecordProvider
 
 file sealed class AccountWithParentProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-        .Put(Field.Of<Account>(nameof(Account.Name)), new IncrementingStringExpression("Enricher Account"))
-        .PutOptional(Field.Of<Account>(nameof(Account.ParentId)), new DefaultRelationship(new Account { Name = "Parent Co" }));
+    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+        .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Enricher Account"))
+        .PutOptional(Field.Of<Account>(x => x.ParentId), new DefaultRelationship(new Account { Name = "Parent Co" }));
 
-    public PropertyInfo PrimaryTargetField => Field.Of<Account>(nameof(Account.Id));
+    public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
     public MasterTemplate MasterTemplate => this._template;
 

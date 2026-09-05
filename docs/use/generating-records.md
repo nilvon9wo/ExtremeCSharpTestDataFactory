@@ -107,3 +107,5 @@ Provider call can do, each on its own page:
 Combinations of these are worked in [advanced/](advanced/).
 
 See also: [override-templates](override-templates.md) · [insert-modes](insert-modes.md) · [bundles](bundles.md)
+
+Runnable: `RecordProviderApiTest`, `RecordFactoryTest`

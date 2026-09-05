@@ -31,7 +31,7 @@ public class FieldInSetPredicateTest
     private static void AssertIsSatisfiedBy(object?[]? acceptedValues, Account? record, bool expectedResult)
     {
         // Arrange
-        IRecordPredicate predicate = FieldInSetPredicate.Of(Field.Of<Account>(nameof(Account.Industry)), acceptedValues);
+        IRecordPredicate predicate = FieldInSetPredicate.Of(Field.Of<Account>(x => x.Industry), acceptedValues);
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);

@@ -34,7 +34,7 @@ public class NegationPredicateTest
     {
         // Arrange - negate "Type is Prospect"
         IRecordPredicate predicate =
-            NegationPredicate.Of(FieldPredicateFactory.EqualTo(Field.Of<Account>(nameof(Account.Type)), "Prospect"));
+            NegationPredicate.Of(FieldPredicateFactory.EqualTo(Field.Of<Account>(x => x.Type), "Prospect"));
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);

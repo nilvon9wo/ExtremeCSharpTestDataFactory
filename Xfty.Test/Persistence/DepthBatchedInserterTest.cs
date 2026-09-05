@@ -45,7 +45,7 @@ public class DepthBatchedInserterTest
         List<object> records = [child, parent];
 
         // Act
-        DepthBatchedInserter.ResolveAll(records, [Link(0, 1, Field.Of<Contact>(nameof(Contact.AccountId)))], InsertMode.Mock);
+        DepthBatchedInserter.ResolveAll(records, [Link(0, 1, Field.Of<Contact>(x => x.AccountId))], InsertMode.Mock);
 
         // Assert
         Assert.Equal(parent.Id, ((Contact)records[0]).AccountId);
@@ -63,7 +63,7 @@ public class DepthBatchedInserterTest
         // Act
         DepthBatchedInserter.ResolveAll(
             records,
-            [Link(0, 1, Field.Of<Case>(nameof(Case.AccountId))), Link(0, 2, Field.Of<Case>(nameof(Case.ContactId)))],
+            [Link(0, 1, Field.Of<Case>(x => x.AccountId)), Link(0, 2, Field.Of<Case>(x => x.ContactId))],
             InsertMode.Mock);
 
         // Assert - both parents at layer 0, the Case alone at layer 1
@@ -83,7 +83,7 @@ public class DepthBatchedInserterTest
         // Act
         DepthBatchedInserter.ResolveAll(
             records,
-            [Link(1, 0, Field.Of<Contact>(nameof(Contact.AccountId))), Link(2, 1, Field.Of<Contact>(nameof(Contact.ReportsToId)))],
+            [Link(1, 0, Field.Of<Contact>(x => x.AccountId)), Link(2, 1, Field.Of<Contact>(x => x.ReportsToId))],
             InsertMode.Mock);
 
         // Assert
@@ -103,7 +103,7 @@ public class DepthBatchedInserterTest
         // Act
         DepthBatchedInserter.ResolveAll(
             records,
-            [Link(1, 0, Field.Of<Contact>(nameof(Contact.AccountId))), Link(2, 0, Field.Of<Contact>(nameof(Contact.AccountId)))],
+            [Link(1, 0, Field.Of<Contact>(x => x.AccountId)), Link(2, 0, Field.Of<Contact>(x => x.AccountId))],
             InsertMode.Mock);
 
         // Assert
@@ -115,11 +115,11 @@ public class DepthBatchedInserterTest
     public void ResolveAll_WhenTwoRecordsReferenceEachOther_Throws() =>
         AssertCyclic(
             [new Account { Name = "A" }, new Account { Name = "B" }],
-            [Link(0, 1, Field.Of<Account>(nameof(Account.ParentId))), Link(1, 0, Field.Of<Account>(nameof(Account.ParentId)))]);
+            [Link(0, 1, Field.Of<Account>(x => x.ParentId)), Link(1, 0, Field.Of<Account>(x => x.ParentId))]);
 
     [Fact]
     public void ResolveAll_WhenARecordReferencesItself_Throws() =>
-        AssertCyclic([new Account { Name = "Loop" }], [Link(0, 0, Field.Of<Account>(nameof(Account.ParentId)))]);
+        AssertCyclic([new Account { Name = "Loop" }], [Link(0, 0, Field.Of<Account>(x => x.ParentId))]);
 
     [Fact]
     public void InsertAll_AlwaysResolvesAsNow_WhichThisPortCannotPersist()

@@ -23,7 +23,7 @@ public class AccountDataProviderTest
         System.Reflection.PropertyInfo primaryField = provider.PrimaryTargetField;
 
         // Assert
-        Assert.Equal(Field.Of<Account>(nameof(Account.Id)), primaryField);
+        Assert.Equal(Field.Of<Account>(x => x.Id), primaryField);
         Assert.NotNull(provider.MasterTemplate);
     }
 
@@ -38,7 +38,7 @@ public class AccountDataProviderTest
         Bundle bundle = provider.CreateBundle(context, [new Account()]);
 
         // Assert
-        Account generatedAccount = (Account)bundle.GetList(Field.Of<Account>(nameof(Account.Id)))![0];
+        Account generatedAccount = (Account)bundle.GetList(Field.Of<Account>(x => x.Id))![0];
         Assert.NotNull(generatedAccount.Id);
         Assert.Equal(AccountDataProvider.DefaultIndustry, generatedAccount.Industry);
         Assert.Equal(AccountDataProvider.DefaultShippingCountry, generatedAccount.ShippingCountry);

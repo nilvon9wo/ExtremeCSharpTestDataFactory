@@ -2,7 +2,7 @@
 
 One line per public entry point. Follow the links for detail. All types live
 under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
-`System.Reflection.PropertyInfo`, obtained with `Field.Of<T>(nameof(T.Prop))`.
+`System.Reflection.PropertyInfo`, obtained with `Field.Of<T>(x => x.Prop)`.
 
 ---
 

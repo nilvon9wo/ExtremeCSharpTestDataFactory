@@ -29,7 +29,7 @@ that arrived at it.
 SharedAncestor.Put("acme-hq", new Account { Name = "ACME HQ" });
 
 // any Master Template, any field
-.PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), SharedAncestor.Get("acme-hq"))
+.PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get("acme-hq"))
 ```
 
 ---

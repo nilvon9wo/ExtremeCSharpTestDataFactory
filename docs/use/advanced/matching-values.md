@@ -15,8 +15,8 @@ write your own small class against the same interface.
 ## Same record — a context-aware sibling
 
 ```csharp
-.Put(Field.Of<Account>(nameof(Account.ShippingCountry)), "Germany")
-.Put(Field.Of<Account>(nameof(Account.BillingCity)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.ShippingCountry))))
+.Put(Field.Of<Account>(x => x.ShippingCountry), "Germany")
+.Put(Field.Of<Account>(x => x.BillingCity), new CopyFromSiblingExpression(Field.Of<Account>(x => x.ShippingCountry)))
 ```
 
 Set `ShippingCountry` in one place (Provider default or override template);
@@ -25,16 +25,18 @@ Set `ShippingCountry` in one place (Provider default or override template);
 
 ### …when it is a transformation, not a copy
 
+<!-- sketch -->
 ```csharp
-.Put(Field.Of<Contact>(nameof(Contact.Department)), new SiblingCountryLabel())   // "Billing: Germany"
+.Put(Field.Of<Contact>(x => x.Department), new SiblingCountryLabel())   // "Billing: Germany"
 ```
 
+<!-- sketch -->
 ```csharp
 public sealed class SiblingCountryLabel : IContextAwareExpression
 {
     public object? Get(GenerationContext context)
     {
-        string? country = (string?)context.SiblingValue(Field.Of<Contact>(nameof(Contact.ReportsToId)));
+        string? country = (string?)context.SiblingValue(Field.Of<Contact>(x => x.ReportsToId));
         return $"Billing: {country}";
     }
 }
@@ -51,10 +53,10 @@ parent:
 
 ```csharp
 SharedAncestor.Put("hq", new Account { Name = "HQ", OwnerId = someOwnerId })
-    .CopyingRelatedField(Field.Of<Account>(nameof(Account.OwnerId)));   // children get the Account's OwnerId, not its Id
+    .CopyingRelatedField(Field.Of<Account>(x => x.OwnerId));   // children get the Account's OwnerId, not its Id
 
-new MasterTemplate(Field.Of<Case>(nameof(Case.Id)))
-    .PutRequired(Field.Of<Case>(nameof(Case.AccountId)), SharedAncestor.Get("hq"));
+new MasterTemplate(Field.Of<Case>(x => x.Id))
+    .PutRequired(Field.Of<Case>(x => x.AccountId), SharedAncestor.Get("hq"));
 ```
 
 Every `Case` now carries the shared Account's `OwnerId`. See
@@ -70,9 +72,11 @@ when the deferred graph is flattened:
 
 ```csharp
 // on the Account Provider
-.Put(Field.Of<Account>(nameof(Account.Site)), new CopyFromDescendantExpression(
-    Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department))))
+.Put(Field.Of<Account>(x => x.Site), new CopyFromDescendantExpression(
+    Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department)))
 ```
 
 Any other insert mode throws — the whole graph has to exist first. See
 [context-aware-values.md](../context-aware-values.md#reading-up-from-a-child).
+
+Runnable: `ContextAwareExpressionTest`, `CopyFromDescendantExpressionTest`, `SharedAncestorTest`

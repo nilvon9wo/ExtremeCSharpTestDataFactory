@@ -11,8 +11,8 @@ relationship on the `RecordProvider` instance.
 
 ```csharp
 new RecordProvider(typeof(Contact), lookup)
-    .IncludeOptional(Field.Of<Account>(nameof(Account.OwnerId)))     // generate this optional one too
-    .ExcludeRelationship(Field.Of<Contact>(nameof(Contact.AccountId)));   // do not generate this one, even though it is required
+    .IncludeOptional(Field.Of<Account>(x => x.OwnerId))     // generate this optional one too
+    .ExcludeRelationship(Field.Of<Contact>(x => x.AccountId));   // do not generate this one, even though it is required
 ```
 
 - **`IncludeOptional(field)`** generates one named relationship for this call,
@@ -43,7 +43,7 @@ call `ExcludeRelationship` before any `Put(...)` (same ordering rule as
 
 ```csharp
 new RecordProvider(typeof(Contact), lookup)
-    .IncludeOptional([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ParentId))])
+    .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)])
     .SetInclusivity(InsertInclusivity.Required);
 ```
 
@@ -65,3 +65,5 @@ with the other `Put` forms:
 [value-expressions → setting a value on a generated ancestor](value-expressions.md#setting-a-value-on-a-generated-ancestor).
 
 See also: [relationships](relationships.md) · [provider-variants](provider-variants.md)
+
+Runnable: `RecordFactoryTest`, `PathValueTest`

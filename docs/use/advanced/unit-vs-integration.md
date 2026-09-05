@@ -75,3 +75,5 @@ objects — neither concept exists outside a Salesforce org.
 The takeaway: default to `Mock`, and design Providers so that when `Now` is
 real, it stays a one-line change — not a switch that is guaranteed to stay
 flipped without its own verification.
+
+Runnable: `RecordFactoryTest`, `RecordProviderIntegrationTest`

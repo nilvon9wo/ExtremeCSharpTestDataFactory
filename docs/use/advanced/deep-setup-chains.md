@@ -28,6 +28,7 @@ Build the shared data in the constructor, or a plain instance method the
 constructor calls; xUnit gives every test method its own instance, so this
 already re-runs per test with no extra machinery:
 
+<!-- sketch -->
 ```csharp
 public class ContactValidationTests
 {
@@ -64,6 +65,7 @@ still has a genuine reason to exist here: it proves a graph spanning several
 persistence step, even though the flush itself throws in this port (see
 [deferred-insert](../deferred-insert.md)).
 
+<!-- sketch -->
 ```csharp
 private Bundle SeedAccounts() =>
     new RecordProvider(typeof(Account), this.lookup)
@@ -96,3 +98,5 @@ To inspect the flattened, fully-resolved graph in memory without attempting to
 persist it, use `DeferredInsertBuffer.Flatten(bundle)` per bundle, or build one
 `DeferredInsertBuffer` by hand and `Add(...)` each bundle to it before calling
 `ResolveAll(InsertMode.Mock)` — see [deferred-insert](../deferred-insert.md).
+
+Runnable: `DeferredInserterTest`, `DeferredInsertBufferTest`

@@ -32,7 +32,7 @@ public class FieldEqualToPredicateTest
     private static void AssertIsSatisfiedBy(object? configuredValue, Account? record, bool expectedResult)
     {
         // Arrange
-        IRecordPredicate predicate = FieldEqualToPredicate.Of(Field.Of<Account>(nameof(Account.Industry)), configuredValue);
+        IRecordPredicate predicate = FieldEqualToPredicate.Of(Field.Of<Account>(x => x.Industry), configuredValue);
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);

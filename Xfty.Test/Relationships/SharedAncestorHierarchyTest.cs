@@ -312,8 +312,8 @@ public class SharedAncestorHierarchyTest
         // Arrange - a literal and a context-aware expression on the shared Account
         const string name = "hierarchy-shared-value-expressions";
         _ = SharedAncestor.Put(name, new Account { Name = "HQ Ltd" })
-            .Put(Field.Of<Account>(nameof(Account.Site)), "Berlin")
-            .Put(Field.Of<Account>(nameof(Account.Description)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.Name))));
+            .Put(Field.Of<Account>(x => x.Site), "Berlin")
+            .Put(Field.Of<Account>(x => x.Description), new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name)));
 
         // Act
         Contact leaf = SupplyOneContactUnder(name);
@@ -332,7 +332,7 @@ public class SharedAncestorHierarchyTest
         // Arrange - the shared Account gets a parent Account of its own
         const string name = "hierarchy-shared-shapes-ancestor";
         _ = SharedAncestor.Put(name, new Account { Name = "HQ" })
-            .PutRequired(Field.Of<Account>(nameof(Account.ParentId)), new DefaultRelationship(new Account { Name = "HQ Parent" }))
+            .PutRequired(Field.Of<Account>(x => x.ParentId), new DefaultRelationship(new Account { Name = "HQ Parent" }))
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
@@ -351,7 +351,7 @@ public class SharedAncestorHierarchyTest
         // Arrange - a shared User, reached through Contact.AccountId -> Account.OwnerId
         const string name = "hierarchy-shared-owner-path";
         _ = SharedAncestor.Put(name, new User { LastName = "Owner" });
-        List<PropertyInfo> ownerPath = [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.OwnerId))];
+        List<PropertyInfo> ownerPath = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)];
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
             [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
@@ -367,7 +367,7 @@ public class SharedAncestorHierarchyTest
             .SupplyBundle();
 
         // Assert - the shared ancestor was wired in through a path value, nothing declared on the Provider
-        Account generatedAccount = (Account)bundle.GetBundle(Field.Of<Contact>(nameof(Contact.AccountId)))!.PrimaryRecords()![0];
+        Account generatedAccount = (Account)bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!.PrimaryRecords()![0];
         Assert.Equal(SharedAncestor.GetId(name), generatedAccount.OwnerId);
     }
 
@@ -445,9 +445,9 @@ public class SharedAncestorHierarchyTest
             .SupplyBundle();
 
         // Assert - the shared record is present at every level of the bundle
-        Bundle regionBundle = leafBundle.GetBundle(Field.Of<Contact>(nameof(Contact.AccountId)))!;
-        Bundle divisionBundle = regionBundle.GetBundle(Field.Of<Account>(nameof(Account.ParentId)))!;
-        Bundle rootBundle = divisionBundle.GetBundle(Field.Of<Account>(nameof(Account.ParentId)))!;
+        Bundle regionBundle = leafBundle.GetBundle(Field.Of<Contact>(x => x.AccountId))!;
+        Bundle divisionBundle = regionBundle.GetBundle(Field.Of<Account>(x => x.ParentId))!;
+        Bundle rootBundle = divisionBundle.GetBundle(Field.Of<Account>(x => x.ParentId))!;
         Assert.Equal("Region", ((Account)regionBundle.PrimaryRecords()![0]).Name);
         Assert.Equal("Division", ((Account)divisionBundle.PrimaryRecords()![0]).Name); // present two levels down
         Assert.Equal("Global Root", ((Account)rootBundle.PrimaryRecords()![0]).Name); // and three levels down
@@ -464,7 +464,7 @@ public class SharedAncestorHierarchyTest
 
     private static void SharedAccountUnder(string name, string accountName, string sharedParentName) =>
         SharedAncestor.Put(name, new Account { Name = accountName })
-            .PutRequired(Field.Of<Account>(nameof(Account.ParentId)), SharedAncestor.Get(sharedParentName))
+            .PutRequired(Field.Of<Account>(x => x.ParentId), SharedAncestor.Get(sharedParentName))
             .SetInclusivity(InsertInclusivity.Required);
 
     // Fixture - supply helpers -------------------------------------------
@@ -514,10 +514,10 @@ file sealed class LeafUserProvider : IRecordProvider
 {
     public static readonly LeafUserProvider Instance = new();
 
-    private static MasterTemplate Template { get; } = new MasterTemplate(Field.Of<User>(nameof(User.Id)))
-        .Put(Field.Of<User>(nameof(User.LastName)), new IncrementingStringExpression("User"));
+    private static MasterTemplate Template { get; } = new MasterTemplate(Field.Of<User>(x => x.Id))
+        .Put(Field.Of<User>(x => x.LastName), new IncrementingStringExpression("User"));
 
-    public PropertyInfo PrimaryTargetField => Field.Of<User>(nameof(User.Id));
+    public PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
 
     public MasterTemplate MasterTemplate => Template;
 

@@ -31,7 +31,7 @@ public class EnrichmentIntegrationTest
         Bundle bundle = provider.SupplyBundle();
 
         // Act - InjectAll targets the bundle's primary field, not the ancestor key (which addresses the ancestor sub-bundle itself)
-        List<object> enriched = bundle.InjectAll(Field.Of<Contact>(nameof(Contact.Id)));
+        List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
 
         // Assert - the enriched copy carries the populated Account; the original bundle record does not
         Contact enrichedContact = Assert.IsType<Contact>(Assert.Single(enriched));
@@ -47,11 +47,11 @@ public class EnrichmentIntegrationTest
         // Arrange - downward generation: an Account with three Contact children
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
-            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 3);
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 3);
         Bundle bundle = provider.SupplyBundle();
 
         // Act
-        List<object> enriched = bundle.InjectAll(Field.Of<Account>(nameof(Account.Id)));
+        List<object> enriched = bundle.InjectAll(Field.Of<Account>(x => x.Id));
 
         // Assert
         Account enrichedAccount = Assert.IsType<Account>(Assert.Single(enriched));
@@ -71,7 +71,7 @@ public class EnrichmentIntegrationTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.InjectAll(Field.Of<Contact>(nameof(Contact.Id))));
+            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id)));
 
         // Assert
         Assert.Contains("has no generated ancestor or child collection", thrown.Message);
@@ -85,10 +85,10 @@ public class EnrichmentIntegrationTest
             .SetInsertMode(InsertMode.Mock)
             .SetQuantityPerTemplate(2);
         Bundle bundle = provider.SupplyBundle();
-        InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(nameof(Contact.Department)), "Sales");
+        InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(x => x.Department), "Sales");
 
         // Act
-        List<object> enriched = bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), config);
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), config);
 
         // Assert
         Assert.All(enriched.Cast<Contact>(), contact => Assert.Equal("Sales", contact.Department));

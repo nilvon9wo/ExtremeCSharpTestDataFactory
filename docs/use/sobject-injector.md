@@ -34,8 +34,8 @@ instances.
 
 ```csharp
 List<object> enriched = SObjectInjector.Inject(contacts)
-    .Relationship(Field.Of<Contact>(nameof(Contact.Account)), accounts)   // one Account per contact
-    .Value(Field.Of<Contact>(nameof(Contact.Birthdate)), new DateTime(2024, 1, 1))
+    .Relationship(Field.Of<Contact>(x => x.Account), accounts)   // one Account per contact
+    .Value(Field.Of<Contact>(x => x.Birthdate), new DateTime(2024, 1, 1))
     .Result();
 
 ((Contact)enriched[0]).Account!.Name;    // readable off the record - was null
@@ -49,14 +49,14 @@ mismatch throws a clear `XftyConfigurationException` naming the graft.
 
 ## Parent relationships — `.Relationship(field, parents)`
 
-`field` is the **navigation property** itself — `Field.Of<Contact>(nameof(Contact.Account))`
+`field` is the **navigation property** itself — `Field.Of<Contact>(x => x.Account)`
 for the Account relationship, not the foreign-key field. (`Inject` / `InjectAll`
 resolve the navigation property from the foreign-key field for you;
 `SObjectInjector` takes it directly.)
 
 ```csharp
 List<object> enriched = SObjectInjector.Inject(contacts)
-    .Relationship(Field.Of<Contact>(nameof(Contact.Account)), accountsAligned1to1)
+    .Relationship(Field.Of<Contact>(x => x.Account), accountsAligned1to1)
     .Result();
 ```
 
@@ -78,7 +78,7 @@ List<List<object>> contactsPerAccount =
 ];
 
 List<object> enriched = SObjectInjector.Inject(accounts)
-    .ChildRelationship(Field.Of<Account>(nameof(Account.Contacts)), contactsPerAccount)
+    .ChildRelationship(Field.Of<Account>(x => x.Contacts), contactsPerAccount)
     .Result();
 
 ((Account)enriched[0]).Contacts!.Count;          // 2
@@ -94,11 +94,11 @@ inner level first, graft the result as the outer level:
 
 ```csharp
 List<object> contactsWithCases = SObjectInjector.Inject([new Contact { LastName = "Owner" }])
-    .ChildRelationship(Field.Of<Contact>(nameof(Contact.Cases)), [[new Case { Subject = "x" }]])
+    .ChildRelationship(Field.Of<Contact>(x => x.Cases), [[new Case { Subject = "x" }]])
     .Result();
 
 List<object> enriched = SObjectInjector.Inject(accounts)
-    .ChildRelationship(Field.Of<Account>(nameof(Account.Contacts)), [contactsWithCases])
+    .ChildRelationship(Field.Of<Account>(x => x.Contacts), [contactsWithCases])
     .Result();
 
 ((Case)((Contact)((Account)enriched[0]).Contacts![0]).Cases![0]).Subject;   // "x"
@@ -113,8 +113,8 @@ row (same length as the records).
 
 ```csharp
 List<object> enriched = SObjectInjector.Inject(accounts)
-    .Value(Field.Of<Account>(nameof(Account.Industry)), "Aerospace")            // same on every row
-    .ValuePerRow(Field.Of<Account>(nameof(Account.AnnualRevenue)), [100m, 250m])
+    .Value(Field.Of<Account>(x => x.Industry), "Aerospace")            // same on every row
+    .ValuePerRow(Field.Of<Account>(x => x.AnnualRevenue), [100m, 250m])
     .Result();
 ```
 
@@ -133,3 +133,5 @@ List<object> enriched = SObjectInjector.Inject(accounts)
   calls.
 
 See also: [enrichment](enrichment.md) · [bundles](bundles.md)
+
+Runnable: `SObjectInjectorTest`

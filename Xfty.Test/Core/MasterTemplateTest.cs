@@ -17,10 +17,10 @@ public class MasterTemplateTest
         // nothing to arrange
 
         // Act
-        MasterTemplate template = new(Field.Of<Account>(nameof(Account.Id)));
+        MasterTemplate template = new(Field.Of<Account>(x => x.Id));
 
         // Assert
-        Assert.Equal(Field.Of<Account>(nameof(Account.Id)), template.PrimaryTargetField);
+        Assert.Equal(Field.Of<Account>(x => x.Id), template.PrimaryTargetField);
         Assert.Empty(template.DefaultByField);
         Assert.Empty(template.RequiredRelationshipByField);
         Assert.Empty(template.OptionalRelationshipByField);
@@ -35,11 +35,11 @@ public class MasterTemplateTest
         // nothing to arrange
 
         // Act
-        MasterTemplate template = new MasterTemplate(Field.Of<Contact>(nameof(Contact.Id)))
-            .Put(Field.Of<Contact>(nameof(Contact.LastName)), new LiteralExpression("Doe"));
+        MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+            .Put(Field.Of<Contact>(x => x.LastName), new LiteralExpression("Doe"));
 
         // Assert
-        Assert.True(template.DefaultByField.ContainsKey(Field.Of<Contact>(nameof(Contact.LastName))));
+        Assert.True(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.LastName)));
     }
 
     [Theory]
@@ -48,18 +48,18 @@ public class MasterTemplateTest
     public void Put_ForAContextAwareExpression_RoutesItToTheContextAwareMap(bool passAsObject)
     {
         // Arrange
-        IContextAwareExpression contextAware = new CopyFromSiblingExpression(Field.Of<Contact>(nameof(Contact.FirstName)));
-        MasterTemplate template = new(Field.Of<Contact>(nameof(Contact.Id)));
+        IContextAwareExpression contextAware = new CopyFromSiblingExpression(Field.Of<Contact>(x => x.FirstName));
+        MasterTemplate template = new(Field.Of<Contact>(x => x.Id));
 
         // Act
         _ = passAsObject
-            ? template.Put(Field.Of<Contact>(nameof(Contact.LastName)), (object)contextAware)
-            : template.Put(Field.Of<Contact>(nameof(Contact.LastName)), contextAware);
+            ? template.Put(Field.Of<Contact>(x => x.LastName), (object)contextAware)
+            : template.Put(Field.Of<Contact>(x => x.LastName), contextAware);
 
         // Assert
-        Assert.Equal(contextAware, template.ContextAwareByField[Field.Of<Contact>(nameof(Contact.LastName))]);
-        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(nameof(Contact.LastName)))); // not in the plain-value map
-        Assert.Contains(Field.Of<Contact>(nameof(Contact.LastName)), template.OrderedValueFields()); // still in the ordered value fields
+        Assert.Equal(contextAware, template.ContextAwareByField[Field.Of<Contact>(x => x.LastName)]);
+        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.LastName))); // not in the plain-value map
+        Assert.Contains(Field.Of<Contact>(x => x.LastName), template.OrderedValueFields()); // still in the ordered value fields
     }
 
     [Fact]
@@ -69,13 +69,13 @@ public class MasterTemplateTest
         // nothing to arrange
 
         // Act
-        MasterTemplate template = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-            .Put(Field.Of<Account>(nameof(Account.Name)), new LiteralExpression("plain"))
-            .Put(Field.Of<Account>(nameof(Account.Name)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.AccountNumber))));
+        MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("plain"))
+            .Put(Field.Of<Account>(x => x.Name), new CopyFromSiblingExpression(Field.Of<Account>(x => x.AccountNumber)));
 
         // Assert
-        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Account>(nameof(Account.Name)))); // left the plain-value map
-        Assert.True(template.ContextAwareByField.ContainsKey(Field.Of<Account>(nameof(Account.Name)))); // landed in the context-aware map
+        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Name))); // left the plain-value map
+        Assert.True(template.ContextAwareByField.ContainsKey(Field.Of<Account>(x => x.Name))); // landed in the context-aware map
     }
 
     [Fact]
@@ -85,12 +85,12 @@ public class MasterTemplateTest
         // nothing to arrange
 
         // Act
-        MasterTemplate template = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-            .Put(Field.Of<Account>(nameof(Account.Type)), "Customer");
+        MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put(Field.Of<Account>(x => x.Type), "Customer");
 
         // Assert
-        Assert.True(template.DefaultByField.ContainsKey(Field.Of<Account>(nameof(Account.Type))));
-        Assert.Equal("Customer", template.DefaultByField[Field.Of<Account>(nameof(Account.Type))].Get());
+        Assert.True(template.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Type)));
+        Assert.Equal("Customer", template.DefaultByField[Field.Of<Account>(x => x.Type)].Get());
     }
 
     [Fact]
@@ -100,11 +100,11 @@ public class MasterTemplateTest
         IValueExpression expression = new IncrementingStringExpression("Acct");
 
         // Act
-        MasterTemplate template = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-            .Put(Field.Of<Account>(nameof(Account.Name)), (object)expression);
+        MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put(Field.Of<Account>(x => x.Name), (object)expression);
 
         // Assert
-        Assert.Same(expression, template.DefaultByField[Field.Of<Account>(nameof(Account.Name))]);
+        Assert.Same(expression, template.DefaultByField[Field.Of<Account>(x => x.Name)]);
     }
 
     [Fact]
@@ -115,8 +115,8 @@ public class MasterTemplateTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() =>
-            new MasterTemplate(Field.Of<Contact>(nameof(Contact.Id)))
-                .Put(Field.Of<Contact>(nameof(Contact.AccountId)), (object)new DefaultRelationship(new Account())));
+            new MasterTemplate(Field.Of<Contact>(x => x.Id))
+                .Put(Field.Of<Contact>(x => x.AccountId), (object)new DefaultRelationship(new Account())));
 
         // Assert
         Assert.Contains("PutRequired", thrown.Message);
@@ -131,12 +131,12 @@ public class MasterTemplateTest
         DefaultRelationship required = new(new Account());
 
         // Act
-        MasterTemplate template = new MasterTemplate(Field.Of<Contact>(nameof(Contact.Id)))
-            .PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), required);
+        MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+            .PutRequired(Field.Of<Contact>(x => x.AccountId), required);
 
         // Assert
-        Assert.Same(required, template.RequiredRelationshipByField[Field.Of<Contact>(nameof(Contact.AccountId))]);
-        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(nameof(Contact.AccountId))));
+        Assert.Same(required, template.RequiredRelationshipByField[Field.Of<Contact>(x => x.AccountId)]);
+        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.AccountId)));
     }
 
     [Fact]
@@ -146,11 +146,11 @@ public class MasterTemplateTest
         DefaultRelationship optional = new(new Contact());
 
         // Act
-        MasterTemplate template = new MasterTemplate(Field.Of<Contact>(nameof(Contact.Id)))
-            .PutOptional(Field.Of<Contact>(nameof(Contact.ReportsToId)), optional);
+        MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+            .PutOptional(Field.Of<Contact>(x => x.ReportsToId), optional);
 
         // Assert
-        Assert.Same(optional, template.OptionalRelationshipByField[Field.Of<Contact>(nameof(Contact.ReportsToId))]);
+        Assert.Same(optional, template.OptionalRelationshipByField[Field.Of<Contact>(x => x.ReportsToId)]);
     }
 
     // Remove(field) -------------------------------------------
@@ -159,18 +159,18 @@ public class MasterTemplateTest
     public void Remove_ClearsTheFieldFromEveryMapAndFromTheOrderedFields()
     {
         // Arrange
-        MasterTemplate template = new MasterTemplate(Field.Of<Contact>(nameof(Contact.Id)))
-            .Put(Field.Of<Contact>(nameof(Contact.LastName)), new LiteralExpression("Doe"))
-            .PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), new DefaultRelationship(new Account()));
+        MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+            .Put(Field.Of<Contact>(x => x.LastName), new LiteralExpression("Doe"))
+            .PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account()));
 
         // Act
-        _ = template.Remove(Field.Of<Contact>(nameof(Contact.LastName)));
-        _ = template.Remove(Field.Of<Contact>(nameof(Contact.AccountId)));
+        _ = template.Remove(Field.Of<Contact>(x => x.LastName));
+        _ = template.Remove(Field.Of<Contact>(x => x.AccountId));
 
         // Assert
-        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(nameof(Contact.LastName))));
-        Assert.False(template.RequiredRelationshipByField.ContainsKey(Field.Of<Contact>(nameof(Contact.AccountId))));
-        Assert.DoesNotContain(Field.Of<Contact>(nameof(Contact.LastName)), template.OrderedValueFields());
+        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.LastName)));
+        Assert.False(template.RequiredRelationshipByField.ContainsKey(Field.Of<Contact>(x => x.AccountId)));
+        Assert.DoesNotContain(Field.Of<Contact>(x => x.LastName), template.OrderedValueFields());
     }
 
     // OrderedValueFields() -----------------------------------
@@ -179,17 +179,17 @@ public class MasterTemplateTest
     public void OrderedValueFields_FollowsPutOrder()
     {
         // Arrange
-        MasterTemplate template = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-            .Put(Field.Of<Account>(nameof(Account.Name)), new LiteralExpression("n"))
-            .Put(Field.Of<Account>(nameof(Account.Industry)), new LiteralExpression("i"))
-            .Put(Field.Of<Account>(nameof(Account.Type)), new LiteralExpression("t"));
+        MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("n"))
+            .Put(Field.Of<Account>(x => x.Industry), new LiteralExpression("i"))
+            .Put(Field.Of<Account>(x => x.Type), new LiteralExpression("t"));
 
         // Act
         List<System.Reflection.PropertyInfo> ordered = template.OrderedValueFields();
 
         // Assert
         Assert.Equal(
-            [Field.Of<Account>(nameof(Account.Name)), Field.Of<Account>(nameof(Account.Industry)), Field.Of<Account>(nameof(Account.Type))],
+            [Field.Of<Account>(x => x.Name), Field.Of<Account>(x => x.Industry), Field.Of<Account>(x => x.Type)],
             ordered);
     }
 
@@ -197,17 +197,17 @@ public class MasterTemplateTest
     public void OrderedValueFields_AfterRemoveThenRePut_KeepsTheFieldInItsOriginalPlace()
     {
         // Arrange
-        MasterTemplate template = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-            .Put(Field.Of<Account>(nameof(Account.Name)), new LiteralExpression("n"))
-            .Put(Field.Of<Account>(nameof(Account.Industry)), new LiteralExpression("i"))
-            .Put(Field.Of<Account>(nameof(Account.Type)), new LiteralExpression("t"));
-        _ = template.Remove(Field.Of<Account>(nameof(Account.Industry)));
+        MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("n"))
+            .Put(Field.Of<Account>(x => x.Industry), new LiteralExpression("i"))
+            .Put(Field.Of<Account>(x => x.Type), new LiteralExpression("t"));
+        _ = template.Remove(Field.Of<Account>(x => x.Industry));
 
         // Act
-        _ = template.Put(Field.Of<Account>(nameof(Account.Name)), new LiteralExpression("n2"));
+        _ = template.Put(Field.Of<Account>(x => x.Name), new LiteralExpression("n2"));
 
         // Assert
-        Assert.Equal([Field.Of<Account>(nameof(Account.Name)), Field.Of<Account>(nameof(Account.Type))], template.OrderedValueFields());
+        Assert.Equal([Field.Of<Account>(x => x.Name), Field.Of<Account>(x => x.Type)], template.OrderedValueFields());
     }
 
     // Copy() -------------------------------------------------
@@ -216,48 +216,48 @@ public class MasterTemplateTest
     public void Copy_ReflectsItsOwnEdits()
     {
         // Arrange
-        MasterTemplate original = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-            .Put(Field.Of<Account>(nameof(Account.Name)), new LiteralExpression("Original"));
+        MasterTemplate original = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("Original"));
 
         // Act
         MasterTemplate copy = original.Copy();
-        _ = copy.Put(Field.Of<Account>(nameof(Account.Industry)), new LiteralExpression("Tech"));
-        _ = copy.Remove(Field.Of<Account>(nameof(Account.Name)));
+        _ = copy.Put(Field.Of<Account>(x => x.Industry), new LiteralExpression("Tech"));
+        _ = copy.Remove(Field.Of<Account>(x => x.Name));
 
         // Assert
-        Assert.True(copy.DefaultByField.ContainsKey(Field.Of<Account>(nameof(Account.Industry))));
-        Assert.False(copy.DefaultByField.ContainsKey(Field.Of<Account>(nameof(Account.Name))));
-        Assert.Equal(Field.Of<Account>(nameof(Account.Id)), copy.PrimaryTargetField);
+        Assert.True(copy.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Industry)));
+        Assert.False(copy.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Name)));
+        Assert.Equal(Field.Of<Account>(x => x.Id), copy.PrimaryTargetField);
     }
 
     [Fact]
     public void Copy_LeavesTheOriginalUntouchedWhenTheCopyIsEdited()
     {
         // Arrange
-        MasterTemplate original = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-            .Put(Field.Of<Account>(nameof(Account.Name)), new LiteralExpression("Original"));
+        MasterTemplate original = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put(Field.Of<Account>(x => x.Name), new LiteralExpression("Original"));
 
         // Act
         MasterTemplate copy = original.Copy();
-        _ = copy.Put(Field.Of<Account>(nameof(Account.Industry)), new LiteralExpression("Tech"));
-        _ = copy.Remove(Field.Of<Account>(nameof(Account.Name)));
+        _ = copy.Put(Field.Of<Account>(x => x.Industry), new LiteralExpression("Tech"));
+        _ = copy.Remove(Field.Of<Account>(x => x.Name));
 
         // Assert
-        Assert.False(original.DefaultByField.ContainsKey(Field.Of<Account>(nameof(Account.Industry))));
-        Assert.True(original.DefaultByField.ContainsKey(Field.Of<Account>(nameof(Account.Name))));
+        Assert.False(original.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Industry)));
+        Assert.True(original.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Name)));
     }
 
     [Fact]
     public void Copy_CarriesAContextAwareEntry()
     {
         // Arrange
-        MasterTemplate template = new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-            .Put(Field.Of<Account>(nameof(Account.Name)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.AccountNumber))));
+        MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put(Field.Of<Account>(x => x.Name), new CopyFromSiblingExpression(Field.Of<Account>(x => x.AccountNumber)));
 
         // Act
         MasterTemplate copy = template.Copy();
 
         // Assert
-        Assert.True(copy.ContextAwareByField.ContainsKey(Field.Of<Account>(nameof(Account.Name))));
+        Assert.True(copy.ContextAwareByField.ContainsKey(Field.Of<Account>(x => x.Name)));
     }
 }

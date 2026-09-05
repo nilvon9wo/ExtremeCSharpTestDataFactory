@@ -25,8 +25,8 @@ public class CopyFromSiblingExpressionTest
         Account record = new() { Site = "Berlin" };
         GenerationContext context = new GenerationContext(Lookup, InsertMode.Mock, InsertInclusivity.None)
             .ForRecord(record, new Bundle(), 0)
-            .ForValueField(Field.Of<Account>(nameof(Account.Description)), new HashSet<PropertyInfo>());
-        CopyFromSiblingExpression expression = new(Field.Of<Account>(nameof(Account.Site)));
+            .ForValueField(Field.Of<Account>(x => x.Description), new HashSet<PropertyInfo>());
+        CopyFromSiblingExpression expression = new(Field.Of<Account>(x => x.Site));
 
         // Act
         object? actualResult = expression.Get(context);
@@ -42,8 +42,8 @@ public class CopyFromSiblingExpressionTest
         Account record = new() { Site = null };
         GenerationContext context = new GenerationContext(Lookup, InsertMode.Mock, InsertInclusivity.None)
             .ForRecord(record, new Bundle(), 0)
-            .ForValueField(Field.Of<Account>(nameof(Account.Description)), new HashSet<PropertyInfo>());
-        CopyFromSiblingExpression expression = new(Field.Of<Account>(nameof(Account.Site)));
+            .ForValueField(Field.Of<Account>(x => x.Description), new HashSet<PropertyInfo>());
+        CopyFromSiblingExpression expression = new(Field.Of<Account>(x => x.Site));
 
         // Act
         object? actualResult = expression.Get(context);
@@ -70,7 +70,7 @@ public class CopyFromSiblingExpressionTest
         // Arrange - nothing to arrange
 
         // Act
-        object expression = new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.Name)));
+        object expression = new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name));
 
         // Assert - a context-aware value, not a plain one: no misleading no-arg Get() to call
         Assert.False(expression is IValueExpression);
@@ -82,7 +82,7 @@ public class CopyFromSiblingExpressionTest
     {
         // Arrange
         GenerationContext baseContext = new(Lookup, InsertMode.Mock, InsertInclusivity.None);
-        CopyFromSiblingExpression expression = new(Field.Of<Account>(nameof(Account.Name)));
+        CopyFromSiblingExpression expression = new(Field.Of<Account>(x => x.Name));
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => expression.Get(baseContext));

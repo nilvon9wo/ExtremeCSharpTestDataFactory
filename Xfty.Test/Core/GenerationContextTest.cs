@@ -14,9 +14,9 @@ namespace Net.Nowhereatall.Xfty.Test.Core;
 public class GenerationContextTest
 {
     private static readonly IProviderLookup Lookup = Substitute.For<IProviderLookup>();
-    private static readonly PropertyInfo SiteField = Field.Of<Account>(nameof(Account.Site));
-    private static readonly PropertyInfo TypeField = Field.Of<Account>(nameof(Account.Type));
-    private static readonly PropertyInfo DescriptionField = Field.Of<Account>(nameof(Account.Description));
+    private static readonly PropertyInfo SiteField = Field.Of<Account>(x => x.Site);
+    private static readonly PropertyInfo TypeField = Field.Of<Account>(x => x.Type);
+    private static readonly PropertyInfo DescriptionField = Field.Of<Account>(x => x.Description);
 
     private static GenerationContext Context(InsertMode? mode, InsertInclusivity? inclusivity) =>
         new(Lookup, mode, inclusivity);

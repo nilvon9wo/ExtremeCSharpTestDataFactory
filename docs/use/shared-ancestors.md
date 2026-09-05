@@ -41,8 +41,8 @@ per process.
 SharedAncestor.Put("acme-hq", new Account { Name = "ACME HQ" });
 
 // reference it from any Master Template, any field, required or optional
-new MasterTemplate(Field.Of<Contact>(nameof(Contact.Id)))
-    .PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), SharedAncestor.Get("acme-hq"));
+new MasterTemplate(Field.Of<Contact>(x => x.Id))
+    .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get("acme-hq"));
 ```
 
 ```csharp
@@ -74,7 +74,7 @@ Nothing extra to do — configure the rungs and reference the leaf:
 // once, centrally
 SharedAncestor.Put("root", new Account { Name = "Global HQ" });
 SharedAncestor.Put("region", new Account { Name = "Region HQ" })
-    .PutRequired(Field.Of<Account>(nameof(Account.ParentId)), SharedAncestor.Get("root"));
+    .PutRequired(Field.Of<Account>(x => x.ParentId), SharedAncestor.Get("root"));
 // a Contact Provider does PutRequired(Contact.AccountId, SharedAncestor.Get("region"))
 ```
 
@@ -117,11 +117,11 @@ takes straight onto `Put(name, …)`:
 
 ```csharp
 SharedAncestor.Put("hq", new Account { Name = "HQ Ltd" })
-    .Put(Field.Of<Account>(nameof(Account.Site)), "Berlin")
-    .PutRequired(Field.Of<Account>(nameof(Account.ParentId)), new DefaultRelationship(new Account { Name = "Global HQ" }))
+    .Put(Field.Of<Account>(x => x.Site), "Berlin")
+    .PutRequired(Field.Of<Account>(x => x.ParentId), new DefaultRelationship(new Account { Name = "Global HQ" }))
     .SetInclusivity(InsertInclusivity.Required)
-    .IncludeOptional(Field.Of<Account>(nameof(Account.OwnerId)))
-    .Put([Field.Of<Account>(nameof(Account.ParentId)), Field.Of<Account>(nameof(Account.Site))], "Global");
+    .IncludeOptional(Field.Of<Account>(x => x.OwnerId))
+    .Put([Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Site)], "Global");
 ```
 
 Only the methods that make sense for **one record** are on it — there is no
@@ -135,7 +135,7 @@ every child, so there is no per-call place to set them. A
 `Put([theSharedRelationshipField, deeperField], value)` that would *set a value
 on* a shared ancestor ([per-call ancestor values](per-call-relationships.md))
 **throws**. Wiring a shared ancestor **in** as a relationship value —
-`PutRequired([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.OwnerId))], SharedAncestor.Get("mr-smith"))` —
+`PutRequired([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)], SharedAncestor.Get("mr-smith"))` —
 is fine.
 
 ---
@@ -148,6 +148,7 @@ consumer already depends on.
 
 The quick form: pass them alongside the Provider map.
 
+<!-- sketch -->
 ```csharp
 ProviderLookups.Of(
     new Dictionary<ILookupKey, IRecordProvider>
@@ -161,6 +162,7 @@ ProviderLookups.Of(
 A hand-written lookup implements the companion interface
 **`ISharedAncestorDefaults`** — one method:
 
+<!-- sketch -->
 ```csharp
 public sealed class MyProjectLookup : IProviderLookup, ISharedAncestorDefaults
 {
@@ -181,6 +183,11 @@ implement the interface.
 
 ## Supplying your own record, and reading the Id
 
+Continuing the examples above (illustrative — reusing `"root"` / `"acme-hq"`
+here as a reminder of the earlier sections, not as a second, independent
+registration of the same name in the same run):
+
+<!-- sketch -->
 ```csharp
 Account root = /* the test builds its own singleton root, e.g. with InsertMode.Mock */;
 SharedAncestor.Put("root", root);   // from here, Get("root") resolves to this
@@ -191,6 +198,7 @@ object hqId = SharedAncestor.GetId("acme-hq");  // after it has resolved
 `GetId(name)` throws if the ancestor has not been resolved yet. To read it
 **before** any `Supply*()` call, resolve it explicitly:
 
+<!-- sketch -->
 ```csharp
 SharedAncestor.Get("root").ResolveNow(lookup, InsertMode.Mock);
 object rootId = SharedAncestor.GetId("root");
@@ -228,6 +236,11 @@ knobs hand control back to the test:
 | `SharedAncestor.Get(name).ResolveNow(lookup, mode)` | resolve one (and its chain) up front |
 | `SharedAncestor.ResolveNow(lookup, mode, names)` | resolve a named set up front, one depth-batched pass |
 
+Not exercised by this port's own test suite — `ManualResolutionOnly()` has no
+unsetter and is not safely testable in a shared xUnit process (see the warning
+below).
+
+<!-- sketch -->
 ```csharp
 SharedAncestor.ManualResolutionOnly();
 SharedAncestor.ResolveNow(lookup, InsertMode.Mock, ["division", "region"]);
@@ -251,3 +264,5 @@ Putting a `SharedAncestor` in a Provider you distribute (rather than on a
 
 See also: [relationships](relationships.md) · [bundles](bundles.md) ·
 [insert-modes](insert-modes.md)
+
+Runnable: `SharedAncestorTest`, `SharedAncestorHierarchyTest`

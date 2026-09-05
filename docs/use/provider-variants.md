@@ -8,6 +8,7 @@ VIP Account, or any other "flavour" a project defines. This page is about
 A variant is identified by a **lookup key** the project exposes, usually as a
 constant:
 
+<!-- sketch -->
 ```csharp
 MyProjectLookupKeys.VipAccount   // an ILookupKey
 ```
@@ -26,6 +27,7 @@ MyProjectLookupKeys.VipAccount   // an ILookupKey
 
 ### `WithVariant(key)`
 
+<!-- sketch -->
 ```csharp
 new RecordProvider(typeof(Account), lookup)
     .WithVariant(MyProjectLookupKeys.VipAccount)
@@ -37,6 +39,7 @@ the resolved Provider (it throws otherwise).
 
 ### The lookup-key constructor
 
+<!-- sketch -->
 ```csharp
 new RecordProvider(MyProjectLookupKeys.VipAccount, lookup)
     .Supply();
@@ -46,6 +49,7 @@ Same effect as `WithVariant`, and takes the record type from the key.
 
 ### An override template that matches a flavour's predicates
 
+<!-- sketch -->
 ```csharp
 new RecordProvider(new Account { AnnualRevenue = 5_000_000m }, lookup)
     .Supply();
@@ -66,8 +70,9 @@ matches a *different* registered flavour throws. Pick one.
 When a relationship should generate a specific variant of its parent, pin it on
 the relationship:
 
+<!-- sketch -->
 ```csharp
-.PutRequired(Field.Of<Case>(nameof(Case.AccountId)), new DefaultRelationship(
+.PutRequired(Field.Of<Case>(x => x.AccountId), new DefaultRelationship(
     MyProjectLookupKeys.VipAccount, new Account()))
 ```
 
@@ -75,3 +80,5 @@ Without an explicit key, the parent's variant is derived from the override
 template the relationship carries.
 
 See also: [extend/provider-variants](../extend/provider-variants.md) · [relationships](relationships.md)
+
+Runnable: `MultiVariantProviderTest`, `VariantResolutionTest`, `LookupKeyTest`

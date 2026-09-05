@@ -21,6 +21,7 @@ need to see":
 
 One no-argument method:
 
+<!-- sketch -->
 ```csharp
 public sealed class NextWeekday : IValueExpression
 {
@@ -40,8 +41,9 @@ public sealed class NextWeekday : IValueExpression
 }
 ```
 
+<!-- sketch -->
 ```csharp
-.Put(Field.Of<Contact>(nameof(Contact.Birthdate)), new NextWeekday())
+.Put(Field.Of<Contact>(x => x.Birthdate), new NextWeekday())
 ```
 
 Stateful expressions (incrementing, unique) are fine and common.
@@ -57,12 +59,13 @@ A **separate** interface (a context-aware value genuinely cannot produce
 anything without a context, so it does not pretend to satisfy the no-argument
 contract):
 
+<!-- sketch -->
 ```csharp
 public sealed class IsAdultFlag : IContextAwareExpression
 {
     public object? Get(GenerationContext context)
     {
-        DateTime? birthdate = (DateTime?)context.SiblingValue(Field.Of<Contact>(nameof(Contact.Birthdate)));
+        DateTime? birthdate = (DateTime?)context.SiblingValue(Field.Of<Contact>(x => x.Birthdate));
         return birthdate is not null && birthdate.Value.AddYears(18) <= DateTime.Today;
     }
 }
@@ -90,6 +93,7 @@ The context carries the graph generated so far. `context.BundleSoFar.GetList(rel
 is the parent for each primary, aligned 1:1 — pick this record's with
 `context.RowIndex`:
 
+<!-- sketch -->
 ```csharp
 public sealed class AccountNamePlusCountry : IContextAwareExpression
 {
@@ -106,7 +110,7 @@ public sealed class AccountNamePlusCountry : IContextAwareExpression
             return null;
         }
 
-        List<object>? accounts = context.BundleSoFar.GetList(Field.Of<Contact>(nameof(Contact.AccountId)));
+        List<object>? accounts = context.BundleSoFar.GetList(Field.Of<Contact>(x => x.AccountId));
         return accounts is null || context.RowIndex >= accounts.Count
             ? null
             : (Account)accounts[context.RowIndex];
@@ -114,7 +118,7 @@ public sealed class AccountNamePlusCountry : IContextAwareExpression
 }
 ```
 
-`context.BundleSoFar.GetValue([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.ShippingCountry))], context.RowIndex)`
+`context.BundleSoFar.GetValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ShippingCountry)], context.RowIndex)`
 does the same walk in one call — use it instead of a hand-written helper when
 you only need a field, not the whole record. `CopyFromAncestorExpression` is
 that walk wrapped as a ready-made context-aware value (multi-hop: each leading
@@ -145,18 +149,20 @@ A child does not exist when its parent is built, so an up-flowing value cannot
 run in either in-line pass. It gets its own interface and runs when a deferred
 graph is flattened, over the whole forest:
 
+<!-- sketch -->
 ```csharp
 public sealed class HasAnyWebOriginCase : IDeferredExpression
 {
     public object? Get(DeferredGraph graph, int recordIndex) =>
-        graph.ChildrenOf(recordIndex, Field.Of<Case>(nameof(Case.AccountId)))
+        graph.ChildrenOf(recordIndex, Field.Of<Case>(x => x.AccountId))
             .Cast<Case>()
             .Any(childCase => childCase.Origin == "Web");
 }
 ```
 
+<!-- sketch -->
 ```csharp
-.Put(Field.Of<Account>(nameof(Account.Description)), new HasAnyWebOriginCase())
+.Put(Field.Of<Account>(x => x.Description), new HasAnyWebOriginCase())
 ```
 
 `graph.ChildrenOf(recordIndex, childLookupField)` returns every generated
@@ -184,3 +190,5 @@ A custom expression earns a test the same way a [Provider](providers.md) does
 tested per-class in `Xfty.Test/Values/`, and
 `Xfty.Test/Values/ContextAwareExpressionTest.cs` is a worked example of custom
 sibling/ancestor expressions driven end to end through `RecordProvider`.
+
+Runnable: `ContextAwareExpressionTest`, `CopyFromDescendantExpressionTest`

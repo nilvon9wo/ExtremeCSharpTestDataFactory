@@ -47,13 +47,14 @@ Use those classes directly if you prefer.)
 
 **AND / OR / NOT** — `PredicateFactory`, for anything beyond the implicit AND:
 
+<!-- sketch -->
 ```csharp
 FlavouredLookupKey.Get(typeof(Account), "strategic")
     .Matching(PredicateFactory.AnyOf([
-        FieldPredicateFactory.GreaterThan(Field.Of<Account>(nameof(Account.AnnualRevenue)), 1_000_000m),
-        FieldPredicateFactory.GreaterThan(Field.Of<Account>(nameof(Account.NumberOfEmployees)), 5000),
+        FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.AnnualRevenue), 1_000_000m),
+        FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.NumberOfEmployees), 5000),
     ]))
-    .Matching(PredicateFactory.Negate(FieldPredicateFactory.EqualTo(Field.Of<Account>(nameof(Account.Type)), "Prospect")));
+    .Matching(PredicateFactory.Negate(FieldPredicateFactory.EqualTo(Field.Of<Account>(x => x.Type), "Prospect")));
 ```
 
 `AllOf(list)` / `AnyOf(list)` / `Negate(one)` return an `IRecordPredicate`, so
@@ -63,6 +64,7 @@ satisfied.
 **Your own predicate** — when the ready-made ones do not express the
 condition, implement the interface. No base class, no registration:
 
+<!-- sketch -->
 ```csharp
 public sealed class CreatedThisYearPredicate : IRecordPredicate
 {
@@ -80,15 +82,17 @@ A flavoured key is referenced from the Provider Lookup map *and* from every
 relationship that pins that variant, so define each in a shared `*LookupKeys`
 constants class:
 
+<!-- sketch -->
 ```csharp
 public static class MyProjectLookupKeys
 {
     public static readonly ILookupKey EnterpriseAccount =
         FlavouredLookupKey.Get(typeof(Account), "enterprise")
-            .Matching(FieldPredicateFactory.GreaterThan(Field.Of<Account>(nameof(Account.NumberOfEmployees)), 1000));
+            .Matching(FieldPredicateFactory.GreaterThan(Field.Of<Account>(x => x.NumberOfEmployees), 1000));
 }
 ```
 
+<!-- sketch -->
 ```csharp
 private static readonly Dictionary<ILookupKey, Type> Providers = new()
 {
@@ -129,6 +133,7 @@ template-derived resolution calls; `Specificity` decides who wins when several
 keys match (return more than `20` to outrank a flavoured key). Register the
 instance in the Provider map like any other key.
 
+<!-- sketch -->
 ```csharp
 public sealed class WholesaleAccountKey : ILookupKey
 {
@@ -142,3 +147,5 @@ public sealed class WholesaleAccountKey : ILookupKey
     public int Specificity => 30;
 }
 ```
+
+Runnable: `MultiVariantProviderTest`, `VariantResolutionTest`, `PredicateFactoryTest`, `FieldPredicateFactoryTest`

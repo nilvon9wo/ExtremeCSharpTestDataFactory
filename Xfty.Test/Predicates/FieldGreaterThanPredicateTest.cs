@@ -39,7 +39,7 @@ public class FieldGreaterThanPredicateTest
     {
         // Arrange
         IRecordPredicate predicate =
-            FieldGreaterThanPredicate.Of(Field.Of<Account>(nameof(Account.NumberOfEmployees)), threshold);
+            FieldGreaterThanPredicate.Of(Field.Of<Account>(x => x.NumberOfEmployees), threshold);
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);

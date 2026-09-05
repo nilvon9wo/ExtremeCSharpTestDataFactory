@@ -10,7 +10,7 @@ Provider produces.
 
 ```csharp
 new RecordProvider(typeof(Contact), lookup)
-    .Put(Field.Of<Contact>(nameof(Contact.FirstName)), new IncrementingStringExpression("Test Contact"))
+    .Put(Field.Of<Contact>(x => x.FirstName), new IncrementingStringExpression("Test Contact"))
     .SupplyBundle();
 // -> "Test Contact 1", "Test Contact 2", "Test Contact 3", ...
 ```
@@ -23,15 +23,15 @@ new RecordProvider(typeof(Contact), lookup)
 expression or a relationship is wrapped in `LiteralExpression` automatically.
 
 ```csharp
-.Put(Field.Of<Account>(nameof(Account.Type)), "Customer")
-.Put(Field.Of<Account>(nameof(Account.NumberOfEmployees)), 500)
+.Put(Field.Of<Account>(x => x.Type), "Customer")
+.Put(Field.Of<Account>(x => x.NumberOfEmployees), 500)
 ```
 
 is exactly
 
 ```csharp
-.Put(Field.Of<Account>(nameof(Account.Type)), new LiteralExpression("Customer"))
-.Put(Field.Of<Account>(nameof(Account.NumberOfEmployees)), new LiteralExpression(500))
+.Put(Field.Of<Account>(x => x.Type), new LiteralExpression("Customer"))
+.Put(Field.Of<Account>(x => x.NumberOfEmployees), new LiteralExpression(500))
 ```
 
 This works both on a Provider's Master Template and on `RecordProvider` itself.
@@ -63,23 +63,24 @@ that ancestor's Provider.
 
 The value is whatever the field forms accept — **not just an exact value**:
 
+<!-- sketch -->
 ```csharp
 new RecordProvider(typeof(Contact), lookup)
     .SetInclusivity(InsertInclusivity.Required)
 
     // an exact value
-    .Put([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Industry))], "Aerospace")
+    .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace")
 
     // an expression - the generated Account gets a unique name
-    .Put([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))],
+    .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)],
          new UniqueStringExpression("Acct"))
 
     // a context-aware value - evaluated against that ancestor
-    .Put([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Site))],
-         new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.Name))))
+    .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Site)],
+         new CopyFromSiblingExpression(Field.Of<Account>(x => x.Name)))
 
     // a relationship - give the ancestor its own generated parent
-    .PutRequired([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.OwnerId))],
+    .PutRequired([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)],
          SharedAncestor.Get("mr-smith"))
 
     .Supply();
@@ -130,3 +131,5 @@ fields — see [context-aware-values](context-aware-values.md)) or a plain
 [extend/custom-value-expressions.md](../extend/custom-value-expressions.md).
 
 See also: [override-templates](override-templates.md) · [context-aware-values](context-aware-values.md) · [per-call-relationships](per-call-relationships.md)
+
+Runnable: `PathValueTest`, `RecordFactoryTest`

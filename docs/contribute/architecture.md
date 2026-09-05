@@ -113,9 +113,9 @@ SomehowPersist(contact);
 Providers instead declare *what* should exist.
 
 ```csharp
-new MasterTemplate(Field.Of<Account>(nameof(Account.Id)))
-    .Put(Field.Of<Account>(nameof(Account.Name)), new IncrementingStringExpression("Account"))
-    .PutRequired(Field.Of<Account>(nameof(Account.OwnerId)), new DefaultRelationship(new User()));
+new MasterTemplate(Field.Of<Account>(x => x.Id))
+    .Put(Field.Of<Account>(x => x.Name), new IncrementingStringExpression("Account"))
+    .PutRequired(Field.Of<Account>(x => x.OwnerId), new DefaultRelationship(new User()));
 ```
 
 The framework is responsible for determining *how* that object graph should
@@ -158,13 +158,13 @@ Each relationship is represented by its own nested `Bundle`, preserving the
 recursive structure of the generated graph.
 
 ```csharp
-bundle.GetList(Field.Of<Contact>(nameof(Contact.AccountId)))
+bundle.GetList(Field.Of<Contact>(x => x.AccountId))
 ```
 
 or
 
 ```csharp
-bundle.GetBundle(Field.Of<Contact>(nameof(Contact.AccountId)))
+bundle.GetBundle(Field.Of<Contact>(x => x.AccountId))
 ```
 
 depending on whether a caller needs the related records themselves or the

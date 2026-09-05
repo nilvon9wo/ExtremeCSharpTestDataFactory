@@ -15,6 +15,7 @@ and relationships in a way a generic starter kit cannot.
 
 `ProviderLookups` supplies the mechanics, so your class is a few one-liners:
 
+<!-- sketch -->
 ```csharp
 public sealed class MyProjectLookup : IProviderLookup
 {
@@ -63,3 +64,5 @@ single most-specific key.
 
 Registering more than one Provider per type (flavours):
 [provider-variants](provider-variants.md).
+
+Runnable: `DefaultProviderLookupTest`

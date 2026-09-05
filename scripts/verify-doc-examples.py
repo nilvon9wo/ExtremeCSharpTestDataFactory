@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
 """
-Guarantees every ```apex block in docs/use/** and docs/extend/** is backed by a
-runnable test.
+Guarantees every ```csharp block in docs/use/** and docs/extend/** is backed by
+a real test somewhere in Xfty.Test.
 
-For each page carrying a `> Runnable:` / "Runnable:" line, every significant line
-of every ```apex block on that page (a `.method(...)` call, a `new XFTY_...`, an
-`implements XFTY_...`, an `XFTY_*.staticCall(...)`) must appear - whitespace
-normalised - in one of the test classes that line names, which all live in
-test-support/ or force-app/ and run in CI (XFTY_Examples / XFTY_Unit /
-XFTY_Integration / XFTY_OrgOnly).
+For each page carrying a `Runnable:` line, every significant fragment of every
+```csharp block on that page (a `.Method(...)` call, a `new ClassName(...)`, a
+`: IInterfaceName` implementation, a `ClassName.StaticMethod(...)`) must appear
+- whitespace/case normalised - in one of the test classes that line names
+(informational: naming the "expected home" of the proof), OR anywhere else in
+the whole Xfty.Test corpus (a doc line may legitimately be proven by a shared
+helper, a differently-named test class, or a test that moved).
 
 Fragments are fine: the check is line-by-line, not block-by-block, so a doc can
-show `.put(Contact.X, expr)` on its own and it still has to exist in a test.
+show `.Put(field, expr)` on its own and it still has to exist in a test.
+
+A fence immediately preceded by `<!-- sketch -->` is illustrative
+project-specific code (a consumer's own record types, lookup-key classes) that
+cannot run against this port's own demo Account/Contact/Case/User Providers -
+exempt, same as the Apex original's convention.
+
+This is a mechanical, line-oriented port of the Apex original's
+verify-doc-examples.py (see git history) - same shape, same leniency, C#
+syntax and this port's naming convention (PascalCase, no XFTY_ prefix, test
+classes named <Thing>Test) instead of Apex's.
 
 Exit non-zero (and print every miss) if any documented call is not exercised.
 """
@@ -22,33 +33,30 @@ import pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 # Only the audience-facing feature docs promise runnable examples. Everything
-# else is explicitly out of scope - notably docs/articles/, which holds the
-# author's essays: their code snippets are illustrative prose, not framework API,
-# and must never be checked against the test suite.
+# else is explicitly out of scope - notably docs/articles/, the author's
+# personal essays: their code snippets are illustrative prose, not framework
+# API, and must never be checked against the test suite.
 DOC_DIRS = [ROOT / "docs" / "use", ROOT / "docs" / "extend"]
 EXCLUDE_DIRS = [ROOT / "docs" / "articles"]
-TEST_DIRS = [
-    ROOT / "test-support" / "main" / "default" / "classes",
-    ROOT / "force-app" / "main" / "default" / "classes",
-]
+TEST_DIRS = [ROOT / "Xfty.Test"]
 
 RUNNABLE_RE = re.compile(r"Runnable:\s*(.+)$", re.M)
-CLASS_RE = re.compile(r"`(XFTY_[A-Za-z0-9_]+)(?:\.[A-Za-z0-9_]+)?`")
-# A fence immediately preceded by `<!-- sketch -->` is illustrative project code
-# (a consumer's own SObjects / lookup-key classes) and is exempt - it cannot run
-# against the bundled Account / Contact / User Providers.
-APEX_BLOCK_RE = re.compile(r"(?:^|\n)(<!-- sketch -->\n)?```apex\n(.*?)\n```", re.S)
+CLASS_RE = re.compile(r"`(\w+Test)`")
+# A fence immediately preceded by `<!-- sketch -->` is illustrative project
+# code (a consumer's own record types / lookup-key classes) and is exempt - it
+# cannot run against the bundled Account / Contact / Case / User Providers.
+CSHARP_BLOCK_RE = re.compile(r"(?:^|\n)(<!-- sketch -->\n)?```csharp\n(.*?)\n```", re.S)
 SIGNIFICANT_RE = re.compile(
-    r"(\.\w+\([^\n]*\)"          # .method(...)
-    r"|new\s+XFTY_\w+\([^\n]*\)"  # new XFTY_...(...)
-    r"|implements\s+XFTY_\w+"     # implements XFTY_...
-    r"|XFTY_\w+\.\w+\([^\n]*\))"  # XFTY_Foo.bar(...)
+    r"(\.\w+(?:<[^\n<>]*>)?\([^\n]*\)"        # .Method(...) / .Method<T>(...)
+    r"|new\s+[A-Z]\w*(?:<[^\n<>]*>)?\([^\n]*\)"  # new ClassName(...) / new ClassName<T>(...)
+    r"|:\s*I[A-Z]\w*"                          # : IInterfaceName (this port's interfaces are all I-prefixed)
+    r"|[A-Z]\w*\.[A-Z]\w*(?:<[^\n<>]*>)?\([^\n]*\))"  # ClassName.StaticMethod(...)
 )
 
 
 def norm(s: str) -> str:
     # whitespace-insensitive and case-insensitive: docs write the lookup
-    # placeholder as `lookup`, the example tests as the `LOOKUP` constant - same
+    # placeholder as `lookup`, the test corpus as a `Lookup` local - same
     # thing. Full-fragment matching keeps this from producing false positives.
     return re.sub(r"\s+", "", s).lower()
 
@@ -56,7 +64,7 @@ def norm(s: str) -> str:
 def load_test_sources():
     blobs = {}
     for d in TEST_DIRS:
-        for p in d.rglob("*.cls"):
+        for p in d.rglob("*.cs"):
             blobs[p.stem] = norm(p.read_text(encoding="utf-8"))
     return blobs
 
@@ -64,7 +72,7 @@ def load_test_sources():
 def main() -> int:
     tests = load_test_sources()
     all_tests_blob = norm("".join(pathlib.Path(f).read_text(encoding="utf-8")
-                                 for d in TEST_DIRS for f in d.rglob("*.cls")))
+                                 for d in TEST_DIRS for f in d.rglob("*.cs")))
     misses = []
     checked_pages = 0
     checked_lines = 0
@@ -81,9 +89,9 @@ def main() -> int:
             named = [c for line in runnable_lines for c in CLASS_RE.findall(line)]
             # the union of every named test class's source, plus a fallback to
             # the whole test corpus (a doc line may legitimately be proven by a
-            # shared helper class)
+            # shared helper class, or a test that moved)
             scope = "".join(tests.get(n, "") for n in named) or all_tests_blob
-            for sketch_marker, block in APEX_BLOCK_RE.findall(text):
+            for sketch_marker, block in CSHARP_BLOCK_RE.findall(text):
                 if sketch_marker:
                     continue
                 for line in block.splitlines():
@@ -101,7 +109,7 @@ def main() -> int:
         print(f"\n{len(misses)} documented call(s) with no backing test:\n")
         print("\n".join("  " + x for x in misses))
         return 1
-    print("every documented apex call is exercised by a runnable test")
+    print("every documented csharp call is exercised by a test")
     return 0
 
 

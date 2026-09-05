@@ -65,8 +65,8 @@ public class QueryableShapeValidatorTest
     {
         // Arrange
         List<PropertyInfo> sixHops = [
-            Field.Of<Account>(nameof(Account.ParentId)), Field.Of<Account>(nameof(Account.ParentId)), Field.Of<Account>(nameof(Account.ParentId)),
-            Field.Of<Account>(nameof(Account.ParentId)), Field.Of<Account>(nameof(Account.ParentId)), Field.Of<Account>(nameof(Account.ParentId)),
+            Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.ParentId),
+            Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.ParentId),
         ];
         InjectConfig config = InjectConfig.Nothing().InjectParent(sixHops);
 
@@ -82,7 +82,7 @@ public class QueryableShapeValidatorTest
     {
         // Arrange - a 2-child-hop path, but childDepth is still the default 1
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            [Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Case>(nameof(Case.ContactId)), Field.Of<Case>(nameof(Case.Subject))], "x");
+            [Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)], "x");
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
@@ -98,7 +98,7 @@ public class QueryableShapeValidatorTest
         InjectConfig config = InjectConfig.Nothing()
             .ChildDepth(2)
             .BreakSoqlLimits()
-            .InjectChildValue([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Case>(nameof(Case.ContactId)), Field.Of<Case>(nameof(Case.Subject))], "x");
+            .InjectChildValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)], "x");
 
         // Act
         Exception? thrown = Record.Exception(() => QueryableShapeValidator.Validate(config));

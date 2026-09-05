@@ -37,7 +37,7 @@ public class IdMockerTest
         Account record = new() { Name = "Anything" };
 
         // Act
-        object returned = IdMocker.AddId(record, Field.Of<Account>(nameof(Account.Id)));
+        object returned = IdMocker.AddId(record, Field.Of<Account>(x => x.Id));
 
         // Assert - AddId returns the same instance it was given
         Assert.Same(record, returned);

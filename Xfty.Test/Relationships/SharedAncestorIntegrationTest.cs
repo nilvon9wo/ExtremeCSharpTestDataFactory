@@ -33,7 +33,7 @@ public class SharedAncestorIntegrationTest
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), SharedAncestor.Get(sharedName))
+            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(sharedName))
             .SetQuantityPerTemplate(2);
 
         // Act
@@ -88,7 +88,7 @@ public class SharedAncestorIntegrationTest
         RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), SharedAncestor.Get(sharedName));
+            .PutRequired(Field.Of<Contact>(x => x.AccountId), SharedAncestor.Get(sharedName));
 
         // Act
         Contact result = Assert.IsType<Contact>(provider.Supply());

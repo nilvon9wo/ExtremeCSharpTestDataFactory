@@ -13,8 +13,8 @@ accepts it directly.
 ## Copy a sibling field
 
 ```csharp
-.Put(Field.Of<Account>(nameof(Account.ShippingCity)), "Berlin")
-.Put(Field.Of<Account>(nameof(Account.BillingCity)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.ShippingCity))))
+.Put(Field.Of<Account>(x => x.ShippingCity), "Berlin")
+.Put(Field.Of<Account>(x => x.BillingCity), new CopyFromSiblingExpression(Field.Of<Account>(x => x.ShippingCity)))
 ```
 
 `BillingCity` is filled from whatever `ShippingCity` ends up being.
@@ -26,16 +26,16 @@ accepts it directly.
 One hop — a relationship field then the field to read:
 
 ```csharp
-.PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), new DefaultRelationship(new Account()))
-.Put(Field.Of<Contact>(nameof(Contact.Department)), new CopyFromAncestorExpression(
-    Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Site))))
+.PutRequired(Field.Of<Contact>(x => x.AccountId), new DefaultRelationship(new Account()))
+.Put(Field.Of<Contact>(x => x.Department), new CopyFromAncestorExpression(
+    Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Site)))
 ```
 
 Several hops — a path of relationship fields ending in the field to read:
 
 ```csharp
-.Put(Field.Of<Case>(nameof(Case.Subject)), new CopyFromAncestorExpression([
-    Field.Of<Case>(nameof(Case.AccountId)), Field.Of<Account>(nameof(Account.ParentId)), Field.Of<Account>(nameof(Account.Name)),
+.Put(Field.Of<Case>(x => x.Subject), new CopyFromAncestorExpression([
+    Field.Of<Case>(x => x.AccountId), Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Name),
 ]))
 ```
 
@@ -49,19 +49,19 @@ not generated (e.g. an optional one skipped by the current inclusivity).
 Implement `IContextAwareExpression` — one method:
 
 ```csharp
-public class IsAdultFlag : IContextAwareExpression
+public class IsMinorFlag : IContextAwareExpression
 {
     public object? Get(GenerationContext context)
     {
-        DateTime? birthdate = (DateTime?)context.SiblingValue(Field.Of<Contact>(nameof(Contact.Birthdate)));
-        return birthdate is not null && birthdate.Value.AddYears(18) <= DateTime.Today;
+        DateTime? birthdate = (DateTime?)context.SiblingValue(Field.Of<Contact>(x => x.Birthdate));
+        return birthdate is not null && birthdate.Value.AddYears(18) > DateTime.Today ? "MINOR" : "ADULT";
     }
 }
 ```
 
 ```csharp
-.Put(Field.Of<Contact>(nameof(Contact.Birthdate)), new DateTime(2000, 1, 1))
-.Put(Field.Of<Contact>(nameof(Contact.Department)), new IsAdultFlag())
+.Put(Field.Of<Contact>(x => x.Birthdate), new DateTime(2010, 1, 1))
+.Put(Field.Of<Contact>(x => x.Department), new IsMinorFlag())
 ```
 
 `context` (a `GenerationContext`) exposes:
@@ -73,7 +73,7 @@ public class IsAdultFlag : IContextAwareExpression
   a misleading `null`.
 - **`BundleSoFar`** — everything this generation call has built: the generated
   parents (`GetList(relationshipField)`) **and** the sibling primary records
-  (`GetList(<primaryField>)`, e.g. `GetList(Field.Of<Account>(nameof(Account.Id)))`).
+  (`GetList(<primaryField>)`, e.g. `GetList(Field.Of<Account>(x => x.Id))`).
 - **`RowIndex`** — which row of a multi-record generation this is.
 
 ---
@@ -91,8 +91,8 @@ a not-yet-generated one throws.)
 
 ```csharp
 // wrong - BillingCity reads ShippingCity, but ShippingCity is put after it
-.Put(Field.Of<Account>(nameof(Account.BillingCity)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.ShippingCity))))
-.Put(Field.Of<Account>(nameof(Account.ShippingCity)), new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.Site))))   // throws at generation
+.Put(Field.Of<Account>(x => x.BillingCity), new CopyFromSiblingExpression(Field.Of<Account>(x => x.ShippingCity)))
+.Put(Field.Of<Account>(x => x.ShippingCity), new CopyFromSiblingExpression(Field.Of<Account>(x => x.Site)))   // throws at generation
 ```
 
 An override-template value still wins over a context-aware expression.
@@ -106,8 +106,8 @@ record that references this one through the given lookup field:
 
 ```csharp
 // on an Account Provider, so a validation rule comparing the two passes
-.Put(Field.Of<Account>(nameof(Account.Site)), new CopyFromDescendantExpression(
-    Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department))))
+.Put(Field.Of<Account>(x => x.Site), new CopyFromDescendantExpression(
+    Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department)))
 ```
 
 The child does not exist when the parent is built, so this needs the whole graph
@@ -134,3 +134,5 @@ children are not built.
 
 Writing custom expressions as a distributable extension:
 [extend/custom-value-expressions.md](../extend/custom-value-expressions.md).
+
+Runnable: `ContextAwareExpressionTest`, `CopyFromSiblingExpressionTest`, `CopyFromAncestorExpressionTest`, `CopyFromDescendantExpressionTest`

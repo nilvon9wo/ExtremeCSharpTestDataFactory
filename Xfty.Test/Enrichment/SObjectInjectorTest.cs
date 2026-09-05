@@ -23,7 +23,7 @@ public class SObjectInjectorTest
         List<object> accounts = [new Account { Name = "Acme" }, new Account { Name = "Globex" }];
 
         // Act
-        List<Contact> enriched = [.. SObjectInjector.Inject(contacts).Relationship(Field.Of<Contact>(nameof(Contact.Account)), accounts).Result().Cast<Contact>()];
+        List<Contact> enriched = [.. SObjectInjector.Inject(contacts).Relationship(Field.Of<Contact>(x => x.Account), accounts).Result().Cast<Contact>()];
 
         // Assert
         Assert.Equal("Acme", enriched[0].Account!.Name);
@@ -38,7 +38,7 @@ public class SObjectInjectorTest
         List<object> accounts = [new Account { Name = "Acme" }, null!];
 
         // Act
-        List<Contact> enriched = [.. SObjectInjector.Inject(contacts).Relationship(Field.Of<Contact>(nameof(Contact.Account)), accounts).Result().Cast<Contact>()];
+        List<Contact> enriched = [.. SObjectInjector.Inject(contacts).Relationship(Field.Of<Contact>(x => x.Account), accounts).Result().Cast<Contact>()];
 
         // Assert
         Assert.Equal("Acme", enriched[0].Account!.Name);
@@ -53,7 +53,7 @@ public class SObjectInjectorTest
         List<List<object>> contactsPerRow = [[new Contact { LastName = "A" }, new Contact { LastName = "B" }]];
 
         // Act
-        List<Account> enriched = [.. SObjectInjector.Inject(accounts).ChildRelationship(Field.Of<Account>(nameof(Account.Contacts)), contactsPerRow).Result().Cast<Account>()];
+        List<Account> enriched = [.. SObjectInjector.Inject(accounts).ChildRelationship(Field.Of<Account>(x => x.Contacts), contactsPerRow).Result().Cast<Account>()];
 
         // Assert
         Assert.Equal(2, enriched[0].Contacts!.Count);
@@ -68,7 +68,7 @@ public class SObjectInjectorTest
         List<List<object>> none = [[]];
 
         // Act
-        List<Account> enriched = [.. SObjectInjector.Inject(accounts).ChildRelationship(Field.Of<Account>(nameof(Account.Contacts)), none).Result().Cast<Account>()];
+        List<Account> enriched = [.. SObjectInjector.Inject(accounts).ChildRelationship(Field.Of<Account>(x => x.Contacts), none).Result().Cast<Account>()];
 
         // Assert
         Assert.Empty(enriched[0].Contacts!);
@@ -82,7 +82,7 @@ public class SObjectInjectorTest
         const string site = "HQ";
 
         // Act
-        List<Account> enriched = [.. SObjectInjector.Inject(accounts).Value(Field.Of<Account>(nameof(Account.Site)), site).Result().Cast<Account>()];
+        List<Account> enriched = [.. SObjectInjector.Inject(accounts).Value(Field.Of<Account>(x => x.Site), site).Result().Cast<Account>()];
 
         // Assert
         Assert.Equal(site, enriched[0].Site);
@@ -97,7 +97,7 @@ public class SObjectInjectorTest
         List<object?> revenues = [100m, 250m];
 
         // Act
-        List<Account> enriched = [.. SObjectInjector.Inject(accounts).ValuePerRow(Field.Of<Account>(nameof(Account.AnnualRevenue)), revenues).Result().Cast<Account>()];
+        List<Account> enriched = [.. SObjectInjector.Inject(accounts).ValuePerRow(Field.Of<Account>(x => x.AnnualRevenue), revenues).Result().Cast<Account>()];
 
         // Assert
         Assert.Equal(100m, enriched[0].AnnualRevenue);
@@ -112,7 +112,7 @@ public class SObjectInjectorTest
         List<object> contacts = [original];
 
         // Act
-        List<Contact> enriched = [.. SObjectInjector.Inject(contacts).Relationship(Field.Of<Contact>(nameof(Contact.Account)), [new Account { Name = "Grafted" }]).Result().Cast<Contact>()];
+        List<Contact> enriched = [.. SObjectInjector.Inject(contacts).Relationship(Field.Of<Contact>(x => x.Account), [new Account { Name = "Grafted" }]).Result().Cast<Contact>()];
 
         // Assert
         Assert.Null(original.Account); // the input record was not mutated
@@ -155,7 +155,7 @@ public class SObjectInjectorTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => SObjectInjector.Inject(contacts).Relationship(Field.Of<Contact>(nameof(Contact.Account)), onlyOneAccount).Result());
+            () => SObjectInjector.Inject(contacts).Relationship(Field.Of<Contact>(x => x.Account), onlyOneAccount).Result());
 
         // Assert - the message names the misaligned graft
         Assert.NotNull(thrown);
@@ -171,7 +171,7 @@ public class SObjectInjectorTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => SObjectInjector.Inject(accounts).ValuePerRow(Field.Of<Account>(nameof(Account.AnnualRevenue)), tooFew).Result());
+            () => SObjectInjector.Inject(accounts).ValuePerRow(Field.Of<Account>(x => x.AnnualRevenue), tooFew).Result());
 
         // Assert
         Assert.NotNull(thrown);
@@ -182,14 +182,14 @@ public class SObjectInjectorTest
     {
         // Arrange - a Contact that already has its Cases populated (from a prior injector pass)
         List<Contact> contactsWithCases = [.. SObjectInjector.Inject([new Contact { LastName = "Parent" }])
-            .ChildRelationship(Field.Of<Contact>(nameof(Contact.Cases)), [[new Case { Subject = "grandchild" }]])
+            .ChildRelationship(Field.Of<Contact>(x => x.Cases), [[new Case { Subject = "grandchild" }]])
             .Result()
             .Cast<Contact>()];
         List<object> accounts = [new Account { Name = "Root" }];
 
         // Act
         List<Account> enriched = [.. SObjectInjector.Inject(accounts)
-            .ChildRelationship(Field.Of<Account>(nameof(Account.Contacts)), [[.. contactsWithCases.Cast<object>()]])
+            .ChildRelationship(Field.Of<Account>(x => x.Contacts), [[.. contactsWithCases.Cast<object>()]])
             .Result()
             .Cast<Account>()];
 
@@ -208,9 +208,9 @@ public class SObjectInjectorTest
 
         // Act
         List<Contact> enriched = [.. SObjectInjector.Inject(contacts)
-            .Relationship(Field.Of<Contact>(nameof(Contact.Account)), accounts)
-            .ChildRelationship(Field.Of<Contact>(nameof(Contact.Cases)), casesPerRow)
-            .Value(Field.Of<Contact>(nameof(Contact.Department)), department)
+            .Relationship(Field.Of<Contact>(x => x.Account), accounts)
+            .ChildRelationship(Field.Of<Contact>(x => x.Cases), casesPerRow)
+            .Value(Field.Of<Contact>(x => x.Department), department)
             .Result()
             .Cast<Contact>()];
 

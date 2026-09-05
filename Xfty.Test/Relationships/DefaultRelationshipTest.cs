@@ -30,10 +30,10 @@ public class DefaultRelationshipTest
         // nothing to arrange
 
         // Act
-        DefaultRelationship relationship = new(new Account { Name = "Parent" }, Field.Of<Account>(nameof(Account.AccountNumber)));
+        DefaultRelationship relationship = new(new Account { Name = "Parent" }, Field.Of<Account>(x => x.AccountNumber));
 
         // Assert
-        Assert.Equal(Field.Of<Account>(nameof(Account.AccountNumber)), relationship.RelatedField);
+        Assert.Equal(Field.Of<Account>(x => x.AccountNumber), relationship.RelatedField);
     }
 
     [Fact]

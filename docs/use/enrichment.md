@@ -61,7 +61,7 @@ Bundle bundle = new RecordProvider(typeof(Contact), lookup)
     .SetQuantityPerTemplate(2)
     .SupplyBundle();
 
-List<object> contacts = bundle.InjectAll(Field.Of<Contact>(nameof(Contact.Id)));
+List<object> contacts = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
 ((Contact)contacts[0]).Account!.Name;      // the generated ancestor - was null
 ((Contact)contacts[0]).Account!.Contacts;  // the inverse child - [ contacts[0] as a plain copy ]
 ```
@@ -82,7 +82,7 @@ None of the three take a config; to configure a broad pass, call `Inject` with
 the matching breadth start:
 
 ```csharp
-bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), InjectConfig.AllParents().ParentDepth(2));
+bundle.Inject(Field.Of<Contact>(x => x.Id), InjectConfig.AllParents().ParentDepth(2));
 ```
 
 ---
@@ -93,16 +93,16 @@ Most tests want a focused graph, not everything.
 
 ```csharp
 // one child collection, nothing else
-bundle.Inject(Field.Of<Account>(nameof(Account.Id)), InjectConfig.Nothing().InjectChild(Field.Of<Contact>(nameof(Contact.AccountId))));
+bundle.Inject(Field.Of<Account>(x => x.Id), InjectConfig.Nothing().InjectChild(Field.Of<Contact>(x => x.AccountId)));
 ```
 
 ```csharp
 // a scalar the platform would compute, and a value two hops up
 InjectConfig config = InjectConfig.Nothing()
-    .InjectValue(Field.Of<Contact>(nameof(Contact.Birthdate)), new DateTime(2020, 1, 1))
-    .InjectValue([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.AnnualRevenue))], 7_500_000m);
+    .InjectValue(Field.Of<Contact>(x => x.Birthdate), new DateTime(2020, 1, 1))
+    .InjectValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)], 7_500_000m);
 
-bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), config);
+bundle.Inject(Field.Of<Contact>(x => x.Id), config);
 ```
 
 ### The config: a breadth, then refiners
@@ -162,8 +162,8 @@ The graft mechanism is public and needs no bundle. Full guide, with examples:
 
 ```csharp
 List<object> enriched = SObjectInjector.Inject(contacts)
-    .Relationship(Field.Of<Contact>(nameof(Contact.Account)), accounts)
-    .Value(Field.Of<Contact>(nameof(Contact.Birthdate)), new DateTime(2020, 1, 1))
+    .Relationship(Field.Of<Contact>(x => x.Account), accounts)
+    .Value(Field.Of<Contact>(x => x.Birthdate), new DateTime(2024, 1, 1))
     .Result();
 ```
 
@@ -199,10 +199,10 @@ that pass ran during generation and is over. To force a value that *depends* on
 the graph, read the inputs yourself and pass a literal or a `List<object>`:
 
 ```csharp
-object? parentName = bundle.GetValue([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))]);
+object? parentName = bundle.GetValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)]);
 InjectConfig config = InjectConfig.Nothing()
-    .InjectValue(Field.Of<Contact>(nameof(Contact.Department)), $"{parentName} (contact)");
-bundle.Inject(Field.Of<Contact>(nameof(Contact.Id)), config);
+    .InjectValue(Field.Of<Contact>(x => x.Department), $"{parentName} (contact)");
+bundle.Inject(Field.Of<Contact>(x => x.Id), config);
 ```
 
 `bundle.GetValue(path[, row])`, `bundle.ChildRecordsOf(row, field)` and
@@ -212,3 +212,5 @@ See also: [sobject-injector](sobject-injector.md) · [bundles](bundles.md) ·
 [child-records](child-records.md) ·
 [value-expressions](value-expressions.md) ·
 [unit-vs-integration](advanced/unit-vs-integration.md)
+
+Runnable: `BundleEnricherTest`, `EnrichmentIntegrationTest`, `EnrichmentSelectionTest`

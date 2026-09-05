@@ -101,3 +101,5 @@ compact graphs, no dependency on a database. See
 [advanced/unit-vs-integration](advanced/unit-vs-integration.md).
 
 See also: [deferred-insert](deferred-insert.md) · [relationships](relationships.md) · [bundles](bundles.md)
+
+Runnable: `RecordFactoryTest`, `RecordProviderIntegrationTest`

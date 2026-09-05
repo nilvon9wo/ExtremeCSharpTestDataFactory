@@ -13,8 +13,8 @@ namespace Net.Nowhereatall.Xfty.Test.Predicates;
 /// </summary>
 public class FieldPredicateFactoryTest
 {
-    private static readonly PropertyInfo Industry = Field.Of<Account>(nameof(Account.Industry));
-    private static readonly PropertyInfo NumberOfEmployees = Field.Of<Account>(nameof(Account.NumberOfEmployees));
+    private static readonly PropertyInfo Industry = Field.Of<Account>(x => x.Industry);
+    private static readonly PropertyInfo NumberOfEmployees = Field.Of<Account>(x => x.NumberOfEmployees);
 
     [Fact]
     public void EqualTo_WhenTheFieldMatches_ReturnsTrue() =>
