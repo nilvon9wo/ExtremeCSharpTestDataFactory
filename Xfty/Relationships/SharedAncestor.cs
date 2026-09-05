@@ -22,7 +22,7 @@ public sealed partial class SharedAncestor : ISharedRelationship
 {
     private static readonly Dictionary<string, SharedAncestor> ByName = [];
     private static readonly HashSet<string> Disabled = [];
-    private static bool manualResolution;
+    private static bool _manualResolution;
 
     private string _name { get; }
 

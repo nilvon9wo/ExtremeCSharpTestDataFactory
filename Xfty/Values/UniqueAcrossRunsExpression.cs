@@ -15,7 +15,7 @@ namespace Net.Nowhereatall.Xfty.Values;
 public sealed class UniqueAcrossRunsExpression : IValueExpression
 {
     private static readonly string RunToken = BuildRunToken();
-    private static int counter = 1;
+    private static int _counter = 1;
 
     private readonly string prefix;
     private readonly string suffix;
@@ -26,7 +26,7 @@ public sealed class UniqueAcrossRunsExpression : IValueExpression
         this.suffix = suffix ?? string.Empty;
     }
 
-    public object Get() => $"{this.prefix}{RunToken}{counter++}{this.suffix}";
+    public object Get() => $"{this.prefix}{RunToken}{_counter++}{this.suffix}";
 
     private static string BuildRunToken()
     {

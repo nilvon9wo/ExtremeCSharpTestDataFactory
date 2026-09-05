@@ -11,7 +11,7 @@ namespace Net.Nowhereatall.Xfty.Persistence;
 /// </summary>
 public static class IdMocker
 {
-    private static int fakeCount;
+    private static int _fakeCount;
 
     public static List<object> AddIds(List<object> records, PropertyInfo idField)
     {
@@ -33,5 +33,5 @@ public static class IdMocker
     }
 
     public static string GenerateId() =>
-        $"mock-{++fakeCount}";
+        $"mock-{++_fakeCount}";
 }

@@ -31,10 +31,10 @@ public class ExRecordInjectorTest
     {
         // from docs/use/record-injector.md "Parent relationships"
         List<object> contacts = [new Contact { LastName = "Smith" }];
-        List<object> accountsAligned1to1 = [new Account { Name = "Acme" }];
+        List<object> accountsAligned1To1 = [new Account { Name = "Acme" }];
 
         List<object> enriched = RecordInjector.Inject(contacts)
-            .Relationship(Field.Of<Contact>(x => x.Account), accountsAligned1to1)
+            .Relationship(Field.Of<Contact>(x => x.Account), accountsAligned1To1)
             .Result();
 
         Assert.Equal("Acme", ((Contact)enriched[0]).Account!.Name);

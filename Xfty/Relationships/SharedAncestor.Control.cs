@@ -15,9 +15,9 @@ public sealed partial class SharedAncestor
     }
 
     /// <summary>Turn off the pre-phase that auto-resolves every registered shared ancestor.</summary>
-    public static void ManualResolutionOnly() => manualResolution = true;
+    public static void ManualResolutionOnly() => _manualResolution = true;
 
-    public static bool IsManualResolutionOnly() => manualResolution;
+    public static bool IsManualResolutionOnly() => _manualResolution;
 
     /// <summary>Resolve a named set of shared ancestors up front, in one depth-batched pass.</summary>
     public static void ResolveNow(IProviderLookup lookup, InsertMode insertMode, List<string> names)

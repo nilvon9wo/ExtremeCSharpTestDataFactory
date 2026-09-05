@@ -6,11 +6,11 @@ namespace Net.Nowhereatall.Xfty.Values;
 /// </summary>
 public sealed class UniqueEmailExpression : IValueExpression
 {
-    private static int counter = 1;
+    private static int _counter = 1;
 
     private readonly string prefix;
 
     public UniqueEmailExpression(string prefix) => this.prefix = prefix;
 
-    public object Get() => $"{this.prefix}{counter++}@example.com";
+    public object Get() => $"{this.prefix}{_counter++}@example.com";
 }

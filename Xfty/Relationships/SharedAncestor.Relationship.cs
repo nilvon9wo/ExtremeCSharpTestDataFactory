@@ -26,7 +26,7 @@ public sealed partial class SharedAncestor
             : this.resolvedRecord ?? this.ResolveFresh(context);
 
     private object? ResolveFresh(GenerationContext context) =>
-        manualResolution ? this.ResolveUnderManualMode(context) : this.ResolveAllThenReturnOwn(context);
+        _manualResolution ? this.ResolveUnderManualMode(context) : this.ResolveAllThenReturnOwn(context);
 
     private object? ResolveAllThenReturnOwn(GenerationContext context)
     {
