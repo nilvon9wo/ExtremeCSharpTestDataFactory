@@ -1,49 +1,43 @@
 # Packaging
 
-XFTY is a Salesforce DX project in **source format**. Everything deployable lives
-under `force-app/`.
+XFTY is a standard .NET solution — no SFDX source format, no package
+directories, no namespace.
 
-`force-app/main/default/classes/` is organised by area — `core/` (the public
-types), `engine/` (the generation pipeline), `persistence/` (Id assignment,
-deferred / depth-batched insert), `values/`, `relationships/`, `lookup/`,
-`predicates/` (the reusable `XFTY_SObjectPredicateIntf` conditions a flavoured
-lookup key matches on), `providers/`. **Each class's test sits in the same folder
-as the class it tests** — `XFTY_Foo.cls` and `XFTY_FooTest.cls` side by side. The `test-support/`
-package directory holds examples that need an org feature the published package
-must not require — currently a Person Account Provider, its variant test, the
-"real record type" tests, and the `XFTY_Ex_*` doc examples — and is **not** part
-of the distributable package (`"default": false` in `sfdx-project.json`, excluded
-from `sf package version create`, deployed to scratch/dev orgs).
+```text
+Xfty.slnx
+Xfty/            - the library (Net.Nowhereatall.Xfty)
+  Core/          - the public types (RecordProvider, Bundle, MasterTemplate, ...)
+  Engine/        - the generation pipeline
+  Persistence/   - Id assignment, deferred / depth-batched resolution
+  Values/        - the bundled value expressions
+  Relationships/ - DefaultRelationship, SharedAncestor
+  Lookup/        - LookupKey, FlavouredLookupKey, ProviderLookups
+  Predicates/    - the reusable IRecordPredicate conditions
+  Demo/          - this port's own bundled Account/Contact Providers + demo record types
+Xfty.Test/       - the xUnit test suite (Net.Nowhereatall.Xfty.Test), mirroring Xfty/'s folders
+```
 
-- Local development, scratch orgs, Nimbus: [local-development](local-development.md)
-- Test suites: [test-suites](test-suites.md)
+**Each class's test sits in the mirrored folder** — `Xfty/Core/Bundle.cs` and
+`Xfty.Test/Core/BundleTest.cs`.
+
+- Local development, `dotnet build`/`test`: [local-development](local-development.md)
+- Test organization: [test-suites](test-suites.md)
 - CI: [ci](ci.md)
 
 ---
 
-## Consuming XFTY (no namespace, today)
+## Consuming XFTY today
 
-Deploy the classes straight into a scratch org, sandbox, or production org:
-
-```bash
-sf project deploy start --source-dir force-app --target-org <alias>
-```
-
-Or convert to an **unlocked package** (no namespace) for versioned installs:
+There is no published NuGet package yet. Reference the project directly:
 
 ```bash
-sf package create --name XFTY --package-type Unlocked --path force-app
-sf package version create --package XFTY --installation-key-bypass --wait 20 --code-coverage
-sf package install --package XFTY@x.y.z-n --target-org <alias> --wait 10
+dotnet add reference path/to/Xfty/Xfty.csproj
 ```
 
-`sf package create` writes the package id and alias back into
-`sfdx-project.json`.
+or add it as a git submodule / copy the source, the way the Apex original was
+consumed by copying `force-app/` before packages existed.
 
----
-
-## Namespace / AppExchange
-
-The medium-term goal is an AppExchange listing under the namespace `XFTY`. It
-does not change the workflow above. Plan and open questions:
-[../roadmap/namespace-appexchange.md](../roadmap/namespace-appexchange.md).
+Publishing a NuGet package (`dotnet pack`) is straightforward once this port
+is ready to version and release — `Xfty.csproj` has no package metadata
+(`PackageId`, `Version`, `Authors`, …) set yet, which is what that step would
+add.

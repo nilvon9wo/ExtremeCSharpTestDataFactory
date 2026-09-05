@@ -1,33 +1,47 @@
-# Test Suites
+# Test Organization
 
-XFTY defines `ApexTestSuite`s so you can run only what you need.
+`Xfty.Test/` mirrors `Xfty/`'s folder structure one-for-one — `Xfty/Core/Bundle.cs`
+→ `Xfty.Test/Core/BundleTest.cs` — rather than Apex's `ApexTestSuite` grouping.
+xUnit's own filter syntax (`dotnet test --filter "..."`) covers what suites
+covered in Apex: run everything, run one class, run one namespace.
 
-| Suite | Location | What's in it | When to run |
-|-------|----------|--------------|-------------|
-| `XFTY_Unit` | `force-app` | Every class that generates with `MOCK` / `NEVER` / `LATER` only — no framework DML, no dependency on org data. Includes the whole generation engine. | Constantly, while developing. Fastest. |
-| `XFTY_Integration` | `force-app` | The classes that do real DML — `NOW` / `RELATED_ONLY` insert modes and the bundled Providers persisting records. Sensitive to org config. | Before a commit; in CI. |
-| `XFTY_Load` | `test-support` | `XFTY_LoadTest`, `XFTY_SharedAncestorLoadTest`, `XFTY_DeferredLoadTest` — push generation toward each governor limit and pin where it breaks ([../reference/volume-and-limits.md](../reference/volume-and-limits.md)). Assertions assume a quiet org, so it is **not** shipped — and **not** run in CI (a shared runner lacks the CPU headroom for its bulk inserts). | On demand, and when changing the engine. Slowest. |
-| `XFTY_Examples` | `test-support` | `XFTY_Ex_*Test` — the runnable versions of every [use/](../use/) doc example. Guards the documented public API. | With the docs; in CI. |
-| `XFTY_OrgOnly` | `test-support/orgonly` | Tests that need a real org's schema / query semantics — a custom object's record-type describe, real `Profile` / `UserRole` tables, record-type query counting, the deep-hierarchy acceptance test. Excluded from the local `nimbus test` run ([about-nimbus](about-nimbus.md)). Runs on **any** Developer Edition or scratch org. | On a scratch org, in CI. |
-| `XFTY_PersonAccount` | `test-support/orgonly` | `XFTY_PersonAccountVariantTest` only — kept out of `XFTY_OrgOnly` because it needs a **Person-Account-enabled** org, which a package / test cannot turn on. Deploy `XFTY_PersonAccountDataProvider` alongside it. | On a Person-Account org, in CI. |
+| Folder | Contents |
+|--------|----------|
+| `Core/` | `RecordProvider`, `Bundle`, `MasterTemplate`, `GenerationContext`, `ChildProvider`, and the rest of the public surface. |
+| `Engine/` | The generation pipeline's phase classes — ancestor generation, the value passes, the cycle guard. |
+| `Enrichment/` | `Inject`/`InjectAll`, `InjectConfig`, `SObjectInjector`, and their supporting pieces. |
+| `Relationships/` | `DefaultRelationship`, `SharedAncestor`, `SharedAncestorHierarchy`. |
+| `Lookup/` | `LookupKey`, `FlavouredLookupKey`, variant resolution. |
+| `Persistence/` | `IdMocker`, `DepthBatchedInserter`, `DeferredInserter`, `DeferredInsertBuffer`. |
+| `Predicates/` | The `IRecordPredicate` implementations and factories. |
+| `Values/` | The bundled `IValueExpression`/`IContextAwareExpression`/`IDeferredExpression` implementations. |
+| `Demo/` | Tests for this port's own bundled `AccountDataProvider`/`ContactDataProvider`/`DefaultProviderLookup`. |
+| `PerformanceTest.cs` (top level) | Volume/wall-clock tests — see below. |
 
 ```bash
-sf apex run test --suite-names XFTY_Unit --result-format human            # fast loop
-sf apex run test --suite-names XFTY_Unit --suite-names XFTY_Integration   # pre-commit
-sf apex run test --suite-names XFTY_Load                                  # engine changes (needs test-support deployed)
-sf apex run test --suite-names XFTY_Examples                              # doc examples
-sf apex run test --suite-names XFTY_OrgOnly                               # scratch org only
+dotnet test Xfty.slnx --filter "Category!=Performance"                        # everything except performance
+dotnet test Xfty.slnx --filter "FullyQualifiedName~Xfty.Test.Relationships"   # one namespace
 ```
 
-Keep test classes single-purpose — suites group by class. A class that mixes
-DML-free and DML-backed methods is split (e.g. `XFTY_DummySObjectFactoryTest`
-keeps the no-DML matrix; `XFTY_DummySObjectFactoryDmlTest` has the `NOW` /
-`RELATED_ONLY` cases). A class with two clearly different *jobs* is also split:
-`XFTY_DummySObjectProviderApiTest` (one test per fluent-API affordance) vs.
-`XFTY_DummySObjectProviderScenarioTest` (end-to-end "does the whole flow work").
-Each test class lives in the same folder as the class it exercises.
+---
 
-`XFTY_RecordTypeRealRtTest` is in `XFTY_OrgOnly` (it was retargeted off
-`PersonAccount` onto the `XFTY_HierarchyNode__c` custom object, so it no longer
-needs the feature). Only `XFTY_PersonAccountVariantTest` still does — hence its
-own `XFTY_PersonAccount` suite.
+## The `Performance` trait
+
+`PerformanceTest.cs` is tagged `[Trait("Category", "Performance")]` and run as
+a **separate, `continue-on-error` CI step** — the same role Apex's `XFTY_Load`
+suite played running only in a scheduled workflow rather than on every push.
+It measures wall-clock time (`Stopwatch`) and rough allocation
+(`GC.GetTotalMemory`) against deliberately generous ceilings, since there are
+no governor limits to push toward in this port — see
+[reference/volume-and-limits](../reference/volume-and-limits.md).
+
+---
+
+## Keep test classes single-purpose
+
+A class that mixes fundamentally different scenarios is split — e.g.
+`RecordFactoryTest` (the no-persistence-layer matrix: inclusivity, insert
+modes, `IncludeOptional`) is distinct from `RecordProviderScenarioTest`
+(end-to-end "does the whole flow work" cases) and `RecordProviderApiTest` (one
+test per fluent-API affordance). Each test class lives in the folder that
+mirrors the class it exercises.
