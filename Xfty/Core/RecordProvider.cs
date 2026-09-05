@@ -427,12 +427,11 @@ public sealed class RecordProvider
 
     private void AssertNoSObjectTypeConflict(List<object>? overrideTemplateList)
     {
-        bool conflicts = overrideTemplateList is { Count: > 0 }
-            && overrideTemplateList.Any(overrideTemplate => overrideTemplate.GetType() != this.sObjectType);
-        if (conflicts)
+        object? conflicting = overrideTemplateList?.FirstOrDefault(overrideTemplate => overrideTemplate.GetType() != this.sObjectType);
+        if (conflicting is not null)
         {
             throw new RecordProviderConflictException(
-                $"This Provider requests {this.sObjectType} but was given a conflicting override template type.");
+                $"This Provider requests {this.sObjectType} but was given a {conflicting.GetType()} override template.");
         }
     }
 }

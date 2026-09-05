@@ -1,0 +1,542 @@
+using Net.Nowhereatall.Xfty.Core;
+using Net.Nowhereatall.Xfty.Demo;
+using Net.Nowhereatall.Xfty.Lookup;
+using Net.Nowhereatall.Xfty.Relationships;
+using Net.Nowhereatall.Xfty.Values;
+
+namespace Net.Nowhereatall.Xfty.Test.Core;
+
+/// <summary>
+/// Proves the fluent public API of RecordProvider - one test per affordance:
+/// the constructors and their guards, the setters, WithVariant, Put(...)
+/// routing, IncludeOptional / ExcludeRelationship, precedence. Mock/Never
+/// mode throughout - no persistence. End-to-end scenarios live in
+/// RecordProviderScenarioTest.
+/// </summary>
+public class RecordProviderApiTest
+{
+    private static readonly DefaultProviderLookup Lookup = new();
+
+    private static RecordProvider ContactProvider() =>
+        new RecordProvider(typeof(Contact), Lookup).SetInsertMode(InsertMode.Mock);
+
+    // Constructor guards ------------------------------------------
+
+    [Fact]
+    public void Constructor_WhenTheRecordTypeIsNull_Throws()
+    {
+        // Arrange
+        // nothing to arrange
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider((Type)null!, Lookup));
+
+        // Assert
+        Assert.Contains("record type is required", thrown.Message);
+    }
+
+    [Fact]
+    public void Constructor_WhenTheProviderLookupIsNull_Throws()
+    {
+        // Arrange
+        // nothing to arrange
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider(typeof(Contact), null!));
+
+        // Assert
+        Assert.Contains("Provider Lookup", thrown.Message);
+    }
+
+    [Fact]
+    public void Constructor_WhenTheLookupKeyIsNull_Throws()
+    {
+        // Arrange
+        // nothing to arrange
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider((ILookupKey)null!, Lookup));
+
+        // Assert
+        Assert.Contains("lookup key", thrown.Message);
+    }
+
+    [Fact]
+    public void Constructor_WhenTheTemplateListIsEmpty_Throws()
+    {
+        // Arrange
+        // nothing to arrange
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider([], Lookup));
+
+        // Assert
+        Assert.Contains("empty or null template list", thrown.Message);
+    }
+
+    [Fact]
+    public void Constructor_WhenTheTemplateListsFirstEntryIsNull_Throws()
+    {
+        // Arrange
+        // nothing to arrange
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider([null!], Lookup));
+
+        // Assert
+        Assert.Contains("empty or null template list", thrown.Message);
+    }
+
+    // Convenience constructors ----------------------------------
+
+    [Fact]
+    public void Constructor_FromALookupKey_PinsTheVariantAndDerivesTheType()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(LookupKey.Get(typeof(Contact)), Lookup).SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.NotNull(result.Id);
+        Assert.StartsWith(ContactDataProvider.DefaultLastNamePrefix, result.LastName);
+    }
+
+    [Fact]
+    public void Constructor_FromATemplate_DerivesTheTypeAndAppliesTheOverride()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(new Contact { FirstName = "Zoe" }, Lookup).SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.Equal("Zoe", result.FirstName);
+        Assert.StartsWith(ContactDataProvider.DefaultLastNamePrefix, result.LastName);
+    }
+
+    [Fact]
+    public void Constructor_FromATemplateList_DerivesTheTypeAndKeepsEachTemplate()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(
+            new List<object> { new Contact { FirstName = "Alice" }, new Contact { FirstName = "Bob" } }, Lookup)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        List<object> results = provider.SupplyList();
+
+        // Assert
+        Assert.Equal(2, results.Count);
+        Assert.Equal("Alice", ((Contact)results[0]).FirstName);
+        Assert.Equal("Bob", ((Contact)results[1]).FirstName);
+    }
+
+    // Setter guards -------------------------------------------
+
+    [Fact]
+    public void SetQuantityPerTemplate_WhenGivenAValueBelowOne_Throws()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider();
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => provider.SetQuantityPerTemplate(0));
+
+        // Assert
+        Assert.Contains("makes no sense", thrown.Message);
+    }
+
+    [Fact]
+    public void SetOverrideTemplateList_WhenGivenMixedRecordTypes_Throws()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider();
+
+        // Act
+        RecordProviderConflictException thrown = Assert.Throws<RecordProviderConflictException>(
+            () => provider.SetOverrideTemplateList([new Contact(), new Account()]));
+
+        // Assert
+        Assert.Contains("Account", thrown.Message);
+    }
+
+    [Fact]
+    public void SetOverrideTemplateList_WhenGivenAHomogeneousListOfTheWrongType_Throws()
+    {
+        // Arrange - a homogeneous list of the "wrong" type used to silently retarget the Provider
+        RecordProvider provider = ContactProvider();
+
+        // Act
+        RecordProviderConflictException thrown = Assert.Throws<RecordProviderConflictException>(
+            () => provider.SetOverrideTemplateList([new Account()]));
+
+        // Assert - the constructor asked for Contact
+        Assert.Contains("Contact", thrown.Message);
+    }
+
+    [Fact]
+    public void Constructor_FromAHomogeneousTemplateList_IsAccepted()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(new List<object> { new Contact { FirstName = "A" }, new Contact { FirstName = "B" } }, Lookup)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        List<object> results = provider.SupplyList();
+
+        // Assert
+        Assert.Equal(2, results.Count);
+    }
+
+    // WithVariant --------------------------------------------
+
+    [Fact]
+    public void WithVariant_ForAMatchingKey_PinsItAndGenerates()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .WithVariant(LookupKey.Get(typeof(Contact)))
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.NotNull(result.Id);
+        Assert.StartsWith(ContactDataProvider.DefaultLastNamePrefix, result.LastName);
+    }
+
+    [Fact]
+    public void WithVariant_WhenTheKeyIsNull_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new(typeof(Contact), Lookup);
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => provider.WithVariant(null!));
+
+        // Assert
+        Assert.Contains("variant key is required", thrown.Message);
+    }
+
+    [Fact]
+    public void WithVariant_WhenTheKeyIsForAnotherRecordType_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new(typeof(Contact), Lookup);
+
+        // Act
+        RecordProviderConflictException thrown = Assert.Throws<RecordProviderConflictException>(
+            () => provider.WithVariant(LookupKey.Get(typeof(Account))));
+
+        // Assert
+        Assert.Contains("Account", thrown.Message);
+        Assert.Contains("Contact", thrown.Message);
+    }
+
+    [Fact]
+    public void WithVariant_WhenCalledAfterPut_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup).Put(Field.Of<Contact>(nameof(Contact.FirstName)), "x");
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => provider.WithVariant(LookupKey.Get(typeof(Contact))));
+
+        // Assert
+        Assert.Contains("WithVariant", thrown.Message);
+    }
+
+    // Put(...) routing -----------------------------------
+
+    [Fact]
+    public void Put_ForAValueExpressionPassedAsObject_RoutesItCorrectly()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider().Put(Field.Of<Contact>(nameof(Contact.FirstName)), (object)new LiteralExpression("RoutedStrategy"));
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.Equal("RoutedStrategy", result.FirstName);
+    }
+
+    [Fact]
+    public void Put_ForAContextAwareExpressionPassedAsObject_RoutesItCorrectly()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider()
+            .Put(Field.Of<Contact>(nameof(Contact.FirstName)), "Source")
+            .Put(Field.Of<Contact>(nameof(Contact.Department)), (object)new CopyFromSiblingExpression(Field.Of<Contact>(nameof(Contact.FirstName))));
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert - a context-aware expression passed as object still routes correctly
+        Assert.Equal("Source", result.Department);
+    }
+
+    [Fact]
+    public void Put_WhenGivenARelationship_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new(typeof(Contact), Lookup);
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => provider.Put(Field.Of<Contact>(nameof(Contact.AccountId)), (object)new DefaultRelationship(new Account())));
+
+        // Assert
+        Assert.Contains("PutRequired", thrown.Message);
+    }
+
+    [Fact]
+    public void Put_ForAValueExpression_ReplacesTheGenerationStrategyForAField()
+    {
+        // Regression guard: a defect previously made provider-level Put(...) a no-op.
+        // Arrange
+        RecordProvider provider = ContactProvider().Put(Field.Of<Contact>(nameof(Contact.FirstName)), new LiteralExpression("DeliberateName"));
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.Equal("DeliberateName", result.FirstName);
+    }
+
+    [Fact]
+    public void Put_ForABareLiteral_TreatsItAsAnExactValue()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider().Put(Field.Of<Contact>(nameof(Contact.FirstName)), "LiteralFirstName");
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.Equal("LiteralFirstName", result.FirstName);
+    }
+
+    [Fact]
+    public void SetOverrideTemplate_WinsOverPut()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider()
+            .Put(Field.Of<Contact>(nameof(Contact.FirstName)), new LiteralExpression("FromPut"))
+            .SetOverrideTemplate(new Contact { FirstName = "FromOverride" });
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.Equal("FromOverride", result.FirstName);
+    }
+
+    [Fact]
+    public void Put_OnOneProvider_DoesNotLeakIntoALaterSeparateProvider()
+    {
+        // Arrange - customise one Provider, then build a pristine one on the same lookup
+        _ = ContactProvider().Put(Field.Of<Contact>(nameof(Contact.FirstName)), new LiteralExpression("Customized")).Supply();
+
+        // Act
+        Contact pristine = Assert.IsType<Contact>(ContactProvider().Supply());
+
+        // Assert
+        Assert.StartsWith(ContactDataProvider.DefaultFirstNamePrefix, pristine.FirstName);
+    }
+
+    // RemoveFromMasterTemplate -----------------------------
+
+    [Fact]
+    public void RemoveFromMasterTemplate_DropsAGeneratedValueAndLeavesOtherDefaults()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .RemoveFromMasterTemplate(Field.Of<Contact>(nameof(Contact.Email)))
+            .SetInsertMode(InsertMode.Never);
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.Null(result.Email); // Email is no longer generated once removed
+        Assert.NotNull(result.LastName); // other defaults are unaffected
+    }
+
+    // PutOptional / IncludeOptional / ExcludeRelationship ---
+
+    [Fact]
+    public void PutOptional_AtRequiredInclusivity_TheOptionalRelationshipIsSkipped()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .PutOptional(Field.Of<Contact>(nameof(Contact.ReportsToId)), new DefaultRelationship(new Contact()))
+            .RemoveFromMasterTemplate(Field.Of<Contact>(nameof(Contact.AccountId)))
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+
+        // Assert - an optional relationship is skipped for Required
+        Assert.Null(bundle.GetList(Field.Of<Contact>(nameof(Contact.ReportsToId))));
+    }
+
+    [Fact]
+    public void PutOptional_AtAllInclusivity_TheOptionalRelationshipIsGenerated()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .PutOptional(Field.Of<Contact>(nameof(Contact.ReportsToId)), new DefaultRelationship(new Contact()))
+            .RemoveFromMasterTemplate(Field.Of<Contact>(nameof(Contact.AccountId)))
+            .SetInclusivity(InsertInclusivity.All)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+
+        // Assert - an optional relationship is generated for All
+        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(nameof(Contact.ReportsToId)))!);
+    }
+
+    [Fact]
+    public void IncludeOptional_AtRequiredInclusivity_PromotesJustThatOptionalRelationship()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .PutOptional(Field.Of<Contact>(nameof(Contact.ReportsToId)), new DefaultRelationship(new Contact()))
+            .IncludeOptional(Field.Of<Contact>(nameof(Contact.ReportsToId)))
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+
+        // Assert
+        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(nameof(Contact.ReportsToId)))!); // the included optional relationship is generated
+        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(nameof(Contact.AccountId)))!); // the required Account is still generated
+    }
+
+    [Fact]
+    public void IncludeOptional_OnAnAlreadyRequiredRelationship_IsANoOp()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .IncludeOptional(Field.Of<Contact>(nameof(Contact.AccountId)))
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+
+        // Assert - the required Account is generated, exactly once
+        _ = Assert.Single(bundle.GetList(Field.Of<Contact>(nameof(Contact.AccountId)))!);
+    }
+
+    [Fact]
+    public void IncludeOptional_WhenTheFieldIsNotARelationship_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .IncludeOptional(Field.Of<Contact>(nameof(Contact.FirstName)))
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(provider.SupplyBundle);
+
+        // Assert
+        Assert.Contains("is not a relationship", thrown.Message);
+    }
+
+    [Fact]
+    public void ExcludeRelationship_SkipsARequiredRelationshipAndLeavesNoOrphanReference()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .ExcludeRelationship(Field.Of<Contact>(nameof(Contact.AccountId)))
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+
+        // Assert
+        Assert.Null(bundle.GetList(Field.Of<Contact>(nameof(Contact.AccountId)))); // the excluded relationship is not generated
+        Assert.Null(((Contact)bundle.GetList(Field.Of<Contact>(nameof(Contact.Id)))![0]).AccountId); // and not left as an orphan reference
+    }
+
+    [Fact]
+    public void ExcludeRelationship_IsInstanceLocal()
+    {
+        // Arrange - a separate Provider on the same lookup, no exclusion
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .ExcludeRelationship(Field.Of<Contact>(nameof(Contact.AccountId)))
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock);
+        Bundle normal = new RecordProvider(typeof(Contact), Lookup)
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock)
+            .SupplyBundle();
+
+        // Act
+        Bundle excluded = provider.SupplyBundle();
+
+        // Assert
+        Assert.Null(excluded.GetList(Field.Of<Contact>(nameof(Contact.AccountId))));
+        _ = Assert.Single(normal.GetList(Field.Of<Contact>(nameof(Contact.AccountId)))!); // a separate Provider on the same lookup still generates the relationship
+    }
+
+    [Fact]
+    public void ExcludeRelationship_WhenGivenAPlainValueField_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new(typeof(Contact), Lookup);
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => provider.ExcludeRelationship(Field.Of<Contact>(nameof(Contact.FirstName))));
+
+        // Assert
+        Assert.Contains("no relationship", thrown.Message);
+    }
+
+    // Supply / SupplyList ----------------------------------
+
+    [Fact]
+    public void Supply_ReturnsASingleRecordWithMasterTemplateDefaults()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider();
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.NotNull(result.Id);
+        Assert.StartsWith(ContactDataProvider.DefaultFirstNamePrefix, result.FirstName);
+        Assert.StartsWith(ContactDataProvider.DefaultLastNamePrefix, result.LastName);
+    }
+
+    [Fact]
+    public void SupplyList_AppliesQuantityOutsideTheTemplateLoop()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider()
+            .SetOverrideTemplateList([new Contact { FirstName = "Alice" }, new Contact { FirstName = "Bob" }])
+            .SetQuantityPerTemplate(2);
+
+        // Act
+        List<object> results = provider.SupplyList();
+
+        // Assert - two templates x quantity 2
+        Assert.Equal(4, results.Count);
+        List<string?> firstNames = [.. results.Cast<Contact>().Select(contact => contact.FirstName)];
+        Assert.Equal(["Alice", "Bob", "Alice", "Bob"], firstNames); // A, B, A, B - not A, A, B, B
+    }
+}
