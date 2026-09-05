@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Values;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Values;
@@ -20,7 +19,7 @@ public class IncrementingStringExpressionTest
         object?[] sequence = [expression.Get(), expression.Get(), expression.Get()];
 
         // Assert
-        sequence.Should().Equal("Account 1", "Account 2", "Account 3");
+        Assert.Equal(["Account 1", "Account 2", "Account 3"], sequence);
     }
 
     [Fact]
@@ -33,7 +32,7 @@ public class IncrementingStringExpressionTest
         object?[] sequence = [expression.Get(), expression.Get()];
 
         // Assert
-        sequence.Should().Equal("ACME1", "ACME2");
+        Assert.Equal(["ACME1", "ACME2"], sequence);
     }
 
     [Fact]
@@ -49,6 +48,6 @@ public class IncrementingStringExpressionTest
         object? secondsFirstValue = second.Get();
 
         // Assert - each instance counts independently
-        secondsFirstValue.Should().Be("P 1");
+        Assert.Equal("P 1", secondsFirstValue);
     }
 }

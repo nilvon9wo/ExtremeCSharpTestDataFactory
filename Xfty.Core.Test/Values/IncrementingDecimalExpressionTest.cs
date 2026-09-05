@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Values;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Values;
@@ -16,6 +15,6 @@ public class IncrementingDecimalExpressionTest
         object?[] twoCalls = [expression.Get(), expression.Get()];
 
         // Assert
-        twoCalls.Should().Equal(1m, 2m);
+        Assert.Equal([1m, 2m], twoCalls);
     }
 }

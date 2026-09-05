@@ -1,27 +1,35 @@
+using System.Reflection;
+
 namespace Net.Nowhereatall.Xfty.Core.Predicates;
 
 /// <summary>
-/// An <see cref="IRecordPredicate{TRecord}"/> satisfied when a record's field
-/// equals a fixed value - null included, so <c>EqualTo(field, null)</c> is an
-/// "is null" check. Wrap it in <see cref="NegationPredicate{TRecord}"/> for
-/// "not equal" / "is not null".
+/// An <see cref="IRecordPredicate"/> satisfied when a record's field equals a
+/// fixed value - null included, so <c>EqualTo(field, null)</c> is an "is
+/// null" check. Wrap it in <see cref="NegationPredicate"/> for "not equal" /
+/// "is not null".
 ///
 /// Obtain one through <see cref="Of"/> or the <see cref="FieldPredicateFactory"/>
 /// facade.
 /// </summary>
-public sealed class FieldEqualToPredicate<TRecord, TValue> : FieldPredicateBase<TRecord, TValue>
-    where TRecord : class
+public sealed class FieldEqualToPredicate : IRecordPredicate
 {
-    private readonly TValue? comparisonValue;
+    private readonly PropertyInfo field;
+    private readonly object? comparisonValue;
 
-    private FieldEqualToPredicate(Func<TRecord, TValue> field, TValue? comparisonValue) : base(field)
+    private FieldEqualToPredicate(PropertyInfo field, object? comparisonValue)
     {
+        this.field = field;
         this.comparisonValue = comparisonValue;
     }
 
-    public static FieldEqualToPredicate<TRecord, TValue> Of(Func<TRecord, TValue> field, TValue? comparisonValue) =>
+    public static FieldEqualToPredicate Of(PropertyInfo field, object? comparisonValue) =>
         new(field, comparisonValue);
 
-    public override bool IsSatisfiedBy(TRecord? record) =>
-        EqualityComparer<TValue?>.Default.Equals(this.ActualValue(record), this.comparisonValue);
+    public bool IsSatisfiedBy(object? record)
+    {
+        object? actual = record is null
+            ? null
+            : this.field.GetValue(record);
+        return Equals(actual, this.comparisonValue);
+    }
 }

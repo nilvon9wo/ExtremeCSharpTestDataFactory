@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Values;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Values;
@@ -27,9 +25,8 @@ public class UniqueStringOfLengthExpressionTest
         List<string> produced = Enumerable.Range(0, 20).Select(_ => (string)expression.Get()!).ToList();
 
         // Assert
-        produced.Distinct().Should().HaveCount(20);
-        produced.Should().OnlyContain(value => value.Length == 37);
-        produced.Should().OnlyContain(value => Regex.IsMatch(value, "^[A-Z]{37}$"));
+        Assert.Equal(20, produced.Distinct().Count());
+        Assert.All(produced, value => Assert.Matches("^[A-Z]{37}$", value));
     }
 
     [Fact]
@@ -44,7 +41,7 @@ public class UniqueStringOfLengthExpressionTest
         object? secondValue = second.Get();
 
         // Assert - the counter is per length, not per instance
-        secondValue.Should().NotBe(firstValue);
+        Assert.NotEqual(firstValue, secondValue);
     }
 
     [Fact]
@@ -58,7 +55,7 @@ public class UniqueStringOfLengthExpressionTest
         object?[] firstOfEachLength = [lengthFortyThree.Get(), lengthFortyFour.Get()];
 
         // Assert - each length's own first value has that length, independent of the other
-        firstOfEachLength[0].Should().BeOfType<string>().Which.Should().HaveLength(43);
-        firstOfEachLength[1].Should().BeOfType<string>().Which.Should().HaveLength(44);
+        Assert.Equal(43, Assert.IsType<string>(firstOfEachLength[0]).Length);
+        Assert.Equal(44, Assert.IsType<string>(firstOfEachLength[1]).Length);
     }
 }

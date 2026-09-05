@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Values;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Values;
@@ -20,7 +19,7 @@ public class UniqueStringExpressionTest
         List<object> produced = expressions.Select(expression => expression.Get()).ToList();
 
         // Assert - the static counter keeps values distinct across instances
-        produced.Distinct().Should().HaveCount(25);
+        Assert.Equal(25, produced.Distinct().Count());
     }
 
     [Fact]
@@ -33,6 +32,6 @@ public class UniqueStringExpressionTest
         object? value = expression.Get();
 
         // Assert
-        value.Should().BeOfType<string>().Which.Should().StartWith("Widget ");
+        Assert.StartsWith("Widget ", Assert.IsType<string>(value));
     }
 }

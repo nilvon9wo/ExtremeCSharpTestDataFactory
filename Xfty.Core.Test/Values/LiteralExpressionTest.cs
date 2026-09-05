@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Values;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Values;
@@ -28,7 +27,7 @@ public class LiteralExpressionTest
         object?[] twoCalls = [expression.Get(), expression.Get()];
 
         // Assert
-        twoCalls.Should().Equal("constant", "constant");
+        Assert.Equal(["constant", "constant"], twoCalls);
     }
 
     private static void AssertReturnsItself(object? value)
@@ -40,6 +39,6 @@ public class LiteralExpressionTest
         object? result = expression.Get();
 
         // Assert
-        result.Should().Be(value);
+        Assert.Equal(value, result);
     }
 }

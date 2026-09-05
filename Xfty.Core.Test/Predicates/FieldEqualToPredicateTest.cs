@@ -1,13 +1,11 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Demo;
 using Net.Nowhereatall.Xfty.Core.Predicates;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Predicates;
 
 /// <summary>
-/// Proves <see cref="FieldEqualToPredicate{TRecord,TValue}"/> - IsSatisfiedBy
-/// is true exactly when the record's field equals the configured value, null
-/// included.
+/// Proves <see cref="FieldEqualToPredicate"/> - IsSatisfiedBy is true exactly
+/// when the record's field equals the configured value, null included.
 /// </summary>
 public class FieldEqualToPredicateTest
 {
@@ -31,15 +29,15 @@ public class FieldEqualToPredicateTest
     public void IsSatisfiedBy_WhenRecordIsNull_ReturnsFalse() =>
         AssertIsSatisfiedBy("Technology", null, false);
 
-    private static void AssertIsSatisfiedBy(string? configuredValue, Account? record, bool expectedResult)
+    private static void AssertIsSatisfiedBy(object? configuredValue, Account? record, bool expectedResult)
     {
         // Arrange
-        IRecordPredicate<Account> predicate = FieldEqualToPredicate<Account, string?>.Of(a => a.Industry, configuredValue);
+        IRecordPredicate predicate = FieldEqualToPredicate.Of(Field.Of<Account>(nameof(Account.Industry)), configuredValue);
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);
 
         // Assert
-        actualResult.Should().Be(expectedResult);
+        Assert.Equal(expectedResult, actualResult);
     }
 }

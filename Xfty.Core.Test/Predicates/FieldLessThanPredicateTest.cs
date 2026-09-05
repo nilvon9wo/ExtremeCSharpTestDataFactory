@@ -1,13 +1,13 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Demo;
 using Net.Nowhereatall.Xfty.Core.Predicates;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Predicates;
 
 /// <summary>
-/// Proves <see cref="FieldLessThanPredicate{TRecord,TValue}"/> - IsSatisfiedBy
-/// is true exactly when the field orders strictly before the configured
-/// value, and false whenever the two cannot be compared.
+/// Proves <see cref="FieldLessThanPredicate"/> - IsSatisfiedBy is true
+/// exactly when the field orders strictly before the configured value, and
+/// false whenever the two cannot be compared. The ordering itself is proved
+/// in ValueComparisonTest.
 /// </summary>
 public class FieldLessThanPredicateTest
 {
@@ -31,16 +31,16 @@ public class FieldLessThanPredicateTest
     public void IsSatisfiedBy_WhenRecordIsNull_ReturnsFalse() =>
         AssertIsSatisfiedBy(1, null, false);
 
-    private static void AssertIsSatisfiedBy(int? threshold, Account? record, bool expectedResult)
+    private static void AssertIsSatisfiedBy(object? threshold, Account? record, bool expectedResult)
     {
         // Arrange
-        IRecordPredicate<Account> predicate =
-            FieldLessThanPredicate<Account, int?>.Of(a => a.NumberOfEmployees, threshold);
+        IRecordPredicate predicate =
+            FieldLessThanPredicate.Of(Field.Of<Account>(nameof(Account.NumberOfEmployees)), threshold);
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);
 
         // Assert
-        actualResult.Should().Be(expectedResult);
+        Assert.Equal(expectedResult, actualResult);
     }
 }

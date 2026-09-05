@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Values;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Values;
@@ -19,8 +18,10 @@ public class UniqueAcrossRunsExpressionTest
         object?[] twoCalls = [expression.Get(), expression.Get()];
 
         // Assert
-        twoCalls[0].Should().BeOfType<string>().Which.Should().StartWith("u.").And.EndWith("@example.com");
-        twoCalls[1].Should().NotBe(twoCalls[0], "the counter still moves within a run");
+        string firstValue = Assert.IsType<string>(twoCalls[0]);
+        Assert.StartsWith("u.", firstValue);
+        Assert.EndsWith("@example.com", firstValue);
+        Assert.NotEqual(twoCalls[0], twoCalls[1]);
     }
 
     [Fact]
@@ -33,8 +34,8 @@ public class UniqueAcrossRunsExpressionTest
         object? value = expression.Get();
 
         // Assert - prefix, then digits from the token + counter (no "User Federation Id 1" literal)
-        string stringValue = value.Should().BeOfType<string>().Which;
-        stringValue.Should().StartWith("User Federation Id ");
-        stringValue.Length.Should().BeGreaterThan("User Federation Id 1".Length);
+        string stringValue = Assert.IsType<string>(value);
+        Assert.StartsWith("User Federation Id ", stringValue);
+        Assert.True(stringValue.Length > "User Federation Id 1".Length);
     }
 }

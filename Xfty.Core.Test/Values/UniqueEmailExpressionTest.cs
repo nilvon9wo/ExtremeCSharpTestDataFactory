@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Values;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Values;
@@ -17,7 +16,7 @@ public class UniqueEmailExpressionTest
         List<string> produced = expressions.Select(expression => (string)expression.Get()!).ToList();
 
         // Assert
-        produced.Distinct().Should().HaveCount(25, "each address is unique");
-        produced.Should().OnlyContain(email => email.StartsWith("test.user") && email.EndsWith("@example.com"));
+        Assert.Equal(25, produced.Distinct().Count());
+        Assert.All(produced, email => Assert.True(email.StartsWith("test.user") && email.EndsWith("@example.com"), email));
     }
 }

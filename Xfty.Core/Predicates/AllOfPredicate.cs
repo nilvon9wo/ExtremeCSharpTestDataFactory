@@ -1,30 +1,30 @@
 namespace Net.Nowhereatall.Xfty.Core.Predicates;
 
 /// <summary>
-/// An <see cref="IRecordPredicate{TRecord}"/> satisfied only when every member
+/// An <see cref="IRecordPredicate"/> satisfied only when every member
 /// predicate is (logical AND). An empty member list is vacuously satisfied.
 ///
 /// Obtain one through <see cref="Of"/> or the <see cref="PredicateFactory"/>
 /// facade.
 /// </summary>
-public sealed class AllOfPredicate<TRecord> : IRecordPredicate<TRecord>
+public sealed class AllOfPredicate : IRecordPredicate
 {
-    private readonly IReadOnlyList<IRecordPredicate<TRecord>> members;
+    private readonly IReadOnlyList<IRecordPredicate> members;
 
-    private AllOfPredicate(IReadOnlyList<IRecordPredicate<TRecord>> members)
+    private AllOfPredicate(IReadOnlyList<IRecordPredicate> members)
     {
         this.members = members;
     }
 
-    public static AllOfPredicate<TRecord> Of(IReadOnlyList<IRecordPredicate<TRecord>>? members)
+    public static AllOfPredicate Of(IReadOnlyList<IRecordPredicate>? members)
     {
         if (members is null)
         {
             throw new XftyConfigurationException("A predicate list is required.");
         }
-        return new AllOfPredicate<TRecord>(members);
+        return new AllOfPredicate(members);
     }
 
-    public bool IsSatisfiedBy(TRecord? record) =>
+    public bool IsSatisfiedBy(object? record) =>
         this.members.All(member => member.IsSatisfiedBy(record));
 }

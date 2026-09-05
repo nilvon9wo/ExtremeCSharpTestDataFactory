@@ -1,13 +1,12 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Demo;
 using Net.Nowhereatall.Xfty.Core.Predicates;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Predicates;
 
 /// <summary>
-/// Proves <see cref="AnyOfPredicate{TRecord}"/> - IsSatisfiedBy is true when
-/// at least one member predicate is (an empty member list is never
-/// satisfied), and Of rejects a null list.
+/// Proves <see cref="AnyOfPredicate"/> - IsSatisfiedBy is true when at least
+/// one member predicate is (an empty member list is never satisfied), and Of
+/// rejects a null list.
 /// </summary>
 public class AnyOfPredicateTest
 {
@@ -29,30 +28,27 @@ public class AnyOfPredicateTest
         // Arrange - nothing to arrange
 
         // Act
-        Action act = () => AnyOfPredicate<Account>.Of(null);
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => AnyOfPredicate.Of(null));
 
         // Assert
-        act.Should().Throw<XftyConfigurationException>().WithMessage("*predicate list is required*");
+        Assert.Contains("predicate list is required", thrown.Message);
     }
 
-    private static List<IRecordPredicate<Account>> BigOrTechPredicates() =>
+    private static List<IRecordPredicate> BigOrTechPredicates() =>
     [
-        FieldPredicateFactory.GreaterThan((Account a) => a.NumberOfEmployees, 5000),
-        FieldPredicateFactory.EqualTo((Account a) => a.Industry, "Technology")
+        FieldPredicateFactory.GreaterThan(Field.Of<Account>(nameof(Account.NumberOfEmployees)), 5000),
+        FieldPredicateFactory.EqualTo(Field.Of<Account>(nameof(Account.Industry)), "Technology")
     ];
 
-    private static void AssertIsSatisfiedBy(
-        List<IRecordPredicate<Account>> members,
-        Account? record,
-        bool expectedResult)
+    private static void AssertIsSatisfiedBy(List<IRecordPredicate> members, Account? record, bool expectedResult)
     {
         // Arrange
-        IRecordPredicate<Account> predicate = AnyOfPredicate<Account>.Of(members);
+        IRecordPredicate predicate = AnyOfPredicate.Of(members);
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);
 
         // Assert
-        actualResult.Should().Be(expectedResult);
+        Assert.Equal(expectedResult, actualResult);
     }
 }

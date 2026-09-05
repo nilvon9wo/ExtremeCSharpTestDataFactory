@@ -1,17 +1,16 @@
-using FluentAssertions;
 using Net.Nowhereatall.Xfty.Core.Demo;
 using Net.Nowhereatall.Xfty.Core.Predicates;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Predicates;
 
 /// <summary>
-/// Proves <see cref="FieldInSetPredicate{TRecord,TValue}"/> - IsSatisfiedBy is
-/// true exactly when the record's field is one of the configured set; a null
-/// set accepts nothing.
+/// Proves <see cref="FieldInSetPredicate"/> - IsSatisfiedBy is true exactly
+/// when the record's field is one of the configured set; a null set accepts
+/// nothing.
 /// </summary>
 public class FieldInSetPredicateTest
 {
-    private static readonly string?[] FinanceOrTech = ["Finance", "Technology"];
+    private static readonly object?[] FinanceOrTech = ["Finance", "Technology"];
 
     [Fact]
     public void IsSatisfiedBy_WhenFieldIsAMemberOfTheSet_ReturnsTrue() =>
@@ -29,15 +28,15 @@ public class FieldInSetPredicateTest
     public void IsSatisfiedBy_WhenTheRecordIsNull_ReturnsFalse() =>
         AssertIsSatisfiedBy(FinanceOrTech, null, false);
 
-    private static void AssertIsSatisfiedBy(string?[]? acceptedValues, Account? record, bool expectedResult)
+    private static void AssertIsSatisfiedBy(object?[]? acceptedValues, Account? record, bool expectedResult)
     {
         // Arrange
-        IRecordPredicate<Account> predicate = FieldInSetPredicate<Account, string?>.Of(a => a.Industry, acceptedValues);
+        IRecordPredicate predicate = FieldInSetPredicate.Of(Field.Of<Account>(nameof(Account.Industry)), acceptedValues);
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);
 
         // Assert
-        actualResult.Should().Be(expectedResult);
+        Assert.Equal(expectedResult, actualResult);
     }
 }

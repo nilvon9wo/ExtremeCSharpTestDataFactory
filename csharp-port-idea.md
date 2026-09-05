@@ -82,8 +82,14 @@ his most recent/best-configured C# project, maybe Certara is, he wasn't sure
 and said it isn't important; treat Skroob5000's setup below as one reasonable
 precedent, not gospel):
 - `net10.0`, `ImplicitUsings`/`Nullable` enabled.
-- Test stack: `xunit` + `xunit.runner.visualstudio` + `FluentAssertions` +
-  `NSubstitute` + `coverlet.collector` + `Microsoft.NET.Test.Sdk`.
+- Test stack: `xunit` + `xunit.runner.visualstudio` + `NSubstitute` +
+  `coverlet.collector` + `Microsoft.NET.Test.Sdk`. **Not** FluentAssertions,
+  despite matching Skroob5000 - Brian caught (2026-09-04) that FluentAssertions
+  8.x is Xceed-licensed, free for non-commercial use only, and didn't want a
+  license-encumbered dependency for something as trivial as an assertion,
+  especially one potential users of a portfolio library would shy away from.
+  Plain xUnit `Assert.*` instead - no extra dependency, and it happens to
+  read closer to Apex's own `Assert.*` calls than a fluent chain would.
 - `LanguageExt.Core` in the main project — matches
   `E:\projects\CSharp\CSharp Style Rules.txt` rule 1 ("never use for/while,
   prefer functional") which plain C# can't really honor for stateful code
@@ -130,9 +136,11 @@ true for C#", then clarified same day: it's the *spirit* of the doc that
 survives, not its Apex-syntax examples — idiomatic C# is preferred throughout,
 and naming conventions are expected to be the biggest visible difference (e.g.
 PascalCase test method names instead of the `test`-prefixed camelCase Apex
-uses, FluentAssertions `.Should()` instead of `Assert.areEqual`, `[Theory]`/
-`[InlineData]` instead of a runner called from thin `@IsTest` data-row
-methods). The one piece kept **literal**, not just in spirit: the AAA
+uses, `[Theory]`/`[InlineData]` instead of a runner called from thin `@IsTest`
+data-row methods). (This entry originally said FluentAssertions `.Should()`
+here - superseded 2026-09-05, see the FluentAssertions-removal entry below;
+plain xUnit `Assert.*` turned out to read closer to Apex's own `Assert.*`
+anyway.) The one piece kept **literal**, not just in spirit: the AAA
 structural comments — `// Arrange`, `// Act`, `// Assert`, and
 `// Sanity Check` (a pre-Act assertion that arranged state matches what the
 test assumes) — stay verbatim in every xUnit test. Everything else in the
@@ -276,3 +284,87 @@ representation (needed to unblock `XFTY_ContextAwareExpressionIntf`, and
 therefore `CopyFromAncestor/Sibling/DescendantExpression`) - the next real
 design decision, deliberately not attempted unattended. Confirm `values/`'s
 tests actually pass once `dotnet test` works again locally.
+
+## 2026-09-05: Smart App Control block cleared; FluentAssertions dropped
+
+Brian ran `dotnet test` himself: **59/59 passing** - the Smart App Control
+block from the previous session is gone (whether it cleared on its own or was
+genuinely non-deterministic, as suspected, is unclear either way; not worth
+chasing further now that it's not blocking).
+
+He also caught something the test run surfaced: FluentAssertions 8.8.0 prints
+an Xceed commercial-license notice at test-run start. FluentAssertions
+versions 8+ are free for non-commercial use only. He didn't want a
+license-encumbered dependency for something this trivial, especially one
+potential users of a portfolio/showcase library would see and be put off by.
+**Removed entirely** - not swapped for another fluent library (e.g.
+AwesomeAssertions, the MIT-licensed post-license-change fork) - plain xUnit
+`Assert.*` covers everything needed and reads closer to Apex's own `Assert.*`
+calls than a fluent chain did anyway. All 16 existing test files (9
+`predicates/`, 7 `values/`) rewritten; `Assert.Throws<T>(...)` capturing the
+exception is a tighter match for coding-standards.md's "capture the throw in
+Act, assert on it in Assert" than `Action act = ...; act.Should().Throw<T>()`
+was. 59/59 still green after the rewrite.
+
+## 2026-09-05: `predicates/` reworked - reflection-based, non-generic, matches Apex 1:1
+
+Brian pushed back hard on the previous session's `predicates/` design:
+*"I'm not clear why you feel the need to redesign it... C# can do everything
+Apex can do, so the original design should have been fine... I fear you are
+trying to be too creative rather than just faithfully porting XFTY to C#."*
+Fair - and specifically correct about the mechanism. `SObject`/`SObjectField`
+is a *single* dynamic-record type usable across every Salesforce object, so
+`XFTY_SObjectPredicateIntf` isn't generic - it doesn't need to be. The
+faithful C# equivalent of "dynamically read a field off any record type" is
+**reflection**, not generics: `PropertyInfo` standing in for `SObjectField`,
+`object` standing in for `SObject`. That's literally what the very first
+version of this plan said ("C# has real reflection... build directly instead")
+- the earlier session just didn't apply it here, and instead invented
+`IRecordPredicate<TRecord>` + `Func<TRecord,TValue>`, which is structure Apex
+never had.
+
+**Confirmed with Brian before reworking** (already-shipped, tested, pushed
+code - didn't want to guess wrong a second time): reflection-based,
+non-generic, and rework `predicates/` now rather than only going forward.
+
+**What changed:**
+- `IRecordPredicate<TRecord>` → `IRecordPredicate` (non-generic),
+  `bool IsSatisfiedBy(object? record)`.
+- `Func<TRecord,TValue>` field accessors → `PropertyInfo`, obtained via a new
+  `Field.Of<TRecord>(string propertyName)` helper (the direct equivalent of
+  how `Account.Industry` resolves to an `SObjectField` token in Apex -
+  reflection instead of a compiler-built-in, since C# has no field-token
+  literal - but callers still write `Field.Of<Account>(nameof(Account.Industry))`,
+  not a raw string, so a typo is a compile error via `nameof`, not a runtime
+  surprise).
+- `XFTY_ValueComparison` **restored** as `ValueComparison` (numeric/DateTime/
+  lexical dispatch, `Math.Sign(...)`-normalized to -1/0/1) - deleting it only
+  made sense under the generic design, where `TValue` was one concrete type
+  per call site; with `object`-typed fields again, the dynamic dispatch is
+  necessary again, exactly like Apex. `ValueComparisonTest` restored too.
+- The invented `FieldPredicateBase` abstract class is **gone** - Apex has no
+  such base (each predicate class independently holds its own field +
+  comparison value), and duplicating one ternary line across 4 small classes
+  is cheaper than inventing structure Apex doesn't have.
+- `AllOfPredicate`/`AnyOfPredicate`/`NegationPredicate` lost their `<TRecord>`
+  parameter along with the interface - otherwise unchanged.
+- Kept as-is (not walked back): `PredicateFactory`/`FieldPredicateFactory`
+  names (vs. `XFTY_Predicates`/`XFTY_FieldPredicate`) - that was a naming
+  choice avoiding a class sharing its own namespace segment's name, not a
+  structural invention, and naming was always expected to be "the biggest
+  visible difference" per the testing-conventions discussion.
+
+All 9 `predicates/` test files rewritten to match (`Field.Of<Account>(...)`
+instead of a lambda selector), plus the new `ValueComparisonTest`. `dotnet
+build`: 0 warnings/errors. `dotnet test`: **blocked again** by the same
+intermittent Smart App Control issue from the previous session (see that
+section above) - tried from both Bash and PowerShell, plus a clean `bin`/`obj`
+rebuild, no luck this time. Every line was hand-traced against the Apex
+originals' expected behaviour before this note was written; still worth
+running `dotnet test` yourself to get an actual green run on record.
+
+**Going forward into `core/`:** same philosophy - class-for-class, method-
+for-method, `PropertyInfo`/`object` wherever Apex used `SObjectField`/
+`SObject`, no new abstractions Apex doesn't have. Do not generalize, do not
+delete Apex classes in favor of "simpler" C# equivalents, unless explicitly
+agreed first.
