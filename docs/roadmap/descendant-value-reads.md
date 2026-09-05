@@ -12,6 +12,14 @@ Implemented:
 - `CopyFromDescendantExpression(childLookupField, sourceField)` — copies a
   field from the child that references this record through
   `childLookupField`; first matching child, or `null`.
+- **Multi-hop, via the path-list constructor** (`CopyFromAncestorExpression`'s
+  own pattern, mirrored): `new CopyFromDescendantExpression([childField1,
+  childField2, ..., sourceField])` walks each hop, first matching child at
+  every step, `null` if any hop has no match. Needed `DeferredGraph` to
+  expose a child's own flat index (`ChildIndicesOf` + `RecordAt`), not just
+  the child record itself (`ChildrenOf`) - without that, not even a custom
+  `IDeferredExpression` could walk a second hop, since there was no way to
+  ask "what are *this* child's children."
 - `RecordFactory` leaves the field unresolved and calls `bundle.DeferValues(...)`;
   **in any mode but `Deferred` / `.DepthBatched()` it throws** — not a silent
   `null`.
@@ -22,10 +30,11 @@ Implemented:
 - Works for a generated ancestor reading its requesting child **and** for a
   parent reading one of its `WithChildren` rows.
 
-Not built: a multi-hop path form (`CopyFromAncestorExpression` has one);
-reading an **aggregate** across many children (only the first is read); a
-loud error when a deferred build registers one but the graph is never
-flattened (the value stays `null`).
+Not built: reading an **aggregate** across many children at one hop (only
+the first is read at each step) - a custom `IDeferredExpression` can already
+do this today, since `DeferredGraph.ChildIndicesOf`/`ChildrenOf` return
+every match, not just the first; a loud error when a deferred build
+registers one but the graph is never flattened (the value stays `null`).
 
 ---
 

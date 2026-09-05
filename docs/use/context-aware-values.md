@@ -126,8 +126,23 @@ these in any other insert mode **throws** — it does not silently leave the fie
 
 Works whether the child is a generated ancestor's requesting child or one of a
 parent's `WithChildren` rows. With more than one matching child the **first** is
-read; with none, the value is `null`. Multi-hop paths and aggregates across
-children are not built.
+read at every hop; with none, the value is `null`.
+
+Several hops — a path of child-lookup fields ending in the field to read,
+mirroring `CopyFromAncestorExpression`'s own path form:
+
+```csharp
+.Put<Account>(x => x.Description, new CopyFromDescendantExpression([
+    Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject),
+]))
+```
+
+Reads the `Subject` of the first generated Case belonging to the first
+generated Contact under this Account - two hops down. `null` if either hop
+has no match. Reading an aggregate across many children at one hop (not just
+the first) is not built as a bundled expression, but a custom
+`IDeferredExpression` can already do it: `DeferredGraph.ChildIndicesOf`/
+`ChildrenOf` both return every match, not just the first.
 
 ---
 

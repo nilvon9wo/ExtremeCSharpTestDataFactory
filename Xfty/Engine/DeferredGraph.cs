@@ -22,7 +22,19 @@ public sealed class DeferredGraph
 
     /// <summary>The generated records that reference records[parentIndex] through childLookupField.</summary>
     public List<object> ChildrenOf(int parentIndex, PropertyInfo childLookupField) =>
+        [.. this.ChildIndicesOf(parentIndex, childLookupField).Select(this.RecordAt)];
+
+    /// <summary>
+    /// The flat indices of the generated records that reference
+    /// records[parentIndex] through childLookupField - lets a caller walk a
+    /// second hop (that child's own children) via <see cref="RecordAt"/>,
+    /// which <see cref="ChildrenOf"/> alone cannot support.
+    /// </summary>
+    public List<int> ChildIndicesOf(int parentIndex, PropertyInfo childLookupField) =>
         [.. this.links
             .Where(link => link.ParentIndex == parentIndex && link.Field == childLookupField)
-            .Select(link => this.records[link.ChildIndex])];
+            .Select(link => link.ChildIndex)];
+
+    /// <summary>The generated record at this flat index - pairs with <see cref="ChildIndicesOf"/> for a multi-hop walk.</summary>
+    public object RecordAt(int index) => this.records[index];
 }

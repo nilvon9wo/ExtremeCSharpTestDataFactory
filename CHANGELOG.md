@@ -14,6 +14,17 @@ because those entries describe a change made in *this* repository.
 
 ### Added
 
+- **Multi-hop descendant reads** — `CopyFromDescendantExpression` gains a
+  path-list constructor (`new CopyFromDescendantExpression([field1, field2,
+  ..., sourceField])`), mirroring `CopyFromAncestorExpression`'s own
+  multi-hop form. First matching child at every hop, `null` if any hop has
+  no match. Needed `DeferredGraph` to expose a child's own flat index
+  (`ChildIndicesOf`, `RecordAt`), not just the child record itself
+  (`ChildrenOf`) - without that, not even a custom `IDeferredExpression`
+  could walk a second hop. Closes half of the "First matching child, single
+  hop only" limitation on the roadmap; reading an aggregate across children
+  at one hop remains unbuilt as a bundled expression (already possible in a
+  custom one, since `ChildIndicesOf`/`ChildrenOf` return every match).
 - **`Xfty.Bogus`** — bundled `IValueExpression`s (`FakeFullNameExpression`,
   `FakeEmailAddressExpression`, `FakeStreetAddressExpression`,
   `FakeParagraphExpression`) producing realistic-looking values by wrapping

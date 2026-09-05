@@ -59,6 +59,88 @@ public class CopyFromDescendantExpressionTest
             () => new CopyFromDescendantExpression(null!, Field.Of<Contact>(x => x.Department)));
 
         // Assert - a null field must be rejected at construction
-        Assert.Contains("child lookup field", thrown.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("cannot be null", thrown.Message);
+    }
+
+    [Fact]
+    public void Constructor_WhenThePathIsTooShort_Throws()
+    {
+        // Arrange - nothing to arrange
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => new CopyFromDescendantExpression([Field.Of<Contact>(x => x.Department)]));
+
+        // Assert
+        Assert.Contains("at least one child-lookup field", thrown.Message);
+    }
+
+    [Fact]
+    public void Get_WithATwoHopPath_ReadsTheFieldFromAGrandchild()
+    {
+        // Arrange - Account -> Contact (hop 1) -> Case (hop 2), reading the Case's Subject
+        Account grandparent = new();
+        Contact parent = new();
+        Case grandchild = new() { Subject = "Escalated" };
+        DeferredGraph graph = new(
+            [grandparent, parent, grandchild],
+            [
+                new DepthBatchedInserterParentLink(childIndex: 1, parentIndex: 0, Field.Of<Contact>(x => x.AccountId)),
+                new DepthBatchedInserterParentLink(childIndex: 2, parentIndex: 1, Field.Of<Case>(x => x.ContactId)),
+            ]);
+        CopyFromDescendantExpression expression = new(
+        [
+            Field.Of<Contact>(x => x.AccountId),
+            Field.Of<Case>(x => x.ContactId),
+            Field.Of<Case>(x => x.Subject),
+        ]);
+
+        // Act
+        object? actualResult = expression.Get(graph, 0);
+
+        // Assert
+        Assert.Equal("Escalated", actualResult);
+    }
+
+    [Fact]
+    public void Get_WithATwoHopPath_WhenTheFirstHopHasNoMatch_ReturnsNull()
+    {
+        // Arrange - no Contact generated under the Account at all
+        DeferredGraph graph = new([new Account()], []);
+        CopyFromDescendantExpression expression = new(
+        [
+            Field.Of<Contact>(x => x.AccountId),
+            Field.Of<Case>(x => x.ContactId),
+            Field.Of<Case>(x => x.Subject),
+        ]);
+
+        // Act
+        object? actualResult = expression.Get(graph, 0);
+
+        // Assert - missing an intermediate hop is null, not an error
+        Assert.Null(actualResult);
+    }
+
+    [Fact]
+    public void Get_WithATwoHopPath_WhenTheSecondHopHasNoMatch_ReturnsNull()
+    {
+        // Arrange - a Contact exists under the Account, but no Case exists under that Contact
+        Account grandparent = new();
+        Contact parent = new();
+        DeferredGraph graph = new(
+            [grandparent, parent],
+            [new DepthBatchedInserterParentLink(childIndex: 1, parentIndex: 0, Field.Of<Contact>(x => x.AccountId))]);
+        CopyFromDescendantExpression expression = new(
+        [
+            Field.Of<Contact>(x => x.AccountId),
+            Field.Of<Case>(x => x.ContactId),
+            Field.Of<Case>(x => x.Subject),
+        ]);
+
+        // Act
+        object? actualResult = expression.Get(graph, 0);
+
+        // Assert
+        Assert.Null(actualResult);
     }
 }

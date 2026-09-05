@@ -105,6 +105,28 @@ public class ExContextAwareValuesTest
     }
 
     [Fact]
+    public void ReadingUpFromAChild_MultiHop()
+    {
+        // from docs/use/context-aware-values.md "Reading up from a child" (several hops)
+        Account grandparent = new();
+        Contact parent = new();
+        Case grandchild = new() { Subject = "Escalated" };
+        DeferredGraph graph = new(
+            [grandparent, parent, grandchild],
+            [
+                new DepthBatchedInserterParentLink(childIndex: 1, parentIndex: 0, Field.Of<Contact>(x => x.AccountId)),
+                new DepthBatchedInserterParentLink(childIndex: 2, parentIndex: 1, Field.Of<Case>(x => x.ContactId)),
+            ]);
+        CopyFromDescendantExpression expression = new([
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject),
+        ]);
+
+        object? actualResult = expression.Get(graph, 0);
+
+        Assert.Equal("Escalated", actualResult);
+    }
+
+    [Fact]
     public void ReadingUpFromAChild_NeedsDeferredMode()
     {
         // from docs/use/context-aware-values.md - "it only works under Deferred (or .DepthBatched())"
