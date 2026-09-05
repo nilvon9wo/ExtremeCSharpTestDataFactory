@@ -445,10 +445,96 @@ ported - **but it's new structure Apex doesn't have, so it needs an explicit
 "yes, build this" the same way the reflection-vs-generics question did,** not
 a silent addition. Flagging here so it survives to that point.
 
-**Still open when picked back up:** `XFTY_DummySObjectBundle`,
+**Still open when picked back up (superseded by the next entry - the whole
+list below got built the same session):** ~~`XFTY_DummySObjectBundle`,
 `XFTY_PathValue`/`XFTY_PathTargetValue`, `XFTY_DummySObjectMasterTemplate`,
 the `relationships/` interfaces, and eventually `lookup/` and the actual
-generation engine - in roughly that dependency order. `CopyFromAncestorExpression`
-and `CopyFromDescendantExpression` wait on the bundle. The collection-
-initializer/indexer ergonomics question above is worth raising once
-`DummySObjectMasterTemplate` is in reach.
+generation engine.~~
+
+## 2026-09-05: the whole generation engine, mechanically ported in one sitting
+
+After the fidelity correction above, Brian pushed back once more, much more
+forcefully - the short version: stop treating every remaining class as a
+fresh design question, just convert Apex to C# class-for-class and fix what
+breaks, the way the very first message of this session actually asked for.
+Fair, and overdue. Everything below was built the same session as a single
+continuous mechanical pass: read a batch of Apex source, translate it
+directly (`SObjectField`→`PropertyInfo`, `SObject`→`object`, `Map`→
+`Dictionary`, `Set`→`HashSet`, Apex inner classes and nested enums extracted
+to top-level types - the C# style rules don't allow either), build, fix
+whatever the analyzers or compiler flagged, move to the next batch. No
+pauses to ask permission between classes.
+
+**Landed, in dependency order:**
+- `core/`: `InsertMode`/`InsertInclusivity` enums, `AncestorCycleGuard`,
+  `InverseAlignment`, `PathTargetValue`/`PathValue` (`Kind` → top-level
+  `PathTargetValueKind`), `GenerationContext` (completed - every field and
+  derivation method now, not just the partial `RecordBeingBuilt`/
+  `ValueFieldPass` slice from before), `Bundle` (`ChildEntry` → top-level
+  `BundleChildEntry`), `AncestorPathWalker`, `BundleMerger`,
+  `DeferredValueQueue` (`Entry` → `BundleDeferredEntry`), `DeferredGraph`
+  (`ParentLink` → `DeferredGraphParentLink`), `RecordCloneFactory` (Apex's
+  `SObject.clone(...)` has no C# equivalent - copies every property via
+  reflection instead, same guarantee), `RecordFactory` (from
+  `XFTY_DummySObjectFactory`), `RecordProvider` (from
+  `XFTY_DummySObjectProvider` - the main public entry point), `IRecordProvider`.
+- `lookup/`: `ILookupKey`, `LookupKey`, `IProviderLookup`, `ProviderLookups`
+  (`MapBackedLookup`/`LookupException` → top-level), `ISharedAncestorDefaults`,
+  `FlavouredLookupKey`. **Dropped, not faked:** `RecordTypeLookupKey`/`Intf`,
+  `RecordTypeMatching`, `RecordTypeDataProvider` - genuinely Salesforce
+  schema metadata (record types) with no C# analog; this was already the
+  agreed carve-out from the very first session ("a real target would be EF's
+  TPH discriminator, not attempted here").
+- `relationships/`: `IDefaultRelationship`, `ISharedRelationship`,
+  `DefaultRelationship`. **Not ported:** `SharedAncestor`/
+  `SharedAncestorProvider` - both need `XFTY_SharedAncestorResolver`, which
+  needs the depth-batched insert machinery already agreed optional/non-core
+  for this port (`XFTY_DeferredInsertBuffer` et al).
+- `engine/`: `PlainValueFiller`, `ContextAwareValuePass`, `RelationshipForcer`,
+  `PathValueApplier`, `LookupWiring`, `SharedRelationshipWiring`,
+  `AncestorGenerator`, `ChildProvider` (from `XFTY_SObjectChildProvider`;
+  `PendingPut`'s kind → top-level `ChildProviderPendingPutKind`/
+  `ChildProviderPendingPut`). **Not ported:** `DescendantValuePass`
+  (needs `XFTY_DepthBatchedInserter.ParentLink`/`XFTY_PendingDeferredValue`,
+  same DEFERRED machinery carve-out), `GovernorBudget` (Salesforce-limit
+  numbers, already agreed dead weight from session 1).
+- `persistence/`: `IdMocker` only (the DEFERRED/depth-batched buffer classes
+  are the same carve-out again).
+- `values/`: `CopyFromAncestorExpression`, `CopyFromDescendantExpression` -
+  both were blocked at the start of this session on `Bundle`/`DeferredGraph`
+  not existing; both do now.
+
+**A genuine capability gap, not a design choice - noted where it bites:**
+Apex's schema describe gives real metadata C# reflection cannot: `SObjectField
+.getDescribe().getReferenceTo()` tells you what type a lookup field points
+at; a plain C# `string AccountId` property has no such link to `Account`.
+`ChildProvider`/`RecordProvider` dropped the `assertFieldPointsAt`-style
+validation this enabled - a misconfigured field now surfaces as a wrong or
+null value instead of failing fast at configuration time. This is different
+in kind from the reflection-vs-generics question earlier: there is no
+faithful C# equivalent available at all, not just a less-generic one.
+
+**Proven working, not just compiling:** `RecordProviderIntegrationTest` and
+the `CopyFromAncestor/DescendantExpressionTest`s exercise the real engine -
+two demo `IRecordProvider`s (`AccountDataProvider`, `ContactDataProvider`)
+wired through a real `IProviderLookup`, a required relationship generating a
+parent, `InsertInclusivity.None` correctly skipping it, quantity producing
+one distinct parent per child, an override template winning over the default
+filler, and downward child-collection generation wiring every child to the
+same generated parent - not unit tests of one class in isolation. 97/97
+passing (build clean; execution blocked by the recurring Smart App Control
+issue partway through, cleared on retry, same pattern as every previous
+occurrence this project).
+
+**What's left, for real this time:** the DEFERRED/depth-batched persistence
+path (`DeferredInsertBuffer`, `DeferredInserter`, `DepthBatchedInserter`,
+`PendingDeferredValue`, `IndexedRecord`, `GovernorBudget`, `DescendantValuePass`)
+and everything that depends on it (`SharedAncestor`/`SharedAncestorProvider`,
+`XFTY_RecordTypeDataProvider`'s SOQL-backed sibling has no target either) -
+all optional/non-core per the session-1 plan, not attempted here. A real
+`InsertMode.Now` needs an actual persistence layer (EF or otherwise) that
+does not exist in this port yet - `RecordFactory.Persist` throws
+`NotSupportedException` for it rather than silently doing nothing.
+`enrichment/` (the reflection-based rebuild, a separate track per session 1)
+and `providers/`-equivalent demo-domain breadth beyond the two Account/
+Contact providers here are the natural next work.
