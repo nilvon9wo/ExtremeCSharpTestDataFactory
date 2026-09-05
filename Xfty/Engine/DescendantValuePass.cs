@@ -10,7 +10,7 @@ namespace Net.Nowhereatall.Xfty.Engine;
 public sealed class DescendantValuePass(List<object> records, List<DepthBatchedInserterParentLink> links, List<PendingDeferredValue> pending)
 {
     private readonly List<object> records = records;
-    private readonly DeferredGraph graph = new DeferredGraph(records, links);
+    private readonly DeferredGraph graph = new(records, links);
     private readonly List<PendingDeferredValue> pending = pending;
 
     public void Complete() => this.pending.ForEach(this.Fill);

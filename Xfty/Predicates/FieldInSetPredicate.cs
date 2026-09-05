@@ -19,7 +19,7 @@ public sealed class FieldInSetPredicate : IRecordPredicate
         this.field = field;
         this.acceptedValues = acceptedValues is null
             ? []
-            : new HashSet<object?>(acceptedValues);
+            : [.. acceptedValues];
     }
 
     public static FieldInSetPredicate Of(PropertyInfo field, IEnumerable<object?>? acceptedValues) =>

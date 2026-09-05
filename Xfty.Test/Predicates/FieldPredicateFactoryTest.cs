@@ -61,7 +61,7 @@ public class FieldPredicateFactoryTest
     [Fact]
     public void InSet_WhenTheFieldIsAMember_ReturnsTrue() =>
         AssertIsSatisfiedBy(
-            FieldPredicateFactory.InSet(Industry, new object?[] { "Technology" }),
+            FieldPredicateFactory.InSet(Industry, ["Technology"]),
             new Account { Industry = "Technology" }, true);
 
     private static void AssertIsSatisfiedBy(IRecordPredicate predicate, Account? record, bool expectedResult)

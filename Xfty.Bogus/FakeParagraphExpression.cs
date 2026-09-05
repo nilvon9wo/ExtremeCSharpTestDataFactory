@@ -12,7 +12,7 @@ public sealed class FakeParagraphExpression(int sentenceCount = FakeParagraphExp
 {
     private const int DefaultSentenceCount = 3;
 
-    private readonly Faker faker = new Faker(locale);
+    private readonly Faker faker = new(locale);
     private readonly int sentenceCount = sentenceCount;
 
     public object Get() => this.faker.Lorem.Paragraph(this.sentenceCount);

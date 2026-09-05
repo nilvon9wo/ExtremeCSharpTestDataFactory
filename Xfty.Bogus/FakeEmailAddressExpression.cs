@@ -11,7 +11,7 @@ namespace Net.Nowhereatall.Xfty.Bogus;
 /// </summary>
 public sealed class FakeEmailAddressExpression(string locale = "en") : IValueExpression
 {
-    private readonly Faker faker = new Faker(locale);
+    private readonly Faker faker = new(locale);
 
     public object Get() => this.faker.Internet.Email();
 }

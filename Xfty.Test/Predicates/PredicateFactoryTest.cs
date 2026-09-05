@@ -12,19 +12,13 @@ public class PredicateFactoryTest
     [Fact]
     public void AllOf_WhenAMemberIsNotSatisfied_ReturnsFalse() =>
         AssertIsSatisfiedBy(
-            PredicateFactory.AllOf(new List<IRecordPredicate>
-            {
-                FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology")
-            }),
+            PredicateFactory.AllOf([FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology")]),
             new Account { Industry = "Retail" }, false);
 
     [Fact]
     public void AnyOf_WhenAMemberIsSatisfied_ReturnsTrue() =>
         AssertIsSatisfiedBy(
-            PredicateFactory.AnyOf(new List<IRecordPredicate>
-            {
-                FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology")
-            }),
+            PredicateFactory.AnyOf([FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology")]),
             new Account { Industry = "Technology" }, true);
 
     [Fact]
