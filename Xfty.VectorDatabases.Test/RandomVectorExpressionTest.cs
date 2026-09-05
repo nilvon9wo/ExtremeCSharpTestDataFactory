@@ -54,4 +54,31 @@ public class RandomVectorExpressionTest
         // Assert
         Assert.True(produced.Select(vector => vector[0]).Distinct().Count() > 1, "expected varied vectors across many calls");
     }
+
+    [Fact]
+    public void Get_WithNormalize_ProducesAUnitLengthVector()
+    {
+        // Arrange
+        RandomVectorExpression expression = new(dimensions: 32, normalize: true);
+
+        // Act
+        float[] vector = (float[])expression.Get()!;
+
+        // Assert
+        double magnitude = Math.Sqrt(vector.Sum(component => (double)component * component));
+        Assert.Equal(1.0, magnitude, precision: 5);
+    }
+
+    [Fact]
+    public void Get_WithKnownEmbeddingDimensions_ProducesTheDocumentedLength()
+    {
+        // Arrange
+        RandomVectorExpression expression = new(KnownEmbeddingDimensions.OpenAiTextEmbedding3Small);
+
+        // Act
+        float[] vector = (float[])expression.Get()!;
+
+        // Assert
+        Assert.Equal(1536, vector.Length);
+    }
 }

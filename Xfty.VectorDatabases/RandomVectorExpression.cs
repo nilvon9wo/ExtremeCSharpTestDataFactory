@@ -18,18 +18,33 @@ public sealed class RandomVectorExpression : IValueExpression
     private readonly int dimensions;
     private readonly float min;
     private readonly float max;
+    private readonly bool normalize;
 
-    public RandomVectorExpression(int dimensions, float min = DefaultMin, float max = DefaultMax)
+    public RandomVectorExpression(int dimensions, float min = DefaultMin, float max = DefaultMax, bool normalize = false)
     {
         this.dimensions = dimensions;
         this.min = min;
         this.max = max;
+        this.normalize = normalize;
     }
 
     public object Get() => this.GenerateVector();
 
-    private float[] GenerateVector() =>
-        [.. Enumerable.Range(0, this.dimensions).Select(_ => this.NextComponent())];
+    private float[] GenerateVector()
+    {
+        float[] vector = [.. Enumerable.Range(0, this.dimensions).Select(_ => this.NextComponent())];
+        return this.normalize
+            ? Normalize(vector)
+            : vector;
+    }
 
     private float NextComponent() => this.min + ((float)Random.Shared.NextDouble() * (this.max - this.min));
+
+    private static float[] Normalize(float[] vector)
+    {
+        double magnitude = Math.Sqrt(vector.Sum(component => (double)component * component));
+        return magnitude > 0
+            ? [.. vector.Select(component => (float)(component / magnitude))]
+            : vector;
+    }
 }

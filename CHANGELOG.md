@@ -21,9 +21,13 @@ because those entries describe a change made in *this* repository.
   [reference/comparison.md](docs/reference/comparison.md) - as a separate,
   opt-in package, so core `Xfty` gains no new dependency.
 - **`Xfty.VectorDatabases`** — `RandomVectorExpression(int dimensions, float
-  min, float max)`, filling a vector-database record's embedding field with
-  a fixed-length array of random floats. Structurally a vector, not a
-  semantically meaningful embedding - see
+  min, float max, bool normalize)`, filling a vector-database record's
+  embedding field with a fixed-length array of random floats, optionally
+  unit-length for cosine-similarity schemas. `KnownEmbeddingDimensions`
+  bundles named dimension constants for popular embedding models
+  (`OpenAiTextEmbedding3Small`, `CohereEmbedV3`, …). Structurally a vector,
+  not a semantically meaningful embedding, and calling a real embedding API
+  is a deliberate non-goal, not a gap - see
   [roadmap/vector-databases.md](docs/roadmap/vector-databases.md).
 - NuGet packaging metadata (`PackageId`, `Version`, `Authors`,
   `PackageLicenseExpression`, embedded `README.md`, symbol packages) for

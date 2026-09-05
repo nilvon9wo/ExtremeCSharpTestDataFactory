@@ -3,7 +3,7 @@
 What is built, what is left, for this C# port.
 
 Legend: ✅ built and working · ⚠️ built but with a real limitation versus the
-Apex original · ❌ not ported (see [reference/known-issues](../reference/known-issues.md) for why) · 📋 designed, not built · 💡 idea, not designed.
+Apex original · ❌ not ported (see [reference/known-issues](../reference/known-issues.md) for why) · 📋 designed, not built · 💡 idea, not designed · 🚫 considered and declined - a deliberate non-goal, not a gap.
 
 ## Built
 
@@ -21,7 +21,7 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 | **Enrichment** — `bundle.Inject(field, config)` / `InjectAll` / `InjectAllParents` / `InjectAllChildren`, `InjectConfig`, standalone `RecordInjector` | `BundleEnricherTest`, `RecordInjectorTest`, `EnrichmentSelectionTest`, `EnrichmentIntegrationTest` | [use](../use/enrichment.md), [injector](../use/record-injector.md) | ✅ — reflection sets any property directly, so there's no serialization round-trip and no field-type special-casing needed |
 | **Predicates** — `FieldPredicateFactory`, `PredicateFactory` (AND/OR/NOT), custom `IRecordPredicate` | `Xfty.Test/Predicates/*` | [extend/provider-variants](../extend/provider-variants.md) | ✅ |
 | **Realistic fake data** — `FakeFullNameExpression`, `FakeEmailAddressExpression`, `FakeStreetAddressExpression`, `FakeParagraphExpression`, wrapping Bogus | `Xfty.Bogus.Test/*` | [comparison.md](../reference/comparison.md#could-xfty-pair-with-one-of-these-to-close-a-gap) | ✅ Separate opt-in package (`Xfty.Bogus`), not core `Xfty` — the base library has no dependency on Bogus. |
-| **Vector-embedding fields** — `RandomVectorExpression(int dimensions, float min, float max)` | `Xfty.VectorDatabases.Test/*` | [vector-databases.md](vector-databases.md) | ✅ Separate opt-in package (`Xfty.VectorDatabases`); structurally a vector, not a semantically meaningful embedding — see the detail page for why that's out of scope. |
+| **Vector-embedding fields** — `RandomVectorExpression(int dimensions, float min, float max, bool normalize)`, `KnownEmbeddingDimensions` | `Xfty.VectorDatabases.Test/*` | [vector-databases.md](vector-databases.md) | ✅ Separate opt-in package (`Xfty.VectorDatabases`); structurally a vector, not a semantically meaningful embedding — see the detail page for why that's out of scope. |
 
 ## Not ported — genuine capability gaps
 
@@ -41,6 +41,17 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 |------|--------|--------|
 | Embedded/denormalized document relationships (a document database's native nested-array shape, distinct from the FK-reference relationships XFTY models today) | 💡 | [embedded-documents.md](embedded-documents.md) |
 | Auto-population fallback via AutoFixture/AutoBogus for fields no Provider declares (likely a separate `Xfty.AutoFixture` adapter package, not a core change) | 💡 | [autofixture-fallback-fill.md](autofixture-fallback-fill.md) |
+| A dedicated vector-database persistence gateway (Qdrant is the right first target; pgvector through the existing `EfPersistenceGateway` is a cheaper way to validate the concept first) | 📋 | [vector-databases.md](vector-databases.md#persistence) |
+
+---
+
+## Explicitly declined — deliberate non-goals
+
+Considered and turned down on purpose, not gaps waiting to be filled.
+
+| Idea | Why declined | Detail |
+|------|--------------|--------|
+| Calling a real embedding API (OpenAI, Cohere, …) to produce a semantically meaningful vector | Breaks XFTY's offline/no-network/no-credential contract that every other value expression, `Xfty.Bogus` included, holds to. A project that needs real embeddings is better served by its own small helper than by XFTY adopting a paid-API pattern it uses nowhere else. | [vector-databases.md](vector-databases.md#deliberately-out-of-scope-calling-a-real-embedding-model) |
 
 ---
 
