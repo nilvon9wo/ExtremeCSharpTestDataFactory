@@ -30,7 +30,7 @@ public class RecordShapeFieldAccessTest
     public void IsSatisfiedBy_AgainstARecordClassProperty_ReadsItCorrectly()
     {
         // Arrange
-        Contact contact = new(FirstName: "Ada", LastName: "Lovelace", Email: null, AccountName: null);
+        Contact contact = new() { FirstName = "Ada", LastName = "Lovelace" };
         IRecordPredicate predicate = FieldPredicateFactory.EqualTo(Field.Of<Contact>(nameof(Contact.LastName)), "Lovelace");
 
         // Act

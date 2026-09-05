@@ -8,12 +8,15 @@ namespace Net.Nowhereatall.Xfty.Core.Demo;
 /// need more fields; this is not meant to be exhaustive.
 ///
 /// A plain mutable class with <c>init</c>-only properties - reflection-based
-/// field access (<see cref="Field"/>, the predicates) only ever reads, so it
-/// works identically here and against <see cref="Contact"/>'s record shape;
-/// see that type for the other common C# property-declaration idiom.
+/// field access (<see cref="Field"/>, the predicates) only ever reads (or, for
+/// <see cref="Persistence.IdMocker"/>, writes via reflection, which bypasses
+/// the compile-time-only <c>init</c> restriction), so it works identically
+/// here and against <see cref="Contact"/>'s record shape.
 /// </summary>
 public sealed class Account
 {
+    public string? Id { get; init; }
+
     public string? Name { get; init; }
 
     public string? Industry { get; init; }
@@ -27,4 +30,14 @@ public sealed class Account
     public string? Site { get; init; }
 
     public string? Description { get; init; }
+
+    public string? OwnerId { get; init; }
+
+    public string? AccountNumber { get; init; }
+
+    public string? ShippingCity { get; init; }
+
+    public string? BillingCity { get; init; }
+
+    public string? BillingStreet { get; init; }
 }

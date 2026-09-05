@@ -1,26 +1,30 @@
 using System.Reflection;
 using Net.Nowhereatall.Xfty.Core.Demo;
+using Net.Nowhereatall.Xfty.Core.Lookup;
 using Net.Nowhereatall.Xfty.Core.Values;
+using NSubstitute;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Values;
 
 /// <summary>
 /// Proves <see cref="CopyFromSiblingExpression"/>. The Apex original also
 /// proved this driven end-to-end through a Provider's put(...)/supply() -
-/// that needs the engine (XFTY_DummySObjectProvider and friends), not yet
-/// ported (see csharp-port-idea.md); these tests exercise the same mechanism
-/// by building the <see cref="GenerationContext"/> directly.
+/// that needs the engine (the ancestor generator, plain-value filler, etc.),
+/// not yet ported (see csharp-port-idea.md); these tests exercise the same
+/// mechanism by building the <see cref="GenerationContext"/> directly.
 /// </summary>
 public class CopyFromSiblingExpressionTest
 {
+    private static readonly IProviderLookup Lookup = Substitute.For<IProviderLookup>();
+
     [Fact]
     public void Get_TakesTheSiblingsPlainValue()
     {
         // Arrange - reading a sibling only makes sense while a context-aware value is being generated
         Account record = new() { Site = "Berlin" };
-        GenerationContext context = new(
-            record,
-            new ValueFieldPass(Field.Of<Account>(nameof(Account.Description)), pendingContextAwareValues: new HashSet<PropertyInfo>()));
+        GenerationContext context = new GenerationContext(Lookup, InsertMode.Mock, InsertInclusivity.None)
+            .ForRecord(record, new Bundle(), 0)
+            .ForValueField(Field.Of<Account>(nameof(Account.Description)), new HashSet<PropertyInfo>());
         CopyFromSiblingExpression expression = new(Field.Of<Account>(nameof(Account.Site)));
 
         // Act
@@ -35,9 +39,9 @@ public class CopyFromSiblingExpressionTest
     {
         // Arrange - Site is context-aware and already resolved to null (absent from "pending")
         Account record = new() { Site = null };
-        GenerationContext context = new(
-            record,
-            new ValueFieldPass(Field.Of<Account>(nameof(Account.Description)), pendingContextAwareValues: new HashSet<PropertyInfo>()));
+        GenerationContext context = new GenerationContext(Lookup, InsertMode.Mock, InsertInclusivity.None)
+            .ForRecord(record, new Bundle(), 0)
+            .ForValueField(Field.Of<Account>(nameof(Account.Description)), new HashSet<PropertyInfo>());
         CopyFromSiblingExpression expression = new(Field.Of<Account>(nameof(Account.Site)));
 
         // Act
@@ -76,7 +80,7 @@ public class CopyFromSiblingExpressionTest
     public void Get_WhenRunOutsideTheValuePass_Throws()
     {
         // Arrange
-        GenerationContext baseContext = new(recordBeingBuilt: null, valueFieldPass: null);
+        GenerationContext baseContext = new(Lookup, InsertMode.Mock, InsertInclusivity.None);
         CopyFromSiblingExpression expression = new(Field.Of<Account>(nameof(Account.Name)));
 
         // Act
