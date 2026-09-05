@@ -75,4 +75,22 @@ public sealed partial class SharedAncestor : ISharedRelationship
             + $"SharedAncestor.Get(\"{name}\").ResolveNow(lookup, mode).");
 
     private static object? IdOf(object? record) => record?.GetType().GetProperty("Id")?.GetValue(record);
+
+    /// <summary>
+    /// Clears every registered/disabled shared ancestor and the manual-
+    /// resolution flag - for test isolation only. .NET statics have no
+    /// per-test-method lifecycle the way Apex's do, so nothing in XFTY
+    /// calls this automatically; call it yourself from your own test
+    /// suite's per-test setup (a base test class's constructor, or an
+    /// xUnit fixture's Dispose) if you rely on SharedAncestor across many
+    /// tests. Also the only safe way to test
+    /// <see cref="ManualResolutionOnly()"/>, which otherwise has no
+    /// unsetter at all - see reference/salesforce-considerations.md.
+    /// </summary>
+    public static void ResetAllForTesting()
+    {
+        ByName.Clear();
+        Disabled.Clear();
+        _manualResolution = false;
+    }
 }

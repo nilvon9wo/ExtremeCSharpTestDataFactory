@@ -25,10 +25,15 @@ Either way: **one record, one Id, everywhere** — and it is generated at most o
 per process.
 
 > **`SharedAncestor`'s registry is `static` and lives for the whole test run,
-> not per test method.** Give every test's shared ancestors a **name unique
-> to that test**, and see
-> [reference/known-issues.md](../reference/known-issues.md) for the cleanup this
-> implies for a test that deliberately leaves one unresolved.
+> not per test method, unless you reset it yourself.** Either give every
+> test's shared ancestors a **name unique to that test** (see
+> [reference/known-issues.md](../reference/known-issues.md) for the cleanup
+> this implies for a test that deliberately leaves one unresolved), **or**
+> call `SharedAncestor.ResetAllForTesting()` once per test from your own
+> base test class's constructor or fixture's `Dispose` - xUnit creates a
+> fresh test-class instance per test method, so that gives you a real reset
+> without needing unique names at all. Neither happens automatically;
+> nothing in .NET gives XFTY a hook to do it for you.
 
 ---
 
@@ -238,10 +243,11 @@ knobs hand control back to the test:
 | `SharedAncestor.ManualResolutionOnly()` | turns off the pre-phase. A **lightweight** shared ancestor (no sub-graph of its own — auto-detected) still resolves on-demand when first referenced. A **heavy** one throws unless it was resolved up front. |
 | `SharedAncestor.Get(name).ResolveNow(lookup, mode)` | resolve one (and its chain) up front |
 | `SharedAncestor.ResolveNow(lookup, mode, names)` | resolve a named set up front, one depth-batched pass |
+| `SharedAncestor.ResetAllForTesting()` | clears the whole registry, every `Disable`d name, **and** the `ManualResolutionOnly()` flag - the only way to turn the latter back off |
 
-Not exercised by this port's own test suite — `ManualResolutionOnly()` has no
-unsetter and is not safely testable in a shared xUnit process (see the warning
-below).
+Now genuinely exercised by this port's own test suite (`SharedAncestorResetTest`)
+- `ResetAllForTesting()` is what makes `ManualResolutionOnly()` safe to test
+at all (see the warning below).
 
 <!-- sketch -->
 ```csharp
@@ -250,12 +256,16 @@ SharedAncestor.ResolveNow(lookup, InsertMode.Mock, ["division", "region"]);
 // the package's other shared-ancestor defaults are never built
 ```
 
-> **`ManualResolutionOnly()` has no unsetter - it is a single `static` flag for
-> the whole process, not per test method.** A test that
+> **`ManualResolutionOnly()` has no unsetter of its own - it is a single
+> `static` flag for the whole process, not per test method.** A test that
 > calls it changes every later test in the same run that relies on
-> auto-resolution. Treat it as effectively global and avoid it in a shared xUnit
-> process unless you are certain nothing else in the run depends on the
-> pre-phase; see [reference/known-issues.md](../reference/known-issues.md).
+> auto-resolution, *unless* something resets it.
+> `SharedAncestor.ResetAllForTesting()` is that something: call it from your
+> own test suite's per-test setup and `ManualResolutionOnly()` becomes as
+> safe to use as anything else here. Without that reset wired up, treat it
+> as effectively global and avoid it unless you are certain nothing else in
+> the run depends on the pre-phase; see
+> [reference/known-issues.md](../reference/known-issues.md).
 
 ---
 

@@ -47,20 +47,16 @@ rather than approximated:
 ## Real, confirmed risk in a shared xUnit process
 
 - **`SharedAncestor`'s registry and `DeferredInserter`'s buffer are `static`
-  and do not reset between test methods**, unlike Apex, where every static
-  resets automatically per test method. A shared ancestor left registered but
-  unresolved (an intentional-throw test, say) poisons every later test's
-  shared-ancestor pre-phase; the fix is `SharedAncestor.Disable(name)`
-  immediately afterward. See
-  [reference/salesforce-considerations](salesforce-considerations.md) for the
-  full explanation and the naming/cleanup convention this port's own test
-  suite now follows throughout.
-- **`SharedAncestor.ManualResolutionOnly()` has no unsetter, in Apex or
-  here** — and here, unlike Apex, it is a single flag for the entire test
-  process, not per test method. There is no way to safely exercise it in this
-  port's own shared-process test suite; the corresponding Apex tests were
-  deliberately not ported (dropped with an explanatory comment) rather than
-  left to intermittently break unrelated tests depending on run order.
+  and do not reset between test methods automatically**, unlike Apex, where
+  every static resets per test method on its own. `SharedAncestor.ResetAllForTesting()`
+  gives a real, verified way to reset it - call it from your own test
+  suite's per-test setup (a base test class's constructor, or an xUnit
+  fixture's `Dispose`) - but it is opt-in, not automatic; nothing in .NET
+  gives XFTY a hook to call it for you the way Apex's platform does. This
+  port's own test suite deliberately does *not* use it throughout (see
+  [reference/salesforce-considerations](salesforce-considerations.md) for
+  the naming/cleanup convention it uses instead) so that both approaches
+  stay exercised.
 
 ---
 
@@ -77,3 +73,10 @@ rather than approximated:
   own lookups (missing a `User` provider) failed silently and left an
   unresolved shared ancestor behind, contaminating unrelated later tests —
   see "Real, confirmed risk" above; fixed by completing those lookups.
+- **`SharedAncestor.ManualResolutionOnly()` was previously untestable in this
+  port's own suite** — it has no unsetter of its own, so one test calling it
+  would permanently disable the shared-ancestor pre-phase for every test
+  running afterward in the same process. `SharedAncestor.ResetAllForTesting()`
+  fixes this (it clears the manual-resolution flag along with the registry),
+  proven end to end in `SharedAncestorResetTest` - `ManualResolutionOnly()`
+  is genuinely exercised there now, not skipped.

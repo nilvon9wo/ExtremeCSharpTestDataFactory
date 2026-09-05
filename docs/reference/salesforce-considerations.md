@@ -34,26 +34,45 @@ contamination during this port's own development:
   `LookupException`s for names that test never registered. The fix:
   `SharedAncestor.Disable(name)` immediately after any test that deliberately
   leaves an ancestor unresolved.
-- `SharedAncestor.ManualResolutionOnly()` **has no unsetter, in Apex or
-  here** — Apex tolerated that because its statics reset between methods
-  anyway; in a shared xUnit process, one test calling it permanently disables
-  the shared-ancestor pre-phase for every test that runs afterward in the same
-  process, until the process restarts. There is currently no safe way to test
-  `ManualResolutionOnly()` in this port's own test suite for exactly this
-  reason — see [known-issues](known-issues.md).
+- `SharedAncestor.ManualResolutionOnly()` **has no unsetter of its own, in
+  Apex or here** — Apex tolerated that because its statics reset between
+  methods anyway; in a shared xUnit process, one test calling it would
+  permanently disable the shared-ancestor pre-phase for every test that
+  runs afterward in the same process, until the process restarts, *unless*
+  something resets it. `SharedAncestor.ResetAllForTesting()` is that
+  something (below).
+
+**`SharedAncestor.ResetAllForTesting()` — a real, verified reset, but an
+opt-in one:**
+
+Clears the shared-ancestor registry, every `Disable`d name, and the
+manual-resolution flag in one call. Call it from your own test suite's
+per-test setup — a base test class's constructor, or an xUnit fixture's
+`Dispose` — since xUnit creates a fresh instance of the test class (and
+runs the constructor) for every test method by default. This is genuinely
+the closest thing to Apex's automatic per-method reset available here, but
+it is **not** automatic the way Apex's is: nothing in .NET gives XFTY a
+hook to call it for you, so a test suite that never wires it up gets no
+reset at all. `SharedAncestorResetTest` in this port's own suite proves it
+works, including finally exercising `ManualResolutionOnly()` safely - see
+[known-issues](known-issues.md).
 
 **What this means for your own tests:**
 
-- Give every test's shared-ancestor names something unique to that test (a
-  GUID suffix, the test method name) rather than a short literal like `"hq"` —
-  a name collision with an unrelated test is a real, silent risk in a shared
-  process.
-- If a test deliberately leaves a shared ancestor unresolved (to prove a
-  null-FK scenario, say), call `SharedAncestor.Disable(name)` afterward so it
-  doesn't linger.
-- Do not call `SharedAncestor.ManualResolutionOnly()` in a test suite unless
-  you are certain nothing else in the same test run depends on the
-  auto-resolution pre-phase — there is no way to turn it back off.
+- **Either** wire up `SharedAncestor.ResetAllForTesting()` once, in a shared
+  base test class or fixture, and rely on it for every test that touches
+  `SharedAncestor` — **or** give every test's shared-ancestor names
+  something unique to that test (a GUID suffix, the test method name)
+  rather than a short literal like `"hq"`, and call
+  `SharedAncestor.Disable(name)` after any test that deliberately leaves an
+  ancestor unresolved. This port's own test suite uses the second approach
+  throughout (see [known-issues](known-issues.md) for why: keeping both
+  approaches exercised somewhere), but either is a real, complete answer -
+  pick whichever fits your project's existing test-base-class conventions.
+- Do not call `SharedAncestor.ManualResolutionOnly()` in a test suite that
+  doesn't use `ResetAllForTesting()` unless you are certain nothing else in
+  the same test run depends on the auto-resolution pre-phase — without the
+  reset, there is still no way to turn it back off mid-run.
 - The same caution applies to any `static` state your own value expressions
   keep (an incrementing counter, say) — it is *shared across the whole test
   run*, not reset per test method the way it would be in Apex. That is

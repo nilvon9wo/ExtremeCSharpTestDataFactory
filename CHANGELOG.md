@@ -14,6 +14,14 @@ because those entries describe a change made in *this* repository.
 
 ### Added
 
+- **`SharedAncestor.ResetAllForTesting()`** — clears the registry, every
+  `Disable`d name, and the `ManualResolutionOnly()` flag in one call. Not
+  automatic (nothing in .NET gives XFTY a per-test-method hook the way
+  Apex's platform does), but a real, verified reset when called from a
+  consuming project's own base test class or fixture. Also the fix for a
+  worse, related problem: `ManualResolutionOnly()` had no unsetter of its
+  own, and was previously untestable in this port's own suite for exactly
+  that reason - `SharedAncestorResetTest` now exercises it end to end.
 - **Multi-hop descendant reads** — `CopyFromDescendantExpression` gains a
   path-list constructor (`new CopyFromDescendantExpression([field1, field2,
   ..., sourceField])`), mirroring `CopyFromAncestorExpression`'s own
