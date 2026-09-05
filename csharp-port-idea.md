@@ -664,15 +664,16 @@ a separate, `continue-on-error` CI step - not blocking, the same role
 `XFTY_Load` plays running only in the scheduled full-suite workflow rather
 than on every push.
 
-**Still genuinely open, not done, not faked:** `docs/` (~45 markdown pages)
-still describes the Apex API verbatim - none of it has been reworked for
-the C# surface yet. `scripts/verify-doc-examples.py` (a real, clever CI
-gate: every ` ```apex ` block on a page carrying a `Runnable:` marker must
+**Update:** the Apex test-suite parity pass (below) and the full `docs/` port
+(further below) are both now done - see those sections. **Still genuinely
+open, not done, not faked:** `scripts/verify-doc-examples.py` (a real, clever
+CI gate: every ` ```apex ` block on a page carrying a `Runnable:` marker must
 have every significant line backed by an actual test) still parses Apex
 syntax and points at `force-app`/`test-support`; it was dropped from `ci.yml`
 outright rather than left silently broken, but porting it to check ` ```csharp `
-blocks against `Xfty.Test` is unstarted. Both are a dedicated pass, not a
-quick add-on to the current one.
+blocks against `Xfty.Test` - and building the `examples/`-style runnable-doc-
+test suite it would check against - is unstarted. This is its own dedicated
+pass, not a quick add-on.
 
 **Found and fixed while doing that:** `MapBackedLookup.RegisterSharedAncestorDefaults`
 still threw `NotSupportedException("Shared ancestors are not ported to C#
@@ -682,3 +683,58 @@ built earlier this same session. Fixed to actually call
 `XFTY_ProviderLookups`. Covered by a new regression test proving a lookup's
 own registered default resolves without the test ever calling
 `SharedAncestor.Put` itself. 112/112 tests passing.
+
+**Apex test-suite parity: complete.** A later, much longer stretch ported the
+remaining Apex test files folder by folder - `core/`, `engine/`,
+`enrichment/`, `relationships/`, `lookup/`, `persistence/`, `values/`,
+`providers/` - finishing at 502/502 tests passing, stable across repeated
+runs. `seeding/` stays permanently out of scope. `predicates/` turned out to
+already be fully covered from earlier work. Along the way: three distinct
+classes of `SharedAncestor` cross-test static-state contamination were found
+and fixed (an ancestor left registered-but-unresolved by an intentional-throw
+test poisons every later test's resolution pre-phase until
+`SharedAncestor.Disable(name)` is called on it; `ManualResolutionOnly()` has
+no unsetter and is a single process-lifetime flag, so the 3 Apex tests
+depending on it were dropped rather than left to intermittently break
+unrelated tests depending on run order); a real null-safety regression in
+`DeferredInsertBuffer.Collect(Bundle?)` (missing the null-guard Apex's
+`primaryRecordsOf(bundle)` helper had) was found and fixed. This is now the
+established, documented pattern for working in a shared xUnit process instead
+of Apex's per-test-method-reset one - see
+`docs/reference/salesforce-considerations.md` and
+`docs/reference/known-issues.md`.
+
+**`docs/` (~45 markdown pages): fully ported.** Every page under `docs/use/`,
+`docs/extend/`, `docs/reference/`, `docs/contribute/`, and `docs/roadmap/` was
+rewritten against the actual C# API surface (verified against source, not
+translated blind) rather than left describing `XFTY_DummySObjectProvider`/
+`SObjectField`/DML verbatim. Real, previously-undocumented findings that came
+out of doing this carefully:
+
+- `InsertMode.Now` always throwing means `.DepthBatched()` currently has *no
+  observable effect at all* through `RecordProvider`'s public API - it only
+  engages when combined with `Now`, which throws either way. The only way to
+  exercise the depth-batching algorithm today is the lower-level
+  `DepthBatchedInserter.ResolveAll(records, links, InsertMode.Mock)` call
+  directly. Documented rather than left to look like working, tested
+  behavior it isn't.
+- `SObjectInjector` needed none of Apex's `XFTY_BlobCarrier`/compound-field-
+  map/polymorphic-relationship-name machinery - reflection sets any property
+  directly, so there's no JSON round-trip to protect a `Blob` field through in
+  the first place. A genuine simplification, not a gap.
+- Static-state lifetime is the single biggest "coming from Apex" surprise and
+  now has its own reference page
+  (`docs/reference/salesforce-considerations.md`, kept at that filename for
+  link stability even though it's no longer really about Salesforce): Apex
+  resets every static per test method; a shared xUnit process does not, ever,
+  for the life of the process - the opposite risk from what Apex's own
+  `@TestSetup` caveat warned about.
+- `docs/articles/` (3 personal essays) and the one dated announcement page
+  were deliberately left unconverted (with a one-paragraph note explaining
+  why) rather than rewritten - they're first-person history/opinion about the
+  author's own Apex career, not API documentation a mechanical port could
+  honestly touch.
+
+Not done: `scripts/verify-doc-examples.py`'s C# equivalent and an `examples/`-
+style runnable-doc-test suite to check it against - both still open, per the
+note above.
