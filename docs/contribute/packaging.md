@@ -26,18 +26,46 @@ Xfty.Test/       - the xUnit test suite (Net.Nowhereatall.Xfty.Test), mirroring 
 
 ---
 
-## Consuming XFTY today
+## Consuming XFTY
 
-There is no published NuGet package yet. Reference the project directly:
+Both `Xfty` and `Xfty.EntityFrameworkCore` carry NuGet package metadata
+(`PackageId`, `Version`, `Authors`, `PackageLicenseExpression`, embedded
+`README.md`, symbol packages) and `dotnet pack` produces a valid
+`.nupkg`/`.snupkg` pair for each — verified locally, not yet published.
+
+Until a version is pushed to nuget.org, consume XFTY the same way any
+not-yet-published package is consumed:
 
 ```bash
 dotnet add reference path/to/Xfty/Xfty.csproj
 ```
 
-or add it as a git submodule / copy the source, the way the Apex original was
-consumed by copying `force-app/` before packages existed.
+or build the packages yourself and add a local NuGet feed:
 
-Publishing a NuGet package (`dotnet pack`) is straightforward once this port
-is ready to version and release — `Xfty.csproj` has no package metadata
-(`PackageId`, `Version`, `Authors`, …) set yet, which is what that step would
-add.
+```bash
+dotnet pack Xfty/Xfty.csproj -c Release -o ./local-packages
+dotnet pack Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj -c Release -o ./local-packages
+dotnet nuget add source ./local-packages -n xfty-local
+```
+
+## Publishing to nuget.org
+
+This is the one remaining step, and it needs the package owner's own
+nuget.org account and API key — nothing about it can be scripted or done on
+someone else's behalf:
+
+```bash
+dotnet nuget push ./local-packages/Xfty.<version>.nupkg \
+  --api-key <your-nuget-api-key> \
+  --source https://api.nuget.org/v3/index.json
+```
+
+`Xfty.EntityFrameworkCore` depends on the `Xfty` package id/version, so push
+`Xfty` first. Once a version is live on nuget.org, it's automatically
+searchable from Visual Studio's NuGet Package Manager (VS searches
+nuget.org by default) — no separate listing step.
+
+A repeatable alternative is a GitHub Actions step, triggered on tag push,
+that runs `dotnet pack` then `dotnet nuget push` using a `NUGET_API_KEY`
+repository secret — avoids re-typing the API key locally for every release,
+at the cost of storing it as a secret instead.
