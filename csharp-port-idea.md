@@ -356,12 +356,11 @@ non-generic, and rework `predicates/` now rather than only going forward.
 
 All 9 `predicates/` test files rewritten to match (`Field.Of<Account>(...)`
 instead of a lambda selector), plus the new `ValueComparisonTest`. `dotnet
-build`: 0 warnings/errors. `dotnet test`: **blocked again** by the same
-intermittent Smart App Control issue from the previous session (see that
-section above) - tried from both Bash and PowerShell, plus a clean `bin`/`obj`
-rebuild, no luck this time. Every line was hand-traced against the Apex
-originals' expected behaviour before this note was written; still worth
-running `dotnet test` yourself to get an actual green run on record.
+build`: 0 warnings/errors. `dotnet test` was blocked again by the same
+intermittent Smart App Control issue, right up through the commit - tried
+Bash, PowerShell, and a clean `bin`/`obj` rebuild with no luck. Every line was
+hand-traced against the Apex originals' expected behaviour before committing;
+a retry shortly after landed a clean **70/70**, confirming the trace.
 
 **Going forward into `core/`:** same philosophy - class-for-class, method-
 for-method, `PropertyInfo`/`object` wherever Apex used `SObjectField`/
