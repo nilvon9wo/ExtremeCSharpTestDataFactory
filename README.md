@@ -1,24 +1,37 @@
-# XFTY (Extreme Apex Test Data Factory)
+# XFTY — Extreme C# Test Data Factory
 
-[![CI](https://github.com/nilvon9wo/ExtremeApexTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeApexTestDataFactory/actions/workflows/ci.yml)
+[![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml)
 
-XFTY is a declarative test data factory for Salesforce Apex.
+XFTY is a declarative test data factory for C#.
 
-Instead of manually constructing complete `SObject` graphs for every test, you describe only the values your test actually cares about. XFTY supplies sensible defaults, automatically creates related records, and optionally inserts them or assigns realistic mock Ids.
+Instead of manually constructing complete object graphs for every test, you
+describe only the values your test actually cares about. XFTY supplies
+sensible defaults, automatically creates related records, and either mocks
+persistence entirely or actually inserts through a pluggable
+`IPersistenceGateway` — the same Provider definitions serve a pure in-memory
+unit test and a real database integration test.
 
-By centralizing test data definitions, XFTY dramatically reduces boilerplate and makes tests more resilient to changing validation rules, required fields, and evolving business logic.
+By centralizing test data definitions, XFTY dramatically reduces boilerplate
+and makes tests more resilient to changing validation rules, required
+fields, and evolving business logic.
 
 ---
 
 # Why XFTY?
 
-As Salesforce projects grow, so does the amount of code required simply to create valid test data.
+As a project grows, so does the amount of code required simply to create
+valid test data.
 
-A `Contact` requires an `Account`. Later, a validation rule requires additional `Account` fields. Eventually another related object becomes mandatory. Over time, hundreds or even thousands of tests can end up duplicating nearly identical setup code.
+A `Contact` requires an `Account`. Later, a validation rule requires
+additional `Account` fields. Eventually another related type becomes
+mandatory. Over time, hundreds or even thousands of tests can end up
+duplicating nearly identical setup code.
 
 XFTY centralizes that knowledge.
 
-Instead of every test knowing how to construct a valid object graph, Providers define that logic once, allowing individual tests to override only the fields they actually care about.
+Instead of every test knowing how to construct a valid object graph,
+Providers define that logic once, allowing individual tests to override only
+the fields they actually care about.
 
 The result is test code that is:
 
@@ -31,14 +44,31 @@ The result is test code that is:
 
 # Features
 
-- Declarative test data generation
-- Automatic relationship generation
-- Centralized default values
-- Configurable relationship inclusivity
-- Multiple persistence strategies
-- Mock Salesforce Id generation without DML
-- Extensible Provider architecture
-- Suitable for both isolated unit tests and integration tests
+- Declarative test data generation, described once per Provider
+- Automatic relationship generation — required, optional, shared ancestors,
+  self-referential cycles guarded automatically
+- Context-aware values: a field derived from a sibling, a generated
+  ancestor, or (once the graph exists) a generated child, with a loud error
+  on a mis-ordered read instead of a silent wrong `null`
+- Per-call relationship control (`IncludeOptional`, `ExcludeRelationship`)
+  without touching a Provider's own definition
+- Real persistence through `IPersistenceGateway` — `Xfty.EntityFrameworkCore`
+  ships an EF Core implementation, proven against SQLite and a real Postgres
+  container — or mock Ids with no database touched at all
+- Deferred and depth-batched insert: build a graph across several calls, then
+  insert it once, in dependency order, across mixed record types
+- Multi-variant Providers (`FlavouredLookupKey`, `DiscriminatorLookupKey`) —
+  resolve a different Provider for the same type by an arbitrary predicate or
+  field value
+- Lambda-based field access throughout (`x => x.Field`, not a bare
+  `PropertyInfo` or `nameof(...)`)
+- Extensible Provider architecture — implement `IRecordProvider` directly, or
+  use `SimpleRecordProvider<T>` when a Provider is nothing but a template
+- Suitable for both isolated unit tests and real-database integration tests,
+  with the same Provider definitions
+
+See [How XFTY compares](#how-xfty-compares) for how this stacks up against
+AutoFixture, Bogus, and similar libraries.
 
 ---
 
@@ -46,38 +76,34 @@ The result is test code that is:
 
 Generate a `Contact` with sensible defaults:
 
-```apex
-XFTY_DefaultSObjectProviderLookup providerLookup = new XFTY_DefaultSObjectProviderLookup();
+```csharp
+DefaultProviderLookup lookup = new();
 
-Contact contact = (Contact) new XFTY_DummySObjectProvider(Contact.SObjectType, providerLookup)
-        .supply();
+Contact contact = (Contact)new RecordProvider(typeof(Contact), lookup)
+    .Supply();
 ```
 
 Override only the fields your test actually cares about:
 
-```apex
-Contact contact =
-    (Contact) new XFTY_DummySObjectProvider(Contact.SObjectType, providerLookup)
-        .setOverrideTemplate(new Contact(
-                FirstName = 'Alice'
-        ))
-        .setInsertMode(XFTY_InsertModeEnum.MOCK)
-        .supply();
+```csharp
+Contact contact = (Contact)new RecordProvider(typeof(Contact), lookup)
+    .Put<Contact>(x => x.FirstName, "Alice")
+    .SetInsertMode(InsertMode.Mock)
+    .Supply();
 ```
 
 Generate complete related object graphs:
 
-```apex
-XFTY_DummySObjectBundle bundle =
-    new XFTY_DummySObjectProvider(Contact.SObjectType, providerLookup)
-        .setInsertMode(XFTY_InsertModeEnum.MOCK)
-        .setInclusivity(XFTY_InsertInclusivityEnum.ALL)
-        .supplyBundle();
+```csharp
+Bundle bundle = new RecordProvider(typeof(Contact), lookup)
+    .SetInsertMode(InsertMode.Mock)
+    .SetInclusivity(InsertInclusivity.All)
+    .SupplyBundle();
 
-Contact contact = (Contact) bundle.getList(Contact.Id)[0];
-Account account = (Account) bundle.getList(Contact.AccountId)[0];
+Contact contact = (Contact)bundle.GetList<Contact>(x => x.Id)![0];
+Account account = (Account)bundle.GetList<Contact>(x => x.AccountId)![0];
 
-System.assertEquals(account.Id, contact.AccountId);
+Assert.Equal(account.Id, contact.AccountId);
 ```
 
 ---
@@ -89,9 +115,9 @@ Full documentation is in [`docs/`](docs/README.md), organised by audience:
 | I want to… | Go to |
 |------------|-------|
 | **Use XFTY to write tests** | [docs/use/](docs/use/) — start with [getting-started](docs/use/getting-started.md) |
-| **Teach XFTY about my org's SObjects** | [docs/extend/](docs/extend/) |
+| **Teach XFTY about my own record types** | [docs/extend/](docs/extend/) |
 | **Work on XFTY itself** | [docs/contribute/](docs/contribute/) — [architecture](docs/contribute/architecture.md) |
-| **Look something up** | [docs/reference/](docs/reference/) — [migration](docs/reference/migration.md), [known-issues](docs/reference/known-issues.md) |
+| **Look something up** | [docs/reference/](docs/reference/) — [api-cheatsheet](docs/reference/api-cheatsheet.md), [known-issues](docs/reference/known-issues.md) |
 | **See what's built / planned** | [docs/roadmap/](docs/roadmap/README.md) |
 
 ---
@@ -104,25 +130,56 @@ XFTY was designed around a simple idea:
 
 Everything else should be generated automatically.
 
-Rather than scattering test data throughout an entire codebase, XFTY moves that knowledge into reusable Providers that declaratively describe valid Salesforce objects and their relationships.
+Rather than scattering test data throughout an entire codebase, XFTY moves
+that knowledge into reusable Providers that declaratively describe valid
+records and their relationships.
 
-The framework then constructs those object graphs automatically, allowing test code to remain focused on the behaviour being tested rather than on setup.
+The framework then constructs those object graphs automatically, allowing
+test code to remain focused on the behaviour being tested rather than on
+setup.
+
+---
+
+# How XFTY Compares
+
+XFTY is not a general-purpose "fill in an object" library like AutoFixture,
+and it doesn't ship realistic fake-data generators like Bogus. What it does
+that they don't:
+
+- Generates a related **graph** — required/optional relationships, shared
+  ancestors deduplicated across many children, self-referential cycles
+  guarded automatically — not one object at a time.
+- Has an actual opinion about **persistence**: the same Provider definitions
+  run as a pure in-memory `Mock` in a unit test, or insert for real through
+  `IPersistenceGateway` in an integration test, with no rewrite.
+- Resolves a different Provider **variant** for the same type by a runtime
+  key or predicate, and supports **context-aware values** — a field derived
+  from a sibling, ancestor, or generated child, with a loud guard against
+  reading one that hasn't been generated yet.
+
+It has no built-in realistic fake-data generation and no auto-population -
+every field a Provider cares about is declared, not guessed. See
+[docs/reference/comparison.md](docs/reference/comparison.md) for the full,
+unvarnished comparison against AutoFixture, Bogus, AutoBogus, and NBuilder,
+including where XFTY is a worse fit than any of them.
 
 ---
 
 # Roadmap
 
-Recently landed (see [migration](docs/reference/migration.md) for the breaking changes):
+Recently landed (see the [CHANGELOG](CHANGELOG.md) for the full 1.0.0-beta.1
+entry):
 
-- Provider variants by `SObjectType` + record type + flavour
-- Implicit literal wrapping in `put(...)`
-- Context-aware value generation (sibling + ancestor reads), with a loud guard for mis-ordered reads
-- Per-call relationship control (`includeOptional`, `excludeRelationship`)
-- Shared ancestors (on-demand)
-- 100% framework line coverage; split unit / integration / load test suites
+- Real persistence via `IPersistenceGateway` (`Xfty.EntityFrameworkCore`,
+  proven against SQLite and a real Postgres container)
+- `DiscriminatorLookupKey` — resolving a Provider by a field's value
+- Lambda-based field access across the whole public API
+- A full sweep to a from-scratch, idiomatic C# port with no remaining
+  Salesforce-specific surface
 
-The full status table — done, in progress, and proposed, with the open question
-on each — is [docs/roadmap/README.md](docs/roadmap/README.md).
+The full status table — built, not-ported, and open ideas under
+consideration (embedded/denormalized document relationships, vector database
+support) — is [docs/roadmap/README.md](docs/roadmap/README.md).
 
 ---
 

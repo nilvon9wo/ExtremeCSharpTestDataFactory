@@ -3,7 +3,7 @@
 What is built, what is left, for this C# port.
 
 Legend: ✅ built and working · ⚠️ built but with a real limitation versus the
-Apex original · ❌ not ported (see [reference/known-issues](../reference/known-issues.md) for why) · 📋 designed, not built.
+Apex original · ❌ not ported (see [reference/known-issues](../reference/known-issues.md) for why) · 📋 designed, not built · 💡 idea, not designed.
 
 ## Built
 
@@ -33,18 +33,12 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 
 ---
 
-## Open questions
+## Ideas under consideration — not gaps, not committed to
 
-Apex's open question — "does XFTY commit to a deployable, non-`@IsTest`
-distribution?" — **does not apply to C#.** There is no `@IsTest`-annotation
-concept that keeps compiled code out of a real build; a C# library is always
-"real" code. See [open-questions.md](open-questions.md).
-
-The persistence question this page used to track as open is resolved:
-`IPersistenceGateway` plus `Xfty.EntityFrameworkCore` unblock `Now`,
-`DeferredInserter.Flush(gateway)`, and `.DepthBatched()`. Seeding a
-long-lived, shared environment remains a deliberately separate, out-of-scope
-concern — see [sandbox-seeding.md](sandbox-seeding.md).
+| Idea | Status | Detail |
+|------|--------|--------|
+| Embedded/denormalized document relationships (a document database's native nested-array shape, distinct from the FK-reference relationships XFTY models today) | 💡 | [embedded-documents.md](embedded-documents.md) |
+| Vector database support (a bundled random-vector value expression; persistence already covered by `IPersistenceGateway`) | 💡 | [vector-databases.md](vector-databases.md) |
 
 ---
 

@@ -61,10 +61,9 @@ matrix (every feature → its page → the test that proves its examples).
 
 ## roadmap/
 
-[roadmap/README.md](roadmap/README.md) is the status table plus the decided
-remaining work. [roadmap/open-questions.md](roadmap/open-questions.md) is the
-short list of genuine questions that block progress. Detail pages (the former
-`design/` proposals) sit beside them.
+[roadmap/README.md](roadmap/README.md) is the status table, the decided
+remaining work, and the ideas under consideration that aren't decided yet.
+Detail pages (the former `design/` proposals) sit beside it.
 
 ## articles/
 

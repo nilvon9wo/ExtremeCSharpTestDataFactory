@@ -9,5 +9,6 @@ Look things up.
 | [volume-and-limits](volume-and-limits.md) | How generation scales, measured by wall-clock time and allocation instead of Salesforce governor limits. |
 | [known-issues](known-issues.md) | The open defect triage list, and the capability gaps versus the Apex original. |
 | [api-cheatsheet](api-cheatsheet.md) | Every public class and fluent method, one line each. |
+| [comparison](comparison.md) | An honest feature comparison against AutoFixture, Bogus, AutoBogus, and NBuilder — what XFTY does that they don't, and what it doesn't do that they do. |
 
 For plan status (done / in progress / proposed), see [../roadmap/](../roadmap/).
