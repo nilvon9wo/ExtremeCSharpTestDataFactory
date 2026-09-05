@@ -40,15 +40,21 @@ because those entries describe a change made in *this* repository.
   unmodified* `EfPersistenceGateway` - no new gateway code, just a package
   reference, a demo entity, and the `pgvector/pgvector:pg16` container image.
 - **`Xfty.VectorDatabases.Qdrant`** (`0.1.0-preview.1`, not `1.0.0-beta.1` -
-  see its own README) — `QdrantPersistenceGateway`, a real, working
-  `IPersistenceGateway` backed by Qdrant via `Microsoft.Extensions.VectorData`.
-  Answers a real question (is a dedicated vector-DB gateway a trivial
-  wrapper or real design work?) with two concrete corrections the
-  documentation didn't predict: Qdrant's connector requires `Guid` keys, not
-  `string`, and a vector property's declared type must be the container
-  type (`float[]`), not the element type (`float`). Preview because it
-  depends on another vendor's still-preview package and hasn't been used
-  against a real project's schema yet - see
+  see its own README) — **two** competing `IPersistenceGateway`s, both real
+  and working, answering "is a dedicated vector-DB gateway worth the extra
+  abstraction, or is the vendor's own client just as easy": `QdrantPersistenceGateway`
+  via `Microsoft.Extensions.VectorData`, `QdrantDirectPersistenceGateway`
+  via `Qdrant.Client` directly. The MEVD path needed two corrections
+  undocumented anywhere findable: Qdrant's client requires `Guid` point ids,
+  not `string` (independently reconfirmed on the direct path too - a
+  compile-time error there instead of a runtime one, same underlying
+  constraint); a vector property's declared schema type must be the
+  container type (`float[]`), not the element type (`float`) - MEVD-only,
+  no equivalent step exists on the direct path. The direct gateway compiled
+  and passed on the first real attempt. Preview because both depend on
+  either another vendor's still-preview package or hand-built mapping code
+  that hasn't been used against a real project's schema yet; expected to
+  split into separate packages if either graduates - see
   [roadmap/vector-databases.md](docs/roadmap/vector-databases.md).
 
 ## [1.0.0-beta.1] – 2026-09-05

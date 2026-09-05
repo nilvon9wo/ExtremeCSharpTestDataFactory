@@ -54,7 +54,7 @@ answer.
 
 | Package | Question it answers | Detail |
 |---------|---------------------|--------|
-| `Xfty.VectorDatabases.Qdrant` — `QdrantPersistenceGateway` | Is a dedicated vector-database `IPersistenceGateway` a trivial wrapper or real design work? (Answer: real work - two concrete corrections the documentation didn't predict, see the detail page.) | [vector-databases.md](vector-databases.md#qdrant---built-as-a-preview-proof-of-concept-not-a-considered-package), [package README](../../Xfty.VectorDatabases.Qdrant/README.md) |
+| `Xfty.VectorDatabases.Qdrant` — `QdrantPersistenceGateway` (via Microsoft.Extensions.VectorData) *and* `QdrantDirectPersistenceGateway` (via Qdrant's own client) | Is a dedicated vector-database `IPersistenceGateway` a trivial wrapper or real design work - and is the extra abstraction worth it, or is talking to the vendor's own client just as easy? (Answer to both: real work, and the abstraction didn't pay for itself on this simple a record shape - see the detail page.) Expected to split into two packages if either graduates. | [vector-databases.md](vector-databases.md#qdrant---built-as-two-competing-preview-proofs-of-concept-not-a-considered-package), [package README](../../Xfty.VectorDatabases.Qdrant/README.md) |
 
 ---
 

@@ -33,11 +33,11 @@ public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistence
 
     private static void InsertGroup(QdrantVectorStore vectorStore, List<object> records, PropertyInfo idField)
     {
-        RequireGuidKey(idField);
-        records.ForEach(record => FillIdIfMissing(record, idField));
+        QdrantRecordReflection.RequireGuidKey(idField);
+        records.ForEach(record => QdrantRecordReflection.FillIdIfMissing(record, idField));
 
         Type recordType = records[0].GetType();
-        PropertyInfo vectorField = FindVectorField(recordType);
+        PropertyInfo vectorField = QdrantRecordReflection.FindVectorField(recordType);
         VectorStoreCollectionDefinition definition = BuildDefinition(recordType, idField, vectorField, records[0]);
 
         VectorStoreCollection<object, Dictionary<string, object?>> collection =
@@ -47,29 +47,6 @@ public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistence
         List<Dictionary<string, object?>> rows = [.. records.Select(record => ToRow(record, recordType))];
         collection.UpsertAsync(rows).GetAwaiter().GetResult();
     }
-
-    private static void RequireGuidKey(PropertyInfo idField)
-    {
-        Type underlyingType = Nullable.GetUnderlyingType(idField.PropertyType) ?? idField.PropertyType;
-        if (underlyingType != typeof(Guid))
-        {
-            throw new NotSupportedException(
-                $"{nameof(QdrantPersistenceGateway)} only supports a Guid-typed id field - Qdrant's own connector rejects "
-                + $"string keys outright (PoC limitation, discovered by running this test, not assumed - see README.md). "
-                + $"'{idField.Name}' is {idField.PropertyType.Name}.");
-        }
-    }
-
-    private static void FillIdIfMissing(object record, PropertyInfo idField)
-    {
-        if (idField.GetValue(record) is null)
-        {
-            idField.SetValue(record, Guid.NewGuid());
-        }
-    }
-
-    private static PropertyInfo FindVectorField(Type recordType) =>
-        recordType.GetProperties().First(property => property.PropertyType == typeof(float[]));
 
     private static VectorStoreCollectionDefinition BuildDefinition(
         Type recordType, PropertyInfo idField, PropertyInfo vectorField, object sampleRecord)
