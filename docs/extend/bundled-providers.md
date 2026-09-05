@@ -1,40 +1,40 @@
 # The Bundled Providers
 
-XFTY ships three Providers — `Account`, `Contact`, `User` — wired together by
-`XFTY_DefaultSObjectProviderLookup`. They are deliberately generic starting
-points. **Copy them into your project and adjust** rather than depending on their
-exact defaults.
+XFTY ships two Providers — `Account`, `Contact` — wired together by
+`DefaultProviderLookup`. They are deliberately generic starting points. **Copy
+them into your project and adjust** rather than depending on their exact
+defaults.
 
 | Provider | Class |
 |----------|-------|
-| Business Account | `XFTY_DefaultAccountDataProvider` |
-| Contact | `XFTY_DefaultContactDataProvider` |
-| User | `XFTY_DefaultUserDataProvider` |
-| Lookup wiring them | `XFTY_DefaultSObjectProviderLookup` |
+| Account | `AccountDataProvider` |
+| Contact | `ContactDataProvider` |
+| Lookup wiring them | `DefaultProviderLookup` |
 
-`XFTY_DefaultSObjectProviderLookup` is also the copy-me example for
+All three live in `Net.Nowhereatall.Xfty.Demo`.
+
+`DefaultProviderLookup` is also the copy-me example for
 [writing your own lookup](provider-lookups.md) — it is the exact map-plus-utility
-pattern with XFTY's three Providers, and the framework uses it for its own
+pattern with this port's two Providers, and the framework uses it for its own
 self-tests.
 
----
-
-## Test-user helpers
-
-`XFTY_DefaultUserDataProvider` exposes `TEST_ADMIN_USER`, `profileIdFor(label)`,
-and `roleIdFor(developerName)` for tests that need a specific `User`. Consumer
-usage: [use/test-user-helpers](../use/test-user-helpers.md).
+> Apex also shipped a third bundled Provider, `XFTY_DefaultUserDataProvider`,
+> with test-user helpers (`TEST_ADMIN_USER`, `profileIdFor`, `roleIdFor`). None
+> of that has a C# analog — no live org, no `Profile`/`UserRole` to query — and
+> it is not ported. See [use/test-user-helpers](../use/test-user-helpers.md)
+> and [reference/known-issues.md](../reference/known-issues.md). This port's
+> demo `User` (`Id`, `FirstName`, `LastName`, `Email`, `ManagerId`) exists only
+> to exercise deep/hierarchical relationship paths in tests, and has no bundled
+> Provider of its own — register your own `IRecordProvider` for it if your
+> tests need one.
 
 ---
 
 ## Why copy, not depend
 
-- `@IsTest` classes cannot be `abstract` or `virtual`, so there is no clean
-  subclass hook.
-- Your org's required fields, validation rules, and record types differ from the
+- Your project's required fields and validation logic differ from these
   generic defaults — a copied Provider is where that knowledge lives.
 - Depending on the shipped defaults couples your tests to XFTY's release notes.
 
-The Person Account variant in `test-support/`
-(`XFTY_PersonAccountDataProvider`) is a worked example of a second Provider for
-one type — see [provider-variants](provider-variants.md).
+See [provider-variants](provider-variants.md) for registering a second Provider
+for one type.

@@ -1,9 +1,13 @@
 # Registering Provider Variants
 
-A single `SObjectType` can have several Providers, chosen by a **lookup key**.
-The motivating case is Business Account vs Person Account — one type, two
-genuinely different Master Templates. This page is about **registering** variants;
-selecting one as a consumer is [use/provider-variants](../use/provider-variants.md).
+A single record type can have several Providers, chosen by a **lookup key**.
+This page is about **registering** variants; selecting one as a consumer is
+[use/provider-variants](../use/provider-variants.md).
+
+> Apex's variant system also had `XFTY_RecordTypeLookupKey` — a Salesforce
+> `RecordTypeId` discriminator, resolved via schema describe with no SOQL. That
+> is genuinely Salesforce-specific and has no C# analog; it is not ported. See
+> [reference/known-issues.md](../reference/known-issues.md).
 
 ---
 
@@ -11,67 +15,62 @@ selecting one as a consumer is [use/provider-variants](../use/provider-variants.
 
 | Key | Selects by | Specificity |
 |-----|-----------|-------------|
-| `XFTY_LookupKey.get(type)` | `SObjectType` only (the default) | 0 |
-| `XFTY_RecordTypeLookupKey.get(type, developerName)` | `SObjectType` + record type | 10 |
-| `XFTY_FlavouredLookupKey.get(type, [recordType,] flavour).matching(predicate)…` | `SObjectType` + optional record type + arbitrary conditions on the record | 20 + predicate count |
-| your own `XFTY_LookupKeyIntf` | anything | you choose |
+| `LookupKey.Get(type)` | record type only (the default) | 0 |
+| `FlavouredLookupKey.Get(type, flavour).Matching(predicate)…` | record type + arbitrary conditions on the record | 20 + predicate count |
+| your own `ILookupKey` | anything | you choose |
 
-All keys are flyweights — obtain with `.get(...)`, never `new`. A
-`XFTY_FlavouredLookupKey` is interned by type + record type + flavour (its
-predicates are *not* part of its identity); add its predicates with
-`.matching(...)` **once**.
+All keys are flyweights — obtain with `.Get(...)`, never `new`. A
+`FlavouredLookupKey` is interned by type + flavour (its predicates are *not*
+part of its identity); add its predicates with `.Matching(...)` **once**.
 
 ---
 
 ## Predicates on a flavoured key
 
-`.matching(...)` takes any `XFTY_SObjectPredicateIntf` — a one-method interface
-(`Boolean isSatisfiedBy(SObject)`). Repeated `.matching(...)` calls are an
+`.Matching(...)` takes any `IRecordPredicate` — a one-method interface
+(`bool IsSatisfiedBy(object? record)`). Repeated `.Matching(...)` calls are an
 **AND**.
 
-**Ready-made single-field conditions** — `XFTY_FieldPredicate`:
+**Ready-made single-field conditions** — `FieldPredicateFactory`:
 
 | Factory | Matches when |
 |---------|-------------|
-| `equalTo(field, value)` / `notEqualTo(field, value)` | `field` == / != `value` (null-aware) |
-| `greaterThan(field, value)` / `lessThan(field, value)` | numeric, `Date`/`Datetime`, else lexicographic; false if either side is null |
-| `isNull(field)` / `isNotNull(field)` | `field` is / is not null |
-| `inSet(field, Set<Object>)` | `field` is one of the set (null set → matches nothing) |
+| `EqualTo(field, value)` / `NotEqualTo(field, value)` | `field` == / != `value` (null-aware) |
+| `GreaterThan(field, value)` / `LessThan(field, value)` | numeric or `DateTime`, else lexicographic; false if either side is null |
+| `IsNull(field)` / `IsNotNull(field)` | `field` is / is not null |
+| `InSet(field, values)` | `field` is one of the set (null set → matches nothing) |
 
-(`XFTY_FieldPredicate` is a thin facade — each factory wires up a purpose-built
-class such as `XFTY_FieldGreaterThanPredicate` or `XFTY_FieldInSetPredicate`, and
-`notEqualTo` / `isNotNull` are a negated `equalTo`. Use those classes directly if
-you prefer.)
+(`FieldPredicateFactory` is a thin facade — each factory wires up a
+purpose-built class such as `FieldGreaterThanPredicate` or
+`FieldInSetPredicate`, and `NotEqualTo` / `IsNotNull` are a negated `EqualTo`.
+Use those classes directly if you prefer.)
 
-**AND / OR / NOT** — `XFTY_Predicates`, for anything beyond the implicit AND:
+**AND / OR / NOT** — `PredicateFactory`, for anything beyond the implicit AND:
 
-```apex
-XFTY_FlavouredLookupKey.get(Account.SObjectType, 'strategic')
-        .matching(XFTY_Predicates.anyOf(new List<XFTY_SObjectPredicateIntf>{
-                XFTY_FieldPredicate.greaterThan(Account.AnnualRevenue, 1000000),
-                XFTY_FieldPredicate.greaterThan(Account.NumberOfEmployees, 5000)
-        }))
-        .matching(XFTY_Predicates.negate(XFTY_FieldPredicate.equalTo(Account.Type, 'Prospect')));
+```csharp
+FlavouredLookupKey.Get(typeof(Account), "strategic")
+    .Matching(PredicateFactory.AnyOf([
+        FieldPredicateFactory.GreaterThan(Field.Of<Account>(nameof(Account.AnnualRevenue)), 1_000_000m),
+        FieldPredicateFactory.GreaterThan(Field.Of<Account>(nameof(Account.NumberOfEmployees)), 5000),
+    ]))
+    .Matching(PredicateFactory.Negate(FieldPredicateFactory.EqualTo(Field.Of<Account>(nameof(Account.Type)), "Prospect")));
 ```
 
-`allOf(list)` / `anyOf(list)` / `negate(one)` return an `XFTY_SObjectPredicateIntf`,
-so they nest. An empty `allOf` is vacuously true; an empty `anyOf` is never
+`AllOf(list)` / `AnyOf(list)` / `Negate(one)` return an `IRecordPredicate`, so
+they nest. An empty `AllOf` is vacuously true; an empty `AnyOf` is never
 satisfied.
 
-**Your own predicate** — when the ready-made ones do not express the condition,
-implement the interface. No base class, no registration:
+**Your own predicate** — when the ready-made ones do not express the
+condition, implement the interface. No base class, no registration:
 
-<!-- sketch -->
-```apex
-public class CreatedThisFiscalYearPredicate implements XFTY_SObjectPredicateIntf {
-    public Boolean isSatisfiedBy(SObject record) {
-        Date created = (Date) record?.get('CreatedDate');
-        return created != null && created >= Date.today().toStartOfMonth().addMonths(-11);
-    }
+```csharp
+public sealed class CreatedThisYearPredicate : IRecordPredicate
+{
+    public bool IsSatisfiedBy(object? record) =>
+        record?.GetType().GetProperty("CreatedDate")?.GetValue(record) is DateTime created
+        && created >= new DateTime(DateTime.Today.Year, 1, 1);
 }
 ```
-
-▶ Runnable: `XFTY_PredicatesTest` (the tree above) · `XFTY_FieldEqualToPredicateTest` / `XFTY_FieldGreaterThanPredicateTest` / `XFTY_FieldInSetPredicateTest` / `XFTY_ValueComparisonTest` (the field conditions)
 
 ---
 
@@ -81,24 +80,20 @@ A flavoured key is referenced from the Provider Lookup map *and* from every
 relationship that pins that variant, so define each in a shared `*LookupKeys`
 constants class:
 
-<!-- sketch -->
-```apex
-@IsTest
-public class MyProjectLookupKeys {
-    public static final XFTY_LookupKeyIntf ENTERPRISE_ACCOUNT =
-            XFTY_FlavouredLookupKey.get(Account.SObjectType, 'enterprise')
-                    .matching(XFTY_FieldPredicate.greaterThan(Account.NumberOfEmployees, 1000));
-    public static final XFTY_LookupKeyIntf PERSON_ACCOUNT =
-            XFTY_RecordTypeLookupKey.get(Account.SObjectType, 'PersonAccount');
+```csharp
+public static class MyProjectLookupKeys
+{
+    public static readonly ILookupKey EnterpriseAccount =
+        FlavouredLookupKey.Get(typeof(Account), "enterprise")
+            .Matching(FieldPredicateFactory.GreaterThan(Field.Of<Account>(nameof(Account.NumberOfEmployees)), 1000));
 }
 ```
 
-<!-- sketch -->
-```apex
-private static final Map<XFTY_LookupKeyIntf, Type> PROVIDERS = new Map<XFTY_LookupKeyIntf, Type>{
-    XFTY_LookupKey.get(Account.SObjectType) => BusinessAccountProvider.class,
-    MyProjectLookupKeys.PERSON_ACCOUNT      => PersonAccountProvider.class,
-    MyProjectLookupKeys.ENTERPRISE_ACCOUNT  => EnterpriseAccountProvider.class
+```csharp
+private static readonly Dictionary<ILookupKey, Type> Providers = new()
+{
+    [LookupKey.Get(typeof(Account))]          = typeof(BusinessAccountProvider),
+    [MyProjectLookupKeys.EnterpriseAccount]   = typeof(EnterpriseAccountProvider),
 };
 ```
 
@@ -106,53 +101,44 @@ private static final Map<XFTY_LookupKeyIntf, Type> PROVIDERS = new Map<XFTY_Look
 
 ## Resolution
 
-- **Explicit:** `lookup.get(someKey)`.
-- **Top-level generation** picks a variant via `withVariant(key)`, the
-  lookup-key constructor, or an override template carrying a record type — see
-  [use/provider-variants](../use/provider-variants.md).
+- **Explicit:** `lookup.Get(someKey)`.
+- **Top-level generation** picks a variant via `WithVariant(key)`, or the
+  lookup-key constructor — see [use/provider-variants](../use/provider-variants.md).
 - **A relationship with an explicit key:**
-  `new XFTY_DummyDefaultRelationship(MyProjectLookupKeys.PERSON_ACCOUNT, new Account())`.
+  `new DefaultRelationship(MyProjectLookupKeys.EnterpriseAccount, new Account())`.
 - **A relationship with only an override template:**
-  `XFTY_ProviderLookups.resolve` collects every registered key whose
-  `isInstanceOf(template)` is true and picks the most specific; the plain type
+  `ProviderLookups.Resolve` collects every registered key whose
+  `IsInstanceOf(template)` is true and picks the most specific; the plain type
   key is the fallback. Two equally-specific matches is an error — supply an
-  explicit key. `XFTY_RecordTypeLookupKey` matches the template's `RecordTypeId`
-  from the describe (no SOQL). The derived key is memoised on the relationship.
+  explicit key. The derived key is memoised on the relationship.
 - **An explicit key *and* an override template that disagree:** if the template
-  independently matches a *different* refined variant (e.g. `withVariant(PERSON_ACCOUNT)`
-  with a business-record-type template), that is a contradiction and throws
-  rather than silently letting the explicit key win. A template that carries no
-  discriminator is fine — the explicit key stands.
+  independently matches a *different* refined variant, that is a contradiction
+  and throws rather than silently letting the explicit key win. A template that
+  matches no flavour's predicates is fine — the explicit key stands.
 
 Each top-level Provider still owns one Master Template, so one generation call
-produces one variant. Provider-specific `createBundle` logic that inspects the
-override template is no longer needed for record types.
+produces one variant.
 
 ---
 
 ## Your own lookup key
 
-`XFTY_LookupKeyIntf` is four methods — implement it directly when a variant is
-chosen by something the shipped keys don't model (a multi-field rule, a namespace
-prefix, whatever). `isInstanceOf(SObject)` is what template-derived resolution
-calls; `getSpecificity()` decides who wins when several keys match (return more
-than `20` to outrank a flavoured key). Register the instance in the Provider map
-like any other key.
+`ILookupKey` is four members — implement it directly when a variant is chosen
+by something the shipped keys don't model. `IsInstanceOf(object?)` is what
+template-derived resolution calls; `Specificity` decides who wins when several
+keys match (return more than `20` to outrank a flavoured key). Register the
+instance in the Provider map like any other key.
 
-<!-- sketch -->
-```apex
-public class WholesaleAccountKey implements XFTY_LookupKeyIntf {
-    public SObjectType getSObjectType()    { return Account.SObjectType; }
-    public Boolean isInstanceOf(SObject r) {
-        return r?.getSObjectType() == Account.SObjectType
-                && r.get('Segment__c') == 'Wholesale'
-                && r.get('AnnualRevenue') != null;
-    }
-    public String getHashKey()             { return 'Account::wholesale'; }
-    public Integer getSpecificity()        { return 30; }
+```csharp
+public sealed class WholesaleAccountKey : ILookupKey
+{
+    public Type SObjectType => typeof(Account);
+
+    public bool IsInstanceOf(object? record) =>
+        record is Account { Industry: "Wholesale", AnnualRevenue: not null };
+
+    public string HashKey => "Account::wholesale";
+
+    public int Specificity => 30;
 }
 ```
-
----
-
-Design record: [../roadmap/multi-variant-providers.md](../roadmap/multi-variant-providers.md).
