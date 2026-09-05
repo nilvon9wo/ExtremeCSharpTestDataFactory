@@ -84,4 +84,22 @@ public class RecordProviderIntegrationTest
         Contact contact = Assert.IsType<Contact>(result);
         Assert.Equal("Explicit", contact.LastName);
     }
+
+    [Fact]
+    public void SupplyBundle_WithChildren_GeneratesTheConfiguredChildCollectionWiredToTheParent()
+    {
+        // Arrange - downward generation: an Account with three Contact children
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+            .SetInsertMode(InsertMode.Mock)
+            .WithChildren(Field.Of<Contact>(nameof(Contact.AccountId)), 3);
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+
+        // Assert
+        List<object> children = bundle.GetChildList(Field.Of<Contact>(nameof(Contact.AccountId)));
+        Account account = Assert.IsType<Account>(bundle.GetList(Field.Of<Account>(nameof(Account.Id)))![0]);
+        Assert.Equal(3, children.Count);
+        Assert.All(children.Cast<Contact>(), contact => Assert.Equal(account.Id, contact.AccountId));
+    }
 }

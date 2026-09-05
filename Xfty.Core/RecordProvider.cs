@@ -248,7 +248,9 @@ public sealed class RecordProvider
         this.WarnIfMixingCustomTemplateWithOverrides();
         GenerationContext context = this.BuildContext();
         List<object> templates = this.TemplatesToFill();
-        return this.Generate(context, templates);
+        Bundle bundle = this.Generate(context, templates);
+        this.GenerateChildren(bundle);
+        return bundle;
     }
 
     public List<object> SupplyList() =>
@@ -260,6 +262,54 @@ public sealed class RecordProvider
         this.hasCustomMasterTemplate
             ? RecordFactory.CreateBundle(context, this.Template, templates)
             : this.FactoryOutlet.CreateBundle(context, templates);
+
+    // Downward generation - child collections ----------------------------
+    //
+    // Depth-batched insert and the DEFERRED registry (not ported - see
+    // csharp-port-idea.md) need children generated "structurally" (FK wired
+    // later, when a deferred buffer flushes); since neither is ported here,
+    // children are always generated with a real (or mocked) parent Id in hand.
+
+    private readonly List<ChildProvider> childProviders = [];
+
+    /// <summary>Add a fully-configured child collection. Repeatable.</summary>
+    public RecordProvider With(ChildProvider childProvider)
+    {
+        this.childProviders.Add(childProvider ?? throw new XftyConfigurationException("With(...) needs a ChildProvider."));
+        return this;
+    }
+
+    /// <summary>Shortcut: countPerParent children on childRelationshipField, everything else defaulted.</summary>
+    public RecordProvider WithChildren(PropertyInfo childRelationshipField, int countPerParent) =>
+        this.With(new ChildProvider(childRelationshipField).SetQuantity(countPerParent));
+
+    /// <summary>Shortcut: one child on childRelationshipField.</summary>
+    public RecordProvider WithChild(PropertyInfo childRelationshipField) =>
+        this.With(new ChildProvider(childRelationshipField));
+
+    private void GenerateChildren(Bundle bundle) =>
+        this.childProviders.ForEach(childProvider => this.GenerateOneChildCollection(bundle, childProvider));
+
+    private void GenerateOneChildCollection(Bundle bundle, ChildProvider childProvider)
+    {
+        List<object> primaries = bundle.GetList(this.FactoryOutlet.PrimaryTargetField)!;
+        List<(object Template, int ParentRow)> childRows = primaries
+            .SelectMany((primary, parentRow) => childProvider
+                .TemplatesForParent(IdOf(primary))
+                .Select(template => (Template: template, ParentRow: parentRow)))
+            .ToList();
+
+        RecordProvider childInstance = childProvider.NewProvider(this.providerLookup)
+            .SetOverrideTemplateList(childRows.Select(row => row.Template).ToList())
+            .SetInsertMode(childProvider.EffectiveInsertMode(this.insertMode))
+            .SetInclusivity(childProvider.EffectiveInclusivity(this.inclusivity));
+        Bundle childBundle = childInstance.SupplyBundle();
+
+        _ = bundle.PutChild(childProvider.RelationshipField, childBundle, childRows.Select(row => row.ParentRow).ToList());
+    }
+
+    private static object? IdOf(object record) =>
+        record.GetType().GetProperty("Id")?.GetValue(record);
 
     private GenerationContext BuildContext() =>
         new GenerationContext(this.providerLookup, this.insertMode, this.inclusivity)
