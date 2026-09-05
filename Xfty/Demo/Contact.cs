@@ -22,6 +22,8 @@ public sealed record class Contact
 
     public string? AccountId { get; init; }
 
+    public string? ReportsToId { get; init; }
+
     public string? Department { get; init; }
 
     public DateTime? Birthdate { get; init; }
