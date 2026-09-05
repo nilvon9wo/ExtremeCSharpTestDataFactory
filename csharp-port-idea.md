@@ -367,3 +367,88 @@ for-method, `PropertyInfo`/`object` wherever Apex used `SObjectField`/
 `SObject`, no new abstractions Apex doesn't have. Do not generalize, do not
 delete Apex classes in favor of "simpler" C# equivalents, unless explicitly
 agreed first.
+
+## 2026-09-05: enforce code style in build; demo domain grows; `core/` begins
+
+Brian flagged three more things, then went to bed asking for as much progress
+as possible unattended:
+
+1. Analyzer errors he was seeing (CA1859, IDE0021, IDE0028, IDE0046, IDE0306,
+   IDE2003, IDE2006) that `dotnet build` never caught. Root cause: without
+   `EnforceCodeStyleInBuild`, the strict IDE0xxx/error-severity rules in
+   `.editorconfig` were only ever checked by an IDE's live analysis or
+   `dotnet format` - never `dotnet build` or CI. Added a `Directory.Build.props`
+   (`EnforceCodeStyleInBuild` + `AnalysisLevel=latest`) so every project gets
+   this from now on, and fixed everything that surfaced: expression-bodied
+   constructors, guard-if-then-throw collapsed to throw-ternaries,
+   `ValueComparison.Compare` rewritten as a switch expression (also clears
+   the blank-line/IDE2003 violations the if-chain caused). CA1859/IDE0028/
+   IDE0306/IDE2006 specifically didn't reproduce even with this on - possibly
+   IDE-only inspections beyond what these analyzers catch, or he saw them
+   before the predicates rework; worth a fresh look in-IDE.
+2. Demo domain: `Account`'s properties are now `init`-only (proves
+   reflection-based field access doesn't care about setter accessibility),
+   and it gained `Site`/`Description` (needed by the `GenerationContext`
+   work below). Added `Contact` as a positional `record class` - the other
+   half of the Contact/Account pair, and a second common C# property-
+   declaration shape (compiler-generated `init`-only properties, value
+   equality). `RecordShapeFieldAccessTest` proves predicates read both
+   shapes identically.
+3. *"It is hard to give you feedback when the most important part is still
+   not even started."* Fair - `core/`'s `GenerationContext` is what makes
+   context-aware values (this port's actual differentiating feature vs.
+   AutoFixture) work, and nothing there existed yet.
+
+**`core/`'s real scope, once actually read class-by-class:** `GenerationContext`
+alone touches `XFTY_DummySObjectBundle`, `XFTY_PathValue`/`XFTY_PathTargetValue`,
+`XFTY_DummySObjectMasterTemplate`, the `relationships/` interfaces
+(`XFTY_DummyDefaultRelationshipIntf`, `XFTY_SharedRelationshipIntf`), and
+`lookup/` (`XFTY_LookupKeyIntf`, `XFTY_ProviderLookups`) - which themselves
+pull in more. Fully porting the engine that walks a Master Template and
+actually builds a record graph (`XFTY_DummySObjectProvider`,
+`XFTY_SObjectChildProvider`, `XFTY_AncestorPathWalker`, `XFTY_BundleMerger`,
+`XFTY_DeferredValueQueue`) is genuinely a multi-session undertaking, not
+something to rush unattended just to say `core/` was "started."
+
+**Decision: scope tonight to one complete, real, working vertical slice of
+context-aware values instead of a pile of half-wired plumbing.** Landed:
+`GenerationContext` (deliberately partial - only `RecordBeingBuilt` and
+`ValueFieldPass` exist so far, everything else the Apex original carries
+(Provider Lookup, insert mode/inclusivity, `bundleSoFar`, forced-relationship
+paths, path-value overrides, the cycle guard, the batched-insert flag) is
+added once the types it depends on are ported - see the class's own doc
+comment), `ValueFieldPass`, `IContextAwareExpression`, and
+`CopyFromSiblingExpression` fully working end-to-end with `SiblingValue`'s
+loud-throw-on-still-pending behavior intact. This is a genuine, if narrow,
+slice of the actual feature working - not a stub.
+
+Tests ported from `XFTY_ContextAwareExpressionTest`/`XFTY_GenerationContextTest`:
+only the ones that don't need the full provider engine (`SiblingValue`'s two
+behaviours, `CopyFromSiblingExpression`'s constructor guard, its
+outside-the-value-pass throw, its two-interfaces-not-one type check, and the
+plain/generated-null-sibling cases) - built directly against a
+`GenerationContext` rather than through `provider.Put(...).Supply()`, which
+doesn't exist yet. The Apex tests that drive a Provider (`sees an earlier
+context-aware sibling`, `does not override a value the override template
+supplied`, both "throws" tests reached through `.supply()`, everything under
+`XFTY_CopyFromAncestorExpression`, the custom-expression examples) are **not
+ported yet** - they need the engine. 80/80 passing (build+test both clean).
+
+**Captured but not built - a design input for the eventual Provider/Master
+Template public API, from Brian directly:** C# gives custom types real
+collection-initializer and indexer ergonomics (`{ }`/`[ ]`), which Apex has
+no equivalent for. He floated something like initializing a Provider/template
+with `{ x => x.Foo = new IncrementingStringExpression("hello"), ... }` and
+looking up a field's configured value with an indexer (`account[x => x.Bar]`).
+This is real and worth pursuing once `DummySObjectMasterTemplate` is
+ported - **but it's new structure Apex doesn't have, so it needs an explicit
+"yes, build this" the same way the reflection-vs-generics question did,** not
+a silent addition. Flagging here so it survives to that point.
+
+**Still open when picked back up:** `XFTY_DummySObjectBundle`,
+`XFTY_PathValue`/`XFTY_PathTargetValue`, `XFTY_DummySObjectMasterTemplate`,
+the `relationships/` interfaces, and eventually `lookup/` and the actual
+generation engine - in roughly that dependency order. `CopyFromAncestorExpression`
+and `CopyFromDescendantExpression` wait on the bundle. The collection-
+initializer/indexer ergonomics question above is worth raising once
+`DummySObjectMasterTemplate` is in reach.

@@ -23,4 +23,8 @@ public sealed class Account
     public int? NumberOfEmployees { get; init; }
 
     public decimal? AnnualRevenue { get; init; }
+
+    public string? Site { get; init; }
+
+    public string? Description { get; init; }
 }
