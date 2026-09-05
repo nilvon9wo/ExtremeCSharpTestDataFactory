@@ -6,6 +6,14 @@ opinion pieces — first published on LinkedIn — kept here for context. They a
 and nothing in [`docs/use/`](../use/) or [`docs/extend/`](../extend/) depends on
 them.
 
+**Unchanged by the C# port, deliberately.** These are first-person essays about
+the author's own history and about Salesforce/Apex testing specifically (the
+Stub API, `virtual` classes, governor limits, the Apex community's conflation
+of "unit test" with "any automated test"). Rewriting them to talk about C#
+instead would misattribute opinions and history that are genuinely about Apex.
+Read them as background on *why* this library exists in the first place, not
+as documentation of this port's behavior.
+
 | Essay | What it covers |
 |-------|----------------|
 | [The Trivial Request That Changed How I Design Software](the-trivial-request.md) | Where XFTY came from: a single field flipped from optional to required in 2013, a factory class, two rewrites, and the through-line of every version — *remove another decision from the caller*. |
