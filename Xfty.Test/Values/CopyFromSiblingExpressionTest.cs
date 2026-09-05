@@ -8,11 +8,10 @@ using NSubstitute;
 namespace Net.Nowhereatall.Xfty.Test.Values;
 
 /// <summary>
-/// Proves <see cref="CopyFromSiblingExpression"/>. The Apex original also
-/// proved this driven end-to-end through a Provider's put(...)/supply() -
-/// that needs the engine (the ancestor generator, plain-value filler, etc.),
-/// not yet ported (see csharp-port-idea.md); these tests exercise the same
-/// mechanism by building the <see cref="GenerationContext"/> directly.
+/// Proves <see cref="CopyFromSiblingExpression"/> by building the
+/// <see cref="GenerationContext"/> directly, rather than driven through a
+/// Provider's Put(...)/Supply() - that end-to-end path (ordering rule
+/// included) is proven separately in ContextAwareExpressionTest.
 /// </summary>
 public class CopyFromSiblingExpressionTest
 {

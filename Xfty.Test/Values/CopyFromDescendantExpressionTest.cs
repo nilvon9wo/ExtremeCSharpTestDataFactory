@@ -8,9 +8,10 @@ namespace Net.Nowhereatall.Xfty.Test.Values;
 
 /// <summary>
 /// Proves <see cref="CopyFromDescendantExpression"/> by building a
-/// <see cref="DeferredGraph"/> directly - the Apex original also proved this
-/// resolved through the DEFERRED flush, which isn't ported yet (see
-/// csharp-port-idea.md); the expression's own logic doesn't depend on it.
+/// <see cref="DeferredGraph"/> directly - the expression's own logic doesn't
+/// depend on how the graph was assembled. Resolved end to end through the
+/// DEFERRED flush is proven in
+/// ExContextAwareValuesTest.ReadingUpFromAChild_NeedsDeferredMode.
 /// </summary>
 public class CopyFromDescendantExpressionTest
 {

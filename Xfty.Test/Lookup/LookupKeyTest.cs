@@ -10,12 +10,11 @@ namespace Net.Nowhereatall.Xfty.Test.Lookup;
 /// ProviderLookups resolution. The predicate building blocks have their own
 /// coverage in Predicates/.
 ///
-/// Not ported: Apex's XFTY_RecordTypeLookupKey section, and the three
-/// FlavouredLookupKey tests that pass a record-type discriminator - RecordType
-/// matching has no C# analog (documented capability gap; see csharp-port-idea.md).
-/// This port's FlavouredLookupKey never carried a record-type discriminator at
-/// all, so every other flavoured-key test here is already the "no record
-/// type" case Apex tests separately.
+/// A discriminator-field variant (matching a Provider by a field value, e.g.
+/// "Type == Person" on a shared record type) is proven separately in
+/// DiscriminatorLookupKeyTest - FlavouredLookupKey itself never carries a
+/// discriminator, only a plain flavour name, so every case here is the
+/// "no discriminator" shape.
 /// </summary>
 public class LookupKeyTest
 {

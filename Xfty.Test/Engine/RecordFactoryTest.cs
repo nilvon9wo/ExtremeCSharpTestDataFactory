@@ -12,11 +12,9 @@ namespace Net.Nowhereatall.Xfty.Test.Engine;
 /// <summary>
 /// Proves RecordFactory - the engine that turns a Master Template into an
 /// object graph - along its two axes: relationship inclusivity (None/
-/// Required/All/PreventCascade) and insert mode (Never/Later/Mock). This
-/// port has no persistence layer, so Apex's DML-backed Now/RelatedOnly
-/// scenarios and its governor-limit ("spends no DML") test are not portable
-/// as literal database checks - Mock already proves generation never
-/// touches a database, by construction, in this port.
+/// Required/All/PreventCascade) and insert mode (Never/Later/Mock). Mock
+/// mode proves generation never touches a database, by construction; a real
+/// insert under Now is proven in PersistenceGatewayTest.
 /// </summary>
 public class RecordFactoryTest
 {
@@ -372,7 +370,7 @@ file sealed class DeepContactProvider : BaseProvider
             .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account()));
 }
 
-/// <summary>Apex's original copies the parent's Name onto Contact.Description via a related-field relationship; this demo Contact has no writable Description, so Department stands in.</summary>
+/// <summary>Copies the parent Account's Name onto Contact.Department via a related-field relationship (a writable stand-in - Contact.Description isn't settable on this demo type).</summary>
 file sealed class RelatedFieldContactProvider : BaseProvider
 {
     public RelatedFieldContactProvider() =>

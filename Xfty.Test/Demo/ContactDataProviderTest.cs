@@ -6,9 +6,10 @@ namespace Net.Nowhereatall.Xfty.Test.Demo;
 /// <summary>
 /// Proves ContactDataProvider end to end: a generated Contact, its required
 /// Account (with the documented defaults), and the inclusivity that controls
-/// whether that Account is generated. This port has no persistence layer, so
-/// Apex's NOW/DML-backed scenarios (including the Database.update round trip)
-/// are adapted to Mock, which proves the same wiring without a database.
+/// whether that Account is generated. Uses Mock rather than Now/a real
+/// persistence gateway, since the wiring under test is unaffected by whether
+/// anything actually gets saved - see PersistenceGatewayTest for the
+/// insert-mode proof itself.
 /// </summary>
 public class ContactDataProviderTest
 {

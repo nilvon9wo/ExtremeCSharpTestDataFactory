@@ -8,10 +8,9 @@ namespace Net.Nowhereatall.Xfty.Test.Enrichment;
 /// Proves RecordInjector - the per-row clone + PropertyInfo.SetValue that
 /// writes what an init-only property rejects. Pure in-memory, no persistence.
 ///
-/// Not ported: Apex's polymorphic-relationship, Blob, and compound-field
-/// cases - this demo domain has no polymorphic lookup, and a reflection-based
-/// injector has no Blob-vs-JSON problem to prove in the first place (see
-/// RecordInjector's own doc comment) nor any compound-field concept.
+/// Not covered: polymorphic relationships and compound fields - this demo
+/// domain has no polymorphic lookup or compound-field concept to exercise
+/// (see RecordInjector's own doc comment).
 /// </summary>
 public class RecordInjectorTest
 {

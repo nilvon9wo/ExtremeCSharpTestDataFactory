@@ -10,17 +10,17 @@ namespace Net.Nowhereatall.Xfty.Test.Core;
 
 /// <summary>
 /// Proves downward generation - RecordProvider.With(...)/WithChildren(...)/
-/// WithChild(...) and ChildProvider. Mock mode throughout - this port has no
-/// persistence layer, so the Apex original's Now/Deferred DML-count
-/// assertions are adapted to check the structural bundle shape and the
-/// already-established "no persistence layer yet" throw instead (see
-/// RecordProviderIntegrationTest).
+/// WithChild(...) and ChildProvider. Mock mode throughout, checking the
+/// structural bundle shape directly; real Now/Deferred insertion is proven
+/// separately in PersistenceGatewayTest and RecordProviderIntegrationTest.
 ///
-/// Not ported: Apex's two "relationship field does not point at the child/
-/// provider type" guard tests - that validation relies on schema describe
-/// metadata (SObjectField.getDescribe().getReferenceTo()) with no C#
-/// reflection equivalent, and ChildProvider's own doc comment already
-/// documents dropping it rather than faking it.
+/// Not covered: a guard rejecting a relationship field that does not point at
+/// the child/provider type - validating that would need runtime metadata
+/// about what a foreign-key-shaped property conceptually references, which a
+/// plain reflection PropertyInfo does not carry (see ChildProvider's own doc
+/// comment: a misconfigured field surfaces as a wrong/null value instead of
+/// failing fast, and that's a documented, deliberate gap rather than
+/// something faked here).
 /// </summary>
 public class ChildProviderTest
 {
@@ -289,24 +289,25 @@ public class ChildProviderTest
     }
 
     [Fact]
-    public void With_AChildCanRaiseItsOwnInsertModeAboveTheParents_ButThisPortHasNoRealPersistenceEitherWay()
+    public void With_AChildCanRaiseItsOwnInsertModeAboveTheParents_ButNowWithoutAGatewayStillThrows()
     {
-        // Arrange - parent Never (no persistence attempted), child Now (would be real DML in Apex)
+        // Arrange - parent Never (no persistence attempted), child Now with no gateway configured
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Never)
             .With(ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2).SetInsertMode(InsertMode.Now));
 
-        // Act - the child's Now override is honoured (not silently downgraded to the parent's Never), and Now has no
-        // persistence layer in this port, so it throws rather than the Apex original's real insert
+        // Act - the child's Now override is honoured (not silently downgraded to the parent's Never); Now with no
+        // gateway configured throws rather than silently skipping the insert (see PersistenceGatewayTest for the
+        // configured-gateway case, where Now genuinely persists)
         NotSupportedException thrown = Assert.Throws<NotSupportedException>(provider.SupplyBundle);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
     }
 
-    // Apex's mirror-image case (a Now parent with a Mock child) is not portable: with no persistence
-    // layer, a Now-mode root always throws NotSupportedException generating its own primary, before
-    // SupplyBundle() ever reaches the child-compatibility check at all.
+    // Mock and Now are rejected as a mix in either direction - a mock Id and a real inserted row can
+    // never coexist correctly in the same generated graph, whether or not a persistence gateway is
+    // configured for Now.
     [Fact]
     public void SupplyBundle_WhenAMockParentHasANowChild_Throws() => AssertMockRealMixThrows(InsertMode.Mock, InsertMode.Now);
 

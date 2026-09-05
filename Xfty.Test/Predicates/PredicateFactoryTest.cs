@@ -6,12 +6,6 @@ namespace Net.Nowhereatall.Xfty.Test.Predicates;
 /// <summary>
 /// Proves the <see cref="PredicateFactory"/> combinator facade wires
 /// AllOf/AnyOf/Negate to the right implementation.
-///
-/// The Apex original also proved a combinator tree driving
-/// XFTY_FlavouredLookupKey (the "strategic" example from
-/// docs/extend/provider-variants.md) here; that belongs once the lookup/
-/// module is ported (see csharp-port-idea.md) and isn't repeated as a TODO
-/// per class - tracked centrally there.
 /// </summary>
 public class PredicateFactoryTest
 {

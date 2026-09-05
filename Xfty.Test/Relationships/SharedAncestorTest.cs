@@ -16,9 +16,9 @@ namespace Net.Nowhereatall.Xfty.Test.Relationships;
 /// detection. Deep chains and the batched pre-phase are covered in
 /// SharedAncestorIntegrationTest.
 ///
-/// Apex's Now-mode scenarios verify real DML row counts; this port has no
-/// persistence layer, so those are adapted to Mock-mode equivalents that
-/// prove the same wiring (every child resolves to the one shared instance/Id).
+/// Uses Mock-mode throughout to prove the wiring itself (every child resolves
+/// to the one shared instance/Id); real-insert row counts under Now are
+/// proven separately in PersistenceGatewayTest.
 ///
 /// SharedAncestor's registry is process-static; each test below uses its own
 /// never-reused shared-ancestor name to stay isolated (see the class's own

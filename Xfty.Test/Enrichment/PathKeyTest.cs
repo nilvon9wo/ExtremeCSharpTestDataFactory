@@ -5,12 +5,12 @@ using Net.Nowhereatall.Xfty.Enrichment;
 namespace Net.Nowhereatall.Xfty.Test.Enrichment;
 
 /// <summary>
-/// Proves PathKey - a comparable string key for a relationship path. This
-/// port's key format includes each field's declaring type (needed since,
-/// unlike Apex's globally-unique SObjectField tokens, two different record
-/// types can both have an "Id"-named property) - tested behaviourally
+/// Proves PathKey - a comparable string key for a relationship path. The key
+/// format includes each field's declaring type, needed since reflection
+/// PropertyInfo tokens are not globally unique - two different record types
+/// can both have an "Id"-named property - so this is tested behaviourally
 /// (equal paths produce equal keys, different paths do not) rather than
-/// against Apex's literal "AccountId&gt;ParentId&gt;" string.
+/// against one fixed literal string.
 /// </summary>
 public class PathKeyTest
 {

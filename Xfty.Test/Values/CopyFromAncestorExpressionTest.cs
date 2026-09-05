@@ -8,10 +8,10 @@ namespace Net.Nowhereatall.Xfty.Test.Values;
 
 /// <summary>
 /// Proves <see cref="CopyFromAncestorExpression"/> by building the
-/// <see cref="GenerationContext"/>/<see cref="Bundle"/> directly - the Apex
-/// original also proved this driven through a Provider; that needs the
-/// child-collection/ancestor-generation engine already exercised end-to-end
-/// in RecordProviderIntegrationTest, so isn't repeated here.
+/// <see cref="GenerationContext"/>/<see cref="Bundle"/> directly, rather than
+/// driven through a Provider - that needs the child-collection/ancestor-
+/// generation engine already exercised end-to-end in
+/// RecordProviderIntegrationTest, so isn't repeated here.
 /// </summary>
 public class CopyFromAncestorExpressionTest
 {

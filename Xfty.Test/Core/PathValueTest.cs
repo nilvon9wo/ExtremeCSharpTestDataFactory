@@ -13,10 +13,9 @@ namespace Net.Nowhereatall.Xfty.Test.Core;
 /// that land on a generated ancestor, forcing every relationship on the way
 /// (like IncludeOptional). Mock mode throughout.
 ///
-/// Apex's deep-two-hop case chains Case -&gt; Contact -&gt; Account; this demo
-/// domain has no Case, so the same shape (two forced relationship hops) is
-/// proven with Contact -&gt; Account -&gt; Account (self-referencing ParentId)
-/// instead - AccountWithOptionalParentProvider exists only for that one test.
+/// A deep, two-hop path (two forced relationship hops) is proven with
+/// Contact -&gt; Account -&gt; Account (self-referencing ParentId) -
+/// AccountWithOptionalParentProvider exists only for that one test.
 /// </summary>
 public class PathValueTest
 {

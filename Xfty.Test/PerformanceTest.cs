@@ -8,18 +8,17 @@ namespace Net.Nowhereatall.Xfty.Test;
 
 /// <summary>
 /// Volume tests: generate at a scale a real test suite might reach and prove
-/// nothing degrades badly - not a governor-limit check, because there are no
-/// governor limits here (see csharp-port-idea.md's GovernorBudget carve-out
-/// and XFTY_LoadTest, the Apex original this shadows). What actually matters
-/// in C# is wall-clock time and allocation, so this uses Stopwatch and
-/// GC.GetTotalMemory instead of Limits.getCpuTime()/getDmlRows()/etc.
+/// nothing degrades badly. There is no resource-limit budget to check against
+/// here (see csharp-port-idea.md's runtime-budget carve-out), so what matters
+/// is wall-clock time and allocation - this uses Stopwatch and
+/// GC.GetTotalMemory rather than counting operations against a fixed quota.
 ///
 /// Ceilings here are deliberately generous (an order of magnitude above what
 /// a healthy run takes locally) so this stays green on a loaded CI runner -
 /// it exists to catch an accidental O(n^2) regression, not to enforce a tight
 /// budget. Excluded from the default `dotnet test` filter some CI setups may
-/// apply via the Performance trait, the same role XFTY_Load plays running
-/// only in Apex's scheduled full-suite workflow rather than on every push.
+/// apply via the Performance trait, so it can run on a slower schedule
+/// (nightly, or a scheduled full-suite workflow) rather than on every push.
 /// </summary>
 [Trait("Category", "Performance")]
 public class PerformanceTest

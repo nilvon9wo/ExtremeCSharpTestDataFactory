@@ -8,12 +8,10 @@ namespace Net.Nowhereatall.Xfty.Test.Core;
 /// and get a valid Account graph too, and Mock mode not touching a database.
 /// Fine-grained API guards live in RecordProviderApiTest.
 ///
-/// Apex's Now-mode scenarios (real DML under System.runAs) and its two
-/// Database.update(...) round-trip tests have no C# equivalent - this port
-/// has no persistence layer, so Now throws NotSupportedException (proven in
-/// RecordProviderIntegrationTest) rather than actually inserting, and there
-/// is nothing to update. Mock mode wires the exact same graph shape/FKs
-/// Apex's Now-mode tests checked; that's what is proven here instead.
+/// Mock mode wires the exact same graph shape/FKs a real insert would; that's
+/// what is proven here. Now against a real persistence gateway (and the
+/// NotSupportedException it throws with none configured) is proven in
+/// PersistenceGatewayTest and RecordProviderIntegrationTest.
 /// </summary>
 public class RecordProviderScenarioTest
 {

@@ -10,10 +10,10 @@ namespace Net.Nowhereatall.Xfty.Test.Relationships;
 /// resolve through the real engine: every child that references a shared
 /// ancestor gets the exact same generated (and persisted-or-mocked) record.
 ///
-/// SharedAncestor's registry is process-static, not reset between xUnit
-/// tests the way Apex resets statics between test methods (same gap already
-/// documented for the unique-value expressions) - each test below uses its
-/// own never-reused shared-ancestor name to stay isolated.
+/// SharedAncestor's registry is process-static, not reset between xUnit test
+/// methods (same gap already documented for the unique-value expressions) -
+/// each test below uses its own never-reused shared-ancestor name to stay
+/// isolated.
 /// </summary>
 public class SharedAncestorIntegrationTest
 {

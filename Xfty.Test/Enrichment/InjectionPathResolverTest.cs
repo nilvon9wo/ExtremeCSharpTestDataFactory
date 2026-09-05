@@ -7,15 +7,15 @@ namespace Net.Nowhereatall.Xfty.Test.Enrichment;
 
 /// <summary>
 /// Proves InjectionPathResolver - field tokens to a navigation PropertyInfo,
-/// against the naming convention this port substitutes for Apex's schema
-/// describe (see InjectionPathResolver's own doc comment). No persistence.
+/// resolved by naming convention rather than schema metadata (see
+/// InjectionPathResolver's own doc comment). No persistence.
 ///
-/// Apex's "no child relationship matches this specific field" case relies on
-/// the describe knowing which field backs a named subquery; this port's
-/// convention only knows "does the child's own type have a collection
+/// The convention only knows "does the child's own type have a collection
 /// property on the parent" - it cannot single out one non-FK field on a type
-/// that also has real child fields. The adapted case below uses a parent
-/// type with no such collection at all, which both mechanisms reject.
+/// that also has real child fields, so it can't distinguish "no relationship
+/// matches this specific field" from "no relationship matches any field on
+/// this type." The case below uses a parent type with no such collection at
+/// all, which the resolver correctly rejects.
 /// </summary>
 public class InjectionPathResolverTest
 {

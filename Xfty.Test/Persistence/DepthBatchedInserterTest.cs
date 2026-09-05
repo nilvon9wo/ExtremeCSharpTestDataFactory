@@ -8,14 +8,13 @@ namespace Net.Nowhereatall.Xfty.Test.Persistence;
 /// <summary>
 /// Proves DepthBatchedInserter.ResolveAll - one pass per dependency layer, of
 /// any mix of record types, either assigning mock Ids or (with a real
-/// persistence layer) inserting. This port has none, so InsertAll - which
-/// always resolves as Now - is only provable by the NotSupportedException it
-/// throws; every wiring/layering/cycle scenario below uses ResolveAll(...,
-/// InsertMode.Mock) instead, the same underlying algorithm Apex's DML-count
-/// assertions exercised.
+/// persistence gateway) inserting. Every wiring/layering/cycle scenario below
+/// uses ResolveAll(..., InsertMode.Mock), the same underlying algorithm a
+/// real Now insert runs; the gateway-backed InsertAll path itself is proven
+/// in PersistenceGatewayTest.
 ///
-/// Not ported: Apex's SeedAll (best-effort org seeding) tests - seeding is
-/// explicitly out of scope for this port (see csharp-port-idea.md).
+/// Best-effort org-wide seeding is explicitly out of scope for this port
+/// (see csharp-port-idea.md) and is not covered here.
 /// </summary>
 public class DepthBatchedInserterTest
 {

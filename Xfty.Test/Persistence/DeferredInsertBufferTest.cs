@@ -6,10 +6,10 @@ namespace Net.Nowhereatall.Xfty.Test.Persistence;
 
 /// <summary>
 /// Proves DeferredInsertBuffer driven directly with hand-built bundles,
-/// including the guards the engine never trips. This port has no
-/// persistence layer, so Apex's InsertGraph(...) scenarios (which always
-/// resolve as Now) are adapted to Add(bundle) + ResolveAll(Mock) - the same
-/// collect/link/layer algorithm, provable without a database.
+/// including the guards the engine never trips, via Add(bundle) +
+/// ResolveAll(Mock) - the same collect/link/layer algorithm a real Now
+/// insert runs, provable here without a database. InsertGraph(...) against a
+/// real persistence gateway is proven in PersistenceGatewayTest.
 /// </summary>
 public class DeferredInsertBufferTest
 {
