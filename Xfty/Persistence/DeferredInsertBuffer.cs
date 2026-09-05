@@ -21,11 +21,11 @@ public sealed class DeferredInsertBuffer
     private readonly List<object> pendingRecords = [];
     private readonly List<PendingDeferredValue> pendingDeferredValues = [];
 
-    public static void InsertGraph(Bundle? bundle)
+    public static void InsertGraph(Bundle? bundle, IPersistenceGateway? gateway = null)
     {
         DeferredInsertBuffer buffer = new();
         buffer.Add(bundle);
-        buffer.InsertAll();
+        buffer.InsertAll(gateway);
     }
 
     /// <summary>The whole graph flattened to its records and parent links, with the up-flow value pass already run.</summary>
@@ -47,17 +47,17 @@ public sealed class DeferredInsertBuffer
     /// <summary>Each record's lookup to another record in Records(), by index.</summary>
     public List<DepthBatchedInserterParentLink> ParentLinks() => this.pendingLinks;
 
-    public void InsertAll()
+    public void InsertAll(IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
-        DepthBatchedInserter.InsertAll(this.pendingRecords, this.pendingLinks);
+        DepthBatchedInserter.InsertAll(this.pendingRecords, this.pendingLinks, gateway);
     }
 
     /// <summary>Depth-batched resolution of every buffered bundle honouring mode (Now/Mock/Never).</summary>
-    public void ResolveAll(InsertMode mode)
+    public void ResolveAll(InsertMode mode, IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
-        DepthBatchedInserter.ResolveAll(this.pendingRecords, this.pendingLinks, mode);
+        DepthBatchedInserter.ResolveAll(this.pendingRecords, this.pendingLinks, mode, gateway);
     }
 
     private void ResolveUpFlowValues() =>

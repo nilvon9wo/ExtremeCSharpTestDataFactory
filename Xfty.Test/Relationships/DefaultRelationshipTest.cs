@@ -72,7 +72,7 @@ file sealed class CountingLookup : IProviderLookup
 {
     public int KeysForCalls { get; private set; }
 
-    public IRecordProvider Get(Type sObjectType) => null!;
+    public IRecordProvider Get(Type recordType) => null!;
 
     public IRecordProvider Get(ILookupKey lookupKey) => null!;
 

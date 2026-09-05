@@ -131,7 +131,7 @@ public class DepthBatchedInserterTest
         NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => DepthBatchedInserter.InsertAll(records, null));
 
         // Assert
-        Assert.Contains("persistence layer", thrown.Message);
+        Assert.Contains("persistence gateway", thrown.Message);
     }
 
     // Runners + helpers -------------------------------------

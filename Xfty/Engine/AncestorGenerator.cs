@@ -137,7 +137,7 @@ public sealed class AncestorGenerator
         }
 
         throw new XftyConfigurationException(
-            $"Relationship {field.Name} would generate another {childKey.SObjectType}, but one is already being "
+            $"Relationship {field.Name} would generate another {childKey.RecordType}, but one is already being "
             + "generated further up this graph - a cycle. Use distinct per-level Providers (different lookup "
             + "keys), PreventCascade, or allow ancestor cycles when the chain terminates on its own.");
     }

@@ -6,17 +6,13 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 
 /// <summary>
 /// Turns the PropertyInfo hops of an injection path into the navigation
-/// property the enricher grafts onto - the reflection replacement for Apex's
-/// schema describe (a plain FK-shaped property carries no relationship-name
-/// metadata the way SObjectField.getDescribe().getRelationshipName() does).
-///
-/// Convention used in its place: a lookup field named "XId" grafts the
-/// ancestor onto a sibling "X" property on the same record; a child
-/// collection grafts onto whichever property on the parent type holds a
-/// collection of the child's own type. Both are resolved once here and
-/// validated against the actual properties present, throwing a clear error
-/// that names the bad hop - the same shape of failure Apex's describe-based
-/// version produces for a misconfigured field, just discovered a different way.
+/// property the enricher grafts onto. A plain foreign-key-shaped property
+/// carries no relationship-name metadata of its own, so this resolves one by
+/// convention instead: a lookup field named "XId" grafts the ancestor onto a
+/// sibling "X" property on the same record; a child collection grafts onto
+/// whichever property on the parent type holds a collection of the child's
+/// own type. Both are resolved once here and validated against the actual
+/// properties present, throwing a clear error that names the bad hop.
 /// </summary>
 public static class InjectionPathResolver
 {

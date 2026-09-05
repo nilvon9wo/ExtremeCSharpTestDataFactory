@@ -11,8 +11,8 @@ namespace Net.Nowhereatall.Xfty.Core;
 /// </summary>
 public sealed class Bundle
 {
-    private readonly Dictionary<PropertyInfo, Bundle> sObjectBundleByField = new();
-    private readonly Dictionary<PropertyInfo, List<object>> sObjectListByField = new();
+    private readonly Dictionary<PropertyInfo, Bundle> bundleByField = new();
+    private readonly Dictionary<PropertyInfo, List<object>> recordListByField = new();
     private readonly Dictionary<PropertyInfo, List<BundleChildEntry>> childEntriesByRelationshipField = new();
     private readonly DeferredValueQueue deferredValueQueue = new();
 
@@ -21,21 +21,21 @@ public sealed class Bundle
 
     public Bundle Put(PropertyInfo field, List<object> records)
     {
-        this.sObjectListByField[field] = records;
+        this.recordListByField[field] = records;
         return this;
     }
 
     public Bundle Put(PropertyInfo field, Bundle bundle)
     {
-        this.sObjectBundleByField[field] = bundle;
+        this.bundleByField[field] = bundle;
         return this;
     }
 
     public Bundle? GetBundle(PropertyInfo field) =>
-        this.sObjectBundleByField.GetValueOrDefault(field);
+        this.bundleByField.GetValueOrDefault(field);
 
     public List<object>? GetList(PropertyInfo field) =>
-        this.sObjectListByField.GetValueOrDefault(field);
+        this.recordListByField.GetValueOrDefault(field);
 
     /// <summary>GetList(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public List<object>? GetList<TRecord>(Expression<Func<TRecord, object?>> field) =>
@@ -68,7 +68,7 @@ public sealed class Bundle
 
     /// <summary>The relationship fields that carry a generated sub-bundle (the parents).</summary>
     public ISet<PropertyInfo> RelationshipFields() =>
-        this.sObjectBundleByField.Keys.ToHashSet();
+        this.bundleByField.Keys.ToHashSet();
 
     /// <summary>
     /// The primary records generated pointing at getList(relationshipField) row

@@ -341,7 +341,7 @@ public class SharedAncestorTest
         NotSupportedException thrown = Assert.Throws<NotSupportedException>(provider.Supply);
 
         // Assert
-        Assert.Contains("persistence layer", thrown.Message);
+        Assert.Contains("persistence gateway", thrown.Message);
 
         // Cleanup - see Supply_WhenASharedAncestorIsSelfReferential_ThrowsInsteadOfRecursing
         SharedAncestor.Disable(name);

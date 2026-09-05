@@ -9,7 +9,7 @@ covered in Apex: run everything, run one class, run one namespace.
 |--------|----------|
 | `Core/` | `RecordProvider`, `Bundle`, `MasterTemplate`, `GenerationContext`, `ChildProvider`, and the rest of the public surface. |
 | `Engine/` | The generation pipeline's phase classes — ancestor generation, the value passes, the cycle guard. |
-| `Enrichment/` | `Inject`/`InjectAll`, `InjectConfig`, `SObjectInjector`, and their supporting pieces. |
+| `Enrichment/` | `Inject`/`InjectAll`, `InjectConfig`, `RecordInjector`, and their supporting pieces. |
 | `Relationships/` | `DefaultRelationship`, `SharedAncestor`, `SharedAncestorHierarchy`. |
 | `Lookup/` | `LookupKey`, `FlavouredLookupKey`, variant resolution. |
 | `Persistence/` | `IdMocker`, `DepthBatchedInserter`, `DeferredInserter`, `DeferredInsertBuffer`. |

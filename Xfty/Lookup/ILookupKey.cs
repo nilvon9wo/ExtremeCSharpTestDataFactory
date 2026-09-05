@@ -19,7 +19,7 @@ namespace Net.Nowhereatall.Xfty.Lookup;
 public interface ILookupKey
 {
     /// <summary>The record type this key selects a Provider for.</summary>
-    Type SObjectType { get; }
+    Type RecordType { get; }
 
     /// <summary>
     /// Whether <paramref name="record"/> belongs to the variant this key

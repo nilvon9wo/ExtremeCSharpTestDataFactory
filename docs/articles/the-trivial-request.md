@@ -175,7 +175,7 @@ and became:
 The answer turned out to be: surprisingly little.
 
 ```apex
-XFTY_DummySObjectBundle resultBundle = new XFTY_DummySObjectProvider(Contact.SObjectType)
+XFTY_DummySObjectBundle resultBundle = new XFTY_DummySObjectProvider(Contact.RecordType)
   .setOverrideTemplate(new Contact(LastName = 'Smith'))
   .setQuantityPerTemplate(3)
   .setInsertMode(XFTY_InsertModeEnum.MOCK)

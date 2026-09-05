@@ -60,7 +60,7 @@ under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
 
 ---
 
-## Enrichment — `Bundle` + `InjectConfig` + `SObjectInjector`
+## Enrichment — `Bundle` + `InjectConfig` + `RecordInjector`
 
 | `.Inject(field, InjectConfig)` → `List<object>` | new instances of `GetList(field)` with parents / children / forced scalars written on |
 | `.InjectAll(field)` / `.InjectAllParents(field)` / `.InjectAllChildren(field)` → `List<object>` | `Inject` with `Everything()` / `AllParents()` / `AllChildren()`; `InjectAll` throws if there is nothing to inject |
@@ -71,7 +71,7 @@ under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
 | `.InjectValue(field, value)` / `.InjectValue(path, value)` | force a scalar on the target record / on a record `path` reaches **upward** |
 | `.InjectChildValue(childField, leafField, value)` / `.InjectChildValue(path, value)` | force a scalar on every record of a child collection **downward** — `value` is a literal, a `List<object>` (per child), or an `IValueExpression` (fresh per child) |
 | `.ParentDepth(n)` / `.ChildDepth(n)` / `.BreakSoqlLimits()` | cap the ancestor climb (default 5) · nested-child levels (default 1, `n>1` needs `BreakSoqlLimits`) · lift both ceilings |
-| `SObjectInjector.Inject(records).Relationship(navField, parents).ChildRelationship(navField, perRow).Value(field, v).ValuePerRow(field, vs).Result()` | the standalone graft, no bundle — see [sobject-injector](../use/sobject-injector.md) |
+| `RecordInjector.Inject(records).Relationship(navField, parents).ChildRelationship(navField, perRow).Value(field, v).ValuePerRow(field, vs).Result()` | the standalone graft, no bundle — see [record-injector](../use/record-injector.md) |
 
 `Mock`-only in spirit — forced data is fiction if this graph were ever
 persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integration.md)). Detail: [enrichment](../use/enrichment.md).
@@ -120,7 +120,7 @@ persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integratio
 | `FieldPredicateFactory.EqualTo/NotEqualTo/GreaterThan/LessThan/IsNull/IsNotNull/InSet(field, value)` | ready-made single-field conditions |
 | `PredicateFactory.AllOf(list)/AnyOf(list)/Negate(one)` | AND / OR / NOT over `IRecordPredicate` |
 | implement `IRecordPredicate` (`IsSatisfiedBy(object?)`) | any condition the ready-made ones do not express |
-| implement `ILookupKey` | a variant discriminator of your own (`SObjectType` · `IsInstanceOf` · `HashKey` · `Specificity`) |
+| implement `ILookupKey` | a variant discriminator of your own (`RecordType` · `IsInstanceOf` · `HashKey` · `Specificity`) |
 
 ## Provider extension points
 

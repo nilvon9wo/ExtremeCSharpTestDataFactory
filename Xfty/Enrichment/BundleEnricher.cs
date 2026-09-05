@@ -10,7 +10,7 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 ///
 /// EnrichPosition walks the graph deepest-first via the call stack: at each
 /// bundle position it collects the enriched parents and child subqueries
-/// below it, then does one SObjectInjector round-trip. Ancestors carry their
+/// below it, then does one RecordInjector round-trip. Ancestors carry their
 /// one-level inverse child; downward children carry their own ancestors and,
 /// to childDepth, their own nested children.
 ///
@@ -70,7 +70,7 @@ public sealed class BundleEnricher
             return pos.Records ?? [];
         }
 
-        SObjectInjector injector = SObjectInjector.Inject(pos.Records);
+        RecordInjector injector = RecordInjector.Inject(pos.Records);
         this.GraftAncestors(injector, pos);
         this.GraftInverse(injector, pos);
         this.GraftChildren(injector, pos);
@@ -78,7 +78,7 @@ public sealed class BundleEnricher
         return injector.Result();
     }
 
-    private void ApplyForcedValues(SObjectInjector injector, EnrichmentPosition pos)
+    private void ApplyForcedValues(RecordInjector injector, EnrichmentPosition pos)
     {
         int rowCount = pos.Records!.Count;
         if (pos.IsRoot)
@@ -97,7 +97,7 @@ public sealed class BundleEnricher
         }
     }
 
-    private void GraftAncestors(SObjectInjector injector, EnrichmentPosition pos)
+    private void GraftAncestors(RecordInjector injector, EnrichmentPosition pos)
     {
         if (pos.SubBundle is null || pos.ParentDepthLeft <= 0)
         {
@@ -107,7 +107,7 @@ public sealed class BundleEnricher
         pos.SubBundle.RelationshipFields().ToList().ForEach(lookupField => this.GraftAncestor(injector, pos, lookupField));
     }
 
-    private void GraftAncestor(SObjectInjector injector, EnrichmentPosition pos, PropertyInfo lookupField)
+    private void GraftAncestor(RecordInjector injector, EnrichmentPosition pos, PropertyInfo lookupField)
     {
         if (!this.selection.WantsAncestor(AncestorPath(pos, lookupField)))
         {
@@ -125,7 +125,7 @@ public sealed class BundleEnricher
             this.EnrichPosition(this.AncestorPosition(pos, lookupField, parents)));
     }
 
-    private void GraftInverse(SObjectInjector injector, EnrichmentPosition pos)
+    private void GraftInverse(RecordInjector injector, EnrichmentPosition pos)
     {
         if (pos.InverseChildField is null)
         {
@@ -137,7 +137,7 @@ public sealed class BundleEnricher
             pos.InverseChildrenPerRow!);
     }
 
-    private void GraftChildren(SObjectInjector injector, EnrichmentPosition pos)
+    private void GraftChildren(RecordInjector injector, EnrichmentPosition pos)
     {
         if (pos.SubBundle is null || pos.ChildDepthLeft <= 0)
         {

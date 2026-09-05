@@ -10,34 +10,33 @@ namespace Net.Nowhereatall.Xfty.Persistence;
 /// InsertAll/ResolveAll are all-or-none. Records are addressed by their
 /// index in the list: two records can be equal by value, so an index is the
 /// only stable handle on one.
-///
-/// Apex's SeedAll (best-effort org seeding via Database.insert(_, false)) is
-/// not ported - seeding is a deliberate dead end for this port (see
-/// csharp-port-idea.md).
 /// </summary>
 public sealed class DepthBatchedInserter
 {
     private readonly List<List<DepthBatchedInserterParentLink>> linksByChild;
     private readonly List<object> records;
     private readonly InsertMode mode;
+    private readonly IPersistenceGateway? gateway;
 
-    private DepthBatchedInserter(List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode)
+    private DepthBatchedInserter(List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode, IPersistenceGateway? gateway)
     {
         this.records = records;
         this.mode = mode;
+        this.gateway = gateway;
         this.linksByChild = GroupLinksByChild(records.Count, links);
     }
 
-    /// <summary>Depth-batched real DML.</summary>
-    public static void InsertAll(List<object> records, List<DepthBatchedInserterParentLink>? links) =>
-        ResolveAll(records, links, InsertMode.Now);
+    /// <summary>Depth-batched real insert, via gateway.</summary>
+    public static void InsertAll(List<object> records, List<DepthBatchedInserterParentLink>? links, IPersistenceGateway? gateway = null) =>
+        ResolveAll(records, links, InsertMode.Now, gateway);
 
     /// <summary>
     /// Depth-batched resolution honouring the mode: Now inserts each depth
-    /// layer, Mock gives it mock Ids - either way the child lookups are
-    /// pointed at the layer above as it lands. Never does nothing.
+    /// layer through <paramref name="gateway"/>, Mock gives it mock Ids -
+    /// either way the child lookups are pointed at the layer above as it
+    /// lands. Never does nothing.
     /// </summary>
-    public static void ResolveAll(List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode)
+    public static void ResolveAll(List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode, IPersistenceGateway? gateway = null)
     {
         bool nothingToDo = records.Count == 0 || mode == InsertMode.Never;
         if (nothingToDo)
@@ -45,7 +44,7 @@ public sealed class DepthBatchedInserter
             return;
         }
 
-        new DepthBatchedInserter(records, links, mode).InsertLayerByLayer();
+        new DepthBatchedInserter(records, links, mode, gateway).InsertLayerByLayer();
     }
 
     private void InsertLayerByLayer() =>
@@ -84,10 +83,22 @@ public sealed class DepthBatchedInserter
         _ = this.mode switch
         {
             InsertMode.Mock => IdMocker.AddIds(layer),
-            InsertMode.Now => throw new NotSupportedException(
-                "InsertMode.Now needs a real persistence layer (e.g. EF), not wired up yet - use Mock or Never."),
+            InsertMode.Now => this.InsertNow(layer),
             _ => layer,
         };
+    }
+
+    private List<object> InsertNow(List<object> layer)
+    {
+        if (this.gateway is null)
+        {
+            throw new NotSupportedException(
+                "InsertMode.Now needs a persistence gateway - pass one to ResolveAll(...)/InsertAll(...), or "
+                + "RecordProvider.SetPersistenceGateway(...) - use Mock or Never when none is configured.");
+        }
+
+        this.gateway.InsertMixed(layer);
+        return layer;
     }
 
     private void PointAtParents(int child) =>

@@ -65,10 +65,10 @@ public class DeferredInserterTest
         int beforeFlush = DeferredInserter.PendingCount();
 
         // Act
-        NotSupportedException thrown = Assert.Throws<NotSupportedException>(DeferredInserter.Flush);
+        NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => DeferredInserter.Flush());
 
         // Assert
-        Assert.Contains("persistence layer", thrown.Message);
+        Assert.Contains("persistence gateway", thrown.Message);
         // the buffer swap only happens after a successful insert, so a failed Flush() keeps everything pending
         Assert.Equal(beforeFlush, DeferredInserter.PendingCount());
     }

@@ -29,7 +29,7 @@ Then, as needed:
 - [per-call-relationships](per-call-relationships.md) — one-off `IncludeOptional` / `ExcludeRelationship` for a single call
 - [child-records](child-records.md) — `With` / `WithChildren`: generate the records *below* a primary
 - [enrichment](enrichment.md) — `Inject` / `InjectAll`: put parents, child collections and forced fields onto the record for the code under test
-- [sobject-injector](sobject-injector.md) — `SObjectInjector`: the same graft on a plain `List<object>`, no bundle
+- [record-injector](record-injector.md) — `RecordInjector`: the same graft on a plain `List<object>`, no bundle
 - [shared-ancestors](shared-ancestors.md) — many children under one parent (flat or deep, auto-detected)
 - [deferred-insert](deferred-insert.md) — `Deferred` + `.DepthBatched()`
 - [provider-variants](provider-variants.md) — pick a flavour variant
@@ -66,7 +66,7 @@ Every consumer-facing capability and its page.
 | `SharedAncestor` — deep chains, batched pre-phase, `ResolveNow` | [shared-ancestors](shared-ancestors.md) |
 | `bundle.GetList` / `GetBundle` / navigation | [bundles](bundles.md) |
 | `bundle.Inject(field, config)` / `InjectAll*`, `InjectConfig` | [enrichment](enrichment.md) |
-| `SObjectInjector` — standalone graft (parents, children, values) | [sobject-injector](sobject-injector.md) |
+| `RecordInjector` — standalone graft (parents, children, values) | [record-injector](record-injector.md) |
 | insert modes `Never` / `Mock` / `RelatedOnly` / `Now` / `Later` / `Deferred` | [insert-modes](insert-modes.md) |
 | `Deferred` registry, `.DepthBatched()` | [deferred-insert](deferred-insert.md) |
 | `WithVariant` / lookup-key ctor (flavour keys) | [provider-variants](provider-variants.md) |

@@ -298,7 +298,7 @@ public class SharedAncestorHierarchyTest
         NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => SupplyContactsUnderWithMode(name, 2, InsertMode.Deferred));
 
         // Assert
-        Assert.Contains("persistence layer", thrown.Message);
+        Assert.Contains("persistence gateway", thrown.Message);
 
         // Cleanup - see SharedAncestorTest.Supply_WhenASharedAncestorIsSelfReferential_ThrowsInsteadOfRecursing
         SharedAncestor.Disable(name);

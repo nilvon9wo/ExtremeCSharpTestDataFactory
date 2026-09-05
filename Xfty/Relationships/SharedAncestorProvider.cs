@@ -178,7 +178,7 @@ public sealed class SharedAncestorProvider
     private IRecordProvider BaseProvider(IProviderLookup lookup) => lookup.Get(this.LookupKey(lookup));
 
     private object RecordTemplate(IProviderLookup lookup) =>
-        this.overrideTemplate ?? Activator.CreateInstance(this.LookupKey(lookup).SObjectType)!;
+        this.overrideTemplate ?? Activator.CreateInstance(this.LookupKey(lookup).RecordType)!;
 
     private object RequireTemplate() =>
         this.overrideTemplate ?? throw new XftyConfigurationException(

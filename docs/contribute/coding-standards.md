@@ -53,7 +53,7 @@ from the Apex original, and this port's own testing conventions.
 
 - **`init`-only properties** are read-only after construction by design
   (compile-time only) — `PropertyInfo.SetValue` bypasses that restriction via
-  reflection, which `IdMocker`, `RecordCloneFactory`, and `SObjectInjector`
+  reflection, which `IdMocker`, `RecordCloneFactory`, and `RecordInjector`
   all rely on deliberately. Don't "fix" a reflection-based writer to respect
   `init` — that would break the mechanism.
 - **`PropertyInfo` equality** across two `Field.Of<T>(nameof(...))` calls for

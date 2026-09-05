@@ -12,11 +12,10 @@ namespace Net.Nowhereatall.Xfty.Core;
 /// child type is taken from the relationship field's declaring type, so
 /// there is no type argument to keep in sync.
 ///
-/// Apex validated (via schema describe) that a relationship field actually
-/// points at the parent type it's hung off; C# reflection has no equivalent
-/// metadata for a plain FK-shaped property (declaring type is available,
-/// "what type does this string property conceptually reference" is not) -
-/// that check is dropped rather than faked. A misconfigured field surfaces
+/// There is no metadata for "what type does this foreign-key-shaped property
+/// conceptually reference" - a plain property only exposes its own declaring
+/// type - so validating that a relationship field actually points at the
+/// parent type it's hung off is not attempted. A misconfigured field surfaces
 /// as a wrong/null value instead of failing fast at configuration time.
 /// </summary>
 public sealed class ChildProvider

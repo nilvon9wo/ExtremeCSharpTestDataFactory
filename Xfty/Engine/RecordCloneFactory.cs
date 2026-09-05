@@ -4,11 +4,7 @@ namespace Net.Nowhereatall.Xfty.Engine;
 
 /// <summary>
 /// Creates full-fidelity in-memory copies of a record via reflection over
-/// every property. Apex's original relied on SObject.clone(...) (keep the Id,
-/// timestamps, autonumbers, populated child relationships); a plain C# POCO
-/// has no such built-in, so this copies every property directly instead -
-/// the same guarantee (a copy stands in for the original everywhere), a
-/// different mechanism.
+/// every property, so a copy stands in for the original everywhere.
 /// </summary>
 public static class RecordCloneFactory
 {

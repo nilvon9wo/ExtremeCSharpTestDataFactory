@@ -9,18 +9,12 @@ using Net.Nowhereatall.Xfty.Values;
 namespace Net.Nowhereatall.Xfty.Core;
 
 /// <summary>
-/// The primary entry point for the port: configure a record's fields and
+/// The primary entry point for the library: configure a record's fields and
 /// relationships, then Supply()/SupplyList()/SupplyBundle() it.
-///
-/// Not yet ported onto this class: child collections (With/WithChildren/
-/// WithChild - need SObjectChildProvider), depth-batched insert, the
-/// DEFERRED registry, and shared-ancestor resolution - all wait on machinery
-/// not yet in this port (see csharp-port-idea.md). The core single-record/
-/// ancestor-generation path is fully wired.
 /// </summary>
 public sealed class RecordProvider
 {
-    private readonly Type sObjectType;
+    private readonly Type recordType;
     private readonly IProviderLookup providerLookup;
     private readonly List<List<PropertyInfo>> forcedRelationshipPaths = [];
     private readonly List<PathValue> pathValues = [];
@@ -34,13 +28,14 @@ public sealed class RecordProvider
     private bool ancestorCyclesAllowed;
     private bool depthBatched;
     private bool forceStructuralChildGeneration;
+    private IPersistenceGateway? persistenceGateway;
     private IRecordProvider? _factoryOutlet { get; set; }
 
     private MasterTemplate? _template { get; set; }
 
-    public RecordProvider(Type sObjectType, IProviderLookup providerLookup)
+    public RecordProvider(Type recordType, IProviderLookup providerLookup)
     {
-        this.sObjectType = sObjectType ?? throw new XftyConfigurationException("A record type is required to request data.");
+        this.recordType = recordType ?? throw new XftyConfigurationException("A record type is required to request data.");
         this.providerLookup = providerLookup ?? throw new XftyConfigurationException("A Provider Lookup is required to request data.");
     }
 
@@ -61,7 +56,7 @@ public sealed class RecordProvider
         this.SetOverrideTemplateList(overrideTemplateList);
 
     private static Type TypeOf(ILookupKey variantKey) =>
-        (variantKey ?? throw new XftyConfigurationException("A lookup key is required to request data.")).SObjectType;
+        (variantKey ?? throw new XftyConfigurationException("A lookup key is required to request data.")).RecordType;
 
     private static Type TypeOf(List<object>? overrideTemplateList) =>
         overrideTemplateList is { Count: > 0 } && overrideTemplateList[0] is not null
@@ -82,7 +77,7 @@ public sealed class RecordProvider
     {
         object? firstTemplate = this.overrideTemplateList is { Count: > 0 } ? this.overrideTemplateList[0] : null;
         return ProviderLookups.Reconcile(this.providerLookup, this.explicitVariantKey, firstTemplate)
-            ?? LookupKey.Get(this.sObjectType);
+            ?? LookupKey.Get(this.recordType);
     }
 
     private MasterTemplate Template => this._template ??= this.FactoryOutlet.MasterTemplate.Copy();
@@ -100,7 +95,7 @@ public sealed class RecordProvider
     /// <summary>The record type set by the constructor always wins - a list of a different type throws.</summary>
     public RecordProvider SetOverrideTemplateList(List<object> overrideTemplateList)
     {
-        this.AssertNoSObjectTypeConflict(overrideTemplateList);
+        this.AssertNoRecordTypeConflict(overrideTemplateList);
         this.overrideTemplateList = overrideTemplateList;
         return this;
     }
@@ -124,10 +119,10 @@ public sealed class RecordProvider
     private void AssertVariantKeyMatchesType(ILookupKey? variantKey)
     {
         ILookupKey key = variantKey ?? throw new XftyConfigurationException("A variant key is required.");
-        if (key.SObjectType != this.sObjectType)
+        if (key.RecordType != this.recordType)
         {
             throw new RecordProviderConflictException(
-                $"Variant key is for {key.SObjectType} but this Provider requests {this.sObjectType}.");
+                $"Variant key is for {key.RecordType} but this Provider requests {this.recordType}.");
         }
     }
 
@@ -140,6 +135,13 @@ public sealed class RecordProvider
     public RecordProvider SetInclusivity(InsertInclusivity inclusivity)
     {
         this.inclusivity = inclusivity;
+        return this;
+    }
+
+    /// <summary>The real backing store InsertMode.Now saves through. Without one, Now throws.</summary>
+    public RecordProvider SetPersistenceGateway(IPersistenceGateway gateway)
+    {
+        this.persistenceGateway = gateway;
         return this;
     }
 
@@ -285,7 +287,7 @@ public sealed class RecordProvider
     public RecordProvider ExcludeRelationship(PropertyInfo field) =>
         this.IsRelationshipOnTemplate(field)
             ? this.PutOnTemplate(() => this.Template.Remove(field))
-            : throw new XftyConfigurationException($"ExcludeRelationship({field.Name}): {this.sObjectType} has no relationship on that field.");
+            : throw new XftyConfigurationException($"ExcludeRelationship({field.Name}): {this.recordType} has no relationship on that field.");
 
     /// <summary>Like ExcludeRelationship, but a no-op when the field is not a relationship on this Provider.</summary>
     public RecordProvider ExcludeRelationshipIfPresent(PropertyInfo field) =>
@@ -343,7 +345,7 @@ public sealed class RecordProvider
     {
         if (this.FlushesGraphWhenThisCallEnds())
         {
-            DeferredInsertBuffer.InsertGraph(bundle);
+            DeferredInsertBuffer.InsertGraph(bundle, this.persistenceGateway);
         }
         else if (this.DeferredToRegistry())
         {
@@ -394,6 +396,11 @@ public sealed class RecordProvider
             .SetOverrideTemplateList(childRows.Select(row => row.Template).ToList())
             .SetInsertMode(childMode)
             .SetInclusivity(childProvider.EffectiveInclusivity(this.inclusivity));
+        if (this.persistenceGateway is not null)
+        {
+            _ = childInstance.SetPersistenceGateway(this.persistenceGateway);
+        }
+
         if (structural)
         {
             // The back-reference is wired by the deferred buffer at flush, so the child must not also
@@ -411,6 +418,7 @@ public sealed class RecordProvider
     private GenerationContext BuildContext()
     {
         GenerationContext context = new GenerationContext(this.providerLookup, this.ContextInsertMode(), this.inclusivity)
+            .WithPersistenceGateway(this.persistenceGateway)
             .WithForcedRelationshipPaths(this.forcedRelationshipPaths)
             .WithPathValues(this.pathValues)
             .WithAncestorCycleGuard(this.ancestorCyclesAllowed);
@@ -441,7 +449,7 @@ public sealed class RecordProvider
     private List<object> SuppliedOrBlankTemplates() =>
         this.HasOverrideTemplates()
             ? this.overrideTemplateList!
-            : [Activator.CreateInstance(this.sObjectType)!];
+            : [Activator.CreateInstance(this.recordType)!];
 
     private bool HasOverrideTemplates() => this.overrideTemplateList is { Count: > 0 };
 
@@ -458,13 +466,13 @@ public sealed class RecordProvider
 
     // Consistency checks --------------------------------------------
 
-    private void AssertNoSObjectTypeConflict(List<object>? overrideTemplateList)
+    private void AssertNoRecordTypeConflict(List<object>? overrideTemplateList)
     {
-        object? conflicting = overrideTemplateList?.FirstOrDefault(overrideTemplate => overrideTemplate.GetType() != this.sObjectType);
+        object? conflicting = overrideTemplateList?.FirstOrDefault(overrideTemplate => overrideTemplate.GetType() != this.recordType);
         if (conflicting is not null)
         {
             throw new RecordProviderConflictException(
-                $"This Provider requests {this.sObjectType} but was given a {conflicting.GetType()} override template.");
+                $"This Provider requests {this.recordType} but was given a {conflicting.GetType()} override template.");
         }
     }
 }

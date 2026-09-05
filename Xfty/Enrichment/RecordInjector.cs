@@ -10,26 +10,22 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 /// after construction - a populated parent relationship, a child collection,
 /// a forced scalar - via reflection, one clone per row.
 ///
-/// Apex's original round-tripped the whole list through JSON.serialize /
-/// JSON.deserialize, because SObject.put(...) rejects relationship and
-/// read-only fields outright; that mechanism (and XFTY_BlobCarrier, which
-/// exists only to shepherd a Blob through that JSON round-trip) has no
-/// reason to exist here - reflection sets any property directly, so a Blob-
-/// shaped field needs no special-casing. Per-record: SetValue bypasses
-/// init-only the same way IdMocker and RecordCloneFactory already rely on.
+/// Reflection sets any property directly, regardless of its type, so nothing
+/// needs special-casing. Per-record: SetValue bypasses init-only the same way
+/// IdMocker and RecordCloneFactory already rely on.
 ///
 /// Standalone: no bundle, no generation. Collect the grafts fluently, then
 /// Result() clones every row once and applies them all. Inputs are
 /// untouched; the returned list is new instances.
 ///
 /// <code>
-/// List&lt;object&gt; withAccount = SObjectInjector.Inject(contacts)
+/// List&lt;object&gt; withAccount = RecordInjector.Inject(contacts)
 ///     .Relationship(Field.Of&lt;Contact&gt;(nameof(Contact.Account)), accountsAligned1to1)
 ///     .Value(Field.Of&lt;Contact&gt;(nameof(Contact.Id)), someId)
 ///     .Result();
 /// </code>
 /// </summary>
-public sealed class SObjectInjector
+public sealed class RecordInjector
 {
     private readonly List<object> records;
     private readonly Dictionary<PropertyInfo, List<object>> parentsByRelationshipField = [];
@@ -37,34 +33,34 @@ public sealed class SObjectInjector
     private readonly Dictionary<PropertyInfo, object?> uniformValueByField = [];
     private readonly Dictionary<PropertyInfo, List<object?>> perRowValuesByField = [];
 
-    private SObjectInjector(List<object> records) =>
-        this.records = records ?? throw new XftyConfigurationException("SObjectInjector needs a records list, not null.");
+    private RecordInjector(List<object> records) =>
+        this.records = records ?? throw new XftyConfigurationException("RecordInjector needs a records list, not null.");
 
-    public static SObjectInjector Inject(List<object> records) => new(records);
+    public static RecordInjector Inject(List<object> records) => new(records);
 
     /// <summary>Graft parents[row] onto records[row] under relationshipField (e.g. Contact.Account).</summary>
-    public SObjectInjector Relationship(PropertyInfo relationshipField, List<object> parents)
+    public RecordInjector Relationship(PropertyInfo relationshipField, List<object> parents)
     {
         this.parentsByRelationshipField[relationshipField] = parents;
         return this;
     }
 
     /// <summary>Graft childrenPerRow[row] onto records[row] as relationshipField's collection (e.g. Account.Contacts).</summary>
-    public SObjectInjector ChildRelationship(PropertyInfo relationshipField, List<List<object>> childrenPerRow)
+    public RecordInjector ChildRelationship(PropertyInfo relationshipField, List<List<object>> childrenPerRow)
     {
         this.childrenByRelationshipField[relationshipField] = childrenPerRow;
         return this;
     }
 
     /// <summary>Set field to the same value on every row.</summary>
-    public SObjectInjector Value(PropertyInfo field, object? valueForEveryRow)
+    public RecordInjector Value(PropertyInfo field, object? valueForEveryRow)
     {
         this.uniformValueByField[field] = valueForEveryRow;
         return this;
     }
 
     /// <summary>Set field to values[row] on each row.</summary>
-    public SObjectInjector ValuePerRow(PropertyInfo field, List<object?> values)
+    public RecordInjector ValuePerRow(PropertyInfo field, List<object?> values)
     {
         this.perRowValuesByField[field] = values;
         return this;
@@ -123,7 +119,7 @@ public sealed class SObjectInjector
         if (actual != expected)
         {
             throw new XftyConfigurationException(
-                $"SObjectInjector: {label} has {actual} entries but there are {expected} records - grafts must align 1:1 with the records.");
+                $"RecordInjector: {label} has {actual} entries but there are {expected} records - grafts must align 1:1 with the records.");
         }
     }
 }

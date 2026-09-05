@@ -17,10 +17,16 @@ public static class DeferredInserter
 
     public static int PendingCount() => buffer.PendingCount();
 
-    /// <summary>Save every registered record, back-fill its Id, and clear the registry.</summary>
-    public static void Flush()
+    /// <summary>
+    /// Save every registered record through <paramref name="gateway"/>,
+    /// back-fill its Id, and clear the registry. Throws
+    /// <see cref="NotSupportedException"/> if no gateway is supplied - the
+    /// registry only clears after a successful save, so a failed Flush()
+    /// never silently loses what was registered.
+    /// </summary>
+    public static void Flush(IPersistenceGateway? gateway = null)
     {
-        buffer.InsertAll();
+        buffer.InsertAll(gateway);
         buffer = new DeferredInsertBuffer();
     }
 }

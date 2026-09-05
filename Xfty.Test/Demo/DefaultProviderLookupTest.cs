@@ -59,7 +59,7 @@ public class DefaultProviderLookupTest
 
         // Assert
         ILookupKey key = Assert.Single(keys);
-        Assert.Equal(typeof(Contact), key.SObjectType);
+        Assert.Equal(typeof(Contact), key.RecordType);
     }
 
     [Fact]

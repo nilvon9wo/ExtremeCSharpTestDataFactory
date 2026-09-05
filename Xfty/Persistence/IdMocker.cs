@@ -4,13 +4,10 @@ namespace Net.Nowhereatall.Xfty.Persistence;
 
 /// <summary>
 /// Assigns a placeholder identifier to records before (or instead of) a real
-/// insert - MOCK insert mode's whole job, and useful for pure in-memory unit
+/// insert - Mock insert mode's whole job, and useful for pure in-memory unit
 /// tests generally, since they never get a real identity-column round-trip.
-///
-/// Apex's original generated a value shaped like a real 15-character
-/// Salesforce Id, keyed to the SObject's schema-registered key prefix -
-/// meaningless outside a Salesforce org, so this just generates a simple
-/// unique string instead; nothing downstream parses the format.
+/// The generated value is a simple unique string; nothing downstream parses
+/// its format.
 /// </summary>
 public static class IdMocker
 {

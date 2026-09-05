@@ -48,7 +48,7 @@ public static class ProviderLookups
     {
         object requiredRecord = record ?? throw new LookupException("A record is required to derive a lookup key.");
         return registeredKeys
-            .Where(key => key.SObjectType == requiredRecord.GetType() && key.IsInstanceOf(requiredRecord))
+            .Where(key => key.RecordType == requiredRecord.GetType() && key.IsInstanceOf(requiredRecord))
             .ToHashSet();
     }
 
@@ -133,5 +133,5 @@ public static class ProviderLookups
         _ = key ?? throw new LookupException("A lookup key is required.");
 
     private static LookupException NotRegistered(ILookupKey key) =>
-        new($"No data provider registered for {key.SObjectType} (key: {key.HashKey}).");
+        new($"No data provider registered for {key.RecordType} (key: {key.HashKey}).");
 }

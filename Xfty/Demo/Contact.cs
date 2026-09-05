@@ -1,8 +1,7 @@
 namespace Net.Nowhereatall.Xfty.Demo;
 
 /// <summary>
-/// A minimal stand-in for the Salesforce standard Contact object - the other
-/// half of the Contact/Account demo pair (see <see cref="Account"/>).
+/// The other half of the Contact/Account demo pair (see <see cref="Account"/>).
 ///
 /// Declared as a <c>record class</c> rather than a plain class - compiler-
 /// generated value equality/<c>ToString</c>, <c>init</c>-only properties.

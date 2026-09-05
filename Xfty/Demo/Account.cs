@@ -1,11 +1,9 @@
 namespace Net.Nowhereatall.Xfty.Demo;
 
 /// <summary>
-/// A minimal stand-in for the Salesforce standard Account object, used across
-/// the port's examples and tests as the demo record type - the Contact/Account
-/// pair chosen so before/after comparisons against the Apex original (and
-/// against AutoFixture examples) stay clean. Grows as later ported modules
-/// need more fields; this is not meant to be exhaustive.
+/// A minimal demo record type used across this library's own examples and
+/// tests - the Contact/Account pair keeps those clean and recognisable. Grows
+/// as needed; this is not meant to be exhaustive.
 ///
 /// A plain mutable class with <c>init</c>-only properties - reflection-based
 /// field access (<see cref="Field"/>, the predicates) only ever reads (or, for
@@ -49,9 +47,8 @@ public sealed class Account
 
     /// <summary>
     /// The Contacts child collection - populated only via reflection, by
-    /// <see cref="Enrichment.BundleEnricher"/> (Salesforce SObjects always
-    /// support a queried subquery here without declaring it; a plain C#
-    /// record needs somewhere to graft one).
+    /// <see cref="Enrichment.BundleEnricher"/>, since a plain instance has no
+    /// implicit relationship support and needs somewhere to graft one.
     /// </summary>
     public List<Contact>? Contacts { get; init; }
 

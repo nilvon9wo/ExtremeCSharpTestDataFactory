@@ -5,9 +5,9 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 
 /// <summary>
 /// One frame of BundleEnricher's recursive walk. Mutable, but populated only
-/// by BundleEnricher's three *Position methods; every other method reads.
-/// A top-level class standing in for Apex's private inner Position class -
-/// this port keeps no nested types.
+/// by BundleEnricher's three *Position methods; every other method reads. A
+/// top-level class rather than a nested one - this library keeps no nested
+/// types.
 /// </summary>
 internal sealed class EnrichmentPosition
 {

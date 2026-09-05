@@ -137,7 +137,7 @@ instance in the Provider map like any other key.
 ```csharp
 public sealed class WholesaleAccountKey : ILookupKey
 {
-    public Type SObjectType => typeof(Account);
+    public Type RecordType => typeof(Account);
 
     public bool IsInstanceOf(object? record) =>
         record is Account { Industry: "Wholesale", AnnualRevenue: not null };

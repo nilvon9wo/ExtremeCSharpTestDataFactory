@@ -13,11 +13,11 @@ public sealed class LookupKey : ILookupKey
 {
     private static readonly Dictionary<Type, LookupKey> InstanceByType = new();
 
-    private LookupKey(Type sObjectType) => this.SObjectType = sObjectType;
+    private LookupKey(Type recordType) => this.RecordType = recordType;
 
-    public static LookupKey Get(Type? sObjectType)
+    public static LookupKey Get(Type? recordType)
     {
-        Type type = sObjectType ?? throw new XftyConfigurationException("A lookup key requires a record type.");
+        Type type = recordType ?? throw new XftyConfigurationException("A lookup key requires a record type.");
         if (!InstanceByType.TryGetValue(type, out LookupKey? existing))
         {
             existing = new LookupKey(type);
@@ -30,13 +30,13 @@ public sealed class LookupKey : ILookupKey
     public static LookupKey Get(object? record) =>
         Get(record?.GetType());
 
-    public Type SObjectType { get; }
+    public Type RecordType { get; }
 
     public bool IsInstanceOf(object? record) =>
-        record is not null && record.GetType() == this.SObjectType;
+        record is not null && record.GetType() == this.RecordType;
 
     // Value equality by hash key, so lookup keys work as dictionary keys directly.
-    public string HashKey => this.SObjectType.ToString();
+    public string HashKey => this.RecordType.ToString();
 
     public int Specificity => 0;
 

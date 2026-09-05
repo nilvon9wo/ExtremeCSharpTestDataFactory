@@ -20,7 +20,7 @@ touches the originals.
 > through that JSON round-trip intact. Neither is needed here: reflection sets
 > any property directly, so there is no round-trip and nothing needs
 > special-casing for a `Blob`-shaped field. See
-> [sobject-injector](sobject-injector.md).
+> [record-injector](record-injector.md).
 
 ---
 
@@ -155,13 +155,13 @@ the ceiling when a test genuinely wants a deeper shape.
 
 ---
 
-## `SObjectInjector` — the graft mechanism on its own
+## `RecordInjector` — the graft mechanism on its own
 
 The graft mechanism is public and needs no bundle. Full guide, with examples:
-**[sobject-injector](sobject-injector.md)**.
+**[record-injector](record-injector.md)**.
 
 ```csharp
-List<object> enriched = SObjectInjector.Inject(contacts)
+List<object> enriched = RecordInjector.Inject(contacts)
     .Relationship(Field.Of<Contact>(x => x.Account), accounts)
     .Value(Field.Of<Contact>(x => x.Birthdate), new DateTime(2024, 1, 1))
     .Result();
@@ -208,7 +208,7 @@ bundle.Inject(Field.Of<Contact>(x => x.Id), config);
 `bundle.GetValue(path[, row])`, `bundle.ChildRecordsOf(row, field)` and
 `bundle.PrimariesResolvingTo(...)` are the readers for that.
 
-See also: [sobject-injector](sobject-injector.md) · [bundles](bundles.md) ·
+See also: [record-injector](record-injector.md) · [bundles](bundles.md) ·
 [child-records](child-records.md) ·
 [value-expressions](value-expressions.md) ·
 [unit-vs-integration](advanced/unit-vs-integration.md)

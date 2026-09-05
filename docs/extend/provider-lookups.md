@@ -27,7 +27,7 @@ public sealed class MyProjectLookup : IProviderLookup
 
     private readonly Dictionary<ILookupKey, IRecordProvider> cache = [];
 
-    public IRecordProvider Get(Type sObjectType) => this.Get(LookupKey.Get(sObjectType));
+    public IRecordProvider Get(Type recordType) => this.Get(LookupKey.Get(recordType));
 
     public IRecordProvider Get(ILookupKey key) => ProviderLookups.Get(Providers, this.cache, key);
 

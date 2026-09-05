@@ -28,18 +28,18 @@ public sealed class FlavouredLookupKey : ILookupKey
 
     private string _flavour { get; }
 
-    private FlavouredLookupKey(Type sObjectType, string flavour)
+    private FlavouredLookupKey(Type recordType, string flavour)
     {
-        this.baseKey = LookupKey.Get(sObjectType);
+        this.baseKey = LookupKey.Get(recordType);
         this._flavour = flavour;
     }
 
-    public static FlavouredLookupKey Get(Type sObjectType, string flavour)
+    public static FlavouredLookupKey Get(Type recordType, string flavour)
     {
-        string hash = HashOf(LookupKey.Get(sObjectType), flavour);
+        string hash = HashOf(LookupKey.Get(recordType), flavour);
         if (!InstanceByHash.TryGetValue(hash, out FlavouredLookupKey? existing))
         {
-            existing = new FlavouredLookupKey(sObjectType, flavour);
+            existing = new FlavouredLookupKey(recordType, flavour);
             InstanceByHash[hash] = existing;
         }
 
@@ -53,7 +53,7 @@ public sealed class FlavouredLookupKey : ILookupKey
         return this;
     }
 
-    public Type SObjectType => this.baseKey.SObjectType;
+    public Type RecordType => this.baseKey.RecordType;
 
     public bool IsInstanceOf(object? record) =>
         this.predicates.Count > 0

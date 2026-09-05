@@ -250,8 +250,8 @@ public class ChildProviderTest
         Assert.Equal(2, contacts.Count);
         List<object> cases = bundle.GetChildBundle(Field.Of<Contact>(x => x.AccountId))!.GetChildList(Field.Of<Case>(x => x.ContactId));
         Assert.Equal(4, cases.Count);
-        NotSupportedException thrown = Assert.Throws<NotSupportedException>(DeferredInserter.Flush);
-        Assert.Contains("persistence layer", thrown.Message);
+        NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => DeferredInserter.Flush());
+        Assert.Contains("persistence gateway", thrown.Message);
     }
 
     // Sanity guards -----------------------------------------
@@ -301,7 +301,7 @@ public class ChildProviderTest
         NotSupportedException thrown = Assert.Throws<NotSupportedException>(provider.SupplyBundle);
 
         // Assert
-        Assert.Contains("persistence layer", thrown.Message);
+        Assert.Contains("persistence gateway", thrown.Message);
     }
 
     // Apex's mirror-image case (a Now parent with a Mock child) is not portable: with no persistence

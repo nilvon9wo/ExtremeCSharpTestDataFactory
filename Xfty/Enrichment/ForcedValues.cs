@@ -8,7 +8,7 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 /// Applies the forced scalar values an InjectConfig carries - InjectValue(field, v)
 /// on the target record, InjectValue(path, v) on a record several hops up,
 /// InjectChildValue(path, v) on the records of a child collection - onto the
-/// SObjectInjector for whichever position BundleEnricher is enriching. No
+/// RecordInjector for whichever position BundleEnricher is enriching. No
 /// recursion; just value placement.
 ///
 /// Each value may be a literal (every record at the position gets it), a
@@ -29,11 +29,11 @@ public sealed class ForcedValues
     public ForcedValues(InjectConfig config) => this.config = config;
 
     /// <summary>The InjectValue(field, v) scalars - the target record itself.</summary>
-    public void ApplyRecordValues(SObjectInjector injector, int rowCount) =>
+    public void ApplyRecordValues(RecordInjector injector, int rowCount) =>
         PlaceAll(injector, this.config.OnRecordValues, rowCount);
 
     /// <summary>The InjectValue(path, v) scalars whose relationship prefix is this ancestor position.</summary>
-    public void ApplyAncestorValues(SObjectInjector injector, List<PropertyInfo> pathFromEntry, int rowCount)
+    public void ApplyAncestorValues(RecordInjector injector, List<PropertyInfo> pathFromEntry, int rowCount)
     {
         string hereKey = PathKey.Of(pathFromEntry);
         Dictionary<PropertyInfo, object?> matched = [];
@@ -50,7 +50,7 @@ public sealed class ForcedValues
     }
 
     /// <summary>The InjectChildValue(path, v) scalars whose relationship prefix is this child position.</summary>
-    public void ApplyChildValues(SObjectInjector injector, List<PropertyInfo> childPathFromEntry, int rowCount)
+    public void ApplyChildValues(RecordInjector injector, List<PropertyInfo> childPathFromEntry, int rowCount)
     {
         string hereKey = PathKey.Of(childPathFromEntry);
         Dictionary<PropertyInfo, object?> matched = [];
@@ -88,10 +88,10 @@ public sealed class ForcedValues
         }
     }
 
-    private static void PlaceAll(SObjectInjector injector, Dictionary<PropertyInfo, object?> valueByField, int rowCount) =>
+    private static void PlaceAll(RecordInjector injector, Dictionary<PropertyInfo, object?> valueByField, int rowCount) =>
         valueByField.ToList().ForEach(pair => Place(injector, pair.Key, pair.Value, rowCount));
 
-    private static void Place(SObjectInjector injector, PropertyInfo field, object? value, int rowCount) =>
+    private static void Place(RecordInjector injector, PropertyInfo field, object? value, int rowCount) =>
         _ = value switch
         {
             List<object?> perRow => injector.ValuePerRow(field, perRow),

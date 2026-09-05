@@ -46,13 +46,13 @@ public class LookupKeyTest
     }
 
     [Fact]
-    public void SObjectType_ForAPlainKey_IsTheTypeItWasBuiltFor()
+    public void RecordType_ForAPlainKey_IsTheTypeItWasBuiltFor()
     {
         // Arrange
         LookupKey key = LookupKey.Get(typeof(Account));
 
         // Act
-        Type type = key.SObjectType;
+        Type type = key.RecordType;
 
         // Assert
         Assert.Equal(typeof(Account), type);
@@ -295,7 +295,7 @@ public class LookupKeyTest
 
         // Assert
         ILookupKey match = Assert.Single(matches);
-        Assert.Equal(typeof(Account), match.SObjectType);
+        Assert.Equal(typeof(Account), match.RecordType);
     }
 
     [Fact]

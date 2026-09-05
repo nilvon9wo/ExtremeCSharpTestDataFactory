@@ -118,7 +118,7 @@ public class RecordProviderIntegrationTest
         NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => provider.Supply());
 
         // Assert - the depth-batched path was actually engaged, not silently skipped
-        Assert.Contains("persistence layer", thrown.Message);
+        Assert.Contains("persistence gateway", thrown.Message);
     }
 
     [Fact]
@@ -131,9 +131,9 @@ public class RecordProviderIntegrationTest
         _ = provider.Supply();
 
         // Act
-        NotSupportedException thrown = Assert.Throws<NotSupportedException>(DeferredInserter.Flush);
+        NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => DeferredInserter.Flush());
 
         // Assert - the registry actually tried to persist, not silently no-op
-        Assert.Contains("persistence layer", thrown.Message);
+        Assert.Contains("persistence gateway", thrown.Message);
     }
 }

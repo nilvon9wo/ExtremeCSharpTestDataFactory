@@ -13,7 +13,7 @@ public class ForcedValuesTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(x => x.Birthdate), new DateTime(2020, 1, 1));
-        SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "X" }]);
+        RecordInjector injector = RecordInjector.Inject([new Contact { LastName = "X" }]);
 
         // Act
         new ForcedValues(config).ApplyRecordValues(injector, 1);
@@ -28,7 +28,7 @@ public class ForcedValuesTest
         // Arrange - InjectValue(path) targets the record at path's relationship prefix
         List<System.Reflection.PropertyInfo> pathToField = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)];
         InjectConfig config = InjectConfig.Nothing().InjectValue(pathToField, 5000m);
-        SObjectInjector injector = SObjectInjector.Inject([new Account { Name = "A" }]);
+        RecordInjector injector = RecordInjector.Inject([new Account { Name = "A" }]);
 
         // Act
         new ForcedValues(config).ApplyAncestorValues(injector, [Field.Of<Contact>(x => x.AccountId)], 1);
@@ -43,7 +43,7 @@ public class ForcedValuesTest
         // Arrange
         List<System.Reflection.PropertyInfo> pathToField = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)];
         InjectConfig config = InjectConfig.Nothing().InjectValue(pathToField, 5000m);
-        SObjectInjector injector = SObjectInjector.Inject([new Account { Name = "A" }]);
+        RecordInjector injector = RecordInjector.Inject([new Account { Name = "A" }]);
 
         // Act
         new ForcedValues(config).ApplyAncestorValues(injector, [Field.Of<Contact>(x => x.ReportsToId)], 1);
@@ -58,7 +58,7 @@ public class ForcedValuesTest
         // Arrange - InjectChildValue(childField, leafField, literal) - every child gets it
         InjectConfig config = InjectConfig.Nothing()
             .InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), "shared");
-        SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
+        RecordInjector injector = RecordInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
 
         // Act
         new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 2);
@@ -75,7 +75,7 @@ public class ForcedValuesTest
         // Arrange
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
             Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), new IncrementingStringExpression("n"));
-        SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
+        RecordInjector injector = RecordInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
 
         // Act
         new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 2);
@@ -92,7 +92,7 @@ public class ForcedValuesTest
         // Arrange
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
             Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), new List<object?> { "first", "second" });
-        SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
+        RecordInjector injector = RecordInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
 
         // Act
         new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 2);
@@ -124,7 +124,7 @@ public class ForcedValuesTest
         // Arrange
         InjectConfig config = InjectConfig.Nothing()
             .InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), "x");
-        SObjectInjector injector = SObjectInjector.Inject([new Contact { LastName = "A" }]);
+        RecordInjector injector = RecordInjector.Inject([new Contact { LastName = "A" }]);
         ForcedValues forcedValues = new(config);
         forcedValues.ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 1);
 

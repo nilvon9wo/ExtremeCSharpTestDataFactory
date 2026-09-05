@@ -37,12 +37,12 @@ rather than approximated:
   `Limits.getCpuTime()` / `getDmlRows()` / etc. exists. This port measures
   wall-clock time and allocation instead — see
   [volume-and-limits](volume-and-limits.md).
-- **`SObjectInjector`'s `Blob`/compound-field/polymorphic-relationship
+- **`RecordInjector`'s `Blob`/compound-field/polymorphic-relationship
   machinery is not needed, not dropped.** Apex's version round-tripped
   through JSON specifically because `SObject.put(...)` rejects relationship
   and read-only fields; this port's reflection-based injector sets any
   property directly, so there is nothing to special-case. See
-  [use/sobject-injector](../use/sobject-injector.md).
+  [use/record-injector](../use/record-injector.md).
 - **`ChildProvider` cannot validate that a relationship field actually
   belongs to the parent type it's hung off**, the way Apex validated via
   schema describe. A misconfigured field surfaces as a wrong or `null` value
@@ -78,7 +78,7 @@ rather than approximated:
   `primaryRecordsOf(bundle)` helper — `Add(null)` / `InsertGraph(null)` /
   `Flatten(null)` would `NullReferenceException` instead of tolerating `null`
   like Apex does. Fixed with a matching `PrimaryRecordsOf(Bundle?)` helper.
-- `RecordProvider.AssertNoSObjectTypeConflict`'s exception message did not
+- `RecordProvider.AssertNoRecordTypeConflict`'s exception message did not
   name the offending type.
 - A missing null-guard on the shared-ancestor path meant a couple of tests'
   own lookups (missing a `User` provider) failed silently and left an

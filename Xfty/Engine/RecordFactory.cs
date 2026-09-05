@@ -59,8 +59,20 @@ public sealed class RecordFactory
         _ = this.context.InsertMode switch
         {
             InsertMode.Mock => IdMocker.AddIds(records, this.template.PrimaryTargetField),
-            InsertMode.Now => throw new NotSupportedException(
-                "InsertMode.Now needs a real persistence layer (e.g. EF), not wired up yet - use Mock or Never."),
+            InsertMode.Now => this.InsertNow(records),
             _ => records,
         };
+
+    private List<object> InsertNow(List<object> records)
+    {
+        if (this.context.PersistenceGateway is null)
+        {
+            throw new NotSupportedException(
+                "InsertMode.Now needs a persistence gateway - RecordProvider.SetPersistenceGateway(...) - use "
+                + "Mock or Never when none is configured.");
+        }
+
+        this.context.PersistenceGateway.Insert(records, this.template.PrimaryTargetField);
+        return records;
+    }
 }

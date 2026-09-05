@@ -5,8 +5,8 @@ namespace Net.Nowhereatall.Xfty.Lookup;
 /// <summary>Resolves which Provider should generate a given record.</summary>
 public interface IProviderLookup
 {
-    /// <summary>Convenience for the common case; equivalent to Get(LookupKey.Get(sObjectType)).</summary>
-    IRecordProvider Get(Type sObjectType);
+    /// <summary>Convenience for the common case; equivalent to Get(LookupKey.Get(recordType)).</summary>
+    IRecordProvider Get(Type recordType);
 
     /// <summary>Resolve a Provider for an explicit variant key.</summary>
     IRecordProvider Get(ILookupKey lookupKey);

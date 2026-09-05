@@ -24,7 +24,7 @@ public sealed class MapBackedLookup : IProviderLookup, ISharedAncestorDefaults
     public void RegisterSharedAncestorDefaults() =>
         this.sharedAncestorDefaults?.ToList().ForEach(pair => SharedAncestor.PutIfAbsent(pair.Key, pair.Value));
 
-    public IRecordProvider Get(Type sObjectType) => this.Get(LookupKey.Get(sObjectType));
+    public IRecordProvider Get(Type recordType) => this.Get(LookupKey.Get(recordType));
 
     public IRecordProvider Get(ILookupKey lookupKey) =>
         this.providerByKey is not null

@@ -59,7 +59,7 @@ enough to expect again against any real backend:
    not the test.
 
 2. **Values a test forced in that a real save cannot set.** [`Inject` /
-   `InjectAll`](../enrichment.md) and [`SObjectInjector`](../sobject-injector.md)
+   `InjectAll`](../enrichment.md) and [`RecordInjector`](../record-injector.md)
    write things a real save would compute differently or reject outright — a
    populated navigation property that is really a snapshot, a forced value on a
    field a real backend treats as read-only or system-managed. Under `Mock`
