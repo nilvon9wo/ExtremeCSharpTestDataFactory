@@ -57,6 +57,18 @@ reset at all. `SharedAncestorResetTest` in this port's own suite proves it
 works, including finally exercising `ManualResolutionOnly()` safely - see
 [known-issues](known-issues.md).
 
+**Using xUnit? `[IsolatesSharedAncestor]` (separate `Xfty.Xunit` package) is
+the same reset, already wired up.** Apply it to a test class or method and
+it calls `ResetAllForTesting()` before and after, via xUnit's own
+`BeforeAfterTestAttribute` hook - no base class, no fixture, nothing to
+remember. `IsolatesSharedAncestorAttributeTest` proves it prevents real
+leakage between two test methods that deliberately reuse the same name;
+`SharedAncestorLeaksWithoutIsolationTest` proves the leak is real without
+it (simulated within one method, since the leak itself depends on no reset
+happening between two calls - not something to rely on xUnit's own,
+unguaranteed method-ordering to demonstrate reliably across two real test
+methods).
+
 **What this means for your own tests:**
 
 - **Either** wire up `SharedAncestor.ResetAllForTesting()` once, in a shared
@@ -78,6 +90,18 @@ works, including finally exercising `ManualResolutionOnly()` safely - see
   run*, not reset per test method the way it would be in Apex. That is
   generally fine (it is what keeps `UniqueStringExpression` genuinely unique
   across your whole suite), but do not assume a fresh start per test method.
+
+**A separate concern: concurrent access, not reset timing.** Everything
+above is about *when* the registry resets. Whether it can safely be *read
+and written from more than one thread at once* is a different question,
+with its own history: `SharedAncestor` used to genuinely crash under real
+concurrent access (a plain `Dictionary`/`HashSet`, unsynchronized resolver
+state) - this port's own suite never hit it only because it disables
+xUnit's *default* collection parallelism, which most real xUnit projects
+leave on. That's fixed now (concurrent collections, a lock serializing the
+actual resolve-and-mutate work) and needs nothing from you - see
+[known-issues](known-issues.md) for the fix and the test that reproduces
+the original crash against the pre-fix code to prove it.
 
 ---
 

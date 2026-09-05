@@ -48,15 +48,16 @@ rather than approximated:
 
 - **`SharedAncestor`'s registry and `DeferredInserter`'s buffer are `static`
   and do not reset between test methods automatically**, unlike Apex, where
-  every static resets per test method on its own. `SharedAncestor.ResetAllForTesting()`
-  gives a real, verified way to reset it - call it from your own test
-  suite's per-test setup (a base test class's constructor, or an xUnit
-  fixture's `Dispose`) - but it is opt-in, not automatic; nothing in .NET
-  gives XFTY a hook to call it for you the way Apex's platform does. This
-  port's own test suite deliberately does *not* use it throughout (see
-  [reference/salesforce-considerations](salesforce-considerations.md) for
-  the naming/cleanup convention it uses instead) so that both approaches
-  stay exercised.
+  every static resets per test method on its own. Three ways to handle it -
+  `[IsolatesSharedAncestor]` (separate `Xfty.Xunit` package, resets
+  automatically via xUnit's own per-test hook), `SharedAncestor.ResetAllForTesting()`
+  (the same reset, wired by hand into your own base test class/fixture), or
+  unique names per test (no reset at all) - see
+  [use/shared-ancestors.md](../use/shared-ancestors.md) for all three. None
+  is automatic the way Apex's reset is; this port's own test suite
+  deliberately uses the unique-names approach throughout (see
+  [reference/salesforce-considerations](salesforce-considerations.md)) so
+  every approach stays genuinely exercised somewhere, not just documented.
 
 ---
 
@@ -80,3 +81,22 @@ rather than approximated:
   fixes this (it clears the manual-resolution flag along with the registry),
   proven end to end in `SharedAncestorResetTest` - `ManualResolutionOnly()`
   is genuinely exercised there now, not skipped.
+- **`SharedAncestor`'s registry could crash under real concurrent access -
+  not a theoretical risk, an actually-reproduced one.** `ByName` was a plain
+  `Dictionary`, `Disabled` a plain `HashSet`, and `SharedAncestorResolver`'s
+  own `_running`/`InProgress` fields were unsynchronized; this port's own
+  test suite never hit it only because it explicitly disables xUnit's
+  *default* collection parallelism. Building `Xfty.Xunit.Test` without
+  that same opt-out surfaced it immediately: `InvalidOperationException`
+  from `Dictionary`'s internal state, corrupted by two threads racing to
+  mutate it. Fixed - `ByName`/`Disabled` are now `ConcurrentDictionary`s,
+  `_manualResolution` is `volatile`, and the actual resolve-and-mutate work
+  is serialized through a lock in `SharedAncestorResolver` (every path that
+  can trigger resolution funnels through it, so one lock there covers the
+  whole subsystem). `SharedAncestorConcurrencyTest` reproduces the original
+  crash reliably against the pre-fix code (confirmed by literally reverting
+  the fix and re-running it) and passes reliably against the fix - 200
+  concurrent attempts, repeated runs, no corruption. Any real consuming
+  project that leaves xUnit's default parallelization on - which is most
+  xUnit projects, since disabling it is the opt-out - was exposed to this;
+  it no longer is.

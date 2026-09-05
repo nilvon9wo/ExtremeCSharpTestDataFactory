@@ -25,15 +25,30 @@ Either way: **one record, one Id, everywhere** — and it is generated at most o
 per process.
 
 > **`SharedAncestor`'s registry is `static` and lives for the whole test run,
-> not per test method, unless you reset it yourself.** Either give every
-> test's shared ancestors a **name unique to that test** (see
-> [reference/known-issues.md](../reference/known-issues.md) for the cleanup
-> this implies for a test that deliberately leaves one unresolved), **or**
-> call `SharedAncestor.ResetAllForTesting()` once per test from your own
-> base test class's constructor or fixture's `Dispose` - xUnit creates a
-> fresh test-class instance per test method, so that gives you a real reset
-> without needing unique names at all. Neither happens automatically;
-> nothing in .NET gives XFTY a hook to do it for you.
+> not per test method, unless you reset it yourself.** Three ways to handle
+> that, in order of how little you have to think about it:
+>
+> 1. **Using xUnit? `[IsolatesSharedAncestor]` from the separate `Xfty.Xunit`
+>    package** - apply it to a test class (every method in it) or one method,
+>    and the registry resets before and after, automatically, via xUnit's own
+>    `BeforeAfterTestAttribute` hook. This is genuinely the least you can do
+>    and still be safe - no base class, no fixture, no unique-naming
+>    discipline to remember.
+> 2. **Call `SharedAncestor.ResetAllForTesting()` yourself**, from a base
+>    test class's constructor or an xUnit fixture's `Dispose` - the same
+>    effect as option 1, wired by hand, for a project not using `Xfty.Xunit`
+>    or using a different test framework.
+> 3. **Give every test's shared ancestors a name unique to that test** (see
+>    [reference/known-issues.md](../reference/known-issues.md) for the
+>    cleanup this implies for a test that deliberately leaves one
+>    unresolved) - no reset at all, just never colliding.
+>
+> None of the three happens automatically on its own the way Apex's static
+> reset does; pick one. Separately: the registry itself is safe under
+> concurrent access (xUnit's *default* is to run different test classes in
+> parallel, and this used to be able to crash it - see
+> [known-issues.md](../reference/known-issues.md)) - that part needs nothing
+> from you regardless of which of the three you pick.
 
 ---
 

@@ -21,7 +21,7 @@ public sealed partial class SharedAncestor
     public bool IsResolvedRecordPersisted => this._resolvedRecordIsPersisted;
 
     public object? ResolveSharedRecord(GenerationContext context) =>
-        Disabled.Contains(this._name)
+        Disabled.ContainsKey(this._name)
             ? null
             : this.resolvedRecord ?? this.ResolveFresh(context);
 

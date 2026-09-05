@@ -12,9 +12,23 @@ namespace Net.Nowhereatall.Xfty.Engine;
 ///
 /// Works from <see cref="SharedAncestorProvider"/> - the single recipe type -
 /// so it never branches on how an ancestor was configured.
+///
+/// <see cref="ResolveAllConfigured"/> and <see cref="Resolve"/> are the two
+/// entry points every path that can trigger resolution funnels through
+/// (directly, or via <see cref="SharedAncestor"/>'s own instance/static
+/// ResolveNow), so serializing those two - not scattering locks across
+/// SharedAncestor itself - is enough to make the whole subsystem safe under
+/// concurrent test execution (xUnit's default; this port's own suite opts
+/// out, but a consumer's typically doesn't). The lock is a plain
+/// Monitor-based one, deliberately: this method already recurses on the
+/// same thread (resolving one ancestor's sub-graph can itself trigger
+/// ordinary record generation that calls back into ResolveAllConfigured),
+/// and Monitor's same-thread reentrancy is well-established, unlike newer
+/// lock primitives this codebase has never needed to reason about before.
 /// </summary>
 public sealed class SharedAncestorResolver
 {
+    private static readonly object ResolutionLock = new();
     private static bool _running;
     private static readonly HashSet<string> InProgress = [];
 
@@ -31,21 +45,24 @@ public sealed class SharedAncestorResolver
     /// <summary>Every shared ancestor configured this test method, resolved against the triggering call's mode.</summary>
     public static void ResolveAllConfigured(IProviderLookup lookup, InsertMode callMode)
     {
-        if (_running)
+        lock (ResolutionLock)
         {
-            return;
-        }
+            if (_running)
+            {
+                return;
+            }
 
-        ApplyLookupDefaults(lookup);
-        if (SharedAncestor.IsManualResolutionOnly())
-        {
-            return;
-        }
+            ApplyLookupDefaults(lookup);
+            if (SharedAncestor.IsManualResolutionOnly())
+            {
+                return;
+            }
 
-        List<SharedAncestor> configured = SharedAncestor.ConfiguredUnresolved();
-        if (configured.Count > 0)
-        {
-            new SharedAncestorResolver(lookup, callMode).Resolve(configured);
+            List<SharedAncestor> configured = SharedAncestor.ConfiguredUnresolved();
+            if (configured.Count > 0)
+            {
+                new SharedAncestorResolver(lookup, callMode).Resolve(configured);
+            }
         }
     }
 
@@ -60,17 +77,20 @@ public sealed class SharedAncestorResolver
 
     public void Resolve(List<SharedAncestor> ancestors)
     {
-        bool owns = !_running;
-        _running = true;
-        try
+        lock (ResolutionLock)
         {
-            this.InDependencyOrder(ancestors).Where(ancestor => !ancestor.IsResolved).ToList().ForEach(this.ResolveOne);
-        }
-        finally
-        {
-            if (owns)
+            bool owns = !_running;
+            _running = true;
+            try
             {
-                _running = false;
+                this.InDependencyOrder(ancestors).Where(ancestor => !ancestor.IsResolved).ToList().ForEach(this.ResolveOne);
+            }
+            finally
+            {
+                if (owns)
+                {
+                    _running = false;
+                }
             }
         }
     }

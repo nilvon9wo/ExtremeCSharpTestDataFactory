@@ -25,6 +25,8 @@ Xfty.VectorDatabases.Qdrant/      - PREVIEW: a Qdrant IPersistenceGateway via Qd
 Xfty.VectorDatabases.Qdrant.Test/
 Xfty.VectorDatabases.MicrosoftExtensionsVectorData/      - PREVIEW: a generic IPersistenceGateway for any Microsoft.Extensions.VectorData connector
 Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test/
+Xfty.Xunit/                     - optional: [IsolatesSharedAncestor] xUnit attribute
+Xfty.Xunit.Test/
 ```
 
 `Xfty.VectorDatabases.Qdrant` and `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`
@@ -46,14 +48,15 @@ Read each package's own README before depending on either.
 
 ## Consuming XFTY
 
-`Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`, and `Xfty.VectorDatabases`
-all carry NuGet package metadata (`PackageId`, `Version`, `Authors`,
-`PackageLicenseExpression`, embedded `README.md`, symbol packages) and
-`dotnet pack` produces a valid `.nupkg`/`.snupkg` pair for each — verified
-locally, not yet published. Only `Xfty` is required; the other three are
-independent, opt-in add-ons a project references only if it wants that
-specific convenience (EF Core persistence, Bogus-backed realistic values, a
-random-vector expression).
+`Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`, `Xfty.VectorDatabases`, and
+`Xfty.Xunit` all carry NuGet package metadata (`PackageId`, `Version`,
+`Authors`, `PackageLicenseExpression`, embedded `README.md`, symbol
+packages) and `dotnet pack` produces a valid `.nupkg`/`.snupkg` pair for
+each — verified locally, not yet published. Only `Xfty` is required; the
+other four are independent, opt-in add-ons a project references only if it
+wants that specific convenience (EF Core persistence, Bogus-backed
+realistic values, a random-vector expression, the `[IsolatesSharedAncestor]`
+xUnit attribute).
 
 Until a version is pushed to nuget.org, consume XFTY the same way any
 not-yet-published package is consumed:
@@ -69,6 +72,7 @@ dotnet pack Xfty/Xfty.csproj -c Release -o ./local-packages
 dotnet pack Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj -c Release -o ./local-packages
 dotnet pack Xfty.Bogus/Xfty.Bogus.csproj -c Release -o ./local-packages
 dotnet pack Xfty.VectorDatabases/Xfty.VectorDatabases.csproj -c Release -o ./local-packages
+dotnet pack Xfty.Xunit/Xfty.Xunit.csproj -c Release -o ./local-packages
 dotnet nuget add source ./local-packages -n xfty-local
 ```
 
@@ -90,10 +94,11 @@ dotnet nuget push ./local-packages/Xfty.<version>.nupkg \
 ```
 
 `Xfty.EntityFrameworkCore` depends on the `Xfty` package id/version, so push
-`Xfty` first; `Xfty.Bogus` and `Xfty.VectorDatabases` depend only on `Xfty`
-too, so the same order works for all three. Once a version is live on
-nuget.org, it's automatically searchable from Visual Studio's NuGet Package
-Manager (VS searches nuget.org by default) — no separate listing step.
+`Xfty` first; `Xfty.Bogus`, `Xfty.VectorDatabases`, and `Xfty.Xunit` all
+depend only on `Xfty` too, so the same order works for all five. Once a
+version is live on nuget.org, it's automatically searchable from Visual
+Studio's NuGet Package Manager (VS searches nuget.org by default) — no
+separate listing step.
 
 A repeatable alternative is a GitHub Actions step, triggered on tag push,
 that runs `dotnet pack` then `dotnet nuget push` using a `NUGET_API_KEY`

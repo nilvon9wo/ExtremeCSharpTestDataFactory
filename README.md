@@ -184,6 +184,10 @@ including everything since the 1.0.0-beta.1 tag):
 - `Xfty.Bogus` and `Xfty.VectorDatabases` — optional packages for realistic
   fake data and vector-embedding fields, without adding either dependency to
   core `Xfty`
+- `Xfty.Xunit` — `[IsolatesSharedAncestor]`, resetting `SharedAncestor`
+  before/after a test class or method automatically
+- A real, fixed thread-safety issue in `SharedAncestor` under concurrent
+  test execution (xUnit's default; this repo's own suite had opted out)
 
 The full status table — built, not-ported, and open ideas under
 consideration (embedded/denormalized document relationships, an

@@ -12,8 +12,36 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`SharedAncestor` could crash under real concurrent access** —
+  `ByName`/`Disabled` were a plain `Dictionary`/`HashSet`, and
+  `SharedAncestorResolver`'s own `_running`/`InProgress` fields were
+  unsynchronized. This port's own suite never hit it only because it
+  disables xUnit's *default* collection parallelism; building `Xfty.Xunit.Test`
+  without that same opt-out reproduced the crash immediately
+  (`InvalidOperationException` from `Dictionary`'s internal state).
+  `ByName`/`Disabled` are now `ConcurrentDictionary`s, `_manualResolution`
+  is `volatile`, and the actual resolve-and-mutate work is serialized
+  through a lock in `SharedAncestorResolver` covering every path that can
+  trigger resolution. `SharedAncestorConcurrencyTest` reproduces the
+  original crash reliably against the pre-fix code (confirmed by reverting
+  the fix and re-running it) and passes reliably - 200 concurrent
+  attempts, repeated runs - against the fix.
+
 ### Added
 
+- **`Xfty.Xunit`** — `[IsolatesSharedAncestor]`, an attribute for a test
+  class or method that resets `SharedAncestor`'s registry before and after,
+  via xUnit's own `BeforeAfterTestAttribute` hook - the same effect as
+  `SharedAncestor.ResetAllForTesting()`, wired up automatically instead of
+  by hand. `IsolatesSharedAncestorAttributeTest` proves it prevents real
+  leakage between two test methods that deliberately reuse the same name;
+  the companion `SharedAncestorLeaksWithoutIsolationTest` proves the leak
+  is genuinely real without it. Depends on `xunit.v3.extensibility.core`
+  (not the full `xunit.v3` runner package - the correct, lighter dependency
+  for a library shipping an xUnit extension rather than a test project
+  itself).
 - **`SharedAncestor.ResetAllForTesting()`** — clears the registry, every
   `Disable`d name, and the `ManualResolutionOnly()` flag in one call. Not
   automatic (nothing in .NET gives XFTY a per-test-method hook the way

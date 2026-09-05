@@ -11,7 +11,7 @@ public sealed partial class SharedAncestor
     public static void Disable(string name)
     {
         Get(name).AssertUnresolved("Disable(...)");
-        _ = Disabled.Add(name);
+        _ = Disabled.TryAdd(name, 0);
     }
 
     /// <summary>Turn off the pre-phase that auto-resolves every registered shared ancestor.</summary>
@@ -34,7 +34,7 @@ public sealed partial class SharedAncestor
     public static List<SharedAncestor> ConfiguredUnresolved() => [.. ByName.Values.Where(IsUnresolvedAndEnabled)];
 
     private static bool IsUnresolvedAndEnabled(SharedAncestor ancestor) =>
-        ancestor.source is not null && ancestor.resolvedRecord is null && !Disabled.Contains(ancestor._name);
+        ancestor.source is not null && ancestor.resolvedRecord is null && !Disabled.ContainsKey(ancestor._name);
 
     private bool IsUnregistered() => this.source is null && this.resolvedRecord is null;
 

@@ -16,4 +16,6 @@
   <Project Path="Xfty.VectorDatabases.Qdrant.Test/Xfty.VectorDatabases.Qdrant.Test.csproj" />
   <Project Path="Xfty.VectorDatabases.MicrosoftExtensionsVectorData/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.csproj" />
   <Project Path="Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test.csproj" />
+  <Project Path="Xfty.Xunit/Xfty.Xunit.csproj" />
+  <Project Path="Xfty.Xunit.Test/Xfty.Xunit.Test.csproj" />
 </Solution>

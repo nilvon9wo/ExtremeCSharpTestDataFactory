@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Net.Nowhereatall.Xfty.Core;
 
 namespace Net.Nowhereatall.Xfty.Relationships;
@@ -10,7 +11,16 @@ namespace Net.Nowhereatall.Xfty.Relationships;
 /// Get(name) only retrieves the token to hand to PutRequired/PutOptional, and
 /// the handle for ResolveNow/GetId.
 ///
-/// Flyweight - state is static. <see cref="SharedAncestorResolver"/> resolves
+/// Flyweight - state is static, and safe under concurrent access:
+/// <see cref="ByName"/>/<see cref="Disabled"/> are concurrent collections,
+/// <see cref="_manualResolution"/> is <c>volatile</c>, and the actual
+/// resolve-and-mutate work is serialized through <see cref="SharedAncestorResolver"/>'s
+/// own lock (not this class's concern - every entry point that can trigger
+/// resolution ends up calling into that resolver). This matters because
+/// xUnit's *default* behaviour (unlike this port's own test suite, which
+/// opts out) is to run different test classes in parallel - a real,
+/// previously-uncaught crash risk, not a theoretical one; see
+/// reference/known-issues.md. <see cref="SharedAncestorResolver"/> resolves
 /// every registered ancestor before the first Supply*() call. Split across
 /// several files by concern: this file is identity and the flyweight
 /// registry; SharedAncestor.Registration.cs is Put*(...); SharedAncestor.
@@ -20,9 +30,9 @@ namespace Net.Nowhereatall.Xfty.Relationships;
 /// </summary>
 public sealed partial class SharedAncestor : ISharedRelationship
 {
-    private static readonly Dictionary<string, SharedAncestor> ByName = [];
-    private static readonly HashSet<string> Disabled = [];
-    private static bool _manualResolution;
+    private static readonly ConcurrentDictionary<string, SharedAncestor> ByName = new();
+    private static readonly ConcurrentDictionary<string, byte> Disabled = new();
+    private static volatile bool _manualResolution;
 
     private string _name { get; }
 
@@ -37,13 +47,7 @@ public sealed partial class SharedAncestor : ISharedRelationship
     public static SharedAncestor Get(string name)
     {
         AssertNameGiven(name);
-        if (!ByName.TryGetValue(name, out SharedAncestor? existing))
-        {
-            existing = new SharedAncestor(name);
-            ByName[name] = existing;
-        }
-
-        return existing;
+        return ByName.GetOrAdd(name, static key => new SharedAncestor(key));
     }
 
     private static void AssertNameGiven(string name)
@@ -63,7 +67,7 @@ public sealed partial class SharedAncestor : ISharedRelationship
 
     private static void AssertNotDisabled(string name)
     {
-        if (Disabled.Contains(name))
+        if (Disabled.ContainsKey(name))
         {
             throw new XftyConfigurationException($"Shared ancestor \"{name}\" is disabled.");
         }
