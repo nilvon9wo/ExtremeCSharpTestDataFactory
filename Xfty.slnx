@@ -4,6 +4,6 @@
     <File Path="CSharp Style Rules.txt" />
     <File Path="csharp-port-idea.md" />
   </Folder>
-  <Project Path="Xfty.Core.Test/Xfty.Core.Test.csproj" />
-  <Project Path="Xfty.Core/Xfty.Core.csproj" />
+  <Project Path="Xfty.Test/Xfty.Test.csproj" />
+  <Project Path="Xfty/Xfty.csproj" />
 </Solution>

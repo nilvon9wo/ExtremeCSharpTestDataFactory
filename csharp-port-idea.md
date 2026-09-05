@@ -538,3 +538,38 @@ does not exist in this port yet - `RecordFactory.Persist` throws
 `enrichment/` (the reflection-based rebuild, a separate track per session 1)
 and `providers/`-equivalent demo-domain breadth beyond the two Account/
 Contact providers here are the natural next work.
+
+**2026-09-05: the "what's left" list above got built.** Full mechanical port
+of the DEFERRED/depth-batched persistence path (`IndexedRecord`,
+`PendingDeferredValue`, `DepthBatchedInserterParentLink` - confirmed the same
+type Apex's `XFTY_DeferredGraph` reuses, not a separate one,
+`CyclicGraphException`, `DepthBatchedInserter`, `DeferredInsertBuffer`,
+`DeferredInserter`, `DescendantValuePass`) and the `SharedAncestor` subsystem
+(`SharedAncestor`, `SharedAncestorProvider`, `SharedAncestorFieldValue`,
+`SharedAncestorResolver`) - a flyweight registry so every relationship
+referencing the same shared-ancestor name resolves to one generated record.
+`RecordProvider.SupplyBundle()` now resolves shared ancestors up front and
+fully branches on `DepthBatched()`/`ForceStructuralChildGeneration()`/
+insert mode the way Apex's `supplyBundle()` does. `GovernorBudget` remains
+not ported - no C# analog for `Limits.getCpuTime()` etc. `seeding/` remains
+out of scope per explicit instruction.
+
+Found and fixed a real cross-test race, not a port bug: xUnit runs test
+classes in parallel by default, but `SharedAncestor`'s static registry
+(deliberately static - the closest equivalent to Apex's per-test-reset
+statics, see its doc comment) was never built to be thread-safe, because
+Apex test methods never run concurrently with each other either. One test's
+in-flight resolution was tripping another, unrelated test's cycle detector.
+Fixed by adding `[assembly: CollectionBehavior(DisableTestParallelization =
+true)]` to `Xfty.Test` - serializing the run restores the single-threaded-
+per-org semantics the design already assumes, rather than bolting locking
+onto a registry Apex never needed to make thread-safe.
+
+Renamed `Xfty.Core` -> `Xfty` and `Xfty.Core.Test` -> `Xfty.Test` (folders,
+`.csproj` files, `AssemblyName`/`RootNamespace`, `Xfty.slnx` project paths).
+The project wasn't big enough to justify per-feature assemblies, so
+`Net.Nowhereatall.Xfty.Core.Core` (the `Core/` subfolder namespace, doubled
+by the project name) was pure stutter. `Net.Nowhereatall.Xfty.Core` now
+means only the `Core/` subfolder - the project root namespace is
+`Net.Nowhereatall.Xfty`. 102/102 tests passing, stable across repeated runs
+with parallelization disabled.
