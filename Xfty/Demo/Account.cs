@@ -54,4 +54,7 @@ public sealed class Account
     /// record needs somewhere to graft one).
     /// </summary>
     public List<Contact>? Contacts { get; init; }
+
+    /// <summary>The self-referencing Parent ancestor - populated only via reflection, see <see cref="Contacts"/>.</summary>
+    public Account? Parent { get; init; }
 }
