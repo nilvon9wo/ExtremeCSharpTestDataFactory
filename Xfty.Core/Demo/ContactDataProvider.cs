@@ -2,6 +2,8 @@ using System.Reflection;
 using Net.Nowhereatall.Xfty.Core.Relationships;
 using Net.Nowhereatall.Xfty.Core.Values;
 
+using Net.Nowhereatall.Xfty.Core.Core;
+using Net.Nowhereatall.Xfty.Core.Engine;
 namespace Net.Nowhereatall.Xfty.Core.Demo;
 
 /// <summary>A minimal demo <see cref="IRecordProvider"/> for <see cref="Contact"/> - LastName is an incrementing string, AccountId is a required relationship to a generated <see cref="Account"/>.</summary>

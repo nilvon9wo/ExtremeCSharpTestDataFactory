@@ -1,3 +1,5 @@
+using Net.Nowhereatall.Xfty.Core.Core;
+using Net.Nowhereatall.Xfty.Core.Engine;
 namespace Net.Nowhereatall.Xfty.Core.Lookup;
 
 /// <summary>The lookup <see cref="ProviderLookups.Of(Dictionary{ILookupKey,IRecordProvider})"/> and friends build.</summary>

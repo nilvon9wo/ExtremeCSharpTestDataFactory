@@ -22,6 +22,13 @@ public static class IdMocker
         return records;
     }
 
+    /// <summary>As <see cref="AddIds(List{object},PropertyInfo)"/>, for a batch mixing several record types - each record's own Id property is resolved by reflection.</summary>
+    public static List<object> AddIds(List<object> records)
+    {
+        records.ForEach(record => AddId(record, record.GetType().GetProperty("Id")!));
+        return records;
+    }
+
     public static object AddId(object record, PropertyInfo idField)
     {
         idField.SetValue(record, GenerateId());

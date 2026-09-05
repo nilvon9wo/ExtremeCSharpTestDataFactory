@@ -1,3 +1,5 @@
+using Net.Nowhereatall.Xfty.Core.Core;
+using Net.Nowhereatall.Xfty.Core.Engine;
 namespace Net.Nowhereatall.Xfty.Core.Lookup;
 
 /// <summary>Resolves which Provider should generate a given record.</summary>

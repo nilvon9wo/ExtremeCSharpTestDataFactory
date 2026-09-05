@@ -1,6 +1,8 @@
 using System.Reflection;
 using Net.Nowhereatall.Xfty.Core.Values;
 
+using Net.Nowhereatall.Xfty.Core.Core;
+using Net.Nowhereatall.Xfty.Core.Engine;
 namespace Net.Nowhereatall.Xfty.Core.Demo;
 
 /// <summary>A minimal demo <see cref="IRecordProvider"/> for <see cref="Account"/> - Name is an incrementing string, everything else defaults to null.</summary>

@@ -1,4 +1,7 @@
+using Net.Nowhereatall.Xfty.Core.Core;
+using Net.Nowhereatall.Xfty.Core.Engine;
 using Net.Nowhereatall.Xfty.Core.Demo;
+using Net.Nowhereatall.Xfty.Core.Persistence;
 using Net.Nowhereatall.Xfty.Core.Values;
 
 namespace Net.Nowhereatall.Xfty.Core.Test.Values;
@@ -34,7 +37,7 @@ public class CopyFromDescendantExpressionTest
         Contact child = new() { Department = "Field Ops" };
         DeferredGraph graph = new(
             [parent, child],
-            [new DeferredGraphParentLink(0, 1, Field.Of<Contact>(nameof(Contact.AccountId)))]);
+            [new DepthBatchedInserterParentLink(childIndex: 1, parentIndex: 0, Field.Of<Contact>(nameof(Contact.AccountId)))]);
         CopyFromDescendantExpression expression = new(
             Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Contact>(nameof(Contact.Department)));
 
