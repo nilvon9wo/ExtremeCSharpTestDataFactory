@@ -65,7 +65,7 @@ public class InjectConfigTest
     }
 
     [Fact]
-    public void Defaults_AreTheSoqlLimits()
+    public void Defaults_AreTheDocumentedLimits()
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing();

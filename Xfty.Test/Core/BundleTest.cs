@@ -4,7 +4,7 @@ using Net.Nowhereatall.Xfty.Persistence;
 
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
-/// <summary>Proves Bundle, the container that preserves the shape of a generated object graph. Pure in-memory structure, no DML/SOQL.</summary>
+/// <summary>Proves Bundle, the container that preserves the shape of a generated object graph. Pure in-memory structure, no database access.</summary>
 public class BundleTest
 {
     // Put / GetList / GetBundle -------------------------------------

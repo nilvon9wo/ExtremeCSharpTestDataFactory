@@ -7,7 +7,7 @@ namespace Net.Nowhereatall.Xfty.Test.Enrichment;
 
 /// <summary>
 /// Proves EnrichmentSelection - "does this config want the ancestor/child/
-/// inverse here?". Pure in-memory, no DML/SOQL. Parameterised: the [Theory]
+/// inverse here?". Pure in-memory, no database access. Parameterised: the [Theory]
 /// methods are data rows; the runners hold the AAA.
 /// </summary>
 public class EnrichmentSelectionTest

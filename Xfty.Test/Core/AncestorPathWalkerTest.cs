@@ -4,7 +4,7 @@ using Net.Nowhereatall.Xfty.Demo;
 
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
-/// <summary>Proves AncestorPathWalker - reading a field several relationship hops up a generated ancestor graph. Pure in-memory, no DML/SOQL.</summary>
+/// <summary>Proves AncestorPathWalker - reading a field several relationship hops up a generated ancestor graph. Pure in-memory, no database access.</summary>
 public class AncestorPathWalkerTest
 {
     [Fact]

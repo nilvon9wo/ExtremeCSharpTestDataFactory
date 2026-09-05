@@ -121,7 +121,7 @@ Three constructor overloads save a call for the most common starting points:
 new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup);
 
 // from a list of templates - derives the record type from the first
-new RecordProvider(new List<object> { new Contact(), new Contact() }, providerLookup);
+new RecordProvider([new Contact(), new Contact()], providerLookup);
 
 // from a lookup key - derives the record type from the key and pins that variant
 new RecordProvider(LookupKey.Get(typeof(Contact)), providerLookup);

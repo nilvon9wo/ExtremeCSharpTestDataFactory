@@ -5,7 +5,7 @@ using Net.Nowhereatall.Xfty.Values;
 
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
-/// <summary>Proves MasterTemplate - the declarative description of how one record type is generated. Pure in-memory map manipulation, no DML/SOQL.</summary>
+/// <summary>Proves MasterTemplate - the declarative description of how one record type is generated. Pure in-memory map manipulation, no database access.</summary>
 public class MasterTemplateTest
 {
     // Constructor ---------------------------------------------------

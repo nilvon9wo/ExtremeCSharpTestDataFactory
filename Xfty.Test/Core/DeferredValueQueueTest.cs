@@ -7,7 +7,7 @@ namespace Net.Nowhereatall.Xfty.Test.Core;
 
 /// <summary>
 /// Proves DeferredValueQueue - collecting one pending value per primary row
-/// per deferred field. Pure in-memory, no DML/SOQL. The strategy reference is
+/// per deferred field. Pure in-memory, no database access. The strategy reference is
 /// stored verbatim and never called here, so the tests pass null for it.
 /// </summary>
 public class DeferredValueQueueTest

@@ -5,11 +5,11 @@ using Net.Nowhereatall.Xfty.Enrichment;
 
 namespace Net.Nowhereatall.Xfty.Test.Enrichment;
 
-/// <summary>Proves QueryableShapeValidator - the SOQL-shape rail on an InjectConfig. No persistence.</summary>
+/// <summary>Proves QueryableShapeValidator - the queryable-shape rail on an InjectConfig. No persistence.</summary>
 public class QueryableShapeValidatorTest
 {
     [Fact]
-    public void Validate_WhenTheConfigStaysWithinTheSoqlLimits_Passes()
+    public void Validate_WhenTheConfigStaysWithinTheDefaultLimits_Passes()
     {
         // Arrange
         InjectConfig config = InjectConfig.Everything().ParentDepth(5).ChildDepth(1);
@@ -22,7 +22,7 @@ public class QueryableShapeValidatorTest
     }
 
     [Fact]
-    public void Validate_WhenParentDepthExceedsTheSoqlLimit_Throws()
+    public void Validate_WhenParentDepthExceedsTheDefaultLimit_Throws()
     {
         // Arrange
         InjectConfig config = InjectConfig.AllParents().ParentDepth(6);
@@ -61,7 +61,7 @@ public class QueryableShapeValidatorTest
     }
 
     [Fact]
-    public void Validate_WhenAnInjectParentPathIsLongerThanTheSoqlLimit_Throws()
+    public void Validate_WhenAnInjectParentPathIsLongerThanTheDefaultLimit_Throws()
     {
         // Arrange
         List<PropertyInfo> sixHops = [

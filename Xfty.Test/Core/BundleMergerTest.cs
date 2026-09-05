@@ -3,7 +3,7 @@ using Net.Nowhereatall.Xfty.Demo;
 
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
-/// <summary>Proves BundleMerger - folding the sibling child bundles of one relationship field into a single navigable bundle. Pure in-memory, no DML/SOQL.</summary>
+/// <summary>Proves BundleMerger - folding the sibling child bundles of one relationship field into a single navigable bundle. Pure in-memory, no database access.</summary>
 public class BundleMergerTest
 {
     [Fact]

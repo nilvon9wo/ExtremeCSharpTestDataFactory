@@ -5,7 +5,7 @@ using Net.Nowhereatall.Xfty.Values;
 
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
-/// <summary>Proves PathTargetValue - the value half of a PathValue, one of five kinds. ApplyTo lands on a master template (in-memory); no DML/SOQL.</summary>
+/// <summary>Proves PathTargetValue - the value half of a PathValue, one of five kinds. ApplyTo lands on a master template (in-memory); no database access.</summary>
 public class PathTargetValueTest
 {
     [Fact]

@@ -83,7 +83,7 @@ Each component has a single responsibility.
 | `RecordCloneFactory` | `Engine` | Deep-clones templates so no two generated records share an instance. |
 | `IndexedRecord` | `Persistence` | An `(index, record)` pair — records are identified by position, since two generated records can be equal by value. |
 | `DepthBatchedInserter` | `Persistence` | Kahn-style layered resolution: one pass per dependency depth. |
-| `DeferredInserter` / `DeferredInsertBuffer` | `Persistence` | The `Deferred` registry and its bundle-walk; `Flush()` would run `DepthBatchedInserter` over the union — always throws in this port (no persistence layer). |
+| `DeferredInserter` / `DeferredInsertBuffer` | `Persistence` | The `Deferred` registry and its bundle-walk; `Flush(gateway)` runs `DepthBatchedInserter` over the union through the given `IPersistenceGateway`. |
 | `Bundle` | `Core` | Represents the generated graph. |
 | `IValueExpression` / `IContextAwareExpression` / `IDeferredExpression` | `Values` | Expression interfaces for generating field values (plain / context-aware / up-flow). |
 | `IDefaultRelationship` / `DefaultRelationship` / `ISharedRelationship` / `SharedAncestor` | `Relationships` | Interfaces + implementations for generating related records. |
@@ -189,8 +189,9 @@ Provider's records:
    `Put(path, ...)` path is generated here whatever the inclusivity, and
    *fully formed*.
 2. **Id assignment** — depending on the insert mode the records are given mock
-   Ids (`Mock`) or left Id-less. `Now` would insert here (one operation per
-   level); it always throws in this port instead.
+   Ids (`Mock`), left Id-less, or inserted here for real (`Now`, one operation
+   per level, through the configured `IPersistenceGateway` - throws without
+   one).
 3. **Lookup wiring** (`LookupWiring`) — once parents have Ids, point each
    child's lookup fields at them.
 4. **Plain value pass** (`PlainValueFiller`).
@@ -241,7 +242,7 @@ The context is also where the two **recursion transforms** live, in
 
 | Parent context | Child context | Why |
 |----------------|---------------|-----|
-| `InsertMode = RelatedOnly` | `InsertMode = Now` | The parents of a not-persisted primary record must still be persisted, or the primary can't reference them. (`Now` then always throws — a genuine gap in this port.) |
+| `InsertMode = RelatedOnly` | `InsertMode = Now` | The parents of a not-persisted primary record must still be persisted, or the primary can't reference them. (Needs a configured gateway - throws without one, same as any other `Now` call.) |
 | `Inclusivity = PreventCascade` | `Inclusivity = None` | The direct relationships are generated, but they do not generate their own — the cascade stops one level down. |
 | anything else | unchanged | |
 
