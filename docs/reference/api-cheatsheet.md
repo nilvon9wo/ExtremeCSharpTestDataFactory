@@ -20,7 +20,7 @@ under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
 | `.SetOverrideTemplate(object)` | replace specific field values ([docs](../use/override-templates.md)) |
 | `.SetOverrideTemplateList(List<object>)` | one record per template |
 | `.SetQuantityPerTemplate(int)` | N copies of each template |
-| `.SetInsertMode(InsertMode)` | [insert modes](../use/insert-modes.md) — `Now` always throws |
+| `.SetInsertMode(InsertMode)` | [insert modes](../use/insert-modes.md) — `Now` needs `.SetPersistenceGateway(...)`, else throws |
 | `.SetInclusivity(InsertInclusivity)` | [relationship inclusivity](../use/relationships.md#inclusivity) |
 | `.WithVariant(ILookupKey)` | pick a Provider variant (before any `Put`) |
 | `.Put(field, expression \| literal \| contextAwareExpression \| deferredExpression)` | change generation of one field |
@@ -30,7 +30,7 @@ under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
 | `.Put(List<PropertyInfo> path, value)` / `.PutRequired(path, rel)` / `.PutOptional(path, rel)` | set a field on a generated ancestor (last path element = target); follows inclusivity |
 | `.ExcludeRelationship(field)` / `.ExcludeRelationshipIfPresent(field)` | skip one relationship this call only; the `IfPresent` form is a no-op instead of throwing when `field` is not a relationship |
 | `.With(ChildProvider)` / `.WithChildren(field, n)` / `.WithChild(field)` | downward — generate child records; read via `bundle.GetChild/GetChildList/GetChildBundle(field)` |
-| `.DepthBatched()` | opt in to one resolution pass per depth (`Now` only — which throws, so this currently has no observable effect through this API) |
+| `.DepthBatched()` | opt in to one resolution pass per depth (`Now` + a configured gateway only) |
 | `.AllowAncestorCycles()` | suppress the guard that throws on a self-referential relationship chain |
 
 | Terminal | Returns |
@@ -43,7 +43,7 @@ under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
 
 ## Enums
 
-| `InsertMode` | `Never` · `Mock` · `RelatedOnly` · `Now` (always throws) · `Later` · `Deferred` |
+| `InsertMode` | `Never` · `Mock` · `RelatedOnly` · `Now` (needs a gateway, else throws) · `Later` · `Deferred` |
 | `InsertInclusivity` | `None` · `Required` · `All` · `PreventCascade` |
 
 ---
@@ -134,9 +134,9 @@ persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integratio
 
 | `DeferredInserter.Register(bundle)` | add a bundle's graph to the pending registry |
 | `DeferredInserter.PendingCount()` | registered-but-unresolved record count |
-| `DeferredInserter.Flush()` | always throws `NotSupportedException` in this port — see [known-issues](known-issues.md) |
-| `DeferredInsertBuffer.Flatten(bundle)` → flattened graph + resolved up-flow values | the usable, non-throwing way to inspect a deferred graph — see [deferred-insert](../use/deferred-insert.md) |
-| `DepthBatchedInserter.ResolveAll(records, links, InsertMode.Mock)` | the depth-batching algorithm, provable without a persistence layer |
+| `DeferredInserter.Flush(gateway)` | one pass, in dependency order, through the given `IPersistenceGateway`; throws with none given |
+| `DeferredInsertBuffer.Flatten(bundle)` → flattened graph + resolved up-flow values | inspect a deferred graph without inserting anything — see [deferred-insert](../use/deferred-insert.md) |
+| `DepthBatchedInserter.ResolveAll(records, links, InsertMode.Mock)` | the depth-batching algorithm, provable without a real database |
 
 ## Not ported — see [known-issues](known-issues.md)
 

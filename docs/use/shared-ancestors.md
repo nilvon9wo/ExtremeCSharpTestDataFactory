@@ -59,8 +59,9 @@ List<object> contacts = new RecordProvider(typeof(Contact), lookup)
 - **Generated once.** Every reference — in the same or a later `Supply*()`
   call — reuses it.
 - **Persistence follows the call.** `Mock` gives it a mock Id, `Never` leaves it
-  Id-less. (`Now` would insert it, but this port's `Now` always throws — see
-  [insert-modes](insert-modes.md).) A `.DepthBatched()` / `Deferred` call
+  Id-less, `Now` inserts it for real through the configured gateway (throws
+  without one — see [insert-modes](insert-modes.md)). A `.DepthBatched()` /
+  `Deferred` call
   resolves its shared ancestors **up front** (so their Ids are ready when the
   deferred graph is flattened) rather than deferring them.
 

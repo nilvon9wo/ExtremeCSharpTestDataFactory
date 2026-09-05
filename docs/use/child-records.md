@@ -127,7 +127,7 @@ level unless a child overrides them.
 
 | Parent mode | Children |
 |---|---|
-| `Now` | this port's `Now` always throws `NotSupportedException` — there is no persistence layer (see [insert-modes](insert-modes.md)). |
+| `Now` | inserted through the configured `IPersistenceGateway`; throws if none is configured (see [insert-modes](insert-modes.md)). |
 | `Mock` | everything gets mock Ids; FKs wired |
 | `Never` | nothing persisted; children have a `null` back-reference (no primary Id to point at) — a child can still `SetInsertMode(Mock)` to get its own Ids |
 | `Later` | identical to `Never` — the children are generated, nothing is persisted, the back-reference is `null` |

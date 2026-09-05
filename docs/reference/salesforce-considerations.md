@@ -67,9 +67,9 @@ contamination during this port's own development:
 Apex's `@TestSetup` mechanism, and its specific conflict with Apex's
 per-method static reset, does not exist in C#/xUnit at all — there is no
 analogous "runs once, rolled back with the rest of the method's DML"
-mechanism, because there is no persistence layer yet (see
-[insert-modes](../use/insert-modes.md)) and no such thing as `@TestSetup` in
-.NET.
+mechanism in .NET, and rollback-per-method has no equivalent regardless of
+whether a test happens to use a real persistence gateway (see
+[insert-modes](../use/insert-modes.md)).
 
 **The nearest equivalent to Apex's recommended "static test-class fixture"
 pattern is the test class's own instance state**, not a `static` field — xUnit
@@ -85,11 +85,12 @@ worked pattern.
 
 Apex's list of platform behaviours a Provider author has to stay aware of —
 Validation Rules, Flows, Apex Triggers, Duplicate Rules, Required Record
-Types — has no equivalent here, because this port has no persistence layer to
-run any of that against yet. If a future EF (or similar) backing is added,
-its own validation/constraint behaviour would deserve the same treatment
-Apex's did: keep that knowledge centralized in the Provider, not scattered
-across individual tests.
+Types — has no equivalent here; those are schema-level behaviors of a
+Salesforce org specifically, not something any other persistence backend
+reproduces. A real backend's own validation/constraint behaviour (an EF
+`DbContext`'s model validation, database constraints, and so on) deserves the
+same treatment Apex's did: keep that knowledge centralized in the Provider,
+not scattered across individual tests.
 
 ---
 

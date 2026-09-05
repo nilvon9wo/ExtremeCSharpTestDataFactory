@@ -6,10 +6,11 @@ New? Read [getting-started](getting-started.md) top to bottom, then come back to
 the per-feature pages as you need them. Each feature page opens with the
 simplest example and builds up.
 
-> This port has no persistence layer yet — `InsertMode.Now` always throws
-> `NotSupportedException` (see [insert-modes](insert-modes.md)). Every example
-> on these pages uses `Mock`, this port's practical default, unless the page
-> says otherwise.
+> `InsertMode.Now` inserts for real through a configured
+> `IPersistenceGateway`, and throws without one (see
+> [insert-modes](insert-modes.md)). Every example on these pages uses `Mock`
+> unless the page says otherwise — the practical default for a unit test
+> that doesn't need a real database.
 
 ---
 

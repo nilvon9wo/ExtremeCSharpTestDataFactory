@@ -114,10 +114,11 @@ resolved when the deferred graph is flattened. A Provider that carries one of
 these in any other insert mode **throws** — it does not silently leave the field
 `null`.
 
-> **This port has no persistence layer.** `DeferredInserter.Flush()` and a
-> `.DepthBatched()` `Now` call both always throw `NotSupportedException` here —
-> there is nothing to insert into. What *is* proven and usable: building the
-> whole deferred graph in memory and reading the resolved up-flow value straight
+> `DeferredInserter.Flush(gateway)` and a `.DepthBatched()` `Now` call both
+> insert for real through a configured `IPersistenceGateway`; with none
+> configured, both throw `NotSupportedException` instead. Also always
+> available, with or without a gateway: building the whole deferred graph in
+> memory and reading the resolved up-flow value straight
 > off `DeferredInsertBuffer.Flatten(bundle)`, which runs the same resolution
 > pass without needing to insert anything. See
 > [deferred-insert](deferred-insert.md) and

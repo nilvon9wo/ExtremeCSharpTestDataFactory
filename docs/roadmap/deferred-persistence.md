@@ -1,12 +1,11 @@
 # Design: Deferred Persistence
 
-Status: **the graph-building side is built; the persistence side has no
-backend to run against.** Condensed from the Apex original's design record —
-this port made the identical structural decisions; the gap is entirely that
-there is no persistence layer yet (see
-[reference/known-issues](../reference/known-issues.md)).
+Status: **done.** `IPersistenceGateway` (`Xfty.Persistence`) is the seam every
+insert path runs through; `Xfty.EntityFrameworkCore` ships a real
+implementation, proven against SQLite and (when Docker is available) a real
+Postgres container in `Xfty.EntityFrameworkCore.Test`.
 
-Two related ways Apex moved DML out of the per-Provider recursion:
+Two related ways to move persistence out of the per-Provider recursion:
 
 1. **Depth-batched persistence** — the opt-in `.DepthBatched()` flag: one
    mixed-type persistence pass per dependency depth instead of one per
@@ -22,41 +21,39 @@ Neither required rewriting `RecordFactory` — both are a structural build
 
 ## What is built and usable today
 
-- **`DepthBatchedInserter.ResolveAll(records, links, InsertMode.Mock)`** — the
+- **`DepthBatchedInserter.ResolveAll(records, links, mode, gateway)`** — the
   Kahn-style layered algorithm: repeatedly resolve every record whose parents
-  are already resolved, point their lookups at the fresh (mock) Ids, one
-  layer at a time. A layer that comes up empty while records remain is a
-  cycle (`CyclicGraphException`). Proven directly, at the algorithm level,
-  without needing `Now` to work.
+  are already resolved, point their lookups at the fresh Ids (mock, or
+  real via `gateway`), one layer at a time. A layer that comes up empty while
+  records remain is a cycle (`CyclicGraphException`).
 - **`DeferredInserter.Register(bundle)` / `.PendingCount()`** — a `Deferred`
   Provider call generates exactly like `Never` and accumulates its bundle's
   records + parent links in the static `DeferredInsertBuffer`, across every
-  call. This genuinely accumulates and is fully testable.
+  call.
 - **`DeferredInsertBuffer.Flatten(bundle)`** — flattens one bundle's graph and
   runs the up-flow value pass (`DescendantValuePass`), so
-  `CopyFromDescendantExpression` values resolve correctly, with no persistence
-  attempt at all. This is the practical, working entry point for inspecting a
-  deferred graph in this port.
+  `CopyFromDescendantExpression` values resolve correctly, with no
+  persistence attempt at all - usable with or without a configured gateway.
+- **`DeferredInserter.Flush(gateway)`** — runs `DepthBatchedInserter.InsertAll`
+  (hardcoded to `InsertMode.Now`) over the accumulated registry through
+  `gateway`, back-filling real Ids in dependency order. Throws
+  `NotSupportedException` if `gateway` is omitted.
+- **`.DepthBatched()` combined with `InsertMode.Now` and a configured
+  gateway** — the condition under which `RecordProvider` engages the
+  depth-batched path; with any other mode, or no gateway, it is a no-op.
 
-## What always throws
-
-- **`DeferredInserter.Flush()`** — would run `DepthBatchedInserter.InsertAll`
-  (hardcoded to `InsertMode.Now`) over the accumulated registry and back-fill
-  real Ids. `InsertAll` always throws `NotSupportedException` in this port —
-  there is no persistence layer to insert into.
-- **`.DepthBatched()` combined with `InsertMode.Now`** — the one condition
-  under which `RecordProvider` actually engages the depth-batched path; with
-  any other mode it is a no-op. Since `Now` throws either way, `.DepthBatched()`
-  currently has **no observable effect through `RecordProvider`'s public API**.
+See `Xfty.Test/Persistence/PersistenceGatewayTest.cs` for the proof against a
+mock gateway, and `Xfty.EntityFrameworkCore.Test/SqliteNowPersistenceTest.cs`
+/ `PostgresNowPersistenceTest.cs` for the real-database proof.
 
 ---
 
-## What `Deferred` never did (even in Apex) — still true here
+## What `Deferred` never hands you, by design
 
-It never hands a record's real Id *during* generation. If a later
-`SupplyBundle()` needs an earlier call's Id, flush the earlier call first
-(which, in this port, means: flatten it, resolve it with `Mock`, and read the
-Id off the result — a real `Flush()` isn't available to do this for you yet).
+It never hands a record's real Id *during* generation, even with a gateway
+configured. If a later `SupplyBundle()` needs an earlier call's Id, flush the
+earlier call first - flatten it, resolve/insert it, and read the Id off the
+result.
 
 ---
 
@@ -70,6 +67,5 @@ Id off the result — a real `Flush()` isn't available to do this for you yet).
   same depth-batched-resolution primitive for each sub-graph's pre-phase, and
   a `Deferred` main call resolves its shared ancestors up front.
 
-Both ideas are structurally complete; both are waiting on the same missing
-piece — a real persistence layer — to reach full parity with the Apex
-original's `Now` behaviour.
+Both are structurally complete and now reach full parity with the Apex
+original's `Now` behaviour when a persistence gateway is configured.
