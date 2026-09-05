@@ -7,11 +7,9 @@ using NSubstitute;
 namespace Net.Nowhereatall.Xfty.Test.Core;
 
 /// <summary>
-/// Proves <see cref="GenerationContext"/>'s constructor guards/defaults and
-/// the ForRecord()/ForValueField()/SiblingValue() derivation chain - reading
-/// an already-resolved sibling, and refusing a still-pending one loudly
-/// rather than with a misleading null. ForRelated() and the batched-insert
-/// flag wait on the ancestor-generation engine, not yet ported.
+/// Proves GenerationContext's constructor guards/defaults and the
+/// ForRelated()/ForRecord()/ForValueField() derivation transforms. Pure
+/// in-memory state, no persistence.
 /// </summary>
 public class GenerationContextTest
 {
@@ -133,4 +131,169 @@ public class GenerationContextTest
         // Assert
         Assert.Contains("context-aware value is being generated", thrown.Message);
     }
+
+    // ForRelated() --------------------------------------------------
+
+    [Fact]
+    public void ForRelated_WhenTheModeIsRelatedOnly_BecomesNow()
+    {
+        // Arrange
+        GenerationContext baseContext = Context(InsertMode.RelatedOnly, InsertInclusivity.Required);
+
+        // Act
+        GenerationContext related = baseContext.ForRelated();
+
+        // Assert
+        Assert.Equal(InsertMode.Now, related.InsertMode); // ancestors of a RelatedOnly run are inserted
+        Assert.Equal(InsertInclusivity.Required, related.Inclusivity); // inclusivity is unchanged
+    }
+
+    [Fact]
+    public void ForRelated_WhenTheInclusivityIsPreventCascade_BecomesNone()
+    {
+        // Arrange
+        GenerationContext baseContext = Context(InsertMode.Mock, InsertInclusivity.PreventCascade);
+
+        // Act
+        GenerationContext related = baseContext.ForRelated();
+
+        // Assert
+        Assert.Equal(InsertInclusivity.None, related.Inclusivity); // the cascade stops one level down
+        Assert.Equal(InsertMode.Mock, related.InsertMode); // insert mode is unchanged
+    }
+
+    [Fact]
+    public void ForRelated_ForAnyOtherModeAndInclusivity_CarriesThemThrough()
+    {
+        // Arrange
+        GenerationContext baseContext = Context(InsertMode.Now, InsertInclusivity.All);
+
+        // Act
+        GenerationContext related = baseContext.ForRelated();
+
+        // Assert
+        Assert.Equal(InsertMode.Now, related.InsertMode);
+        Assert.Equal(InsertInclusivity.All, related.Inclusivity);
+        Assert.Equal(Lookup, related.ProviderLookup); // the Provider Lookup is always carried through
+    }
+
+    [Fact]
+    public void ForRelated_ClearsAnyPerRecordState()
+    {
+        // Arrange
+        GenerationContext scoped = Context(InsertMode.Mock, InsertInclusivity.All).ForRecord(new Account(), new Bundle(), 0);
+
+        // Act
+        GenerationContext related = scoped.ForRelated();
+
+        // Assert
+        Assert.Null(related.RecordBeingBuilt); // descending into ancestors drops the current record
+        Assert.Equal(-1, related.RowIndex);
+    }
+
+    // ForRecord() --------------------------------------------------
+
+    [Fact]
+    public void ForRecord_ScopesToOneRecordAndKeepsTheRunSettings()
+    {
+        // Arrange
+        Account record = new() { Name = "ctx" };
+        Bundle bundle = new();
+
+        // Act
+        GenerationContext scoped = Context(InsertMode.Now, InsertInclusivity.Required).ForRecord(record, bundle, 2);
+
+        // Assert
+        Assert.Equal(record, scoped.RecordBeingBuilt);
+        Assert.Same(bundle, scoped.BundleSoFar);
+        Assert.Equal(2, scoped.RowIndex);
+        Assert.Equal(InsertMode.Now, scoped.InsertMode); // the run settings are unchanged
+        Assert.Equal(InsertInclusivity.Required, scoped.Inclusivity);
+        Assert.Equal(Lookup, scoped.ProviderLookup);
+    }
+
+    // WithForcedRelationshipPaths() -----------------------------
+
+    [Fact]
+    public void WithForcedRelationshipPaths_WhenGivenNull_TolerantlyKeepsAnEmptyList()
+    {
+        // Arrange
+        GenerationContext baseContext = Context(InsertMode.Mock, InsertInclusivity.None);
+
+        // Act
+        GenerationContext context = baseContext.WithForcedRelationshipPaths(null);
+
+        // Assert
+        Assert.NotNull(context.ForcedRelationshipPaths);
+        Assert.Empty(context.ForcedRelationshipPaths);
+    }
+
+    // ForBatchedInsert() - the flag is carried through every derivation --
+
+    [Fact]
+    public void ForBatchedInsert_OnAPlainContext_TheFlagIsFalse()
+    {
+        // Arrange
+        GenerationContext baseContext = Context(InsertMode.Never, InsertInclusivity.All);
+
+        // Act
+        bool pending = baseContext.BatchedInsertPending;
+
+        // Assert
+        Assert.False(pending); // a plain run is not a batched-insert run
+    }
+
+    [Fact]
+    public void ForBatchedInsert_SetsTheFlag()
+    {
+        // Arrange
+        GenerationContext baseContext = Context(InsertMode.Never, InsertInclusivity.All);
+
+        // Act
+        bool pending = baseContext.ForBatchedInsert().BatchedInsertPending;
+
+        // Assert
+        Assert.True(pending);
+    }
+
+    [Fact]
+    public void WithForcedRelationshipPaths_CarriesTheBatchedInsertFlagThrough()
+    {
+        // Arrange
+        GenerationContext batched = BatchedContext();
+
+        // Act
+        GenerationContext derived = batched.WithForcedRelationshipPaths(null);
+
+        // Assert
+        Assert.True(derived.BatchedInsertPending);
+    }
+
+    [Fact]
+    public void ForRelated_CarriesTheBatchedInsertFlagDownToAncestors()
+    {
+        // Arrange
+        GenerationContext batched = BatchedContext();
+
+        // Act
+        GenerationContext derived = batched.ForRelated();
+
+        // Assert
+        Assert.True(derived.BatchedInsertPending);
+    }
+
+    [Fact]
+    public void ForRecord_CarriesTheBatchedInsertFlagIntoTheValuePass()
+    {
+        // Arrange
+        GenerationContext batched = BatchedContext();
+
+        // Act
+        GenerationContext derived = batched.ForRecord(new Account(), new Bundle(), 0);
+
+        // Assert
+        Assert.True(derived.BatchedInsertPending);
+    }
+
+    private static GenerationContext BatchedContext() => Context(InsertMode.Never, InsertInclusivity.All).ForBatchedInsert();
 }
