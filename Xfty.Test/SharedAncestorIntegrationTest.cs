@@ -72,4 +72,29 @@ public class SharedAncestorIntegrationTest
         // Assert
         Assert.Contains("not resolved yet", thrown.Message);
     }
+
+    [Fact]
+    public void Supply_WhenTheLookupRegistersASharedAncestorDefault_ResolvesItWithoutBeingPutExplicitly()
+    {
+        // Arrange - the lookup itself supplies the default template (ISharedAncestorDefaults), not the test
+        const string sharedName = "shared-ancestor-test-lookup-default";
+        IProviderLookup lookup = ProviderLookups.Of(
+            new Dictionary<ILookupKey, IRecordProvider>
+            {
+                [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
+                [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            },
+            new Dictionary<string, object> { [sharedName] = new Account { Name = "Lookup-Default HQ" } });
+        RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
+            .SetInsertMode(InsertMode.Mock)
+            .SetInclusivity(InsertInclusivity.Required)
+            .PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), SharedAncestor.Get(sharedName));
+
+        // Act
+        Contact result = Assert.IsType<Contact>(provider.Supply());
+
+        // Assert
+        Assert.NotNull(result.AccountId);
+        Assert.Equal(result.AccountId, SharedAncestor.GetId(sharedName));
+    }
 }

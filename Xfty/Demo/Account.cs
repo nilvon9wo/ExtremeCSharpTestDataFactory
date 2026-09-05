@@ -35,7 +35,11 @@ public sealed class Account
 
     public string? AccountNumber { get; init; }
 
+    public string? ShippingStreet { get; init; }
+
     public string? ShippingCity { get; init; }
+
+    public string? ShippingCountry { get; init; }
 
     public string? BillingCity { get; init; }
 

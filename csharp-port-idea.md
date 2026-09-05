@@ -618,3 +618,28 @@ One integration test file (`EnrichmentIntegrationTest`), matching this
 session's established pattern for a freshly-landed subsystem (see
 `SharedAncestorIntegrationTest`) rather than porting each of Apex's eight
 `enrichment/` unit-test files 1:1. 106/106 tests passing.
+
+**Same session, `providers/` (the demo-domain breadth) and a real staleness
+bug fixed along the way.** Ported `XFTY_DefaultSObjectProviderLookup` as
+`Demo.DefaultProviderLookup` - the starter-kit `IProviderLookup` bundling the
+demo Providers - minus its User entry: `XFTY_DefaultUserDataProvider` needs a
+live Salesforce org (SOQL for Profile/UserRole, a real DML insert to seed an
+admin user at class-load time) that has no C# analog at all in this port, so
+it was not attempted, not faked.
+
+Enriched `AccountDataProvider`/`ContactDataProvider` to match Apex's actual
+`XFTY_DefaultAccountDataProvider`/`XFTY_DefaultContactDataProvider` field
+sets and literal default values (Industry, ShippingStreet/City/Country, Type
+for Account; Email, FirstName, a Description on the required Account
+relationship for Contact) - they'd been left deliberately minimal earlier in
+the port for bootstrapping and were never brought up to parity. Added the
+`ShippingStreet`/`ShippingCountry` properties `Account` needed to carry them.
+
+**Found and fixed while doing that:** `MapBackedLookup.RegisterSharedAncestorDefaults`
+still threw `NotSupportedException("Shared ancestors are not ported to C#
+yet.")` - correct when it was written, stale ever since `SharedAncestor` was
+built earlier this same session. Fixed to actually call
+`SharedAncestor.PutIfAbsent(name, template)` per entry, matching Apex's
+`XFTY_ProviderLookups`. Covered by a new regression test proving a lookup's
+own registered default resolves without the test ever calling
+`SharedAncestor.Put` itself. 112/112 tests passing.

@@ -36,7 +36,7 @@ public class RecordProviderIntegrationTest
         Contact contact = Assert.IsType<Contact>(result);
         Assert.NotNull(contact.Id);
         Assert.NotNull(contact.AccountId);
-        Assert.Equal("Contact 1", contact.LastName);
+        Assert.Equal($"{ContactDataProvider.DefaultLastNamePrefix} 1", contact.LastName);
     }
 
     [Fact]

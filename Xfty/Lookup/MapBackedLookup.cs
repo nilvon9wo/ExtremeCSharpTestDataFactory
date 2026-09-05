@@ -1,5 +1,6 @@
 using Net.Nowhereatall.Xfty.Core;
 using Net.Nowhereatall.Xfty.Engine;
+using Net.Nowhereatall.Xfty.Relationships;
 namespace Net.Nowhereatall.Xfty.Lookup;
 
 /// <summary>The lookup <see cref="ProviderLookups.Of(Dictionary{ILookupKey,IRecordProvider})"/> and friends build.</summary>
@@ -20,13 +21,8 @@ public sealed class MapBackedLookup : IProviderLookup, ISharedAncestorDefaults
         this.sharedAncestorDefaults = sharedAncestorDefaults;
     }
 
-    // SharedAncestor/relationships/ (and the depth-batched persistence it needs to
-    // resolve against) is not ported yet - see csharp-port-idea.md. Only a lookup
-    // actually constructed with shared-ancestor defaults would hit this.
     public void RegisterSharedAncestorDefaults() =>
-        _ = this.sharedAncestorDefaults is not null && this.sharedAncestorDefaults.Count > 0
-            ? throw new NotSupportedException("Shared ancestors are not ported to C# yet.")
-            : true;
+        this.sharedAncestorDefaults?.ToList().ForEach(pair => SharedAncestor.PutIfAbsent(pair.Key, pair.Value));
 
     public IRecordProvider Get(Type sObjectType) => this.Get(LookupKey.Get(sObjectType));
 
