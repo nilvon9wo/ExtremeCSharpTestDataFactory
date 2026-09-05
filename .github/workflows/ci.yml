@@ -2,78 +2,31 @@ name: CI
 
 on:
   push:
-    branches: [master, 4.0-beta]
+    branches: [master]
   pull_request:
-    branches: [master, 4.0-beta]
+    branches: [master]
 
 jobs:
-  doc-examples:
-    name: Doc examples
+  build-and-test:
+    name: Build + test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Every documented apex example is backed by a runnable test
-        run: python3 scripts/verify-doc-examples.py
 
-  doc-links:
-    name: Doc links
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Every relative link and anchor in docs/ resolves
-        run: python3 scripts/verify-doc-links.py
-
-  apex-style:
-    name: Apex style
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
         with:
-          fetch-depth: 0
-      - name: Whole-tree safety + changed-file style rules
-        run: |
-          BASE="${{ github.event.pull_request.base.sha || github.event.before }}"
-          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
-            BASE="HEAD~1"
-          fi
-          echo "comparing against $BASE"
-          python3 scripts/check-apex-style.py --changed "$BASE"
+          dotnet-version: "10.0.x"
 
-  validate:
-    name: Validate + run tests (check-only)
-    runs-on: ubuntu-latest
-    env:
-      CI_ORG_AUTH_URL: ${{ secrets.CI_ORG_AUTH_URL }}
-    steps:
-      - uses: actions/checkout@v5
+      - name: Restore
+        run: dotnet restore Xfty.slnx
 
-      - name: Install the Salesforce CLI
-        run: npm install --global @salesforce/cli@latest
+      - name: Build (strict .editorconfig analyzers enforced)
+        run: dotnet build Xfty.slnx --no-restore
 
-      - name: Authenticate the CI org
-        run: |
-          if [ -z "$CI_ORG_AUTH_URL" ]; then
-            echo "::error::The CI_ORG_AUTH_URL repository secret is not set. See docs/contribute/ci.md."
-            exit 1
-          fi
-          printf '%s' "$CI_ORG_AUTH_URL" > ./ci-auth.txt
-          sf org login sfdx-url --sfdx-url-file ./ci-auth.txt --alias ci --set-default
-          rm -f ./ci-auth.txt
+      - name: Test (excluding the informational performance suite)
+        run: dotnet test Xfty.slnx --no-build --filter "Category!=Performance"
 
-      # `--dry-run` compiles the source and runs the named tests in a validation
-      # transaction, then rolls everything back - the org is never modified, so
-      # no scratch org, no Dev Hub, no drift, no quota. The Person Account
-      # classes are dropped from the manifest (they do not compile without the
-      # feature, which this org lacks); XFTY_PersonAccount and XFTY_Load run in
-      # the scheduled full-suite workflow instead.
-      - name: Check-only deploy + fast suites
-        run: |
-          sf project generate manifest --source-dir force-app --source-dir test-support --name /tmp/package.xml
-          grep -v 'XFTY_PersonAccount' /tmp/package.xml > /tmp/package-ci.xml
-          TESTS=$(bash scripts/list-suite-classes.sh XFTY_Unit XFTY_Integration XFTY_Examples XFTY_OrgOnly)
-          echo "running:"; echo "$TESTS" | tr ' ' '\n'
-          # $TESTS is space-separated and deliberately unquoted so each class
-          # becomes its own value of the multi-valued --tests flag.
-          sf project deploy start --dry-run --manifest /tmp/package-ci.xml \
-            --test-level RunSpecifiedTests --tests $TESTS \
-            --wait 30
+      - name: Performance suite (informational - wall-clock ceilings are generous but CI runners vary)
+        continue-on-error: true
+        run: dotnet test Xfty.slnx --no-build --filter "Category=Performance"

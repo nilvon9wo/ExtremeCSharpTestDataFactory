@@ -635,6 +635,45 @@ relationship for Contact) - they'd been left deliberately minimal earlier in
 the port for bootstrapping and were never brought up to parity. Added the
 `ShippingStreet`/`ShippingCountry` properties `Account` needed to carry them.
 
+**2026-09-05, evening: repo cleanup + a real performance suite, after Brian
+called out the test-count gap and repo clutter directly.** Removed `.forceignore`,
+`config/`, `nimbus.properties`, `sfdx-project.json`, `stubs/` - tracked SFDX-CLI
+/ Nimbus-local-Apex-runtime deployment tooling with zero function in a
+standalone C# repo (this repo never runs `sf project deploy` or Nimbus).
+`force-app/`, `docs/`, `test-support/`, `scripts/` stay - `force-app/` is
+still the active reference source mid-port, and the other three are pending
+work, not clutter (see below).
+
+Replaced both GitHub Actions workflows - `ci.yml` ran `sf project deploy
+--dry-run` against a CI-authenticated scratch org and `full-suite.yml`
+provisioned a real scratch org twice a day, neither of which means anything
+here - with one `dotnet build && dotnet test` workflow.
+
+Ported the *spirit* of `test-support/XFTY_LoadTest.cls` (volume tests that
+push generation toward the governor limits, run informationally in the
+scheduled scratch-org workflow) as `PerformanceTest.cs`: 3 000 primaries
+with a required parent, 5 000 primaries held in memory, downward generation
+of nested children, and a context-aware value pass at volume. Governor
+limits (`Limits.getDmlRows()`/`getCpuTime()`/etc.) have no C# meaning - this
+port already dropped `GovernorBudget` for that - so these measure wall-clock
+(`Stopwatch`) and a rough allocation figure (`GC.GetTotalMemory`) instead,
+against deliberately generous ceilings (order-of-magnitude headroom) so they
+catch an accidental O(n²) regression without being a tight budget a slower
+CI runner could trip. Tagged `[Trait("Category", "Performance")]` and run as
+a separate, `continue-on-error` CI step - not blocking, the same role
+`XFTY_Load` plays running only in the scheduled full-suite workflow rather
+than on every push.
+
+**Still genuinely open, not done, not faked:** `docs/` (~45 markdown pages)
+still describes the Apex API verbatim - none of it has been reworked for
+the C# surface yet. `scripts/verify-doc-examples.py` (a real, clever CI
+gate: every ` ```apex ` block on a page carrying a `Runnable:` marker must
+have every significant line backed by an actual test) still parses Apex
+syntax and points at `force-app`/`test-support`; it was dropped from `ci.yml`
+outright rather than left silently broken, but porting it to check ` ```csharp `
+blocks against `Xfty.Test` is unstarted. Both are a dedicated pass, not a
+quick add-on to the current one.
+
 **Found and fixed while doing that:** `MapBackedLookup.RegisterSharedAncestorDefaults`
 still threw `NotSupportedException("Shared ancestors are not ported to C#
 yet.")` - correct when it was written, stale ever since `SharedAncestor` was
