@@ -8,10 +8,9 @@ namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant.Test;
 /// PREVIEW / proof-of-concept - see ../Xfty.VectorDatabases.Qdrant/README.md
 /// for known assumptions and accepted risks.
 ///
-/// Proves InsertMode.Now against a real Qdrant container started with
-/// Docker via Testcontainers - not a mock. Requires a running Docker
-/// daemon; skips (rather than fails) when one isn't reachable, matching
-/// PostgresNowPersistenceTest's pattern in Xfty.EntityFrameworkCore.Test.
+/// Proves <see cref="QdrantPersistenceGateway"/> against a real Qdrant
+/// container started with Docker via Testcontainers. Requires a running
+/// Docker daemon; skips (rather than fails) when one isn't reachable.
 /// </summary>
 [Trait("Category", "Docker")]
 public sealed class QdrantPersistenceGatewayTest : IAsyncLifetime

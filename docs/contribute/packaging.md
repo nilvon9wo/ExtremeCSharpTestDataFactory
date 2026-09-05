@@ -21,15 +21,19 @@ Xfty.Bogus/                     - optional: realistic-value IValueExpressions wr
 Xfty.Bogus.Test/
 Xfty.VectorDatabases/           - optional: a random-vector IValueExpression
 Xfty.VectorDatabases.Test/
-Xfty.VectorDatabases.Qdrant/      - PREVIEW: a Qdrant IPersistenceGateway - see its own README first
+Xfty.VectorDatabases.Qdrant/      - PREVIEW: a Qdrant IPersistenceGateway via Qdrant's own client - see its own README first
 Xfty.VectorDatabases.Qdrant.Test/
+Xfty.VectorDatabases.MicrosoftExtensionsVectorData/      - PREVIEW: a generic IPersistenceGateway for any Microsoft.Extensions.VectorData connector
+Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test/
 ```
 
-`Xfty.VectorDatabases.Qdrant` is deliberately not like the others - it's a
-preview proof-of-concept (`0.1.0-preview.1`, not `1.0.0-beta.1`), not yet a
-considered, general-purpose package. See
-[roadmap/vector-databases.md](../roadmap/vector-databases.md) and the
-package's own README before depending on it.
+`Xfty.VectorDatabases.Qdrant` and `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`
+are deliberately not like the others - both are preview proofs-of-concept
+(`0.1.0-preview.1`, not `1.0.0-beta.1`), not yet considered, general-purpose
+packages, and kept in **separate** packages from each other on purpose (see
+[roadmap/vector-databases.md](../roadmap/vector-databases.md#why-two-packages-not-one)
+for why combining them wasn't worth it even during this comparison phase).
+Read each package's own README before depending on either.
 
 **Each class's test sits in the mirrored folder** — `Xfty/Core/Bundle.cs` and
 `Xfty.Test/Core/BundleTest.cs`.
@@ -68,9 +72,10 @@ dotnet pack Xfty.VectorDatabases/Xfty.VectorDatabases.csproj -c Release -o ./loc
 dotnet nuget add source ./local-packages -n xfty-local
 ```
 
-`Xfty.VectorDatabases.Qdrant` also packs cleanly (`dotnet pack` verified),
-but is deliberately excluded from the publish plan below - a `0.x-preview`
-proof-of-concept isn't ready for a public nuget.org listing yet.
+`Xfty.VectorDatabases.Qdrant` and `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`
+also pack cleanly (`dotnet pack` verified for both), but are deliberately
+excluded from the publish plan below - a `0.x-preview` proof-of-concept
+isn't ready for a public nuget.org listing yet.
 
 ## Publishing to nuget.org
 

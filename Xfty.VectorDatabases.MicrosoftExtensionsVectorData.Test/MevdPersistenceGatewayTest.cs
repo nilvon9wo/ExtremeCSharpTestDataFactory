@@ -1,21 +1,23 @@
 using global::Qdrant.Client;
+using Microsoft.Extensions.VectorData;
+using Microsoft.SemanticKernel.Connectors.Qdrant;
 using Net.Nowhereatall.Xfty.Core;
 using Testcontainers.Qdrant;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant.Test;
+namespace Net.Nowhereatall.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test;
 
 /// <summary>
-/// PREVIEW / proof-of-concept - see ../Xfty.VectorDatabases.Qdrant/README.md
+/// PREVIEW / proof-of-concept - see ../Xfty.VectorDatabases.MicrosoftExtensionsVectorData/README.md
 /// for known assumptions and accepted risks.
 ///
-/// Proves <see cref="QdrantDirectPersistenceGateway"/> - the same insert,
-/// against the same kind of container as <see cref="QdrantPersistenceGatewayTest"/>,
-/// but through Qdrant's own client directly rather than
-/// Microsoft.Extensions.VectorData. Requires a running Docker daemon; skips
-/// (rather than fails) when one isn't reachable.
+/// Proves <see cref="MevdPersistenceGateway"/> against a real Qdrant
+/// container, started with Docker via Testcontainers - Qdrant here is only
+/// one concrete example of a <see cref="VectorStore"/>; the gateway itself
+/// has no idea which provider it's talking to. Requires a running Docker
+/// daemon; skips (rather than fails) when one isn't reachable.
 /// </summary>
 [Trait("Category", "Docker")]
-public sealed class QdrantDirectPersistenceGatewayTest : IAsyncLifetime
+public sealed class MevdPersistenceGatewayTest : IAsyncLifetime
 {
     private QdrantContainer? container;
     private QdrantClient? client;
@@ -49,14 +51,15 @@ public sealed class QdrantDirectPersistenceGatewayTest : IAsyncLifetime
     }
 
     [Fact]
-    public void Supply_InNowMode_AgainstARealQdrantContainer_ActuallyInsertsARecord()
+    public void Supply_InNowMode_AgainstARealVectorStore_ActuallyInsertsARecord()
     {
         Assert.SkipUnless(this.dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
 
-        // Arrange
+        // Arrange - a QdrantVectorStore here is just one VectorStore among many the gateway could take.
+        VectorStore vectorStore = new QdrantVectorStore(this.client!, ownsClient: false);
         RecordProvider provider = new RecordProvider(typeof(DocumentChunk), new DemoProviderLookup())
             .SetInsertMode(InsertMode.Now)
-            .SetPersistenceGateway(new QdrantDirectPersistenceGateway(this.client!));
+            .SetPersistenceGateway(new MevdPersistenceGateway(vectorStore));
 
         // Act
         DocumentChunk result = (DocumentChunk)provider.Supply();

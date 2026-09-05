@@ -4,13 +4,15 @@ Status: ✅ **the value-expression convenience is built** - `Xfty.VectorDatabase
 ships `RandomVectorExpression` plus dimension presets and normalization.
 ✅ **the pgvector option is proven**, through the existing, unmodified
 `EfPersistenceGateway` - see [Persistence](#persistence).
-🧪 **two competing dedicated Qdrant gateways exist as a preview
-proof-of-concept** - `Xfty.VectorDatabases.Qdrant` (`0.1.0-preview.1`) ships
-both a Microsoft.Extensions.VectorData-backed gateway and a raw-`Qdrant.Client`
-one, deliberately, to compare them. Both work against a real container, but
-neither is the considered, general-purpose package the rest of this
-solution's packages are, and the package is expected to split in two if
-either graduates - see its own README before using it.
+🧪 **two competing preview proofs-of-concept exist, in separate packages** -
+`Xfty.VectorDatabases.Qdrant` (direct `Qdrant.Client`) and
+`Xfty.VectorDatabases.MicrosoftExtensionsVectorData` (generic, works with
+any MEVD connector - Qdrant is only what its own test happens to use).
+Split from day one, not bundled even during comparison - see
+[Qdrant](#qdrant---two-separate-preview-packages-not-a-considered-release)
+below for why. Both work against a real container, but neither is the
+considered, general-purpose package the rest of this solution's packages
+are - see each package's own README before using it.
 Calling a real embedding API for a semantically meaningful vector is
 🚫 **a deliberate non-goal**, not a gap - see the section below.
 
@@ -57,10 +59,11 @@ care.
 
 [`IPersistenceGateway`](deferred-persistence.md) is still the right seam.
 Both options below are now proven against a real container, not just
-described - `PgVectorPersistenceTest`, `QdrantPersistenceGatewayTest`, and
-`QdrantDirectPersistenceGatewayTest` all actually run and pass, and every
-one of them was fixed at least once by a real compiler or runtime error,
-not by getting the design right on paper first.
+described - `PgVectorPersistenceTest`, `QdrantPersistenceGatewayTest`
+(`Xfty.VectorDatabases.Qdrant.Test`), and `MevdPersistenceGatewayTest`
+(`Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test`) all actually
+run and pass, and every one of them was fixed at least once by a real
+compiler or runtime error, not by getting the design right on paper first.
 
 ### pgvector, through the existing `EfPersistenceGateway` - proven, no new gateway code
 
@@ -79,63 +82,87 @@ purpose-built vector database's own indexing/query model the way Qdrant
 would, but it's a genuinely near-free way to get a vector column under
 real, tested persistence.
 
-### Qdrant - built as two competing preview proofs-of-concept, not a considered package
+### Qdrant - two separate preview packages, not a considered release
 
-`Xfty.VectorDatabases.Qdrant` (`0.1.0-preview.1` - see
-[its own README](../../Xfty.VectorDatabases.Qdrant/README.md) for the full
-list of known assumptions and accepted risks) ships **two** independent
-`IPersistenceGateway`s answering the same question two different ways:
+Two independent `IPersistenceGateway`s answer the same question two
+different ways, **in two separate packages from the start** - not combined
+even during this comparison phase, after concluding there wasn't a good
+reason to (see [Why two packages, not one](#why-two-packages-not-one)
+below):
 
-- **`QdrantPersistenceGateway`**, through
-  `Microsoft.Extensions.VectorData.Abstractions` (GA, 10.9.0) and
-  `Microsoft.SemanticKernel.Connectors.Qdrant` (still preview, 1.74.0-preview).
-- **`QdrantDirectPersistenceGateway`**, through Qdrant's own client
-  (`Qdrant.Client`, stable, 1.19.0) directly - no MEVD, no Semantic Kernel
+- **[`Xfty.VectorDatabases.Qdrant`](../../Xfty.VectorDatabases.Qdrant/README.md)**
+  — `QdrantPersistenceGateway`, through Qdrant's own client
+  (`Qdrant.Client`, stable, 1.19.0) directly. No MEVD, no Semantic Kernel
   connector at all.
+- **[`Xfty.VectorDatabases.MicrosoftExtensionsVectorData`](../../Xfty.VectorDatabases.MicrosoftExtensionsVectorData/README.md)**
+  — `MevdPersistenceGateway`, through Microsoft.Extensions.VectorData's
+  abstract `VectorStore`. Not Qdrant-specific at all: `GetDynamicCollection`,
+  `EnsureCollectionExistsAsync`, and `UpsertAsync` are declared on the
+  abstract base class itself, so this gateway works with *any* MEVD
+  connector (Qdrant, Redis, Azure AI Search, pgvector, …) - its test
+  happens to use Qdrant as one concrete example, but the shipped package
+  has zero dependency on it (verified: its `.nuspec` lists only `Xfty` and
+  `Microsoft.Extensions.VectorData.Abstractions`).
 
 Both genuinely work - `QdrantPersistenceGatewayTest` and
-`QdrantDirectPersistenceGatewayTest` each insert a real record into a real
-Qdrant container. Getting the MEVD one right took two real, concrete
-corrections that documentation alone didn't predict:
+`MevdPersistenceGatewayTest` each insert a real record into a real Qdrant
+container. Getting the MEVD one right took a real, concrete correction that
+documentation alone didn't predict:
 
-- **Qdrant's client rejects `string` keys outright** - only `ulong` or
-  `Guid` are accepted as a point id. XFTY's own demo record types all use a
-  `string` id; both gateways require `Guid` instead and throw a clear error
-  otherwise. Checked on both paths, not assumed from one: the MEVD
-  connector surfaces this as a *runtime* validation error, while the raw
-  client's `PointId` type has no `string` conversion at all, failing at
-  **compile time** instead - two different failure modes confirming the
-  same real Qdrant-level constraint, not an artifact of either specific
-  library.
 - **A vector property's declared schema `Type` must be the actual container
   type** (`float[]`), not the element type (`float`) - Microsoft's own
   published example for a different provider used the element type, which
-  fails against Qdrant specifically. This one is MEVD-only; the direct
-  client has no declared-`Type` schema step for it to apply to at all
+  fails against Qdrant specifically. This is MEVD-only; the direct client
+  has no declared-`Type` schema step for it to apply to at all
   (`PointStruct.Vectors` just takes a `float[]`).
 
-**The comparison this set out to answer:** the direct gateway compiled and
-passed on the first real attempt (reusing the already-known id constraint,
-independently reconfirmed rather than assumed); the MEVD gateway needed the
-second correction above, unique to its abstraction layer. One data point,
-not a verdict - MEVD's real win is schema/mapping code you don't hand-write
-once a record looks like Microsoft's own `Hotel`-shaped examples (several
-data properties, multiple vector fields); for the simple shape this PoC
-tested, going without it was both simpler and had less documentation-drift
-risk. Both were only found reliable by actually running them against a live
-container, which is exactly why this whole package is versioned `preview`,
-not `beta`.
+One constraint was checked on both paths rather than assumed to carry over:
+**Qdrant's client rejects `string` keys outright** - only `ulong` or `Guid`
+are accepted as a point id. The MEVD connector surfaces this as a *runtime*
+validation error; the raw client's `PointId` type has no `string`
+conversion at all, failing at **compile time** instead - two different
+failure modes confirming the same real Qdrant-level constraint, not an
+artifact of either specific library. (The generic MEVD gateway does *not*
+hardcode this rule, on purpose - see that package's own README for why
+baking one provider's constraint into supposedly provider-agnostic code
+would be wrong.)
 
-**If either graduates past a proof-of-concept, they should split into
-separate packages** - not stay bundled the way this comparison phase has
-them. A consumer who only wants the direct gateway shouldn't be forced to
-take a transitive dependency on Microsoft's still-preview, Semantic-Kernel-
-branded connector for a class that never uses it, and the two gateways'
-dependencies will graduate out of preview on different vendors' schedules -
-see the package README's own section on this for the full reasoning.
+**The comparison result:** the direct gateway compiled and passed on the
+first real attempt; the MEVD gateway needed the correction above, unique to
+its abstraction layer. One data point, not a verdict - MEVD's real win is
+schema/mapping code you don't hand-write once a record looks like
+Microsoft's own `Hotel`-shaped examples (several data properties, multiple
+vector fields); for the simple shape this PoC tested, going without it was
+both simpler and had less documentation-drift risk. Both were only found
+reliable by actually running them against a live container, which is
+exactly why both packages are versioned `preview`, not `beta`.
 
-Qdrant remains the right first target over Pinecone or Azure AI Search if a
-considered gateway is built later - it has an official Docker image and a
+#### Why two packages, not one
+
+The first version of this comparison put both gateways in one package,
+reasoning that splitting could wait until (if) either graduated past
+preview. That didn't survive being questioned: there's no point in the
+comparison lifecycle where combining them is actually free.
+
+- **The dependency cost starts on day one, not after graduation.** Anyone
+  installing the combined package today to try only the direct gateway
+  already pulls in MEVD and Microsoft's still-preview, Semantic-Kernel-
+  branded Qdrant connector as transitive dependencies of a class that never
+  uses either - not a hypothetical future cost, a real one from the first
+  `dotnet add package`.
+- **Splitting cost almost nothing**, because both gateways already existed
+  and worked - it was mostly moving files, not new design.
+- **The comparison only needs shared visibility, not shared packaging.**
+  Same repo, same commit, same roadmap page - two packages give that just
+  as well as one.
+- **The MEVD gateway turning out to be provider-agnostic made a shared
+  package actively misleading**, not just suboptimal - calling something
+  `Xfty.VectorDatabases.Qdrant` while it contains a gateway that has
+  nothing to do with Qdrant is a worse problem than a bit of duplicated
+  reflection helper code between two small packages.
+
+Qdrant remains the right first target for testing either approach over
+Pinecone or Azure AI Search - it has an official Docker image and a
 `Testcontainers.Qdrant` module (same major version already pinned for
 Postgres in this repo), fitting the existing no-cloud-credentials-in-CI
 pattern. Pinecone is cloud-managed only, with no equivalent local/Docker
@@ -172,11 +199,11 @@ extension of `RandomVectorExpression`; it is a different category of thing.
 The convenience value expression is built, including the model-dimension
 and normalization refinements. pgvector persistence is proven through the
 existing `EfPersistenceGateway` with no new gateway code. Two competing
-dedicated Qdrant gateways exist and both work, as preview proofs-of-concept
-comparing Microsoft.Extensions.VectorData against Qdrant's own client
-directly - real, moderate work, confirmed (not assumed) findings on both
-sides, not yet a considered package, and expected to split into separate
-packages if either one graduates. Calling a real embedding API is a
-deliberate non-goal, not a gap.
+gateways exist and both work, each in its own preview package from the
+start: `Xfty.VectorDatabases.Qdrant` (direct client) and
+`Xfty.VectorDatabases.MicrosoftExtensionsVectorData` (generic, works with
+any MEVD connector). Real, moderate work, confirmed (not assumed) findings
+on both sides, neither yet a considered package. Calling a real embedding
+API is a deliberate non-goal, not a gap.
 
 See also: [roadmap/README.md](README.md).

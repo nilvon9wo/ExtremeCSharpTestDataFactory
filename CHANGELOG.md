@@ -40,21 +40,29 @@ because those entries describe a change made in *this* repository.
   unmodified* `EfPersistenceGateway` - no new gateway code, just a package
   reference, a demo entity, and the `pgvector/pgvector:pg16` container image.
 - **`Xfty.VectorDatabases.Qdrant`** (`0.1.0-preview.1`, not `1.0.0-beta.1` -
-  see its own README) — **two** competing `IPersistenceGateway`s, both real
-  and working, answering "is a dedicated vector-DB gateway worth the extra
-  abstraction, or is the vendor's own client just as easy": `QdrantPersistenceGateway`
-  via `Microsoft.Extensions.VectorData`, `QdrantDirectPersistenceGateway`
-  via `Qdrant.Client` directly. The MEVD path needed two corrections
-  undocumented anywhere findable: Qdrant's client requires `Guid` point ids,
-  not `string` (independently reconfirmed on the direct path too - a
-  compile-time error there instead of a runtime one, same underlying
-  constraint); a vector property's declared schema type must be the
-  container type (`float[]`), not the element type (`float`) - MEVD-only,
-  no equivalent step exists on the direct path. The direct gateway compiled
-  and passed on the first real attempt. Preview because both depend on
-  either another vendor's still-preview package or hand-built mapping code
-  that hasn't been used against a real project's schema yet; expected to
-  split into separate packages if either graduates - see
+  see its own README) — `QdrantPersistenceGateway`, a real, working
+  `IPersistenceGateway` through Qdrant's own client (`Qdrant.Client`,
+  1.19.0) directly - no Microsoft.Extensions.VectorData, no Semantic
+  Kernel connector.
+- **`Xfty.VectorDatabases.MicrosoftExtensionsVectorData`** (`0.1.0-preview.1`)
+  — `MevdPersistenceGateway`, a real, working `IPersistenceGateway` through
+  Microsoft.Extensions.VectorData's abstract `VectorStore` - genuinely
+  provider-agnostic (`GetDynamicCollection` etc. are declared on the base
+  class itself, not any specific connector), so this package has zero
+  Qdrant/Semantic-Kernel dependency even though its own test proves it
+  against a real Qdrant container. Kept in a **separate** package from
+  `Xfty.VectorDatabases.Qdrant` from the start, not combined even during
+  this comparison - a consumer of the direct-client gateway shouldn't be
+  forced to take a transitive dependency on MEVD and a still-preview
+  connector it never uses. Answers "is a dedicated vector-DB gateway worth
+  the extra abstraction, or is the vendor's own client just as easy":
+  going through MEVD needed one real correction undocumented anywhere
+  findable (a vector property's declared schema type must be the container
+  type, `float[]`, not the element type, `float`); the direct gateway
+  compiled and passed on the first attempt. One shared finding, checked on
+  both paths rather than assumed from one: Qdrant's client requires `Guid`
+  point ids, not `string` - a compile-time error on the direct path, a
+  runtime one through MEVD, same real constraint either way - see
   [roadmap/vector-databases.md](docs/roadmap/vector-databases.md).
 
 ## [1.0.0-beta.1] – 2026-09-05

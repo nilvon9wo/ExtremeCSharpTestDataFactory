@@ -1,8 +1,7 @@
 using System.Reflection;
-using Microsoft.Extensions.VectorData;
-using Microsoft.SemanticKernel.Connectors.Qdrant;
 using Net.Nowhereatall.Xfty.Persistence;
 using Qdrant.Client;
+using Qdrant.Client.Grpc;
 
 namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant;
 
@@ -12,64 +11,87 @@ namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant;
 /// test suite.
 ///
 /// An <see cref="IPersistenceGateway"/> that inserts XFTY-generated records
-/// into a real Qdrant collection via Microsoft.Extensions.VectorData's
-/// dynamic (<c>Dictionary&lt;string, object?&gt;</c>) mapping - chosen
-/// specifically because it needs no compile-time-known record type, which
-/// matches how every other XFTY gateway already treats records purely
-/// through reflection. One collection per distinct record type in the
-/// batch, named after the type; the collection is created if missing, using
-/// a schema built from the record's own properties.
+/// into a real Qdrant collection through <see cref="QdrantClient"/>
+/// directly - no Microsoft.Extensions.VectorData, no Semantic Kernel
+/// connector. Depends only on Qdrant's own stable client (1.19.0), at the
+/// cost of building the point/payload mapping by hand rather than getting
+/// it from a shared abstraction. See
+/// <c>Xfty.VectorDatabases.MicrosoftExtensionsVectorData</c>'s
+/// <c>MevdPersistenceGateway</c> for the same job through that abstraction
+/// instead - kept as a separate package on purpose, not bundled with this
+/// one, so depending on this gateway never pulls in MEVD or a
+/// Semantic-Kernel-branded connector this class doesn't use.
 /// </summary>
 public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistenceGateway
 {
-    public void Insert(List<object> records, PropertyInfo idField)
-    {
-        QdrantVectorStore vectorStore = new(client, ownsClient: false);
+    public void Insert(List<object> records, PropertyInfo idField) =>
         records
             .GroupBy(record => record.GetType())
             .ToList()
-            .ForEach(group => InsertGroup(vectorStore, [.. group], idField));
-    }
+            .ForEach(group => this.InsertGroup([.. group], idField));
 
-    private static void InsertGroup(QdrantVectorStore vectorStore, List<object> records, PropertyInfo idField)
+    private void InsertGroup(List<object> records, PropertyInfo idField)
     {
         QdrantRecordReflection.RequireGuidKey(idField);
         records.ForEach(record => QdrantRecordReflection.FillIdIfMissing(record, idField));
 
         Type recordType = records[0].GetType();
         PropertyInfo vectorField = QdrantRecordReflection.FindVectorField(recordType);
-        VectorStoreCollectionDefinition definition = BuildDefinition(recordType, idField, vectorField, records[0]);
+        int dimensions = ((float[])vectorField.GetValue(records[0])!).Length;
 
-        VectorStoreCollection<object, Dictionary<string, object?>> collection =
-            vectorStore.GetDynamicCollection(recordType.Name, definition);
-
-        collection.EnsureCollectionExistsAsync().GetAwaiter().GetResult();
-        List<Dictionary<string, object?>> rows = [.. records.Select(record => ToRow(record, recordType))];
-        collection.UpsertAsync(rows).GetAwaiter().GetResult();
+        this.EnsureCollectionExists(recordType.Name, dimensions);
+        List<PointStruct> points = [.. records.Select(record => ToPoint(record, idField, vectorField))];
+        _ = client.UpsertAsync(recordType.Name, points).GetAwaiter().GetResult();
     }
 
-    private static VectorStoreCollectionDefinition BuildDefinition(
-        Type recordType, PropertyInfo idField, PropertyInfo vectorField, object sampleRecord)
+    private void EnsureCollectionExists(string collectionName, int dimensions)
     {
-        int dimensions = ((float[])vectorField.GetValue(sampleRecord)!).Length;
-        List<VectorStoreProperty> dataProperties =
-        [
-            .. recordType.GetProperties()
-                .Where(property => property != idField && property != vectorField)
-                .Select(property => new VectorStoreDataProperty(property.Name, property.PropertyType)),
-        ];
-
-        return new VectorStoreCollectionDefinition
+        bool exists = client.CollectionExistsAsync(collectionName).GetAwaiter().GetResult();
+        if (!exists)
         {
-            Properties =
-            [
-                new VectorStoreKeyProperty(idField.Name, typeof(Guid)),
-                new VectorStoreVectorProperty(vectorField.Name, vectorField.PropertyType, dimensions),
-                .. dataProperties,
-            ],
-        };
+            VectorParams vectorParams = new() { Size = (ulong)dimensions, Distance = Distance.Cosine };
+            client.CreateCollectionAsync(collectionName, vectorParams).GetAwaiter().GetResult();
+        }
     }
 
-    private static Dictionary<string, object?> ToRow(object record, Type recordType) =>
-        recordType.GetProperties().ToDictionary(property => property.Name, property => property.GetValue(record));
+    private static PointStruct ToPoint(object record, PropertyInfo idField, PropertyInfo vectorField)
+    {
+        PointStruct point = new()
+        {
+            Id = (Guid)idField.GetValue(record)!,
+            Vectors = (float[])vectorField.GetValue(record)!,
+        };
+        PayloadPropertiesOf(record.GetType(), idField, vectorField)
+            .ToList()
+            .ForEach(property => SetPayloadValue(point, property, property.GetValue(record)));
+        return point;
+    }
+
+    private static IEnumerable<PropertyInfo> PayloadPropertiesOf(Type recordType, PropertyInfo idField, PropertyInfo vectorField) =>
+        recordType.GetProperties().Where(property => property != idField && property != vectorField);
+
+    private static void SetPayloadValue(PointStruct point, PropertyInfo property, object? value)
+    {
+        switch (value)
+        {
+            case null:
+                break;
+            case string stringValue:
+                point.Payload[property.Name] = stringValue;
+                break;
+            case bool boolValue:
+                point.Payload[property.Name] = boolValue;
+                break;
+            case int or long:
+                point.Payload[property.Name] = Convert.ToInt64(value);
+                break;
+            case float or double:
+                point.Payload[property.Name] = Convert.ToDouble(value);
+                break;
+            default:
+                throw new NotSupportedException(
+                    $"This PoC's payload mapping only supports string/bool/int/long/float/double - "
+                    + $"'{property.Name}' is {property.PropertyType.Name}. See README.md.");
+        }
+    }
 }
