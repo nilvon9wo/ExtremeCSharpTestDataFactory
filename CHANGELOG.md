@@ -35,6 +35,21 @@ because those entries describe a change made in *this* repository.
   `.nupkg`/`.snupkg` pair for each. Publishing to nuget.org itself remains
   the maintainer's own manual step - see
   [contribute/packaging.md](docs/contribute/packaging.md).
+- **pgvector proof** — `PgVectorPersistenceTest` (`Xfty.EntityFrameworkCore.Test`)
+  proves a `Pgvector.Vector` column persists through the *existing,
+  unmodified* `EfPersistenceGateway` - no new gateway code, just a package
+  reference, a demo entity, and the `pgvector/pgvector:pg16` container image.
+- **`Xfty.VectorDatabases.Qdrant`** (`0.1.0-preview.1`, not `1.0.0-beta.1` -
+  see its own README) — `QdrantPersistenceGateway`, a real, working
+  `IPersistenceGateway` backed by Qdrant via `Microsoft.Extensions.VectorData`.
+  Answers a real question (is a dedicated vector-DB gateway a trivial
+  wrapper or real design work?) with two concrete corrections the
+  documentation didn't predict: Qdrant's connector requires `Guid` keys, not
+  `string`, and a vector property's declared type must be the container
+  type (`float[]`), not the element type (`float`). Preview because it
+  depends on another vendor's still-preview package and hasn't been used
+  against a real project's schema yet - see
+  [roadmap/vector-databases.md](docs/roadmap/vector-databases.md).
 
 ## [1.0.0-beta.1] – 2026-09-05
 

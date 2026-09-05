@@ -1,12 +1,15 @@
 # Design: Vector Database Support
 
 Status: ✅ **the value-expression convenience is built** - `Xfty.VectorDatabases`
-ships `RandomVectorExpression` plus dimension presets and normalization. A
-dedicated vector-database persistence gateway (Qdrant or otherwise) is
-📋 **designed but not built** - real, moderate work, tracked below rather
-than done speculatively. Calling a real embedding API for a semantically
-meaningful vector is 🚫 **a deliberate non-goal**, not a gap - see the
-section below.
+ships `RandomVectorExpression` plus dimension presets and normalization.
+✅ **the pgvector option is proven**, through the existing, unmodified
+`EfPersistenceGateway` - see [Persistence](#persistence).
+🧪 **a dedicated Qdrant gateway exists as a preview proof-of-concept** -
+`Xfty.VectorDatabases.Qdrant`, versioned `0.1.0-preview.1`, works against a
+real container, but is not the considered, general-purpose package the rest
+of this solution's packages are - see its own README before using it.
+Calling a real embedding API for a semantically meaningful vector is
+🚫 **a deliberate non-goal**, not a gap - see the section below.
 
 ---
 
@@ -49,50 +52,60 @@ care.
 
 ## Persistence
 
-[`IPersistenceGateway`](deferred-persistence.md) is still the right seam,
-but a real gateway for a dedicated vector database is a genuinely bigger
-task than `EfPersistenceGateway` was, for two concrete reasons researched
-against the current .NET ecosystem (as of September 2026), not assumed:
+[`IPersistenceGateway`](deferred-persistence.md) is still the right seam.
+Both options below are now proven against a real container, not just
+described - `PgVectorPersistenceTest` and `QdrantPersistenceGatewayTest`
+both actually run and pass, and both were fixed at least once by real
+compiler/runtime errors, not by getting the design right on paper first.
 
-- **Every real vector-DB client is async-only.** Qdrant's official client
-  (`Qdrant.Client`, gRPC-backed) exposes only `UpsertAsync`; there is no
-  synchronous variant to call the way `EfPersistenceGateway` calls EF Core's
-  synchronous `SaveChanges()`. A gateway would need to bridge sync-over-async
-  (`.GetAwaiter().GetResult()`) - an accepted pattern for test-setup code,
-  but a real design choice, not a detail to skip past.
-- **The emerging .NET standard doesn't map on as cleanly as EF Core did.**
-  `Microsoft.Extensions.VectorData.Abstractions` (GA, currently 10.9.0) is a
-  real, Microsoft-backed common abstraction over vector stores - the closest
-  thing to "EF Core for vector databases" that exists today, with connectors
-  for Qdrant, Azure AI Search, PostgreSQL/pgvector, Redis, and others. But
-  its collection API (`GetCollection<TKey, TRecord>(name)`) is generic per
-  record type and async-only, unlike EF Core's untyped, synchronous
-  `DbContext.Add(object)` / `SaveChanges()` - and most individual connectors
-  (including Qdrant's) are still preview-labeled by Microsoft even though
-  the abstraction layer itself is GA. A `VectorStoreRecordDefinition` built
-  at runtime (rather than attributes on the POCO) would keep a gateway
-  reflection-based and attribute-free, consistent with how XFTY treats every
-  other record type - real, moderate work, not a trivial wrapper.
+### pgvector, through the existing `EfPersistenceGateway` - proven, no new gateway code
 
-**A cheaper first step than a dedicated vector-DB gateway: pgvector,
-through the *existing* `EfPersistenceGateway`.** `Pgvector.EntityFrameworkCore`
-maps a `Vector` column onto an ordinary EF Core entity property
-(`[Column(TypeName = "vector(1536)")]` plus `UseVector()` on the Npgsql
-options). Since `Xfty.EntityFrameworkCore.Test` already runs a real Postgres
-container via Testcontainers, proving a vector field round-trips through
-real persistence would need *no new gateway code at all* - just a package
-reference and a demo entity shape. It doesn't exercise a purpose-built
-vector database's own indexing/query model the way Qdrant would, but it's a
-near-free way to validate the concept before committing to a dedicated
-gateway.
+`Pgvector.EntityFrameworkCore` maps a `Vector` column onto an ordinary EF
+Core entity property (`[Column(TypeName = "vector(8)")]` plus `UseVector()`
+on the Npgsql options). `Xfty.EntityFrameworkCore.Test`'s
+`PgVectorPersistenceTest` proves a vector field round-trips through real
+persistence with **zero changes to `EfPersistenceGateway` itself** - just
+the package reference, a demo entity (`DocumentEmbedding`), and a small
+`RandomPgVectorExpression` adapter converting `RandomVectorExpression`'s
+`float[]` to `Pgvector.Vector`. One real gotcha: it needs the
+`pgvector/pgvector:pg16` image, not the plain `postgres:16-alpine` image
+the rest of this project uses - the vector extension has to be compiled
+into the Postgres image to be creatable at all. It doesn't exercise a
+purpose-built vector database's own indexing/query model the way Qdrant
+would, but it's a genuinely near-free way to get a vector column under
+real, tested persistence.
 
-If a dedicated vector-DB gateway is ever built, Qdrant is the right first
-target over Pinecone or Azure AI Search: it has an official Docker image and
-a `Testcontainers.Qdrant` module (same major version already pinned for
-Postgres in this repo), so it fits the existing no-cloud-credentials-in-CI
-pattern. Pinecone is cloud-managed only, with no equivalent local/Docker
-story - a real barrier to testing it the way every other persistence tier in
-this repo is tested.
+### Qdrant - built as a preview proof-of-concept, not a considered package
+
+`Xfty.VectorDatabases.Qdrant` (`0.1.0-preview.1` - see
+[its own README](../../Xfty.VectorDatabases.Qdrant/README.md) for the full
+list of known assumptions and accepted risks) ships
+`QdrantPersistenceGateway`, built against
+`Microsoft.Extensions.VectorData.Abstractions` (GA, 10.9.0) and
+`Microsoft.SemanticKernel.Connectors.Qdrant` (still preview, 1.74.0-preview).
+It genuinely works - `QdrantPersistenceGatewayTest` inserts a real record
+into a real Qdrant container - but getting there took two real, concrete
+corrections that documentation alone didn't predict:
+
+- **Qdrant's connector rejects `string` keys outright** - only `ulong` or
+  `Guid` are accepted as a key property type. XFTY's own demo record types
+  all use a `string` id; this gateway requires `Guid` instead and throws a
+  clear error otherwise.
+- **A vector property's declared `Type` must be the actual container type**
+  (`float[]`), not the element type (`float`) - Microsoft's own published
+  example for a different provider used the element type, which fails
+  against Qdrant specifically.
+
+Both were only found by actually running the code against a live container,
+which is exactly why this package is versioned `preview`, not `beta`: an
+API surface with this much documentation drift under it deserves lower
+confidence than the rest of this solution, until it's been used against a
+real project's own schema. Qdrant remains the right first target over
+Pinecone or Azure AI Search if a considered gateway is built later - it has
+an official Docker image and a `Testcontainers.Qdrant` module (same major
+version already pinned for Postgres in this repo), fitting the existing
+no-cloud-credentials-in-CI pattern. Pinecone is cloud-managed only, with no
+equivalent local/Docker story.
 
 ## Deliberately out of scope: calling a real embedding model
 
@@ -123,10 +136,11 @@ extension of `RandomVectorExpression`; it is a different category of thing.
 ## Conclusion
 
 The convenience value expression is built, including the model-dimension
-and normalization refinements. Real persistence for a dedicated vector
-database remains unbuilt and is real, moderate work when someone needs it,
-not a trivial wrapper - pgvector via the existing `EfPersistenceGateway` is
-the cheaper way to validate the concept first. Calling a real embedding API
-is a deliberate non-goal, not a gap.
+and normalization refinements. pgvector persistence is proven through the
+existing `EfPersistenceGateway` with no new gateway code. A dedicated Qdrant
+gateway exists and works, but only as a preview proof-of-concept - real,
+moderate work confirmed by two concrete corrections the documentation
+didn't predict, not a trivial wrapper, and not yet a considered package.
+Calling a real embedding API is a deliberate non-goal, not a gap.
 
 See also: [roadmap/README.md](README.md).
