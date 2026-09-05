@@ -33,4 +33,7 @@ public sealed record class Contact
     /// <see cref="Enrichment.BundleEnricher"/> (see <see cref="Account.Contacts"/>).
     /// </summary>
     public Account? Account { get; init; }
+
+    /// <summary>The Cases child collection - populated only via reflection, see <see cref="Account.Contacts"/>.</summary>
+    public List<Case>? Cases { get; init; }
 }
