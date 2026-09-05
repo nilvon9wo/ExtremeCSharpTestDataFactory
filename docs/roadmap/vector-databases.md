@@ -1,7 +1,9 @@
 # Design: Vector Database Support
 
-Status: **idea, likely needs little to nothing new.** Flagged here so it's
-tracked, not because a gap has actually been found.
+Status: ✅ **built.** `Xfty.VectorDatabases` ships `RandomVectorExpression` -
+the one convenience this page identified as missing. Everything below is
+kept as the reasoning for why that was the right, and the only, thing to
+build here.
 
 ---
 
@@ -24,8 +26,10 @@ care.
   but every consumer writing a similar "N random floats" expression from
   scratch is exactly the kind of repeated boilerplate XFTY's bundled value
   expressions (`IncrementingStringExpression`, `UniqueEmailExpression`, …)
-  exist to avoid. A `RandomVectorExpression(int dimensions)` would be a small,
-  self-contained addition whenever someone actually wants one.
+  exist to avoid. ✅ Built as `RandomVectorExpression(int dimensions, float
+  min = -1f, float max = 1f)` in `Xfty.VectorDatabases` - a separate package,
+  not core `Xfty`, so the base library never depends on any decision about
+  what "a plausible vector" means for a use case it can't see.
 - **A more realistic vector for similarity-search tests specifically.** A
   test asserting "the nearest neighbor to X is Y" needs vectors with an
   actual semantic relationship to each other, not independent random noise -
@@ -45,9 +49,9 @@ core would need to change.
 
 ## Conclusion
 
-Unless a real gap surfaces in practice, this isn't a design problem so much
-as an "add a convenience value expression when someone wants one" item. Kept
-here so it isn't forgotten, and so a future gap - if one turns up - has a
-place to be recorded against.
+The only real gap was the convenience value expression, and it's built. A
+`PineconePersistenceGateway`/`QdrantPersistenceGateway` remains unbuilt -
+nobody has needed one yet - but the seam for it already exists and needs no
+design work when someone does.
 
 See also: [roadmap/README.md](README.md).

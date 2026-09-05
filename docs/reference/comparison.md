@@ -53,7 +53,7 @@ group, by how many of the five tools have it.
 | Insert-mode abstraction (mock vs. actually persist) | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Dependency-ordered batch insert across mixed types | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Graft onto an `init`-only model a real constructor rejects | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Realistic fake data out of the box | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Realistic fake data | ◐ | ❌ | ✅ | ✅ | ❌ |
 | Auto-populates every property, no rules written | ❌ | ✅ | ❌ | ✅ | ❌ |
 | Auto-mocking of service dependencies (not data) | ❌ | ✅ | ❌ | ❌ | ❌ |
 | Maturity / ecosystem *(not a capability — kept last, unsorted)* | new — first beta | very mature | mature | smaller, less active recently | older, largely superseded |
@@ -95,13 +95,14 @@ group, by how many of the five tools have it.
 
 ## Where XFTY genuinely loses
 
-- **No realistic fake data.** This is the single biggest, most practical gap
-  against Bogus/AutoBogus. XFTY ships structural value expressions
-  (`IncrementingStringExpression`, `UniqueEmailExpression`, `LiteralExpression`,
-  the `CopyFrom*` family) but nothing that produces a plausible human name,
-  street address, or paragraph of body text. A Provider that wants that has
-  to supply its own `IValueExpression` - trivially possible (wrap a call to
-  Bogus, even), but not bundled.
+- **No realistic fake data in the core package.** Core `Xfty` ships
+  structural value expressions (`IncrementingStringExpression`,
+  `UniqueEmailExpression`, `LiteralExpression`, the `CopyFrom*` family) but
+  nothing that produces a plausible human name, street address, or paragraph
+  of body text - `Xfty.Bogus` (`FakeFullNameExpression`,
+  `FakeEmailAddressExpression`, `FakeStreetAddressExpression`,
+  `FakeParagraphExpression`) closes that gap as a separate, opt-in package
+  instead, so the base library never depends on Bogus.
 - **No auto-population.** Every field a Provider cares about has to be
   declared somewhere (a Master Template default, an override template, a
   `Put(...)`). AutoFixture's/AutoBogus's "just fill in everything, I'll tell
@@ -131,9 +132,9 @@ group, by how many of the five tools have it.
 - **A whole related graph — parents, optional relationships, shared
   ancestors, a validation rule that needs the graph to actually be
   constraint-valid — and you want the exact same test to run against a mock
-  and a real database:** XFTY. Nothing above does this; combine it with
-  Bogus for the realistic-value gap (a `Faker<Address>` call inside an
-  `IValueExpression` composes fine).
+  and a real database:** XFTY. Nothing above does this; add `Xfty.Bogus` for
+  the realistic-value gap (`FakeFullNameExpression`, `FakeEmailAddressExpression`,
+  and friends compose fine as ordinary `IValueExpression`s).
 
 ## Could XFTY pair with one of these to close a gap?
 
@@ -141,12 +142,13 @@ Sometimes, and it's worth being specific about which gap and how much work
 each pairing actually takes - "compose" is doing very different amounts of
 work in each case below.
 
-- **Bogus, for realistic values — works today, zero new code.** An
+- **Bogus, for realistic values — done, as a separate package.** An
   `IValueExpression` is just an interface; nothing stops it from calling a
-  `Faker<T>` and returning the result. This is already the answer given
-  above and in [When to reach for which](#when-to-reach-for-which): declare
-  the field with a Provider as normal, and wrap Bogus for the one line that
-  needs to *look* real. No adapter package needed - the seam already exists.
+  `Faker<T>` and returning the result. `Xfty.Bogus` bundles the common cases
+  (`FakeFullNameExpression`, `FakeEmailAddressExpression`,
+  `FakeStreetAddressExpression`, `FakeParagraphExpression`) so most Providers
+  never have to write that wrapper themselves; writing a custom one for
+  anything Bogus offers that isn't bundled still works exactly the same way.
 - **AutoFixture / AutoBogus, for auto-population — a real gap, and a real
   design, not a trivial fix.** The gap is genuine: a Provider must declare
   every field it cares about, where AutoFixture's model is "fill in

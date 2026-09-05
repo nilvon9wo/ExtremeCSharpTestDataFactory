@@ -55,6 +55,10 @@ The result is test code that is:
 - Real persistence through `IPersistenceGateway` — `Xfty.EntityFrameworkCore`
   ships an EF Core implementation, proven against SQLite and a real Postgres
   container — or mock Ids with no database touched at all
+- Optional add-on packages for two common conveniences core `Xfty` doesn't
+  bundle: `Xfty.Bogus` (realistic names/emails/addresses/paragraphs) and
+  `Xfty.VectorDatabases` (a random-vector value expression for an embedding
+  field) — neither is a dependency of core `Xfty` itself
 - Deferred and depth-batched insert: build a graph across several calls, then
   insert it once, in dependency order, across mixed record types
 - Multi-variant Providers (`FlavouredLookupKey`, `DiscriminatorLookupKey`) —
@@ -157,8 +161,9 @@ that they don't:
   from a sibling, ancestor, or generated child, with a loud guard against
   reading one that hasn't been generated yet.
 
-It has no built-in realistic fake-data generation and no auto-population -
-every field a Provider cares about is declared, not guessed. See
+Core `Xfty` has no built-in realistic fake-data generation (`Xfty.Bogus` is
+an optional add-on for that) and no auto-population - every field a
+Provider cares about is declared, not guessed. See
 [docs/reference/comparison.md](docs/reference/comparison.md) for the full,
 unvarnished comparison against AutoFixture, Bogus, AutoBogus, and NBuilder,
 including where XFTY is a worse fit than any of them.
@@ -176,10 +181,14 @@ entry):
 - Lambda-based field access across the whole public API
 - A full sweep to a from-scratch, idiomatic C# port with no remaining
   Salesforce-specific surface
+- `Xfty.Bogus` and `Xfty.VectorDatabases` — optional packages for realistic
+  fake data and vector-embedding fields, without adding either dependency to
+  core `Xfty`
 
 The full status table — built, not-ported, and open ideas under
-consideration (embedded/denormalized document relationships, vector database
-support) — is [docs/roadmap/README.md](docs/roadmap/README.md).
+consideration (embedded/denormalized document relationships, an
+AutoFixture-backed auto-population fallback) — is
+[docs/roadmap/README.md](docs/roadmap/README.md).
 
 ---
 

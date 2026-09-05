@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Net.Nowhereatall.Xfty.VectorDatabases</RootNamespace>
+    <AssemblyName>Net.Nowhereatall.Xfty.VectorDatabases</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Xfty.VectorDatabases</PackageId>
+    <Version>1.0.0-beta.1</Version>
+    <Authors>Brian Kessler</Authors>
+    <Description>A bundled IValueExpression for XFTY that fills a vector-database record's embedding field with a fixed-length array of random floats - structurally a vector, not a semantically meaningful embedding.</Description>
+    <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;vector-database;embeddings</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Xfty\Xfty.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

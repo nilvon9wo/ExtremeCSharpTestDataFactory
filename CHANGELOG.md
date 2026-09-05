@@ -10,6 +10,28 @@ the Apex original's own changelog (a different codebase, in
 kept for reference since this port's design faithfully follows it, not
 because those entries describe a change made in *this* repository.
 
+## [Unreleased]
+
+### Added
+
+- **`Xfty.Bogus`** — bundled `IValueExpression`s (`FakeFullNameExpression`,
+  `FakeEmailAddressExpression`, `FakeStreetAddressExpression`,
+  `FakeParagraphExpression`) producing realistic-looking values by wrapping
+  Bogus, closing the "no realistic fake data" gap noted in
+  [reference/comparison.md](docs/reference/comparison.md) - as a separate,
+  opt-in package, so core `Xfty` gains no new dependency.
+- **`Xfty.VectorDatabases`** — `RandomVectorExpression(int dimensions, float
+  min, float max)`, filling a vector-database record's embedding field with
+  a fixed-length array of random floats. Structurally a vector, not a
+  semantically meaningful embedding - see
+  [roadmap/vector-databases.md](docs/roadmap/vector-databases.md).
+- NuGet packaging metadata (`PackageId`, `Version`, `Authors`,
+  `PackageLicenseExpression`, embedded `README.md`, symbol packages) for
+  every package in the solution; `dotnet pack` verified to produce a valid
+  `.nupkg`/`.snupkg` pair for each. Publishing to nuget.org itself remains
+  the maintainer's own manual step - see
+  [contribute/packaging.md](docs/contribute/packaging.md).
+
 ## [1.0.0-beta.1] – 2026-09-05
 
 First beta of the C# port. Feature-complete against the Apex 4.0 surface

@@ -20,6 +20,8 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 | **Shared ancestors** — `SharedAncestor.Put/Get`, flat + deep auto-detected, nested, cycle guards, `SharedAncestorProvider` per-record config, `ISharedAncestorDefaults` packaged defaults, `Disable` / `ManualResolutionOnly` / batch `ResolveNow` | `SharedAncestorTest`, `SharedAncestorHierarchyTest` | [use](../use/shared-ancestors.md), [extend](../extend/shared-ancestors-in-templates.md), [detail](shared-ancestors.md) | ⚠️ Static registry does **not** reset between xUnit test methods, unlike Apex — see [reference/salesforce-considerations](../reference/salesforce-considerations.md). `ManualResolutionOnly()` cannot be safely tested in this port's own shared-process suite for the same reason. |
 | **Enrichment** — `bundle.Inject(field, config)` / `InjectAll` / `InjectAllParents` / `InjectAllChildren`, `InjectConfig`, standalone `RecordInjector` | `BundleEnricherTest`, `RecordInjectorTest`, `EnrichmentSelectionTest`, `EnrichmentIntegrationTest` | [use](../use/enrichment.md), [injector](../use/record-injector.md) | ✅ — reflection sets any property directly, so there's no serialization round-trip and no field-type special-casing needed |
 | **Predicates** — `FieldPredicateFactory`, `PredicateFactory` (AND/OR/NOT), custom `IRecordPredicate` | `Xfty.Test/Predicates/*` | [extend/provider-variants](../extend/provider-variants.md) | ✅ |
+| **Realistic fake data** — `FakeFullNameExpression`, `FakeEmailAddressExpression`, `FakeStreetAddressExpression`, `FakeParagraphExpression`, wrapping Bogus | `Xfty.Bogus.Test/*` | [comparison.md](../reference/comparison.md#could-xfty-pair-with-one-of-these-to-close-a-gap) | ✅ Separate opt-in package (`Xfty.Bogus`), not core `Xfty` — the base library has no dependency on Bogus. |
+| **Vector-embedding fields** — `RandomVectorExpression(int dimensions, float min, float max)` | `Xfty.VectorDatabases.Test/*` | [vector-databases.md](vector-databases.md) | ✅ Separate opt-in package (`Xfty.VectorDatabases`); structurally a vector, not a semantically meaningful embedding — see the detail page for why that's out of scope. |
 
 ## Not ported — genuine capability gaps
 
@@ -38,7 +40,6 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 | Idea | Status | Detail |
 |------|--------|--------|
 | Embedded/denormalized document relationships (a document database's native nested-array shape, distinct from the FK-reference relationships XFTY models today) | 💡 | [embedded-documents.md](embedded-documents.md) |
-| Vector database support (a bundled random-vector value expression; persistence already covered by `IPersistenceGateway`) | 💡 | [vector-databases.md](vector-databases.md) |
 | Auto-population fallback via AutoFixture/AutoBogus for fields no Provider declares (likely a separate `Xfty.AutoFixture` adapter package, not a core change) | 💡 | [autofixture-fallback-fill.md](autofixture-fallback-fill.md) |
 
 ---
@@ -47,7 +48,7 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 
 | Item | Status | Detail |
 |------|--------|--------|
-| Publish `Xfty` and `Xfty.EntityFrameworkCore` to nuget.org | Both packages build/pack cleanly and are verified locally; the actual push needs the maintainer's own nuget.org account and API key. | [contribute/packaging.md](../contribute/packaging.md) |
+| Publish `Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`, and `Xfty.VectorDatabases` to nuget.org | All four packages build/pack cleanly and are verified locally; the actual push needs the maintainer's own nuget.org account and API key. | [contribute/packaging.md](../contribute/packaging.md) |
 
 ---
 
