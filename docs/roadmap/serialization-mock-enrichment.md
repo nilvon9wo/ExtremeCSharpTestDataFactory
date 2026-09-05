@@ -1,7 +1,10 @@
-# Roadmap: Serialization-Based Mock Enrichment
+# Roadmap: Enrichment
 
-**Built.** Shipped as `bundle.inject(field, config)` / `injectAll(field)` plus the
-standalone `XFTY_SObjectInjector`, on the `serialization-enrichment` branch
-(merging into `4.0-beta`).
+**Built.** Shipped as `bundle.Inject(field, config)` / `InjectAll(field)` plus
+the standalone `SObjectInjector`. Simpler than the Apex original — no JSON
+`serialize`/`deserialize` round-trip, since reflection sets any property
+directly; see [use/enrichment.md](../use/enrichment.md)'s explanation of what
+that eliminates (Blob-carrying, compound-field maps, polymorphic-relationship
+name resolution).
 
 See **[docs/use/enrichment.md](../use/enrichment.md)**.
