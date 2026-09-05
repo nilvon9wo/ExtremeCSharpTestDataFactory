@@ -573,3 +573,48 @@ by the project name) was pure stutter. `Net.Nowhereatall.Xfty.Core` now
 means only the `Core/` subfolder - the project root namespace is
 `Net.Nowhereatall.Xfty`. 102/102 tests passing, stable across repeated runs
 with parallelization disabled.
+
+**2026-09-05, later the same day: `enrichment/` ported, per explicit
+instruction ("USE REFLECTION FOR INJECTION").** Full mechanical port of
+`InjectConfig` (+ `AncestorValue`/`ChildValue`, extracted from Apex's nested
+classes), `EnrichmentSelection`, `EnrichmentTarget`, `ForcedValues`,
+`PathKey`, `QueryableShapeValidator`, `SObjectInjector`, `BundleEnricher` (+
+`EnrichmentPosition`, extracted from its nested `Position`). `Bundle` gained
+`Inject`/`InjectAll`/`InjectAllParents`/`InjectAllChildren`, matching Apex's
+`XFTY_DummySObjectBundle`.
+
+**The actual redesign, done deliberately per instruction, not asked about:**
+Apex's `XFTY_SObjectInjector` writes a populated relationship / child
+subquery / read-only field by round-tripping the whole record list through
+`JSON.serialize`/`JSON.deserialize`, because `SObject.put(...)` rejects those
+outright. The C# `SObjectInjector` instead clones each record (via the
+existing `RecordCloneFactory`) and sets every grafted property directly with
+`PropertyInfo.SetValue`, the same `init`-bypass `IdMocker` already relies on.
+`XFTY_BlobCarrier` - which exists only to shepherd a `Blob` safely through
+that JSON round-trip - has no reason to exist here: reflection sets any
+.NET type uniformly, so it was dropped outright, not adapted.
+
+**A second, smaller reflection substitution, also flagged rather than
+silently designed around:** Apex's `XFTY_InjectionPathResolver` gets the
+relationship name to graft under from the schema describe
+(`field.getDescribe().getRelationshipName()`, `SObjectType.getChildRelationships()`)
+- metadata a plain C# property does not carry. In its place: a lookup field
+named `XId` grafts onto a sibling `X` property on the same type (`Contact.AccountId`
+-> `Contact.Account`); a child collection grafts onto whichever property on
+the parent type holds a `List<T>` of the child's own type (`Contact` ->
+`Account.Contacts`), and it is an error if zero or more than one such
+property exists. Exercised end-to-end this required adding `Contact.Account`
+and `Account.Contacts` navigation properties to the demo domain - a plain
+POCO needs somewhere to write injected data that an `SObject` gets for free.
+
+**Also carried over, not revisited:** the `QueryableShapeValidator`'s
+SOQL-hop-count guard rails (`parentDepth` <= 5, `childDepth` <= 1 unless
+`BreakSoqlLimits()`) - the exact numeric limits are Salesforce trivia with no
+literal C# meaning, but the underlying purpose (bound an otherwise-unbounded
+recursive graft) still holds, so they were ported as-is rather than invented
+away.
+
+One integration test file (`EnrichmentIntegrationTest`), matching this
+session's established pattern for a freshly-landed subsystem (see
+`SharedAncestorIntegrationTest`) rather than porting each of Apex's eight
+`enrichment/` unit-test files 1:1. 106/106 tests passing.

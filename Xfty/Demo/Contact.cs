@@ -25,4 +25,10 @@ public sealed record class Contact
     public string? Department { get; init; }
 
     public DateTime? Birthdate { get; init; }
+
+    /// <summary>
+    /// The Account ancestor - populated only via reflection, by
+    /// <see cref="Enrichment.BundleEnricher"/> (see <see cref="Account.Contacts"/>).
+    /// </summary>
+    public Account? Account { get; init; }
 }

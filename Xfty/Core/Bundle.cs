@@ -1,4 +1,5 @@
 using System.Reflection;
+using Net.Nowhereatall.Xfty.Enrichment;
 using Net.Nowhereatall.Xfty.Values;
 
 namespace Net.Nowhereatall.Xfty.Core;
@@ -6,10 +7,6 @@ namespace Net.Nowhereatall.Xfty.Core;
 /// <summary>
 /// The record(s) one <c>CreateBundle</c> call has produced: primary records
 /// plus their generated relationships (parents) and children.
-///
-/// Enrichment (<c>Inject</c>/<c>InjectAll</c>/etc. in the Apex original) is
-/// not ported here yet - it's a reflection-based rebuild of its own, tracked
-/// separately (see csharp-port-idea.md).
 /// </summary>
 public sealed class Bundle
 {
@@ -145,4 +142,21 @@ public sealed class Bundle
             _ => BundleMerger.Combine(bundles),
         };
     }
+
+    /// <summary>
+    /// New instances of the records at GetList(field), enriched per config -
+    /// populated parent relationships, child collections, forced scalars - so
+    /// code under test reads them straight off the record. Originals
+    /// untouched. See <see cref="BundleEnricher"/>.
+    /// </summary>
+    public List<object> Inject(PropertyInfo field, InjectConfig config) => BundleEnricher.Enrich(this, field, config);
+
+    /// <summary>Inject with everything the graph holds; throws if there is nothing to inject.</summary>
+    public List<object> InjectAll(PropertyInfo field) => BundleEnricher.EnrichEverything(this, field);
+
+    /// <summary>Inject with every generated ancestor; children only if the config names them.</summary>
+    public List<object> InjectAllParents(PropertyInfo field) => this.Inject(field, InjectConfig.AllParents());
+
+    /// <summary>Inject with every generated child collection; parents only if the config names them.</summary>
+    public List<object> InjectAllChildren(PropertyInfo field) => this.Inject(field, InjectConfig.AllChildren());
 }

@@ -40,4 +40,12 @@ public sealed class Account
     public string? BillingCity { get; init; }
 
     public string? BillingStreet { get; init; }
+
+    /// <summary>
+    /// The Contacts child collection - populated only via reflection, by
+    /// <see cref="Enrichment.BundleEnricher"/> (Salesforce SObjects always
+    /// support a queried subquery here without declaring it; a plain C#
+    /// record needs somewhere to graft one).
+    /// </summary>
+    public List<Contact>? Contacts { get; init; }
 }
