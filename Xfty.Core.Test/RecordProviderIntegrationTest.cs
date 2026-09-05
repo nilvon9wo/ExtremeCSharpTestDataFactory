@@ -1,6 +1,7 @@
 using Net.Nowhereatall.Xfty.Core.Core;
 using Net.Nowhereatall.Xfty.Core.Demo;
 using Net.Nowhereatall.Xfty.Core.Lookup;
+using Net.Nowhereatall.Xfty.Core.Persistence;
 
 namespace Net.Nowhereatall.Xfty.Core.Test;
 
@@ -102,5 +103,37 @@ public class RecordProviderIntegrationTest
         Account account = Assert.IsType<Account>(bundle.GetList(Field.Of<Account>(nameof(Account.Id)))![0]);
         Assert.Equal(3, children.Count);
         Assert.All(children.Cast<Contact>(), contact => Assert.Equal(account.Id, contact.AccountId));
+    }
+
+    [Fact]
+    public void Supply_WhenDepthBatchedWithNowMode_AttemptsRealPersistence()
+    {
+        // Arrange - depth-batched insert always needs a real persistence layer, which this port doesn't have yet
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
+            .SetInsertMode(InsertMode.Now)
+            .SetInclusivity(InsertInclusivity.Required)
+            .DepthBatched();
+
+        // Act
+        NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => provider.Supply());
+
+        // Assert - the depth-batched path was actually engaged, not silently skipped
+        Assert.Contains("persistence layer", thrown.Message);
+    }
+
+    [Fact]
+    public void DeferredInserter_Flush_AfterADeferredSupply_AttemptsRealPersistence()
+    {
+        // Arrange - DEFERRED mode builds the graph like Never and registers it; Flush() is where real persistence would happen
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
+            .SetInsertMode(InsertMode.Deferred)
+            .SetInclusivity(InsertInclusivity.Required);
+        _ = provider.Supply();
+
+        // Act
+        NotSupportedException thrown = Assert.Throws<NotSupportedException>(DeferredInserter.Flush);
+
+        // Assert - the registry actually tried to persist, not silently no-op
+        Assert.Contains("persistence layer", thrown.Message);
     }
 }

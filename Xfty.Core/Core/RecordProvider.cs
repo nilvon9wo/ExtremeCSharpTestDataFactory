@@ -1,9 +1,10 @@
 using System.Reflection;
+using Net.Nowhereatall.Xfty.Core.Engine;
 using Net.Nowhereatall.Xfty.Core.Lookup;
+using Net.Nowhereatall.Xfty.Core.Persistence;
 using Net.Nowhereatall.Xfty.Core.Relationships;
 using Net.Nowhereatall.Xfty.Core.Values;
 
-using Net.Nowhereatall.Xfty.Core.Engine;
 namespace Net.Nowhereatall.Xfty.Core.Core;
 
 /// <summary>
@@ -30,6 +31,8 @@ public sealed class RecordProvider
     private InsertInclusivity inclusivity = InsertInclusivity.None;
     private bool hasCustomMasterTemplate;
     private bool ancestorCyclesAllowed;
+    private bool depthBatched;
+    private bool forceStructuralChildGeneration;
     private IRecordProvider? _factoryOutlet { get; set; }
 
     private MasterTemplate? _template { get; set; }
@@ -146,6 +149,24 @@ public sealed class RecordProvider
         return this;
     }
 
+    /// <summary>
+    /// Opt in to one insert per dependency depth for this Now call, instead
+    /// of one per Provider. Not supported with shared ancestors resolved
+    /// under manual mode.
+    /// </summary>
+    public RecordProvider DepthBatched()
+    {
+        this.depthBatched = true;
+        return this;
+    }
+
+    /// <summary>Internal: a child of a DEFERRED/depth-batched parent must build its own children structurally too.</summary>
+    public RecordProvider ForceStructuralChildGeneration()
+    {
+        this.forceStructuralChildGeneration = true;
+        return this;
+    }
+
     // Include methods ---------------------------------------------------
 
     public RecordProvider Put(PropertyInfo field, IValueExpression valueTemplate) =>
@@ -247,11 +268,32 @@ public sealed class RecordProvider
     public Bundle SupplyBundle()
     {
         this.WarnIfMixingCustomTemplateWithOverrides();
+        SharedAncestorResolver.ResolveAllConfigured(this.providerLookup, this.insertMode);
         GenerationContext context = this.BuildContext();
         List<object> templates = this.TemplatesToFill();
         Bundle bundle = this.Generate(context, templates);
-        this.GenerateChildren(bundle);
+        this.SupplyChildrenAndPersist(bundle);
         return bundle;
+    }
+
+    private void SupplyChildrenAndPersist(Bundle bundle)
+    {
+        if (this.BuildsStructurallyForBatchedInsert())
+        {
+            // Children join the same deferred graph - generated structurally now, FK wired when the buffer flushes.
+            this.GenerateChildren(bundle, structural: true);
+            this.Persist(bundle);
+        }
+        else if (this.forceStructuralChildGeneration)
+        {
+            // A structural child of a deferred parent: nothing to persist here, but its own children stay structural too.
+            this.GenerateChildren(bundle, structural: true);
+        }
+        else
+        {
+            // Now/Mock: primaries already have Ids after Generate(); wire the children's back-reference concretely.
+            this.GenerateChildren(bundle, structural: false);
+        }
     }
 
     public List<object> SupplyList() =>
@@ -264,12 +306,19 @@ public sealed class RecordProvider
             ? RecordFactory.CreateBundle(context, this.Template, templates)
             : this.FactoryOutlet.CreateBundle(context, templates);
 
+    private void Persist(Bundle bundle)
+    {
+        if (this.FlushesGraphWhenThisCallEnds())
+        {
+            DeferredInsertBuffer.InsertGraph(bundle);
+        }
+        else if (this.DeferredToRegistry())
+        {
+            DeferredInserter.Register(bundle);
+        }
+    }
+
     // Downward generation - child collections ----------------------------
-    //
-    // Depth-batched insert and the DEFERRED registry (not ported - see
-    // csharp-port-idea.md) need children generated "structurally" (FK wired
-    // later, when a deferred buffer flushes); since neither is ported here,
-    // children are always generated with a real (or mocked) parent Id in hand.
 
     private readonly List<ChildProvider> childProviders = [];
 
@@ -288,35 +337,65 @@ public sealed class RecordProvider
     public RecordProvider WithChild(PropertyInfo childRelationshipField) =>
         this.With(new ChildProvider(childRelationshipField));
 
-    private void GenerateChildren(Bundle bundle) =>
-        this.childProviders.ForEach(childProvider => this.GenerateOneChildCollection(bundle, childProvider));
+    private void GenerateChildren(Bundle bundle, bool structural)
+    {
+        if (this.childProviders.Count == 0)
+        {
+            return;
+        }
 
-    private void GenerateOneChildCollection(Bundle bundle, ChildProvider childProvider)
+        this.childProviders.ForEach(childProvider => this.GenerateOneChildCollection(bundle, childProvider, structural));
+    }
+
+    private void GenerateOneChildCollection(Bundle bundle, ChildProvider childProvider, bool structural)
     {
         List<object> primaries = bundle.GetList(this.FactoryOutlet.PrimaryTargetField)!;
         List<(object Template, int ParentRow)> childRows = primaries
             .SelectMany((primary, parentRow) => childProvider
-                .TemplatesForParent(IdOf(primary))
+                .TemplatesForParent(structural ? null : IdOf(primary))
                 .Select(template => (Template: template, ParentRow: parentRow)))
             .ToList();
 
+        InsertMode childMode = structural ? InsertMode.Never : childProvider.EffectiveInsertMode(this.insertMode);
         RecordProvider childInstance = childProvider.NewProvider(this.providerLookup)
             .SetOverrideTemplateList(childRows.Select(row => row.Template).ToList())
-            .SetInsertMode(childProvider.EffectiveInsertMode(this.insertMode))
+            .SetInsertMode(childMode)
             .SetInclusivity(childProvider.EffectiveInclusivity(this.inclusivity));
-        Bundle childBundle = childInstance.SupplyBundle();
+        if (structural)
+        {
+            // The back-reference is wired by the deferred buffer at flush, so the child must not also
+            // generate its own parent on that field, and its own children stay structural for the same flush.
+            _ = childInstance.ExcludeRelationshipIfPresent(childProvider.RelationshipField).ForceStructuralChildGeneration();
+        }
 
+        Bundle childBundle = childInstance.SupplyBundle();
         _ = bundle.PutChild(childProvider.RelationshipField, childBundle, childRows.Select(row => row.ParentRow).ToList());
     }
 
     private static object? IdOf(object record) =>
         record.GetType().GetProperty("Id")?.GetValue(record);
 
-    private GenerationContext BuildContext() =>
-        new GenerationContext(this.providerLookup, this.insertMode, this.inclusivity)
+    private GenerationContext BuildContext()
+    {
+        GenerationContext context = new GenerationContext(this.providerLookup, this.ContextInsertMode(), this.inclusivity)
             .WithForcedRelationshipPaths(this.forcedRelationshipPaths)
             .WithPathValues(this.pathValues)
             .WithAncestorCycleGuard(this.ancestorCyclesAllowed);
+        return this.BuildsStructurallyForBatchedInsert()
+            ? context.ForBatchedInsert()
+            : context;
+    }
+
+    private InsertMode ContextInsertMode() =>
+        this.BuildsStructurallyForBatchedInsert()
+            ? InsertMode.Never
+            : this.insertMode;
+
+    private bool BuildsStructurallyForBatchedInsert() => this.FlushesGraphWhenThisCallEnds() || this.DeferredToRegistry();
+
+    private bool FlushesGraphWhenThisCallEnds() => this.depthBatched && this.insertMode == InsertMode.Now;
+
+    private bool DeferredToRegistry() => this.insertMode == InsertMode.Deferred;
 
     private List<object> TemplatesToFill()
     {
