@@ -12,12 +12,9 @@ namespace Net.Nowhereatall.Xfty.Lookup;
 ///
 /// Instances are flyweights, interned by record type + flavour (predicates
 /// are *not* part of the identity). Obtain one with <see cref="Get"/> and add
-/// its predicates with <see cref="Matching"/> **once**, in a single place.
-///
-/// The Apex original also carried a record-type discriminator
-/// (Salesforce RecordType); that's genuinely Salesforce-specific schema
-/// metadata with no C# analog (a real target would be EF's TPH discriminator
-/// column, not attempted here) - dropped rather than faked.
+/// its predicates with <see cref="Matching"/> **once**, in a single place -
+/// or use <see cref="DiscriminatorLookupKey"/> for the common "match one
+/// field's value" case, which enforces that for you.
 /// </summary>
 public sealed class FlavouredLookupKey : ILookupKey
 {
