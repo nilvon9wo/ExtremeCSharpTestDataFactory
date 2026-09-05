@@ -21,7 +21,7 @@ public class UniqueStringOfLengthExpressionTest
         UniqueStringOfLengthExpression expression = new(37);
 
         // Act
-        List<string> produced = Enumerable.Range(0, 20).Select(_ => (string)expression.Get()!).ToList();
+        List<string> produced = [.. Enumerable.Range(0, 20).Select(_ => (string)expression.Get()!)];
 
         // Assert
         Assert.Equal(20, produced.Distinct().Count());

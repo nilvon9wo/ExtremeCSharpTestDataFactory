@@ -16,7 +16,7 @@ public class UniqueStringExpressionTest
             .Select(_ => new UniqueStringExpression("Prefix"));
 
         // Act
-        List<object> produced = expressions.Select(expression => expression.Get()).ToList();
+        List<object> produced = [.. expressions.Select(expression => expression.Get())];
 
         // Assert - the static counter keeps values distinct across instances
         Assert.Equal(25, produced.Distinct().Count());

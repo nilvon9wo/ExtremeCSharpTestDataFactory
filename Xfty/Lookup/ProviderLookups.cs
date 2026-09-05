@@ -69,8 +69,8 @@ public static class ProviderLookups
     private static ILookupKey BestOf(ISet<ILookupKey> matches, object? record)
     {
         int topSpecificity = matches.Max(key => key.Specificity);
-        List<ILookupKey> topTier = matches.Where(key => key.Specificity == topSpecificity).ToList();
-        List<string> topTierHashes = topTier.Select(key => key.HashKey).Distinct().ToList();
+        List<ILookupKey> topTier = [.. matches.Where(key => key.Specificity == topSpecificity)];
+        List<string> topTierHashes = [.. topTier.Select(key => key.HashKey).Distinct()];
         return topTierHashes.Count > 1
             ? throw new LookupException(
                 $"Ambiguous Provider variant for {record?.GetType()}: {string.Join(", ", topTierHashes)}. Supply an explicit lookup key.")

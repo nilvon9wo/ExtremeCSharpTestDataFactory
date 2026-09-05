@@ -30,18 +30,17 @@ internal sealed class RecordProviderChildConfig
         List<(object Template, int ParentRow)> childRows = ChildRowsFor(bundle, primaryField, childProvider, structural);
         RecordProvider childInstance = BuildChildInstance(childProvider, structural, childRows, state);
         Bundle childBundle = childInstance.SupplyBundle();
-        _ = bundle.PutChild(childProvider.RelationshipField, childBundle, childRows.Select(row => row.ParentRow).ToList());
+        _ = bundle.PutChild(childProvider.RelationshipField, childBundle, [.. childRows.Select(row => row.ParentRow)]);
     }
 
     private static List<(object Template, int ParentRow)> ChildRowsFor(
         Bundle bundle, PropertyInfo primaryField, ChildProvider childProvider, bool structural)
     {
         List<object> primaries = bundle.GetList(primaryField)!;
-        return primaries
+        return [.. primaries
             .SelectMany((primary, parentRow) => childProvider
                 .TemplatesForParent(structural ? null : IdOf(primary))
-                .Select(template => (Template: template, ParentRow: parentRow)))
-            .ToList();
+                .Select(template => (Template: template, ParentRow: parentRow)))];
     }
 
     private static RecordProvider BuildChildInstance(
@@ -49,7 +48,7 @@ internal sealed class RecordProviderChildConfig
     {
         InsertMode childMode = structural ? InsertMode.Never : childProvider.EffectiveInsertMode(state.InsertMode);
         RecordProvider childInstance = childProvider.NewProvider(state.ProviderLookup)
-            .SetOverrideTemplateList(childRows.Select(row => row.Template).ToList())
+            .SetOverrideTemplateList([.. childRows.Select(row => row.Template)])
             .SetInsertMode(childMode)
             .SetInclusivity(childProvider.EffectiveInclusivity(state.Inclusivity));
         if (state.PersistenceGateway is not null)

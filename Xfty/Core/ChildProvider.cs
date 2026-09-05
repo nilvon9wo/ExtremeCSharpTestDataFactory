@@ -149,7 +149,7 @@ public sealed class ChildProvider
 
     /// <summary>Build the quantity child templates for one primary, back-reference set.</summary>
     public List<object> TemplatesForParent(object? parentId) =>
-        Enumerable.Range(0, this.quantity).Select(_ => this.CloneWithBackReference(parentId)).ToList();
+        [.. Enumerable.Range(0, this.quantity).Select(_ => this.CloneWithBackReference(parentId))];
 
     private object CloneWithBackReference(object? parentId)
     {

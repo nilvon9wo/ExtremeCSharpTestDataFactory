@@ -18,7 +18,7 @@ public sealed class FieldInSetPredicate : IRecordPredicate
     {
         this.field = field;
         this.acceptedValues = acceptedValues is null
-            ? new HashSet<object?>()
+            ? []
             : new HashSet<object?>(acceptedValues);
     }
 

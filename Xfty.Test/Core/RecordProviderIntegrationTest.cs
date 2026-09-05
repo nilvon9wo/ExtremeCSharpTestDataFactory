@@ -68,7 +68,7 @@ public class RecordProviderIntegrationTest
         List<object> results = provider.SupplyList();
 
         // Assert
-        List<Contact> contacts = results.Cast<Contact>().ToList();
+        List<Contact> contacts = [.. results.Cast<Contact>()];
         Assert.Equal(3, contacts.Count);
         Assert.Equal(3, contacts.Select(contact => contact.AccountId).Distinct().Count());
     }

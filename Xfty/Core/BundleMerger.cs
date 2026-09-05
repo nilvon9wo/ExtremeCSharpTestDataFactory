@@ -48,7 +48,7 @@ public static class BundleMerger
             return;
         }
 
-        List<object> allPrimaries = bundles.SelectMany(each => each.PrimaryRecords() ?? []).ToList();
+        List<object> allPrimaries = [.. bundles.SelectMany(each => each.PrimaryRecords() ?? [])];
         merged.PutPrimaries(primaryField, allPrimaries);
     }
 }

@@ -40,7 +40,7 @@ public class SharedAncestorIntegrationTest
         List<object> results = provider.SupplyList();
 
         // Assert - both contacts point at the very same generated Account Id
-        List<string?> accountIds = results.Cast<Contact>().Select(contact => contact.AccountId).Distinct().ToList();
+        List<string?> accountIds = [.. results.Cast<Contact>().Select(contact => contact.AccountId).Distinct()];
         _ = Assert.Single(accountIds);
         Assert.NotNull(accountIds[0]);
     }

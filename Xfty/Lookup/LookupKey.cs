@@ -11,7 +11,7 @@ namespace Net.Nowhereatall.Xfty.Lookup;
 /// </summary>
 public sealed class LookupKey : ILookupKey
 {
-    private static readonly Dictionary<Type, LookupKey> InstanceByType = new();
+    private static readonly Dictionary<Type, LookupKey> InstanceByType = [];
 
     private LookupKey(Type recordType) => this.RecordType = recordType;
 

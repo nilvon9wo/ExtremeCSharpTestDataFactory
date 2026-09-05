@@ -15,7 +15,7 @@ public static class PlainValueFiller
     }
 
     public static List<object> CloneAndCompletePlainValues(MasterTemplate template, List<object> testTemplates) =>
-        testTemplates.Select(testTemplate => CloneAndCompletePlainValues(template, testTemplate)).ToList();
+        [.. testTemplates.Select(testTemplate => CloneAndCompletePlainValues(template, testTemplate))];
 
     private static void FillPlainValue(MasterTemplate template, object record, PropertyInfo field)
     {

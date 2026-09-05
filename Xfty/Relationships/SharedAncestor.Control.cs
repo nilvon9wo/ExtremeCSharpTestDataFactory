@@ -23,7 +23,7 @@ public sealed partial class SharedAncestor
     public static void ResolveNow(IProviderLookup lookup, InsertMode insertMode, List<string> names)
     {
         SharedAncestorResolver.ApplyLookupDefaults(lookup);
-        List<SharedAncestor> toResolve = names.Select(Get).Where(ancestor => ancestor.resolvedRecord is null).ToList();
+        List<SharedAncestor> toResolve = [.. names.Select(Get).Where(ancestor => ancestor.resolvedRecord is null)];
         if (toResolve.Count > 0)
         {
             new SharedAncestorResolver(lookup, insertMode).Resolve(toResolve);
@@ -31,7 +31,7 @@ public sealed partial class SharedAncestor
     }
 
     /// <summary>Every registered ancestor not yet resolved.</summary>
-    public static List<SharedAncestor> ConfiguredUnresolved() => ByName.Values.Where(IsUnresolvedAndEnabled).ToList();
+    public static List<SharedAncestor> ConfiguredUnresolved() => [.. ByName.Values.Where(IsUnresolvedAndEnabled)];
 
     private static bool IsUnresolvedAndEnabled(SharedAncestor ancestor) =>
         ancestor.source is not null && ancestor.resolvedRecord is null && !Disabled.Contains(ancestor._name);

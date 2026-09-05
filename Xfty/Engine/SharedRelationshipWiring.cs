@@ -40,7 +40,7 @@ public sealed class SharedRelationshipWiring
     }
 
     private static List<object> Repeat(object record, int times) =>
-        Enumerable.Repeat(record, times).ToList();
+        [.. Enumerable.Repeat(record, times)];
 
     private void PlaceResolvedBundle(Bundle bundle, PropertyInfo field) =>
         bundle.Put(field, this.shared.GetResolvedBundle());

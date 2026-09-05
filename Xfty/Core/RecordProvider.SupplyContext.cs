@@ -41,5 +41,5 @@ public sealed partial class RecordProvider
     }
 
     private static List<object> MultiplyByQuantity(List<object> templateList, int quantity) =>
-        Enumerable.Range(1, quantity).SelectMany(_ => templateList).ToList();
+        [.. Enumerable.Range(1, quantity).SelectMany(_ => templateList)];
 }

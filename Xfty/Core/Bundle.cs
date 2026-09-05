@@ -11,9 +11,9 @@ namespace Net.Nowhereatall.Xfty.Core;
 /// </summary>
 public sealed class Bundle
 {
-    private readonly Dictionary<PropertyInfo, Bundle> bundleByField = new();
-    private readonly Dictionary<PropertyInfo, List<object>> recordListByField = new();
-    private readonly Dictionary<PropertyInfo, List<BundleChildEntry>> childEntriesByRelationshipField = new();
+    private readonly Dictionary<PropertyInfo, Bundle> bundleByField = [];
+    private readonly Dictionary<PropertyInfo, List<object>> recordListByField = [];
+    private readonly Dictionary<PropertyInfo, List<BundleChildEntry>> childEntriesByRelationshipField = [];
     private readonly DeferredValueQueue deferredValueQueue = new();
 
     /// <summary>The field this bundle's primary records are keyed under. Null on a bundle built by hand.</summary>
@@ -124,7 +124,7 @@ public sealed class Bundle
 
     /// <summary>The sub-bundles for a child relationship field, in config declaration order (empty list if none).</summary>
     public List<Bundle> ChildBundles(PropertyInfo childRelationshipField) =>
-        this.ChildEntries(childRelationshipField).Select(entry => entry.Bundle).ToList();
+        [.. this.ChildEntries(childRelationshipField).Select(entry => entry.Bundle)];
 
     /// <summary>The first child generated for childRelationshipField; null if none.</summary>
     public object? GetChild(PropertyInfo childRelationshipField)
@@ -141,9 +141,7 @@ public sealed class Bundle
 
     /// <summary>Every child generated for childRelationshipField, merged across configs, in the documented order.</summary>
     public List<object> GetChildList(PropertyInfo childRelationshipField) =>
-        this.ChildBundles(childRelationshipField)
-            .SelectMany(childBundle => childBundle.PrimaryRecords() ?? [])
-            .ToList();
+        [.. this.ChildBundles(childRelationshipField).SelectMany(childBundle => childBundle.PrimaryRecords() ?? [])];
 
     /// <summary>GetChildList(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public List<object> GetChildList<TChild>(Expression<Func<TChild, object?>> childRelationshipField) =>
@@ -151,10 +149,9 @@ public sealed class Bundle
 
     /// <summary>Just the children of one primary row - the slice of GetChildList that belongs to that row.</summary>
     public List<object> ChildRecordsOf(int parentRowIndex, PropertyInfo childRelationshipField) =>
-        this.ChildEntries(childRelationshipField)
+        [.. this.ChildEntries(childRelationshipField)
             .SelectMany(entry => (entry.Bundle.PrimaryRecords() ?? [])
-                .Where((_, childRow) => entry.ParentRowByChildRow[childRow] == parentRowIndex))
-            .ToList();
+                .Where((_, childRow) => entry.ParentRowByChildRow[childRow] == parentRowIndex))];
 
     /// <summary>A single bundle of every child for childRelationshipField - merged primaries plus each child's own generated parents. Null if none.</summary>
     public Bundle? GetChildBundle(PropertyInfo childRelationshipField)

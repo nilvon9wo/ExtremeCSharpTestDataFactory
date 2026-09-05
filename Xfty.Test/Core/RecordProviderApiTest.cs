@@ -122,7 +122,7 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(
-            new List<object> { new Contact { FirstName = "Alice" }, new Contact { FirstName = "Bob" } }, Lookup)
+            [new Contact { FirstName = "Alice" }, new Contact { FirstName = "Bob" }], Lookup)
             .SetInsertMode(InsertMode.Mock);
 
         // Act
@@ -181,7 +181,7 @@ public class RecordProviderApiTest
     public void Constructor_FromAHomogeneousTemplateList_IsAccepted()
     {
         // Arrange
-        RecordProvider provider = new RecordProvider(new List<object> { new Contact { FirstName = "A" }, new Contact { FirstName = "B" } }, Lookup)
+        RecordProvider provider = new RecordProvider([new Contact { FirstName = "A" }, new Contact { FirstName = "B" }], Lookup)
             .SetInsertMode(InsertMode.Mock);
 
         // Act

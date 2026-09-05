@@ -115,10 +115,9 @@ public sealed class SharedAncestorResolver
     private List<SharedAncestor> NestedOf(SharedAncestor ancestor)
     {
         MasterTemplate template = ancestor.Source().MasterTemplate(this.lookup);
-        return template.RequiredRelationshipByField.Values
+        return [.. template.RequiredRelationshipByField.Values
             .Concat(template.OptionalRelationshipByField.Values)
-            .OfType<SharedAncestor>()
-            .ToList();
+            .OfType<SharedAncestor>()];
     }
 
     // S1 generate + S2 depth-batched persist -----------------------------

@@ -214,7 +214,7 @@ public class ContextAwareExpressionTest
 
         // Assert
         HashSet<object?> labels = [.. accounts.Cast<Account>().Select(account => account.Description)];
-        Assert.Equal(new HashSet<object?> { "1 of 3", "2 of 3", "3 of 3" }, labels); // each row sees all three sibling primaries and its own rowIndex
+        Assert.Equal(["1 of 3", "2 of 3", "3 of 3"], labels); // each row sees all three sibling primaries and its own rowIndex
     }
 }
 

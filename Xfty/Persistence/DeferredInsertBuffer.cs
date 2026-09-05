@@ -143,7 +143,7 @@ public sealed class DeferredInsertBuffer
         this.pendingLinks.Add(new DepthBatchedInserterParentLink(child.Index, parent.Index, field));
     }
 
-    private List<IndexedRecord> Append(List<object> records) => records.Select(this.AppendOne).ToList();
+    private List<IndexedRecord> Append(List<object> records) => [.. records.Select(this.AppendOne)];
 
     private IndexedRecord AppendOne(object record)
     {

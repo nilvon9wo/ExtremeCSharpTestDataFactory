@@ -10,7 +10,7 @@ public sealed class UniqueStringOfLengthExpression : IValueExpression
     private const int AAsciiCode = 65;
     private const int AlphabetLength = 26;
 
-    private static readonly Dictionary<int, int> LengthToCounter = new();
+    private static readonly Dictionary<int, int> LengthToCounter = [];
 
     private readonly int length;
 

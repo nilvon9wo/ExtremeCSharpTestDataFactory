@@ -31,7 +31,7 @@ public class ExGeneratingRecordsTest
     {
         // from docs/use/generating-records.md "Shorthand constructors"
         Contact fromTemplate = (Contact)new RecordProvider(new Contact { FirstName = "Alice" }, Lookup).Supply();
-        List<object> fromList = new RecordProvider(new List<object> { new Contact(), new Contact() }, Lookup).SupplyList();
+        List<object> fromList = new RecordProvider([new Contact(), new Contact()], Lookup).SupplyList();
         object fromKey = new RecordProvider(LookupKey.Get(typeof(Contact)), Lookup).Supply();
 
         Assert.Equal("Alice", fromTemplate.FirstName);
@@ -72,7 +72,7 @@ public class ExGeneratingRecordsTest
         DefaultProviderLookup providerLookup = new();
 
         Contact fromTemplate = (Contact)new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup).Supply();
-        List<object> fromList = new RecordProvider(new List<object> { new Contact(), new Contact() }, providerLookup).SupplyList();
+        List<object> fromList = new RecordProvider([new Contact(), new Contact()], providerLookup).SupplyList();
         object fromKey = new RecordProvider(LookupKey.Get(typeof(Contact)), providerLookup).Supply();
 
         Assert.Equal("Alice", fromTemplate.FirstName);

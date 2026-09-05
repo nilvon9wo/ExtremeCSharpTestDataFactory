@@ -100,5 +100,5 @@ public sealed class ForcedValues
         };
 
     private static List<object?> ResolvedPerRow(IValueExpression expression, int rowCount) =>
-        Enumerable.Range(0, rowCount).Select(_ => expression.Get()).ToList();
+        [.. Enumerable.Range(0, rowCount).Select(_ => expression.Get())];
 }

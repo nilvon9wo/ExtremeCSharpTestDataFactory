@@ -59,11 +59,11 @@ public sealed class DepthBatchedInserter
 
         List<int> layer = this.TakeNextLayer(unpersisted);
         this.InsertLayer(layer);
-        this.InsertRemainingLayers(unpersisted.Except(layer).ToHashSet());
+        this.InsertRemainingLayers([.. unpersisted.Except(layer)]);
     }
 
     private List<int> TakeNextLayer(HashSet<int> unpersisted) =>
-        FailIfEmpty(unpersisted.Where(index => this.ParentsPersisted(index, unpersisted)).ToList());
+        FailIfEmpty([.. unpersisted.Where(index => this.ParentsPersisted(index, unpersisted))]);
 
     private bool ParentsPersisted(int child, HashSet<int> unpersisted) =>
         !this.linksByChild[child].Any(link => unpersisted.Contains(link.ParentIndex));
@@ -71,10 +71,9 @@ public sealed class DepthBatchedInserter
     private void InsertLayer(List<int> indexes)
     {
         indexes.ForEach(this.PointAtParents);
-        List<object> layer = indexes
+        List<object> layer = [.. indexes
             .Select(index => this.records[index])
-            .Where(record => IdOf(record) is null)
-            .ToList();
+            .Where(record => IdOf(record) is null)];
         if (layer.Count == 0)
         {
             return;
@@ -116,9 +115,7 @@ public sealed class DepthBatchedInserter
         int recordCount,
         List<DepthBatchedInserterParentLink>? links)
     {
-        List<List<DepthBatchedInserterParentLink>> byChild = Enumerable.Range(0, recordCount)
-            .Select(_ => new List<DepthBatchedInserterParentLink>())
-            .ToList();
+        List<List<DepthBatchedInserterParentLink>> byChild = [.. Enumerable.Range(0, recordCount).Select(_ => new List<DepthBatchedInserterParentLink>())];
         (links ?? []).ForEach(link => byChild[link.ChildIndex].Add(link));
         return byChild;
     }

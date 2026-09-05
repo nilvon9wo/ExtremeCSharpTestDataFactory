@@ -18,7 +18,7 @@ namespace Net.Nowhereatall.Xfty.Lookup;
 /// </summary>
 public sealed class FlavouredLookupKey : ILookupKey
 {
-    private static readonly Dictionary<string, FlavouredLookupKey> InstanceByHash = new();
+    private static readonly Dictionary<string, FlavouredLookupKey> InstanceByHash = [];
 
     private readonly LookupKey baseKey;
     private readonly List<IRecordPredicate> predicates = [];

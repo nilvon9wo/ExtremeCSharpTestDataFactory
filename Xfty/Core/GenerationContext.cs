@@ -155,14 +155,12 @@ public sealed class GenerationContext
     /// <summary>As ForRelated(), but for the child on relationshipField: only forced paths starting with it are carried, head dropped.</summary>
     public GenerationContext ForRelated(PropertyInfo? relationshipField)
     {
-        List<List<PropertyInfo>> childPaths = this.ForcedRelationshipPaths
+        List<List<PropertyInfo>> childPaths = [.. this.ForcedRelationshipPaths
             .Where(path => relationshipField is not null && path.Count > 1 && path[0] == relationshipField)
-            .Select(path => path.Skip(1).ToList())
-            .ToList();
-        List<PathValue> childPathValues = this.PathValues
+            .Select(path => path.Skip(1).ToList())];
+        List<PathValue> childPathValues = [.. this.PathValues
             .Where(pathValue => relationshipField is not null && !pathValue.IsAtTarget() && pathValue.Head() == relationshipField)
-            .Select(pathValue => pathValue.Tail())
-            .ToList();
+            .Select(pathValue => pathValue.Tail())];
         InsertMode relatedMode = this.InsertMode == InsertMode.RelatedOnly ? InsertMode.Now : this.InsertMode;
         InsertInclusivity relatedInclusivity = this.Inclusivity == InsertInclusivity.PreventCascade ? InsertInclusivity.None : this.Inclusivity;
         return new GenerationContext(
