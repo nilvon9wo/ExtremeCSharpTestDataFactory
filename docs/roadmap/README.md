@@ -39,6 +39,15 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 |------|--------|--------|
 | Embedded/denormalized document relationships (a document database's native nested-array shape, distinct from the FK-reference relationships XFTY models today) | 💡 | [embedded-documents.md](embedded-documents.md) |
 | Vector database support (a bundled random-vector value expression; persistence already covered by `IPersistenceGateway`) | 💡 | [vector-databases.md](vector-databases.md) |
+| Auto-population fallback via AutoFixture/AutoBogus for fields no Provider declares (likely a separate `Xfty.AutoFixture` adapter package, not a core change) | 💡 | [autofixture-fallback-fill.md](autofixture-fallback-fill.md) |
+
+---
+
+## Decided, not yet done
+
+| Item | Status | Detail |
+|------|--------|--------|
+| Publish `Xfty` and `Xfty.EntityFrameworkCore` to nuget.org | Both packages build/pack cleanly and are verified locally; the actual push needs the maintainer's own nuget.org account and API key. | [contribute/packaging.md](../contribute/packaging.md) |
 
 ---
 

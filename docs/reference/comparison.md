@@ -21,33 +21,40 @@ relying on that part.
 
 | | Primary job |
 |---|---|
+| **XFTY** | Generate a **graph** of related records for a domain model that has real relationships - required/optional, shared, deferred - with a per-call choice of whether that graph gets mocked, left alone, or actually inserted through a pluggable persistence seam. |
 | **AutoFixture** | Eliminate "Arrange" boilerplate in a unit test by auto-populating every property/constructor argument with an anonymous, deliberately-meaningless value ("it doesn't matter what this is, only that it's present"). Auto-mocking integration (AutoMoq, AutoNSubstitute) for dependencies. |
 | **Bogus** | Generate *realistic-looking* fake data — names, addresses, emails, lorem ipsum, commerce/finance data, many locales — via an explicit per-property rule (`Faker<T>().RuleFor(...)`). |
 | **AutoBogus** | AutoFixture's auto-population philosophy plus Bogus's realistic generators, picked by convention (a property named `Email` gets a fake email). |
 | **NBuilder** | A fluent way to stamp out *N* similar objects with per-item overrides and simple sequential values. The simplest tool here. |
-| **XFTY** | Generate a **graph** of related records for a domain model that has real relationships - required/optional, shared, deferred - with a per-call choice of whether that graph gets mocked, left alone, or actually inserted through a pluggable persistence seam. |
 
 ---
 
 ## Feature comparison
 
-| Capability | AutoFixture | Bogus | AutoBogus | NBuilder | XFTY |
+GitHub can't render a wide table without forcing a horizontal scrollbar, so
+this one stays to symbols only — the two prose sections right below it
+("real edge" / "genuinely loses") carry the actual explanation for every row
+that needs one.
+
+✅ yes · ❌ no · ◐ partial · — not applicable
+
+| Capability | XFTY | AutoFixture | Bogus | AutoBogus | NBuilder |
 |---|:---:|:---:|:---:|:---:|:---:|
-| Realistic fake data out of the box (names, emails, addresses, lorem ipsum) | ❌ (deliberately not) | ✅ | ✅ | ❌ | ❌ (bring your own `IValueExpression`, or a literal) |
-| Auto-populates every property with no rules written | ✅ | ❌ (rule per property) | ✅ | ❌ | ❌ (a Provider states its own defaults) |
-| Fluent per-record override of specific fields | ✅ (`.With(...)` via customizations) | ✅ (`RuleFor`) | ✅ | ✅ (`.With(...)`) | ✅ (`Put`/override templates) |
-| Recursive nested-object population | ✅ | manual (write a rule per nested object) | ✅ | ❌ | ✅ (relationship generation) |
-| Required vs. optional relationship control, per call | ❌ | ❌ | ❌ | ❌ | ✅ (`InsertInclusivity`, per-call `IncludeOptional`/`ExcludeRelationship`) |
-| One shared parent instance reused/deduplicated across many generated children | ❌ | ❌ | ❌ | ❌ | ✅ (`SharedAncestor`) |
-| Self-referential / circular relationship cycle guard | partial (depth limit) | n/a | partial (depth limit) | n/a | ✅ (explicit cycle detection + opt-out) |
-| A field's value derived from a sibling/ancestor/descendant, with a mis-ordering guard | ❌ | partial (a rule sees the in-progress object; no ordering guard, no ancestor/descendant graph walk) | ❌ | ❌ | ✅ (`IContextAwareExpression`, loud on misuse) |
-| Choosing a different "recipe" for the same type by a runtime condition | partial (global customizations) | manual (separate `Faker<T>` instances) | ❌ | ❌ | ✅ (`FlavouredLookupKey`/`DiscriminatorLookupKey`, resolved per relationship) |
-| Insert-mode abstraction (generate only vs. mock-Id vs. actually persist) | ❌ (out of scope) | ❌ (out of scope) | ❌ (out of scope) | ❌ (out of scope) | ✅ (`InsertMode`, pluggable `IPersistenceGateway`) |
-| Dependency-ordered batch insert across mixed record types | ❌ | ❌ | ❌ | ❌ | ✅ (`DepthBatchedInserter`) |
-| Graft a generated graph's relationships onto records an `init`-only model rejects (for code under test that reads `.Account.Name`) | ❌ | ❌ | ❌ | ❌ | ✅ (`Inject`/`RecordInjector`) |
-| Auto-mocking of service dependencies (not data) | ✅ (AutoMoq/AutoNSubstitute) | ❌ | ❌ | ❌ | ❌ (out of scope - generates data records, not service doubles) |
-| Deep extensibility hook (custom generation strategy per type) | ✅ (`ISpecimenBuilder`) | ✅ (custom rules) | ✅ | limited | ✅ (`IRecordProvider`, custom `IValueExpression`/`IContextAwareExpression`/`IDefaultRelationship`) |
-| Maturity / ecosystem | very mature, long track record | mature, widely used | smaller, less active in recent years | older, largely superseded by the above | **new — first beta, no production track record yet** |
+| Realistic fake data out of the box | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Auto-populates every property, no rules written | ❌ | ✅ | ❌ | ✅ | ❌ |
+| Fluent per-record override of specific fields | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Recursive nested-object population | ✅ | ✅ | ◐ | ✅ | ❌ |
+| Required vs. optional relationship control, per call | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Shared parent deduplicated across many children | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Self-referential / circular relationship cycle guard | ✅ | ◐ | — | ◐ | — |
+| Sibling/ancestor/descendant-derived value, with a mis-ordering guard | ✅ | ❌ | ◐ | ❌ | ❌ |
+| Runtime-conditioned recipe choice for the same type | ✅ | ◐ | ◐ | ❌ | ❌ |
+| Insert-mode abstraction (mock vs. actually persist) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Dependency-ordered batch insert across mixed types | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Graft onto an `init`-only model a real constructor rejects | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Auto-mocking of service dependencies (not data) | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Deep extensibility hook (custom strategy per type) | ✅ | ✅ | ✅ | ✅ | ◐ |
+| Maturity / ecosystem | new — first beta | very mature | mature | smaller, less active recently | older, largely superseded |
 
 ---
 
@@ -65,7 +72,14 @@ relying on that part.
   definitions serve a pure-in-memory unit test (`Mock`) and a real database
   integration test (`Now`, through EF Core, Dapper, or anything else) with
   no rewrite. The other four tools stop at "here's your populated object";
-  what happens to it next is entirely your own code.
+  what happens to it next is entirely your own code. `DepthBatchedInserter`
+  extends this to inserting a mixed-type graph in dependency order, one
+  batch per depth level, instead of one call per object.
+- **It can graft onto a model none of the alternatives can populate.** An
+  `init`-only or constructor-validated model that rejects a builder pattern
+  outright is still reachable via `Inject`/`RecordInjector`, which sets the
+  relationship through reflection after the fact - useful for code under
+  test that reads `.Account.Name` off a type your test can't otherwise wire.
 - **Context-aware values are a first-class, guarded concept.** A field
   derived from a sibling, an ancestor several hops up, or (once the whole
   graph exists) a child, with a *loud* error on a mis-ordered read instead of
@@ -118,6 +132,42 @@ relying on that part.
   and a real database:** XFTY. Nothing above does this; combine it with
   Bogus for the realistic-value gap (a `Faker<Address>` call inside an
   `IValueExpression` composes fine).
+
+## Could XFTY pair with one of these to close a gap?
+
+Sometimes, and it's worth being specific about which gap and how much work
+each pairing actually takes - "compose" is doing very different amounts of
+work in each case below.
+
+- **Bogus, for realistic values — works today, zero new code.** An
+  `IValueExpression` is just an interface; nothing stops it from calling a
+  `Faker<T>` and returning the result. This is already the answer given
+  above and in [When to reach for which](#when-to-reach-for-which): declare
+  the field with a Provider as normal, and wrap Bogus for the one line that
+  needs to *look* real. No adapter package needed - the seam already exists.
+- **AutoFixture / AutoBogus, for auto-population — a real gap, and a real
+  design, not a trivial fix.** The gap is genuine: a Provider must declare
+  every field it cares about, where AutoFixture's model is "fill in
+  everything, then tell me what you overrode." Closing it *conveniently*
+  (not just "call `Fixture.Create<T>()` yourself before handing the object
+  to XFTY," which already works but means XFTY's own relationship/ancestor
+  logic never sees or touches those fields) would need a genuine
+  integration point - a fallback hook a `RecordProvider` calls for any
+  field neither a Master Template, an override template, nor a relationship
+  set, backed by an injected `ISpecimenBuilder` (or a Bogus `Faker<T>`).
+  That's a small, separate adapter project (`Xfty.AutoFixture`), not a
+  core change - tracked as an idea, not committed:
+  [autofixture-fallback-fill.md](../roadmap/autofixture-fallback-fill.md).
+- **NBuilder — not really a gap to close.** XFTY already generates *N*
+  similar records natively (call a Provider's `Supply()` in a loop, or use
+  `With`/`WithChildren` for the nested case); NBuilder's own niche is
+  already inside what XFTY does, just with more ceremony for the trivial
+  case. Pairing them adds a dependency without closing anything.
+- **Auto-mocking (AutoMoq/AutoNSubstitute) — a different problem, not a gap
+  XFTY has.** These fake *service dependencies* your code under test calls;
+  XFTY generates *data records*. A test that needs both just uses each tool
+  for its own concern independently - there's no shared surface for them to
+  compose across, so there's nothing to build here.
 
 See also: [reference/known-issues.md](known-issues.md),
 [roadmap/README.md](../roadmap/README.md).
