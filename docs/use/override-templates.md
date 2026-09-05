@@ -1,17 +1,17 @@
 # Override Templates
 
 The most common customization. An **override template** is a partially-populated
-`SObject` whose values replace those the Master Template would generate. Only the
-fields you set are overridden; everything else is still generated.
+record whose values replace those the Master Template would generate. Only the
+properties you set are overridden; everything else is still generated.
 
 ---
 
 ## The simplest case
 
-```apex
-Contact result = (Contact) new XFTY_DummySObjectProvider(Contact.SObjectType, lookup)
-    .setOverrideTemplate(new Contact(FirstName = 'Alice', LastName = 'Smith'))
-    .supply();
+```csharp
+Contact result = (Contact)new RecordProvider(typeof(Contact), lookup)
+    .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
+    .Supply();
 ```
 
 If the Contact Provider normally generates
@@ -20,11 +20,11 @@ If the Contact Provider normally generates
 `test.contact1@example.com` — the email is still generated.
 
 A single override template can go straight to the constructor, which derives the
-`SObjectType` (and any record-type variant) from it:
+record type (and any Provider variant) from it:
 
-```apex
-new XFTY_DummySObjectProvider(new Contact(FirstName = 'Alice'), lookup)
-    .supply();
+```csharp
+new RecordProvider(new Contact { FirstName = "Alice" }, lookup)
+    .Supply();
 ```
 
 See [generating-records → shorthand constructors](generating-records.md#shorthand-constructors).
@@ -36,14 +36,14 @@ See [generating-records → shorthand constructors](generating-records.md#shorth
 Customization is applied in a fixed order:
 
 ```text
-Master Template  →  put(...)  →  Override Template
+Master Template  →  Put(...)  →  Override Template
 ```
 
 If more than one customization touches a field, **the override template wins.**
 
-```apex
-.put(Contact.FirstName, new XFTY_LiteralExpression('Generated'))
-.setOverrideTemplate(new Contact(FirstName = 'Alice'))
+```csharp
+.Put(Field.Of<Contact>(nameof(Contact.FirstName)), new LiteralExpression("Generated"))
+.SetOverrideTemplate(new Contact { FirstName = "Alice" })
 // -> "Alice", not "Generated"
 ```
 
@@ -51,15 +51,15 @@ An override value also wins over a [context-aware expression](context-aware-valu
 
 ---
 
-## Override template vs `put(...)`
+## Override template vs `Put(...)`
 
-| Use an override template when… | Use [`put(...)`](value-expressions.md) when… |
+| Use an override template when… | Use [`Put(...)`](value-expressions.md) when… |
 |--------------------------------|--------------------------------------------|
 | customizing one or two records | every generated record should differ |
 | supplying an exact value | replacing the *generation expression* |
 | making one test more readable | generating unique values, or customizing relationships |
 
-Override templates describe **data**; `put(...)` describes **generation**.
+Override templates describe **data**; `Put(...)` describes **generation**.
 
 ---
 
@@ -69,14 +69,12 @@ Sometimes the Master Template supplies a value a test deliberately does not want
 — testing a validation rule, a required-field error, a partially populated
 record.
 
-```apex
-.removeFromMasterTemplate(Contact.Email)
+```csharp
+.RemoveFromMasterTemplate(Field.Of<Contact>(nameof(Contact.Email)))
 ```
 
 This removes the field's generation entirely, rather than replacing it with
 another value. For relationships, use
-[`excludeRelationship(...)`](per-call-relationships.md) instead.
-
-▶ Runnable: `XFTY_Ex_OverrideTemplatesTest`
+[`ExcludeRelationship(...)`](per-call-relationships.md) instead.
 
 See also: [generating-records](generating-records.md) · [value-expressions](value-expressions.md)

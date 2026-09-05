@@ -6,12 +6,12 @@ Provider produces.
 
 ---
 
-## `put(...)` an expression
+## `Put(...)` an expression
 
-```apex
-new XFTY_DummySObjectProvider(Contact.SObjectType, lookup)
-    .put(Contact.FirstName, new XFTY_IncrementingStringExpression('Test Contact'))
-    .supplyBundle();
+```csharp
+new RecordProvider(typeof(Contact), lookup)
+    .Put(Field.Of<Contact>(nameof(Contact.FirstName)), new IncrementingStringExpression("Test Contact"))
+    .SupplyBundle();
 // -> "Test Contact 1", "Test Contact 2", "Test Contact 3", ...
 ```
 
@@ -19,21 +19,22 @@ new XFTY_DummySObjectProvider(Contact.SObjectType, lookup)
 
 ## Implicit exact values
 
-`put(...)` also accepts a bare value — anything that is not already an expression or a relationship is wrapped in `XFTY_LiteralExpression` automatically.
+`Put(...)` also accepts a bare value — anything that is not already an
+expression or a relationship is wrapped in `LiteralExpression` automatically.
 
-```apex
-.put(Account.Type, 'Customer')
-.put(Account.NumberOfEmployees, 500)
+```csharp
+.Put(Field.Of<Account>(nameof(Account.Type)), "Customer")
+.Put(Field.Of<Account>(nameof(Account.NumberOfEmployees)), 500)
 ```
 
 is exactly
 
-```apex
-.put(Account.Type, new XFTY_LiteralExpression('Customer'))
-.put(Account.NumberOfEmployees, new XFTY_LiteralExpression(500))
+```csharp
+.Put(Field.Of<Account>(nameof(Account.Type)), new LiteralExpression("Customer"))
+.Put(Field.Of<Account>(nameof(Account.NumberOfEmployees)), new LiteralExpression(500))
 ```
 
-This works both on Provider Master Templates and on `XFTY_DummySObjectProvider`.
+This works both on a Provider's Master Template and on `RecordProvider` itself.
 
 ---
 
@@ -41,91 +42,91 @@ This works both on Provider Master Templates and on `XFTY_DummySObjectProvider`.
 
 | Expression | Produces |
 |----------|----------|
-| `XFTY_LiteralExpression` | the same value every time |
-| `XFTY_IncrementingStringExpression` | `prefix` + an incrementing suffix |
-| `XFTY_UniqueStringExpression` | guaranteed-unique strings |
-| `XFTY_UniqueStringOfLengthExpression` | unique strings of a fixed length |
-| `XFTY_UniqueEmailExpression` | unique email addresses |
-| `XFTY_IncrementingDecimalExpression` | incrementing decimals |
+| `LiteralExpression` | the same value every time |
+| `IncrementingStringExpression` | `prefix` + an incrementing suffix |
+| `UniqueStringExpression` | guaranteed-unique strings |
+| `UniqueStringOfLengthExpression` | unique strings of a fixed length |
+| `UniqueEmailExpression` | unique email addresses |
+| `IncrementingDecimalExpression` | incrementing decimals |
+| `UniqueAcrossRunsExpression` | a prefix/suffix wrapped around a value unique even across separate process runs |
+
+All live in `Net.Nowhereatall.Xfty.Values`.
 
 ---
 
 ## Setting a value on a generated ancestor
 
-`put` (and `putRequired` / `putOptional`) also takes a **path** —
-`[rel1, ..., relN, targetField]` — to control how a field on a *generated
-ancestor* is produced, for this one call, without editing that ancestor's
-Provider.
+`Put` (and `PutRequired` / `PutOptional`) also takes a **path** —
+`[rel1, ..., relN, targetField]` (a `List<PropertyInfo>`) — to control how a
+field on a *generated ancestor* is produced, for this one call, without editing
+that ancestor's Provider.
 
 The value is whatever the field forms accept — **not just an exact value**:
 
-```apex
-new XFTY_DummySObjectProvider(Contact.SObjectType, lookup)
-    .setInclusivity(XFTY_InsertInclusivityEnum.REQUIRED)
+```csharp
+new RecordProvider(typeof(Contact), lookup)
+    .SetInclusivity(InsertInclusivity.Required)
 
     // an exact value
-    .put(new List<SObjectField>{ Contact.AccountId, Account.Industry }, 'Aerospace')
+    .Put([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Industry))], "Aerospace")
 
     // an expression - the generated Account gets a unique name
-    .put(new List<SObjectField>{ Contact.AccountId, Account.Name },
-         new XFTY_UniqueStringExpression('Acct'))
+    .Put([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Name))],
+         new UniqueStringExpression("Acct"))
 
     // a context-aware value - evaluated against that ancestor
-    .put(new List<SObjectField>{ Contact.AccountId, Account.Site },
-         new XFTY_CopyFromSiblingExpression(Account.Name))
+    .Put([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.Site))],
+         new CopyFromSiblingExpression(Field.Of<Account>(nameof(Account.Name))))
 
     // a relationship - give the ancestor its own generated parent
-    .putRequired(new List<SObjectField>{ Contact.AccountId, Account.OwnerId },
-         XFTY_SharedAncestor.get('mr-smith'))
+    .PutRequired([Field.Of<Contact>(nameof(Contact.AccountId)), Field.Of<Account>(nameof(Account.OwnerId))],
+         SharedAncestor.Get("mr-smith"))
 
-    .supply();
+    .Supply();
 ```
 
-`put(path, ...)` **forces its whole path**, whatever the inclusivity — every
-relationship named is generated even at the default `NONE`, and a forced
+`Put(path, ...)` **forces its whole path**, whatever the inclusivity — every
+relationship named is generated even at the default `None`, and a forced
 ancestor is generated fully formed (its own required relationships fill in).
 Everything **not** on a named path stays at the call's inclusivity. A path field
 that is not a relationship on the ancestor's Provider throws — never a silent
-no-op. A path `put` wins over a value the ancestor's Provider already sets.
+no-op. A path `Put` wins over a value the ancestor's Provider already sets.
 
-You **cannot** `put` a plain value *onto* a [shared ancestor](shared-ancestors.md)
+You **cannot** `Put` a plain value *onto* a [shared ancestor](shared-ancestors.md)
 — that throws; shape it where it is registered
-(`XFTY_SharedAncestor.put('hq', …).put(field, …)`). You **can** point a forced
+(`SharedAncestor.Get("hq").Put(field, ...)`). You **can** point a forced
 relationship at one (as the `mr-smith` line above).
 
 This shares the path-walk with
-[`includeOptional(path)`](per-call-relationships.md#reaching-deeper--a-path).
-Full detail: [../roadmap/path-scoped-values.md](../roadmap/path-scoped-values.md).
+[`IncludeOptional(path)`](per-call-relationships.md#reaching-deeper--a-path).
 
 ---
 
-## Override template vs `put(...)`
+## Override template vs `Put(...)`
 
-| Use an [override template](override-templates.md) when… | Use `put(...)` when… |
+| Use an [override template](override-templates.md) when… | Use `Put(...)` when… |
 |---------------------------------------------------------|----------------------|
 | customizing one or two records | every generated record should differ |
 | supplying an exact value | replacing the generation expression |
 | making one test more readable | generating unique values, or customizing relationships |
 
-Override templates describe **data**; `put(...)` describes **generation**.
+Override templates describe **data**; `Put(...)` describes **generation**.
 
 ---
 
 ## Performance
 
 An override template lets the Master Template generate a value that is then
-replaced. When generating very large graphs, `put(...)` can skip generating
+replaced. When generating very large graphs, `Put(...)` can skip generating
 values that will never be used. Most tests should prefer readability.
 
 ---
 
 ## Custom expressions
 
-Anything with real logic is a small `XFTY_ContextAwareExpressionIntf` (reads other
+Anything with real logic is a small `IContextAwareExpression` (reads other
 fields — see [context-aware-values](context-aware-values.md)) or a plain
-`XFTY_ValueExpressionIntf`. Shipping one as a reusable extension:
+`IValueExpression`. Shipping one as a reusable extension:
 [extend/custom-value-expressions.md](../extend/custom-value-expressions.md).
-
-▶ Runnable: `XFTY_Ex_ValueExpressionsTest` · `XFTY_PathValueTest`
 
 See also: [override-templates](override-templates.md) · [context-aware-values](context-aware-values.md) · [per-call-relationships](per-call-relationships.md)

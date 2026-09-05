@@ -1,12 +1,12 @@
 # Relationships
 
 XFTY generates complete object graphs, not isolated records. A Provider describes
-the relationships an `SObject` has, and XFTY creates the related records
+the relationships a record type has, and XFTY creates the related records
 automatically when a test asks for them.
 
 - **This page:** required vs optional relationships, inclusivity, cascading.
 - [per-call-relationships](per-call-relationships.md): one-off exceptions
-  (`includeOptional`, `excludeRelationship`).
+  (`IncludeOptional`, `ExcludeRelationship`).
 - [shared-ancestors](shared-ancestors.md): many children under one parent.
 - [bundles](bundles.md): reading the generated graph.
 - Writing the relationship into a Provider is an *extend* task —
@@ -16,25 +16,25 @@ automatically when a test asks for them.
 
 ## Required vs optional
 
-A relationship is defined with `XFTY_DummyDefaultRelationship` and placed in
-either the **required** or the **optional** slot of the Master Template.
+A relationship is defined with `DefaultRelationship` and placed in either the
+**required** or the **optional** slot of the Master Template.
 
-```apex
-.putRequired(Contact.AccountId, new XFTY_DummyDefaultRelationship(new Account()))
-.putOptional(Contact.OwnerId,   new XFTY_DummyDefaultRelationship(new User()))
+```csharp
+.PutRequired(Field.Of<Contact>(nameof(Contact.AccountId)), new DefaultRelationship(new Account()))
+.PutOptional(Field.Of<Account>(nameof(Account.OwnerId)),   new DefaultRelationship(new User()))
 ```
 
-The supplied `SObject` acts as an override template for the generated parent —
-its remaining fields come from that parent's own Provider. (This is why a
-relationship takes an `SObject`, not an `SObjectType`.)
+The supplied record acts as an override template for the generated parent — its
+remaining fields come from that parent's own Provider. (This is why a
+relationship takes a record instance, not just a type.)
 
 - **Required** relationships are generated whenever relationship generation
   includes required data. Use this only for relationships genuinely needed for
   valid test data.
-- **Optional** relationships are generated only under `ALL` inclusivity. Prefer
+- **Optional** relationships are generated only under `All` inclusivity. Prefer
   optional — every required relationship enlarges every generated graph.
 
-Picking a Provider variant for the parent (record types, flavours) —
+Picking a Provider variant for the parent (flavours) —
 [provider-variants](provider-variants.md).
 
 ---
@@ -46,37 +46,37 @@ setting per call:
 
 | Mode | Behaviour |
 |------|-----------|
-| `NONE` | Generate no related records — every relationship is the test's responsibility. |
-| `REQUIRED` | Generate only required relationships. **The recommended default.** |
-| `ALL` | Generate required **and** optional relationships. Richer graphs; use sparingly. |
-| `PREVENT_CASCADE` | Generate the first level of relationships, but stop each generated parent from generating its own. |
+| `None` | Generate no related records — every relationship is the test's responsibility. |
+| `Required` | Generate only required relationships. **The recommended default.** |
+| `All` | Generate required **and** optional relationships. Richer graphs; use sparingly. |
+| `PreventCascade` | Generate the first level of relationships, but stop each generated parent from generating its own. |
 
-```apex
-.setInclusivity(XFTY_InsertInclusivityEnum.REQUIRED)
+```csharp
+.SetInclusivity(InsertInclusivity.Required)
 ```
 
 ---
 
 ## Cascading
 
-Relationship generation is recursive. An `OpportunityLineItem` that requires an
-`Opportunity`, which requires an `Account`, generates all three:
+Relationship generation is recursive. A `Case` that requires a `Contact`, which
+requires an `Account`, generates all three:
 
 ```text
-OpportunityLineItem
-└── Opportunity
+Case
+└── Contact
     └── Account
 ```
 
 Each Provider is responsible only for its own type; together they produce the
 whole graph.
 
-### `PREVENT_CASCADE`
+### `PreventCascade`
 
 Some models are circular — an `Account` with a primary `Contact` that has an
-`Account`. `PREVENT_CASCADE` lets the first Provider create its direct
+`Account`. `PreventCascade` lets the first Provider create its direct
 relationships while every subsequently invoked Provider behaves as though
-inclusivity were `NONE`:
+inclusivity were `None`:
 
 ```text
 Account
@@ -87,15 +87,15 @@ Reducing graph size is a side effect; **stopping recursion is the point.**
 
 ### Self-referential relationships
 
-`ALL` + a self-referential relationship (e.g. `Account.ParentId → Account`) would
+`All` + a self-referential relationship (e.g. `Account.ParentId → Account`) would
 recurse forever. XFTY generates **one level** and then throws a clear "cycle"
 error if the same Provider would be generated again further up the graph. Options
 for a genuine chain:
 
-- **`PREVENT_CASCADE`** — exactly one level, no recursion.
+- **`PreventCascade`** — exactly one level, no recursion.
 - **distinct per-level Providers** (different [lookup keys](provider-variants.md))
   — each level is a different Provider, so it is not a cycle and recurses freely.
-- **`.allowAncestorCycles()`** on the Provider — suppresses the guard when the
+- **`.AllowAncestorCycles()`** on the Provider — suppresses the guard when the
   chain terminates for another reason (or the guard is a false positive). You
   own the "does it terminate?" question.
 
@@ -103,10 +103,7 @@ for a genuine chain:
 
 ## Performance
 
-Every additional relationship increases object count, heap, DML, and trigger /
-Flow execution. Prefer `REQUIRED` over `ALL`; keep required relationships
-minimal; use `PREVENT_CASCADE` for deep or circular trees; use `NONE` only when
-the test wants total control. For large graphs, see
-[advanced/large-graphs](advanced/large-graphs.md).
-
-▶ Runnable: `XFTY_Ex_RelationshipsTest`
+Every additional relationship increases object count and memory. Prefer
+`Required` over `All`; keep required relationships minimal; use `PreventCascade`
+for deep or circular trees; use `None` only when the test wants total control.
+For large graphs, see [advanced/large-graphs](advanced/large-graphs.md).

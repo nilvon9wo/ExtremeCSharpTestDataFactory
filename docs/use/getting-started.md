@@ -13,17 +13,25 @@ After reading this guide you should be comfortable:
 
 More advanced topics such as implementing Providers and writing custom value expressions are covered in later guides.
 
+> **This port has no persistence layer yet.** `InsertMode.Now` — Apex's
+> integration-test mode — always throws `NotSupportedException` here (see
+> [insert-modes](insert-modes.md)). Everything below uses `Mock`, which is this
+> port's practical default: realistic-looking Ids, nothing persisted.
+
 ---
 
 # Creating Your First Record
 
 The simplest way to use XFTY is to request an object from a Provider.
 
-```apex
-XFTY_DefaultSObjectProviderLookup providerLookup = new XFTY_DefaultSObjectProviderLookup();
+```csharp
+using Net.Nowhereatall.Xfty.Core;
+using Net.Nowhereatall.Xfty.Demo;
 
-Contact contact = (Contact) new XFTY_DummySObjectProvider(Contact.SObjectType, providerLookup)
-    .supply();
+DefaultProviderLookup providerLookup = new();
+
+Contact contact = (Contact)new RecordProvider(typeof(Contact), providerLookup)
+    .Supply();
 ```
 
 This creates a single `Contact`.
@@ -31,7 +39,7 @@ This creates a single `Contact`.
 By default:
 
 - one object is generated
-- no records are inserted
+- no records are persisted
 - no related records are generated
 - default values are supplied automatically
 
@@ -41,17 +49,20 @@ The returned object is immediately ready for use in your test.
 
 # Providers
 
-A Provider is responsible for generating test data for a particular `SObject` type.
+A Provider is responsible for generating test data for a particular record
+type.
 
 For example:
 
 - a `Contact` Provider knows how to create Contacts
 - an `Account` Provider knows how to create Accounts
-- an `Opportunity` Provider knows how to create Opportunities
+- a `Case` Provider knows how to create Cases
 
-Tests never need to know *how* these objects are constructed. They simply request the object type they need.
+Tests never need to know *how* these objects are constructed. They simply
+request the object type they need.
 
-Internally, Providers use centrally-defined Master Templates to populate required fields and relationships.
+Internally, Providers use centrally-defined Master Templates to populate
+required fields and relationships.
 
 ---
 
@@ -61,16 +72,18 @@ A Provider only knows *what* type of object you want.
 
 A Provider Lookup knows *which Provider* should be used to generate it.
 
-```apex
-XFTY_DefaultSObjectProviderLookup providerLookup = new XFTY_DefaultSObjectProviderLookup();
+```csharp
+DefaultProviderLookup providerLookup = new();
 
-XFTY_DummySObjectProvider provider = new XFTY_DummySObjectProvider(Contact.SObjectType, providerLookup);
+RecordProvider provider = new(typeof(Contact), providerLookup);
 ```
 
-Separating Providers from Provider Lookups allows applications to register different Provider implementations without modifying the framework itself.
+Separating Providers from Provider Lookups lets an application register
+different Provider implementations without modifying the framework itself.
 
-Many projects simply create a single lookup implementation containing every supported `SObject`.
-However, when using SFDX packages, it may be desirable -- or even necessary -- to create separate Lookup files for each package.
+`DefaultProviderLookup` (`Net.Nowhereatall.Xfty.Demo`) is this port's own
+starter-kit lookup — a working example to copy and adjust for your project, not
+a base class to extend. See [extend/provider-lookups](../extend/provider-lookups.md).
 
 ---
 
@@ -78,22 +91,23 @@ However, when using SFDX packages, it may be desirable -- or even necessary -- t
 
 Most tests only care about one or two fields.
 
-Instead of constructing an entire record, provide an Override Template containing only the values relevant to your test.
+Instead of constructing an entire record, provide an Override Template
+containing only the values relevant to your test.
 
-```apex
-Contact contact = (Contact) new XFTY_DummySObjectProvider(Contact.SObjectType, providerLookup)
-    .setOverrideTemplate(new Contact(
-            FirstName = 'Alice',
-            LastName = 'Smith'
-        ))
-    .supply();
+```csharp
+Contact contact = (Contact)new RecordProvider(typeof(Contact), providerLookup)
+    .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
+    .Supply();
 ```
 
-XFTY preserves the supplied values while generating everything else automatically.
+XFTY preserves the supplied values while generating everything else
+automatically.
 
-For example, if the Master Template specifies a default email address, that value will still be generated.
+For example, if the Master Template specifies a default email address, that
+value will still be generated.
 
-If the Override Template specifies an email address, the Override Template always wins.
+If the Override Template specifies an email address, the Override Template
+always wins.
 
 ---
 
@@ -101,19 +115,19 @@ If the Override Template specifies an email address, the Override Template alway
 
 Three constructor overloads save a call for the most common starting points:
 
-```apex
-// from a template — derives the SObjectType (and any record-type variant) from it
-new XFTY_DummySObjectProvider(new Contact(FirstName = 'Alice'), providerLookup);
+```csharp
+// from a template - derives the record type (and any Provider variant) from it
+new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup);
 
-// from a list of templates — derives the SObjectType from the first
-new XFTY_DummySObjectProvider(new List<Contact>{ new Contact(), new Contact() }, providerLookup);
+// from a list of templates - derives the record type from the first
+new RecordProvider(new List<object> { new Contact(), new Contact() }, providerLookup);
 
-// from a lookup key — derives the SObjectType from the key and pins that variant
-new XFTY_DummySObjectProvider(XFTY_LookupKey.get(Contact.SObjectType), providerLookup);
+// from a lookup key - derives the record type from the key and pins that variant
+new RecordProvider(LookupKey.Get(typeof(Contact)), providerLookup);
 ```
 
-They are exactly equivalent to the `(SObjectType, lookup)` constructor followed
-by `setOverrideTemplate(...)` / `setOverrideTemplateList(...)` / `withVariant(...)`.
+They are exactly equivalent to the `(Type, lookup)` constructor followed
+by `SetOverrideTemplate(...)` / `SetOverrideTemplateList(...)` / `WithVariant(...)`.
 Lookup keys and variants are covered in [provider-variants](provider-variants.md).
 
 ---
@@ -124,26 +138,27 @@ There are two ways to create multiple records.
 
 The simplest is to specify a quantity.
 
-```apex
-List<Contact> contacts = (List<Contact>) new XFTY_DummySObjectProvider(Contact.SObjectType, providerLookup)
-        .setQuantityPerTemplate(5)
-        .supplyList();
+```csharp
+List<object> contacts = new RecordProvider(typeof(Contact), providerLookup)
+    .SetQuantityPerTemplate(5)
+    .SupplyList();
 ```
 
 This generates five Contacts using the same template.
 
 If each generated record should differ, use an Override Template List instead.
 
-```apex
-List<Contact> contacts = (List<Contact>) new XFTY_DummySObjectProvider(Contact.SObjectType, providerLookup)
-        .setOverrideTemplateList(new List<Contact>{
-            new Contact(FirstName='Alice'),
-            new Contact(FirstName='Bob')
-        })
-        .supplyList();
+```csharp
+List<object> contacts = new RecordProvider(typeof(Contact), providerLookup)
+    .SetOverrideTemplateList([
+        new Contact { FirstName = "Alice" },
+        new Contact { FirstName = "Bob" },
+    ])
+    .SupplyList();
 ```
 
-When both a quantity and an Override Template List are supplied, every template is generated the requested number of times.
+When both a quantity and an Override Template List are supplied, every
+template is generated the requested number of times.
 
 ---
 
@@ -151,18 +166,19 @@ When both a quantity and an Override Template List are supplied, every template 
 
 Relationship generation is controlled independently from persistence.
 
-```apex
-XFTY_DummySObjectBundle bundle = new XFTY_DummySObjectProvider(Contact.SObjectType, providerLookup)
-        .setInsertMode(XFTY_InsertModeEnum.MOCK)
-        .setInclusivity(XFTY_InsertInclusivityEnum.REQUIRED)
-        .supplyBundle();
+```csharp
+Bundle bundle = new RecordProvider(typeof(Contact), providerLookup)
+    .SetInsertMode(InsertMode.Mock)
+    .SetInclusivity(InsertInclusivity.Required)
+    .SupplyBundle();
 ```
 
-The resulting Bundle contains both the requested Contacts and any related records generated during the operation.
+The resulting Bundle contains both the requested Contacts and any related
+records generated during the operation.
 
-```apex
-Contact contact = (Contact) bundle.getList(Contact.Id)[0];
-Account account = (Account) bundle.getList(Contact.AccountId)[0];
+```csharp
+object contact = bundle.GetList(Field.Of<Contact>(nameof(Contact.Id)))![0];
+object account = bundle.GetList(Field.Of<Contact>(nameof(Contact.AccountId)))![0];
 ```
 
 ```text
@@ -179,55 +195,57 @@ The generated Contact automatically references the generated Account.
 
 Bundles are the primary data structure returned by XFTY.
 
-Rather than returning only the requested records, Bundles contain the entire object graph created during generation.
+Rather than returning only the requested records, Bundles contain the entire
+object graph created during generation.
 
-For example, generating an `OpportunityLineItem` may also generate:
+For example, generating a `Case` may also generate:
 
 ```text
-OpportunityLineItem
-└── Opportunity
-    └── Account
+Case
+├── Account
+└── Contact
 ```
 
-Bundles make every generated object available without requiring additional SOQL queries.
+Bundles make every generated object available without requiring additional
+lookups.
 
 Lists are extracted using the relationship field that produced them.
 
-```apex
-List<Account> accounts = (List<Account>) bundle.getList(Opportunity.AccountId);
+```csharp
+List<object> accounts = bundle.GetList(Field.Of<Case>(nameof(Case.AccountId)))!;
 ```
 
 Nested Bundles can also be traversed.
 
-```apex
-XFTY_DummySObjectBundle opportunityBundle = bundle.getBundle(OpportunityLineItem.OpportunityId);
+```csharp
+Bundle? accountBundle = bundle.GetBundle(Field.Of<Case>(nameof(Case.AccountId)));
 ```
 
 ---
 
 # Insert Modes
 
-Generating objects and inserting objects are separate concerns.
+Generating objects and persisting objects are separate concerns.
 
 XFTY supports six insert modes.
 
 | Mode | Description |
 |------|-------------|
-| NEVER | Generate records without Ids. |
-| MOCK | Generate realistic Salesforce Ids without DML. |
-| RELATED_ONLY | Insert only related records. |
-| NOW | Insert every generated record. |
-| LATER | Behaves like NEVER while documenting that insertion will happen later. |
-| DEFERRED | Generate like NEVER over many calls; `XFTY_DeferredInserter.flush()` inserts them all at once. |
+| `Never` | Generate records without Ids. |
+| `Mock` | Generate realistic-looking Ids without any persistence. |
+| `RelatedOnly` | Mock-Id only related records. |
+| `Now` | Insert every generated record. **Always throws in this port — no persistence layer.** |
+| `Later` | Behaves like `Never` while documenting that insertion will happen later. |
+| `Deferred` | Generate like `Never` over many calls, registering everything for a single later flush. Flushing to real persistence also throws in this port; see [deferred-insert](deferred-insert.md). |
 
-For most tests:
+For most tests today:
 
 | Test type | Recommended mode |
 |------------|-----------------|
-| Unit Test | MOCK |
-| Integration Test | NOW |
+| Unit Test | `Mock` |
 
-Because generated mock Ids are not valid Salesforce records, tests should never attempt to perform DML on objects created with `MOCK`.
+Because generated mock Ids do not point at real records, tests should never
+treat a `Mock` record as if it were persisted.
 
 ---
 
@@ -237,14 +255,15 @@ Relationship generation is controlled independently from insertion.
 
 | Mode | Description |
 |------|-------------|
-| NONE | Create no related records. |
-| REQUIRED | Create only required relationships. |
-| ALL | Create required and optional relationships. |
-| PREVENT_CASCADE | Create only the first level of relationships. |
+| `None` | Create no related records. |
+| `Required` | Create only required relationships. |
+| `All` | Create required and optional relationships. |
+| `PreventCascade` | Create only the first level of relationships. |
 
-`REQUIRED` is recommended for most tests.
+`Required` is recommended for most tests.
 
-It produces enough related data for records to be valid without generating unnecessary object graphs.
+It produces enough related data for records to be valid without generating
+unnecessary object graphs.
 
 ---
 
@@ -256,13 +275,14 @@ The convenience methods simply extract data from that Bundle.
 
 | Method | Returns |
 |---------|---------|
-| `supply()` | First generated record |
-| `supplyList()` | Primary generated records |
-| `supplyBundle()` | Entire generated object graph |
+| `Supply()` | First generated record |
+| `SupplyList()` | Primary generated records |
+| `SupplyBundle()` | Entire generated object graph |
 
-If your test only needs the requested records, `supply()` or `supplyList()` are usually sufficient.
+If your test only needs the requested records, `Supply()` or `SupplyList()` are
+usually sufficient.
 
-If your test needs to inspect related records, use `supplyBundle()`.
+If your test needs to inspect related records, use `SupplyBundle()`.
 
 ---
 
@@ -276,6 +296,6 @@ the [feature matrix](README.md).
 - [insert-modes](insert-modes.md) · [deferred-insert](deferred-insert.md) — persistence
 - [advanced/](advanced/) — combining features
 
-To teach XFTY about a new `SObject` type, see [extend/providers](../extend/providers.md).
-Platform behaviours that constrain XFTY (notably `@TestSetup`) are in
+To teach XFTY about a new record type, see [extend/providers](../extend/providers.md).
+What carries over from the Apex original (and what doesn't) is in
 [reference/salesforce-considerations](../reference/salesforce-considerations.md).

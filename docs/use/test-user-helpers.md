@@ -1,50 +1,25 @@
-# Test-User Helpers
+# Test-User Helpers — Not Ported
 
-`XFTY_DefaultUserDataProvider` — one of the [bundled Providers](../extend/bundled-providers.md)
-— exposes helpers for tests that need a specific `User`.
+Apex's `XFTY_DefaultUserDataProvider` exposed `TEST_ADMIN_USER` (an inserted
+System Administrator `User` for `System.runAs(...)`) plus `profileIdFor(...)`
+and `roleIdFor(...)` lookups against a live org's `Profile` / `UserRole`
+records.
 
-| Member | Returns |
-|--------|---------|
-| `TEST_ADMIN_USER` | an inserted System Administrator `User`, ready for `System.runAs(...)` |
-| `profileIdFor(String profileLabel)` | the `Profile` Id for a profile **label** (cached for the transaction) |
-| `roleIdFor(String roleDeveloperName)` | the `UserRole` Id for a role **developer name** (cached for the transaction) |
+**None of this is ported.** There is no `System.runAs`, no `Profile`, no
+`UserRole`, and no live org to query in a C# unit test — this port's demo
+`User` (`Net.Nowhereatall.Xfty.Demo.User`) is deliberately minimal (`Id`,
+`FirstName`, `LastName`, `Email`, `ManagerId`) precisely so it can exercise
+deep/hierarchical relationship paths without needing any of that. A bundled
+`XFTY_DefaultUserDataProvider` equivalent was never attempted for the same
+reason — see [reference/known-issues.md](../reference/known-issues.md).
 
----
+Generating a plain `User` record for a test that just needs *some* user
+reference works exactly like any other type:
 
-## Running as an admin
-
-```apex
-System.runAs(XFTY_DefaultUserDataProvider.TEST_ADMIN_USER) {
-    // setup that needs elevated permissions
-}
+```csharp
+User someUser = (User)new RecordProvider(typeof(User), lookup)
+    .SetInsertMode(InsertMode.Mock)
+    .Supply();
 ```
-
----
-
-## A user with a specific profile and role
-
-```apex
-User regionalManager = (User) new XFTY_DummySObjectProvider(User.SObjectType, lookup)
-    .setOverrideTemplate(new User(
-        ProfileId  = XFTY_DefaultUserDataProvider.profileIdFor('Standard User'),
-        UserRoleId = XFTY_DefaultUserDataProvider.roleIdFor('Regional_Manager')
-    ))
-    .setInsertMode(XFTY_InsertModeEnum.NOW)
-    .supply();
-```
-
----
-
-## They throw on a miss
-
-`profileIdFor(...)` and `roleIdFor(...)` **throw**
-`XFTY_DefaultUserDataProvider.UnknownReferenceException` when the org has no
-matching Profile / UserRole — not a `null` that later surfaces as an opaque
-`INVALID_CROSS_REFERENCE_KEY` on insert. If a role is genuinely optional for your
-test, query for it first
-(`[SELECT Id FROM UserRole WHERE DeveloperName = :name]`) rather than catching
-the exception.
-
-▶ Runnable: `XFTY_Ex_TestUserHelpersTest` (`TEST_ADMIN_USER`) · `XFTY_DefaultDataProviderOrgTest` (`profileIdFor` / `roleIdFor`, org-only)
 
 See also: [extend/bundled-providers](../extend/bundled-providers.md)

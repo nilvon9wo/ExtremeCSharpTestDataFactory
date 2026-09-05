@@ -5,11 +5,7 @@ individual feature pages in [../](../) first.
 
 | Page | Combines |
 |------|----------|
-| [unit-vs-integration](unit-vs-integration.md) | one set of Providers, `MOCK` ↔ `NOW` |
-| [large-graphs](large-graphs.md) | inclusivity + `PREVENT_CASCADE` + `.depthBatched()` + the governor budget |
-| [deep-setup-chains](deep-setup-chains.md) | the `static` fixture pattern, a `static {}` block to `flush()` a `DEFERRED` fixture, then `DEFERRED` across helper methods when steps are ordered and need real DML |
+| [unit-vs-integration](unit-vs-integration.md) | one set of Providers, `Mock` ↔ `Now` (design intent — `Now` is not usable yet in this port) |
+| [large-graphs](large-graphs.md) | inclusivity + `PreventCascade` to keep generation cheap |
+| [deep-setup-chains](deep-setup-chains.md) | xUnit's per-test-method instance as the `@TestSetup` replacement, and `Deferred` across helper methods |
 | [matching-values](matching-values.md) | context-aware values + shared ancestors to keep a validation-rule field pair in sync |
-
-▶ Runnable: `XFTY_Ex_Adv_UnitVsIntegrationTest`, `XFTY_Ex_Adv_LargeGraphsTest`,
-`XFTY_Ex_Adv_DeepSetupChainsTest`, `XFTY_Ex_Adv_StaticDeferredFixtureTest`,
-`XFTY_Ex_Adv_MatchingValuesTest`.

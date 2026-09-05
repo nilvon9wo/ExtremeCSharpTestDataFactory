@@ -1,84 +1,88 @@
 # Deferred & Depth-Batched Insert
 
-> On `4.0-beta` (like the rest of 4.0; `master` is frozen). Design rationale:
-> [roadmap/deferred-persistence.md](../roadmap/deferred-persistence.md).
-
-Two ways to move DML out of the per-Provider recursion.
-
----
-
-## `DEFERRED` — generate over many calls, insert once
-
-```apex
-XFTY_DummySObjectBundle accounts = new XFTY_DummySObjectProvider(Account.SObjectType, lookup)
-    .setInsertMode(XFTY_InsertModeEnum.DEFERRED)
-    .setQuantityPerTemplate(3)
-    .supplyBundle();
-
-XFTY_DummySObjectBundle contacts = new XFTY_DummySObjectProvider(Contact.SObjectType, lookup)
-    .setInclusivity(XFTY_InsertInclusivityEnum.REQUIRED)
-    .setInsertMode(XFTY_InsertModeEnum.DEFERRED)
-    .supplyBundle();
-
-XFTY_DeferredInserter.flush();   // every graph from every DEFERRED call, inserted now
-```
-
-`DEFERRED` generates exactly like `NEVER` — no Ids, no DML — but registers every
-record. `flush()` inserts everything registered so far, **depth-batched** (one
-`insert` per dependency depth, across all the graphs), and because the records
-handed back are the same instances, their `Id` fields are now populated.
-
-- A test that never calls `flush()` gets `NEVER` semantics — no surprise DML.
-- Records inserted by a `NOW` call in between are left untouched; a `DEFERRED`
-  record pointing at one keeps that Id.
-- `flush()` clears the registry — generation after a `flush()` starts fresh.
-- Not supported with `@TestSetup` (it resets statics).
-- [Shared ancestors](shared-ancestors.md) work — each is resolved up front.
-- `flush()` also resolves any [`XFTY_CopyFromDescendantExpression`](context-aware-values.md#reading-up-from-a-child)
-  value (a parent field read up from a generated child).
-
-### It does not give you an Id mid-generation
-
-If a later call needs the real Id of a record an earlier call produced,
-`flush()` the earlier call first:
-
-```apex
-XFTY_DummySObjectBundle parents = parentProvider.setInsertMode(XFTY_InsertModeEnum.DEFERRED).supplyBundle();
-XFTY_DeferredInserter.flush();                                    // parents now have Ids
-
-Id parentId = parents.getList(Account.Id)[0].Id;
-childProvider.setOverrideTemplate(new Contact(AccountId = parentId))
-        .setInsertMode(XFTY_InsertModeEnum.DEFERRED).supplyBundle();
-XFTY_DeferredInserter.flush();
-```
+Two ways Apex moves DML out of the per-Provider recursion. **Neither actually
+persists anything in this port** — there is no database to insert into (see
+[insert-modes](insert-modes.md)) — but the generation and graph-flattening
+machinery behind both is fully ported and testable on its own.
 
 ---
 
-## `.depthBatched()` — one `insert` per depth in a single `NOW` call
+## `Deferred` — generate over many calls, register instead of inserting
 
-By default `NOW` runs one `insert` per Provider: a `Task` with an `Account`
-parent and a `Contact` parent costs three. `.depthBatched()` collapses that to
-one `insert` per dependency depth — the `Task` example drops to two:
+```csharp
+Bundle accounts = new RecordProvider(typeof(Account), lookup)
+    .SetInsertMode(InsertMode.Deferred)
+    .SetQuantityPerTemplate(3)
+    .SupplyBundle();
 
-```apex
-new XFTY_DummySObjectProvider(Task.SObjectType, lookup)
-    .setInclusivity(XFTY_InsertInclusivityEnum.REQUIRED)
-    .setInsertMode(XFTY_InsertModeEnum.NOW)
-    .depthBatched()
-    .supplyBundle();
+Bundle contacts = new RecordProvider(typeof(Contact), lookup)
+    .SetInclusivity(InsertInclusivity.Required)
+    .SetInsertMode(InsertMode.Deferred)
+    .SupplyBundle();
+
+DeferredInserter.Flush();   // throws NotSupportedException - no persistence layer to flush into
 ```
 
-The generated records are identical; only the number and **order** of `insert`
-statements changes. It is opt-in for exactly that reason — a test that asserts an
-exact DML count, or depends on the order its triggers fire during generation,
-should leave it off.
+`Deferred` generates exactly like `Never` — no Ids — but registers every record
+with `DeferredInserter`, the same static registry Apex's `flush()` reads from.
+`DeferredInserter.PendingCount()` genuinely accumulates across every
+`Register()` call, proving the registration side works; `Flush()` always throws
+`NotSupportedException`, because inserting is the one part with no C# analog
+yet.
 
-- Only affects `NOW` (other modes do no framework DML).
-- Shared ancestors and `XFTY_CopyFromDescendantExpression` values both work under
-  `.depthBatched()` — the whole graph exists before the batched insert.
-- A lookup cycle (A → B, B → A) cannot be one `insert` order and throws
-  `XFTY_DepthBatchedInserter.CyclicGraphException`.
+- A test that never calls `Flush()` gets `Never` semantics — no surprise
+  behaviour.
+- A failed `Flush()` does not silently lose what was registered — the registry
+  only clears after a successful insert, which never happens here.
 
-▶ Runnable: `XFTY_Ex_DeferredInsertTest`
+### Inspecting the resolved graph without persisting
+
+The piece that *is* fully usable is flattening a deferred graph and running its
+value resolution — including
+[`CopyFromDescendantExpression`](context-aware-values.md#reading-up-from-a-child)
+— without ever trying to insert:
+
+```csharp
+DeferredInsertBuffer graph = DeferredInsertBuffer.Flatten(bundle);
+// graph.Records() / graph.ParentLinks() - the flattened graph, up-flow values already resolved
+
+graph.ResolveAll(InsertMode.Mock);   // assigns mock Ids in dependency order, same algorithm Now would use
+```
+
+`DeferredInsertBuffer` and `DepthBatchedInserter` (below) live in
+`Net.Nowhereatall.Xfty.Persistence` and are the lower-level pieces
+`RecordProvider` builds on. Reach for them directly when a test wants to prove
+the graph is well-formed (parent-before-child ordering, shared ancestors
+collapsed to one row, up-flow values resolved) without a working `Now`.
+
+---
+
+## `.DepthBatched()` — one persistence pass per depth, under `Now` only
+
+By default `Now` would run one insert per Provider. `.DepthBatched()` collapses
+that to one pass per dependency depth:
+
+```csharp
+new RecordProvider(typeof(Case), lookup)
+    .SetInclusivity(InsertInclusivity.Required)
+    .SetInsertMode(InsertMode.Now)
+    .DepthBatched()
+    .SupplyBundle();
+```
+
+> **`.DepthBatched()` only changes anything when combined with `InsertMode.Now`**
+> — and `Now` always throws in this port. With any other insert mode,
+> `RecordProvider` ignores `.DepthBatched()` entirely (it is wired to the same
+> condition that decides whether to flush a deferred graph). There is currently
+> no way to observe `.DepthBatched()`'s effect through `RecordProvider` itself;
+> the underlying algorithm is proven directly against
+> `DepthBatchedInserter.ResolveAll(records, parentLinks, InsertMode.Mock)`
+> instead — see `Xfty.Test/Persistence/DepthBatchedInserterTest.cs`. See
+> [reference/known-issues.md](../reference/known-issues.md).
+
+- Shared ancestors and `CopyFromDescendantExpression` values both resolve
+  correctly ahead of the batched step — the whole graph exists in memory first.
+- A lookup cycle (A → B, B → A) cannot be resolved in dependency order and
+  throws `CyclicGraphException`.
 
 See also: [insert-modes](insert-modes.md) · [advanced/deep-setup-chains](advanced/deep-setup-chains.md)

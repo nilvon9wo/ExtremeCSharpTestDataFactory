@@ -1,59 +1,63 @@
 # Choosing a Provider Variant
 
-A single `SObjectType` can have several Providers — Business Account vs Person
-Account, or arbitrary "flavours" a project defines. This page is about
+A single record type can have several Providers — a "Business Account" vs a
+VIP Account, or any other "flavour" a project defines. This page is about
 **selecting** one as a consumer. **Registering** variants is an *extend* task —
 [extend/provider-variants.md](../extend/provider-variants.md).
 
 A variant is identified by a **lookup key** the project exposes, usually as a
 constant:
 
-<!-- sketch -->
-```apex
-MyProjectLookupKeys.PERSON_ACCOUNT   // an XFTY_LookupKeyIntf
+```csharp
+MyProjectLookupKeys.VipAccount   // an ILookupKey
 ```
+
+> Apex's variant system also supported a **record-type** discriminator
+> (Salesforce `RecordTypeId`). That is genuinely Salesforce-specific schema
+> metadata with no C# analog and is not ported — see
+> [reference/known-issues.md](../reference/known-issues.md). This port's
+> variant system is `FlavouredLookupKey`: a record type plus one or more
+> [predicates](../extend/provider-variants.md) evaluated against the override
+> template.
 
 ---
 
 ## Three ways to pick one
 
-### `withVariant(key)`
+### `WithVariant(key)`
 
-<!-- sketch -->
-```apex
-new XFTY_DummySObjectProvider(Account.SObjectType, lookup)
-    .withVariant(MyProjectLookupKeys.PERSON_ACCOUNT)
-    .supply();
+```csharp
+new RecordProvider(typeof(Account), lookup)
+    .WithVariant(MyProjectLookupKeys.VipAccount)
+    .Supply();
 ```
 
-Must be called **before** any `put(...)` — the Master Template is derived from
+Must be called **before** any `Put(...)` — the Master Template is derived from
 the resolved Provider (it throws otherwise).
 
 ### The lookup-key constructor
 
-<!-- sketch -->
-```apex
-new XFTY_DummySObjectProvider(MyProjectLookupKeys.PERSON_ACCOUNT, lookup)
-    .supply();
+```csharp
+new RecordProvider(MyProjectLookupKeys.VipAccount, lookup)
+    .Supply();
 ```
 
-Same effect as `withVariant`, and takes the `SObjectType` from the key.
+Same effect as `WithVariant`, and takes the record type from the key.
 
-### An override template that carries a record type
+### An override template that matches a flavour's predicates
 
-<!-- sketch -->
-```apex
-new XFTY_DummySObjectProvider(new Account(RecordTypeId = personRtId), lookup)
-    .supply();
+```csharp
+new RecordProvider(new Account { AnnualRevenue = 5_000_000m }, lookup)
+    .Supply();
 ```
 
-XFTY matches the template's `RecordTypeId` against the registered record-type
-keys (resolved from the describe, no SOQL) and selects the matching Provider
-automatically.
+XFTY matches the template against every registered `FlavouredLookupKey`'s
+predicates and selects the matching Provider automatically, provided the
+flavour was registered with at least one predicate (a flavour with none can
+only be selected explicitly).
 
-Don't combine the two: `withVariant(key)` *and* an override template that carries
-a conflicting record type (or otherwise matches a different registered variant)
-throws. Pick one.
+Don't combine the two: `WithVariant(key)` *and* an override template that
+matches a *different* registered flavour throws. Pick one.
 
 ---
 
@@ -62,15 +66,12 @@ throws. Pick one.
 When a relationship should generate a specific variant of its parent, pin it on
 the relationship:
 
-<!-- sketch -->
-```apex
-.putRequired(Case.AccountId, new XFTY_DummyDefaultRelationship(
-        MyProjectLookupKeys.PERSON_ACCOUNT, new Account()))
+```csharp
+.PutRequired(Field.Of<Case>(nameof(Case.AccountId)), new DefaultRelationship(
+    MyProjectLookupKeys.VipAccount, new Account()))
 ```
 
 Without an explicit key, the parent's variant is derived from the override
 template the relationship carries.
-
-▶ Runnable: `XFTY_Ex_ProviderVariantsTest` (flavour keys) · `XFTY_RecordTypeRealRtTest` (record types, org-only)
 
 See also: [extend/provider-variants](../extend/provider-variants.md) · [relationships](relationships.md)

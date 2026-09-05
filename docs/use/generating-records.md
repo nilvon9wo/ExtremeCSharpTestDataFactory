@@ -1,14 +1,14 @@
 # Generating Records
 
-The three `supply*()` methods and the ways to ask for more than one record.
+The three `Supply*()` methods and the ways to ask for more than one record.
 
 ---
 
 ## One record
 
-```apex
-Contact result = (Contact) new XFTY_DummySObjectProvider(Contact.SObjectType, lookup)
-    .supply();
+```csharp
+Contact result = (Contact)new RecordProvider(typeof(Contact), lookup)
+    .Supply();
 ```
 
 By default: one record, not inserted, no related records, default values filled.
@@ -22,41 +22,41 @@ of it.
 
 | Method | Returns |
 |--------|---------|
-| `supply()` | the first generated primary record |
-| `supplyList()` | all primary records |
-| `supplyBundle()` | the whole generated object graph |
+| `Supply()` | the first generated primary record |
+| `SupplyList()` | all primary records |
+| `SupplyBundle()` | the whole generated object graph |
 
-Use `supply()` / `supplyList()` when the test only needs the requested records;
-`supplyBundle()` when it needs related records too.
+Use `Supply()` / `SupplyList()` when the test only needs the requested records;
+`SupplyBundle()` when it needs related records too.
 
 ---
 
 ## Many copies of one template
 
-```apex
-List<Contact> results = (List<Contact>) new XFTY_DummySObjectProvider(Contact.SObjectType, lookup)
-    .setQuantityPerTemplate(5)
-    .supplyList();
+```csharp
+List<object> results = new RecordProvider(typeof(Contact), lookup)
+    .SetQuantityPerTemplate(5)
+    .SupplyList();
 ```
 
 ---
 
 ## Different values per record
 
-```apex
-List<Contact> results = (List<Contact>) new XFTY_DummySObjectProvider(Contact.SObjectType, lookup)
-    .setOverrideTemplateList(new List<Contact>{
-        new Contact(FirstName = 'Alice'),
-        new Contact(FirstName = 'Bob')
-    })
-    .supplyList();
+```csharp
+List<object> results = new RecordProvider(typeof(Contact), lookup)
+    .SetOverrideTemplateList([
+        new Contact { FirstName = "Alice" },
+        new Contact { FirstName = "Bob" },
+    ])
+    .SupplyList();
 ```
 
 Each template inherits its remaining values from the Master Template.
 
 ### Combining the two
 
-`setQuantityPerTemplate(2)` with a two-template list produces four records, and
+`SetQuantityPerTemplate(2)` with a two-template list produces four records, and
 quantity is applied **outside** the template loop:
 
 ```text
@@ -69,20 +69,20 @@ Alice, Bob, Alice, Bob        (not Alice, Alice, Bob, Bob)
 
 Three overloads save a call for the common starting points:
 
-```apex
-// from a template — derives the SObjectType (and any record-type variant) from it
-new XFTY_DummySObjectProvider(new Contact(FirstName = 'Alice'), lookup);
+```csharp
+// from a template - derives the record type (and any Provider variant) from it
+new RecordProvider(new Contact { FirstName = "Alice" }, lookup);
 
-// from a list of templates — derives the SObjectType from the first
-new XFTY_DummySObjectProvider(new List<Contact>{ new Contact(), new Contact() }, lookup);
+// from a list of templates - derives the record type from the first
+new RecordProvider(new List<object> { new Contact(), new Contact() }, lookup);
 
-// from a lookup key — derives the SObjectType from the key and pins that variant
-new XFTY_DummySObjectProvider(XFTY_LookupKey.get(Contact.SObjectType), lookup);
+// from a lookup key - derives the record type from the key and pins that variant
+new RecordProvider(LookupKey.Get(typeof(Contact)), lookup);
 ```
 
-They are exactly equivalent to the `(SObjectType, lookup)` constructor followed
-by `setOverrideTemplate(...)` / `setOverrideTemplateList(...)` /
-`withVariant(...)`. Lookup keys and variants: [provider-variants](provider-variants.md).
+They are exactly equivalent to the `(Type, lookup)` constructor followed by
+`SetOverrideTemplate(...)` / `SetOverrideTemplateList(...)` / `WithVariant(...)`.
+Lookup keys and variants: [provider-variants](provider-variants.md).
 
 ---
 
@@ -99,14 +99,11 @@ Provider call can do, each on its own page:
 | force or exclude a specific relationship for this one call | [per-call-relationships](per-call-relationships.md) |
 | generate **child** records hanging below the primaries | [child-records](child-records.md) |
 | share **one** parent across many generated records | [shared-ancestors](shared-ancestors.md) |
-| pick a record-type or other Provider variant | [provider-variants](provider-variants.md) |
-| choose whether/when records are inserted (`MOCK` / `NOW` / …) | [insert-modes](insert-modes.md) |
+| pick a Provider variant (flavour key) | [provider-variants](provider-variants.md) |
+| choose whether/when records are inserted (`Mock` / `Now` / …) | [insert-modes](insert-modes.md) |
 | build a graph across several calls and insert it once | [deferred-insert](deferred-insert.md) |
-| read every generated record back without SOQL | [bundles](bundles.md) |
-| a test-context `User` (admin, or by profile / role) | [test-user-helpers](test-user-helpers.md) |
+| read every generated record back without a query | [bundles](bundles.md) |
 
 Combinations of these are worked in [advanced/](advanced/).
-
-▶ Runnable: `XFTY_Ex_GeneratingRecordsTest`
 
 See also: [override-templates](override-templates.md) · [insert-modes](insert-modes.md) · [bundles](bundles.md)

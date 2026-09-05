@@ -1,49 +1,35 @@
-# Keeping Large Graphs Within Budget
+# Keeping Large Graphs Manageable
 
-When a test needs a lot of data, three levers keep it inside the governor limits
-— leaving headroom for the code actually under test.
+When a test needs a lot of data, two levers keep the graph small and fast.
 
 ---
 
 ## 1. Generate less — inclusivity
 
-Prefer [`REQUIRED`](../relationships.md#inclusivity) over `ALL`. Every optional
+Prefer [`Required`](../relationships.md#inclusivity) over `All`. Every optional
 relationship can itself generate more relationships.
 
-## 2. Stop the recursion — `PREVENT_CASCADE`
+## 2. Stop the recursion — `PreventCascade`
 
-For deep or circular models, [`PREVENT_CASCADE`](../relationships.md#prevent_cascade)
+For deep or circular models, [`PreventCascade`](../relationships.md#preventcascade)
 generates the first level of relationships and no further.
 
-## 3. Insert in fewer statements — `.depthBatched()`
-
-One `NOW` call normally runs one `insert` per Provider. `.depthBatched()`
-collapses that to one `insert` per dependency depth:
-
-```apex
-new XFTY_DummySObjectProvider(Case.SObjectType, lookup)
-    .setInclusivity(XFTY_InsertInclusivityEnum.REQUIRED)
-    .setInsertMode(XFTY_InsertModeEnum.NOW)
-    .depthBatched()
-    .supplyBundle();
-```
-
-See [deferred-insert](../deferred-insert.md) for the trade-off (it changes
-`insert` order — opt-in).
+> Apex's third lever, `.DepthBatched()` (collapsing many `insert` statements
+> into one per dependency depth), has no observable effect in this port yet —
+> it only changes behaviour when combined with `InsertMode.Now`, which always
+> throws here. See [deferred-insert](../deferred-insert.md) and
+> [reference/known-issues.md](../../reference/known-issues.md).
 
 ---
 
-## XFTY tells you when you're close
-
-After every `supply*()` call and every `XFTY_DeferredInserter.flush()`, XFTY
-`System.debug(WARN)`s if generation alone consumed over half of any governor
-limit. Watch the log for `XFTY:` lines.
-
 ## Measuring
 
-The `XFTY_Load` suite (`test-support/`) pins where generation breaks each limit —
-see [reference/volume-and-limits](../../reference/volume-and-limits.md) for the
-observed ceilings (short version: ~1,000–1,500 primaries per `NOW` / `DEFERRED`
-transaction, a few thousand for `MOCK`). Model your own volume assertions on it.
-
-▶ Runnable: `XFTY_Ex_Adv_LargeGraphsTest`
+`PerformanceTest.cs` (tagged `Category=Performance`, run as its own CI step)
+measures wall-clock time and rough memory allocation for large generations —
+3,000 primaries with a required parent, 5,000 primaries held in memory, nested
+child generation, and a context-aware value pass at volume — against
+deliberately generous ceilings. Apex's governor-limit warnings
+(`Limits.getCpuTime()` / `getDmlRows()` / etc.) have no C# meaning and are not
+ported; see [reference/volume-and-limits.md](../../reference/volume-and-limits.md)
+for what this port measures instead. Model your own volume assertions on
+`PerformanceTest.cs`.
