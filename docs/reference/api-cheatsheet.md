@@ -1,147 +1,146 @@
 # API Cheat-Sheet
 
-One line per public entry point. Follow the links for detail.
+One line per public entry point. Follow the links for detail. All types live
+under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
+`System.Reflection.PropertyInfo`, obtained with `Field.Of<T>(nameof(T.Prop))`.
 
 ---
 
-## Generating — `XFTY_DummySObjectProvider`
+## Generating — `RecordProvider`
 
 | Constructor | |
 |-------------|--|
-| `new XFTY_DummySObjectProvider(SObjectType, lookup)` | the base form |
-| `new XFTY_DummySObjectProvider(SObject template, lookup)` | derives type + record-type variant from the template |
-| `new XFTY_DummySObjectProvider(List<SObject> templates, lookup)` | derives type from the first |
-| `new XFTY_DummySObjectProvider(XFTY_LookupKeyIntf key, lookup)` | derives type from the key, pins that variant |
+| `new RecordProvider(Type, IProviderLookup)` | the base form |
+| `new RecordProvider(object template, IProviderLookup)` | derives type + variant from the template |
+| `new RecordProvider(List<object> templates, IProviderLookup)` | derives type from the first |
+| `new RecordProvider(ILookupKey key, IProviderLookup)` | derives type from the key, pins that variant |
 
 | Fluent setup | |
 |--------------|--|
-| `.setOverrideTemplate(SObject)` | replace specific field values ([docs](../use/override-templates.md)) |
-| `.setOverrideTemplateList(List<SObject>)` | one record per template |
-| `.setQuantityPerTemplate(Integer)` | N copies of each template |
-| `.setInsertMode(XFTY_InsertModeEnum)` | [insert modes](../use/insert-modes.md) |
-| `.setInclusivity(XFTY_InsertInclusivityEnum)` | [relationship inclusivity](../use/relationships.md#inclusivity) |
-| `.withVariant(XFTY_LookupKeyIntf)` | pick a Provider variant (before any `put`) |
-| `.put(SObjectField, expression \| literal \| contextAwareExpression)` | change generation of one field |
-| `.putRequired(SObjectField, relationship)` / `.putOptional(...)` | add a relationship |
-| `.removeFromMasterTemplate(SObjectField)` | drop a value field's generation |
-| `.includeOptional(SObjectField)` / `.includeOptional(List<SObjectField>)` | force one optional relationship / path, this call only |
-| `.put(List<SObjectField> path, value)` / `.putRequired(path, rel)` / `.putOptional(path, rel)` | set a field on a generated ancestor (last path element = target); follows inclusivity |
-| `.excludeRelationship(SObjectField)` | skip one relationship, this call only |
-| `.with(XFTY_SObjectChildProvider)` / `.withChildren(field, n)` / `.withChild(field)` | downward � generate child records; read via `bundle.getChild/getChildList/getChildBundle(field)` |
-| `.depthBatched()` | one `insert` per depth instead of per Provider (`NOW` only) |
-| `.allowAncestorCycles()` | suppress the guard that throws on a self-referential relationship chain |
+| `.SetOverrideTemplate(object)` | replace specific field values ([docs](../use/override-templates.md)) |
+| `.SetOverrideTemplateList(List<object>)` | one record per template |
+| `.SetQuantityPerTemplate(int)` | N copies of each template |
+| `.SetInsertMode(InsertMode)` | [insert modes](../use/insert-modes.md) — `Now` always throws |
+| `.SetInclusivity(InsertInclusivity)` | [relationship inclusivity](../use/relationships.md#inclusivity) |
+| `.WithVariant(ILookupKey)` | pick a Provider variant (before any `Put`) |
+| `.Put(field, expression \| literal \| contextAwareExpression \| deferredExpression)` | change generation of one field |
+| `.PutRequired(field, relationship)` / `.PutOptional(...)` | add a relationship |
+| `.RemoveFromMasterTemplate(field)` | drop a value field's generation |
+| `.IncludeOptional(field)` / `.IncludeOptional(List<PropertyInfo> path)` | force one optional relationship / path, this call only |
+| `.Put(List<PropertyInfo> path, value)` / `.PutRequired(path, rel)` / `.PutOptional(path, rel)` | set a field on a generated ancestor (last path element = target); follows inclusivity |
+| `.ExcludeRelationship(field)` / `.ExcludeRelationshipIfPresent(field)` | skip one relationship this call only; the `IfPresent` form is a no-op instead of throwing when `field` is not a relationship |
+| `.With(ChildProvider)` / `.WithChildren(field, n)` / `.WithChild(field)` | downward — generate child records; read via `bundle.GetChild/GetChildList/GetChildBundle(field)` |
+| `.DepthBatched()` | opt in to one resolution pass per depth (`Now` only — which throws, so this currently has no observable effect through this API) |
+| `.AllowAncestorCycles()` | suppress the guard that throws on a self-referential relationship chain |
 
 | Terminal | Returns |
 |----------|---------|
-| `.supply()` | first primary record |
-| `.supplyList()` | all primary records |
-| `.supplyBundle()` | `XFTY_DummySObjectBundle` — the whole graph |
+| `.Supply()` | first primary record |
+| `.SupplyList()` | all primary records |
+| `.SupplyBundle()` | `Bundle` — the whole graph |
 
 ---
 
 ## Enums
 
-| `XFTY_InsertModeEnum` | `NEVER` · `MOCK` · `RELATED_ONLY` · `NOW` · `LATER` · `DEFERRED` |
-| `XFTY_InsertInclusivityEnum` | `NONE` · `REQUIRED` · `ALL` · `PREVENT_CASCADE` |
+| `InsertMode` | `Never` · `Mock` · `RelatedOnly` · `Now` (always throws) · `Later` · `Deferred` |
+| `InsertInclusivity` | `None` · `Required` · `All` · `PreventCascade` |
 
 ---
 
-## Bundle — `XFTY_DummySObjectBundle`
+## Bundle — `Bundle`
 
-| `.getList(SObjectField)` | the records produced via that field, aligned 1:1 with the primaries |
-| `.getBundle(SObjectField)` | the subgraph beneath that relationship |
-| `.getValue(List<SObjectField> path[, rowIndex])` | walk an ancestor path (relationship hops then the field to read); `null` if a hop was not generated |
-| `.getChild(field)` / `.getChildList(field)` / `.getChildBundle(field)` | records generated by `with(...)` below the primaries |
-| `.childRecordsOf(parentRowIndex, field)` | just the children of that one primary row |
-| `.primariesResolvingTo(relField, ancestorRowIndex)` → `List<SObject>` | inverse of the 1:1 alignment — the primary records generated pointing at that ancestor |
-| `.primaryRecords()` / `.childRelationshipFields()` / `.relationshipFields()` | the primaries · child fields populated · parent fields populated |
-
----
-
-## Serialization enrichment — `XFTY_DummySObjectBundle`
-
-| `.inject(field, XFTY_InjectConfig)` → `List<SObject>` | new instances of `getList(field)` with parents / subqueries / forced scalars written on |
-| `.injectAll(field)` / `.injectAllParents(field)` / `.injectAllChildren(field)` → `List<SObject>` | `inject` with `everything()` / `allParents()` / `allChildren()`; `injectAll` throws if there is nothing to inject |
-| `XFTY_InjectConfig.nothing() / allParents() / allChildren() / everything()` | the breadth to start from |
-| `.injectParent(path)` | inject the ancestor at `path` (target-relative) and every hop to it |
-| `.injectChild(childLookupField)` / `.excludeChild(childLookupField)` | one child collection, by its lookup field |
-| `.excludeParent(path)` | prune a subtree from a breadth start (prefix match) |
-| `.injectValue(field, value)` / `.injectValue(path, value)` | force a scalar on the target record / on a record `path` reaches **upward** |
-| `.injectChildValue(childField, leafField, value)` / `.injectChildValue(path, value)` | force a scalar on every record of a child collection **downward** — `value` is a literal, a `List<Object>` (per child), or an `XFTY_ValueExpressionIntf` (fresh per child) |
-| `.parentDepth(n)` / `.childDepth(n)` / `.breakSoqlLimits()` | cap the ancestor climb (default 5) · nested-child levels (default 1, `n>1` needs breakSoqlLimits) · lift both ceilings |
-| `.primariesResolvingTo(relField, ancestorRow)` → `List<SObject>` (on the bundle) | the primary records generated pointing at that ancestor — the inverse alignment |
-| `XFTY_SObjectInjector.inject(records).relationship(name, parents).childRelationship(name, perRow).value(field, v).valuePerRow(field, vs).result()` | the JSON round-trip, standalone — one serialize + one deserialize; `Blob` values are carried across the round-trip, not serialized |
-
-`MOCK`-only in spirit — forced data is fiction a real `insert` overwrites (see [unit-vs-integration](../use/advanced/unit-vs-integration.md) point 4). Detail: [enrichment](../use/enrichment.md).
+| `.GetList(field)` | the records produced via that field, aligned 1:1 with the primaries |
+| `.GetBundle(field)` | the subgraph beneath that relationship |
+| `.GetValue(List<PropertyInfo> path[, rowIndex])` | walk an ancestor path (relationship hops then the field to read); `null` if a hop was not generated |
+| `.GetChild(field)` / `.GetChildList(field)` / `.GetChildBundle(field)` | records generated by `With(...)` below the primaries |
+| `.ChildRecordsOf(parentRowIndex, field)` | just the children of that one primary row |
+| `.PrimariesResolvingTo(relField, ancestorRowIndex)` → `List<object>` | inverse of the 1:1 alignment — the primary records generated pointing at that ancestor |
+| `.PrimaryRecords()` / `.ChildRelationshipFields()` / `.RelationshipFields()` | the primaries · child fields populated · parent fields populated |
 
 ---
 
-## Value expressions (`put(field, …)`)
+## Enrichment — `Bundle` + `InjectConfig` + `SObjectInjector`
 
-| `XFTY_LiteralExpression(value)` | constant (also the implicit wrapper for a bare literal) |
-| `XFTY_IncrementingStringExpression(prefix)` | `prefix 1`, `prefix 2`, … |
-| `XFTY_UniqueStringExpression(prefix)` | unique strings |
-| `XFTY_UniqueStringOfLengthExpression(prefix, length)` | unique, fixed length |
-| `XFTY_UniqueEmailExpression(prefix)` | unique emails |
-| `XFTY_IncrementingDecimalExpression(start, step)` | incrementing decimals |
-| implement `XFTY_ValueExpressionIntf` | `Object get()` — your own ([docs](../extend/custom-value-expressions.md)) |
+| `.Inject(field, InjectConfig)` → `List<object>` | new instances of `GetList(field)` with parents / children / forced scalars written on |
+| `.InjectAll(field)` / `.InjectAllParents(field)` / `.InjectAllChildren(field)` → `List<object>` | `Inject` with `Everything()` / `AllParents()` / `AllChildren()`; `InjectAll` throws if there is nothing to inject |
+| `InjectConfig.Nothing() / AllParents() / AllChildren() / Everything()` | the breadth to start from |
+| `.InjectParent(path)` | inject the ancestor at `path` (target-relative) and every hop to it |
+| `.InjectChild(childLookupField)` / `.ExcludeChild(childLookupField)` | one child collection, by its lookup field |
+| `.ExcludeParent(path)` | prune a subtree from a breadth start (prefix match) |
+| `.InjectValue(field, value)` / `.InjectValue(path, value)` | force a scalar on the target record / on a record `path` reaches **upward** |
+| `.InjectChildValue(childField, leafField, value)` / `.InjectChildValue(path, value)` | force a scalar on every record of a child collection **downward** — `value` is a literal, a `List<object>` (per child), or an `IValueExpression` (fresh per child) |
+| `.ParentDepth(n)` / `.ChildDepth(n)` / `.BreakSoqlLimits()` | cap the ancestor climb (default 5) · nested-child levels (default 1, `n>1` needs `BreakSoqlLimits`) · lift both ceilings |
+| `SObjectInjector.Inject(records).Relationship(navField, parents).ChildRelationship(navField, perRow).Value(field, v).ValuePerRow(field, vs).Result()` | the standalone graft, no bundle — see [sobject-injector](../use/sobject-injector.md) |
 
-## Context-aware values
+`Mock`-only in spirit — forced data is fiction if this graph were ever
+persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integration.md)). Detail: [enrichment](../use/enrichment.md).
 
-| `XFTY_CopyFromSiblingExpression(SObjectField source)` | copy another field on the same record |
-| `XFTY_CopyFromAncestorExpression(SObjectField rel, SObjectField source)` | copy from a generated parent |
-| `XFTY_CopyFromAncestorExpression(List<SObjectField> path)` | multi-hop |
-| `XFTY_CopyFromDescendantExpression(SObjectField childLookupField, SObjectField source)` | copy **up** from a generated child — `DEFERRED` / `.depthBatched()` only, resolved at `flush()` |
-| implement `XFTY_ContextAwareExpressionIntf` | `Object get(XFTY_GenerationContext)`; read siblings via `context.siblingValue(field)` |
-| implement `XFTY_DeferredExpressionIntf` | `Object get(XFTY_DeferredGraph, Integer recordIndex)` — an up-flow value; `graph.childrenOf(index, field)` |
+---
+
+## Value expressions (`Put(field, …)`)
+
+| `LiteralExpression(value)` | constant (also the implicit wrapper for a bare literal) |
+| `IncrementingStringExpression(prefix[, separate])` | `prefix 1`, `prefix 2`, … |
+| `UniqueStringExpression(prefix)` | unique strings |
+| `UniqueStringOfLengthExpression(length)` | unique, fixed length, uppercase |
+| `UniqueEmailExpression(prefix)` | unique emails |
+| `IncrementingDecimalExpression()` | incrementing decimals |
+| `UniqueAcrossRunsExpression(prefix, suffix)` | unique even across separate process runs |
+| implement `IValueExpression` | `object? Get()` — your own ([docs](../extend/custom-value-expressions.md)) |
+
+## Context-aware and deferred values
+
+| `CopyFromSiblingExpression(PropertyInfo source)` | copy another field on the same record |
+| `CopyFromAncestorExpression(PropertyInfo rel, PropertyInfo source)` | copy from a generated parent |
+| `CopyFromAncestorExpression(List<PropertyInfo> path)` | multi-hop |
+| `CopyFromDescendantExpression(PropertyInfo childLookupField, PropertyInfo source)` | copy **up** from a generated child — `Deferred` / `.DepthBatched()` only |
+| implement `IContextAwareExpression` | `object? Get(GenerationContext)`; read siblings via `context.SiblingValue(field)` |
+| implement `IDeferredExpression` | `object? Get(DeferredGraph, int recordIndex)` — an up-flow value; `graph.ChildrenOf(index, field)` |
 
 ## Relationships
 
-| `XFTY_DummyDefaultRelationship(SObject template)` | generate a parent |
-| `XFTY_DummyDefaultRelationship(XFTY_LookupKeyIntf key, SObject template)` | …of a specific variant |
-| `XFTY_SharedAncestor.get(name)` | retrieve — the token for `putRequired`, the handle for `resolveNow` / `getId` |
-| `XFTY_SharedAncestor.put(name, SObject)` | register — Id present → fixed value, no Id → override template (logs; `putAsTemplate` / `putAsValue` force it) |
-| `XFTY_SharedAncestor.put(name, key)` · `.fromVariant(key)` · `.copyingRelatedField(field)` | pin the variant / chain a variant onto a template / copy a field instead of the Id |
-| `.put(field, expr)` · `.putRequired(field, rel)` · `.includeOptional(...)` · `.put(path, …)` · `.setInclusivity(…)` chained onto `put(name, …)` | shape the shared record's own generation — the same per-record API a generated parent takes |
-| `XFTY_SharedAncestor.putIfAbsent(name, record \| key)` | register only if `name` is not registered yet this test |
-| `XFTY_SharedAncestor.getId(name)` · `.get(name).resolveNow(lookup, mode)` · `.resolveNow(lookup, mode, names)` | read the Id / resolve one (+ chain) / resolve a named set, before any `supply*()` |
-| `XFTY_SharedAncestor.disable(name)` · `.manualResolutionOnly()` | never resolve this one (FK left null) / turn off the pre-phase (lightweight ones still lazy-resolve, heavy ones you resolve up front) |
-| implement `XFTY_SharedAncestorDefaultsIntf` on a lookup (`registerSharedAncestorDefaults()`) | ship a shared ancestor's default so consuming tests need not register it — or `XFTY_ProviderLookups.of(providerMap, Map<String,SObject> defaults)` |
+| `DefaultRelationship(object? template)` | generate a parent |
+| `DefaultRelationship(ILookupKey key, object? template)` | …of a specific variant |
+| `SharedAncestor.Get(name)` | retrieve — the token for `PutRequired`, the handle for `ResolveNow` / `GetId` |
+| `SharedAncestor.Put(name, object? record)` | register — Id present → fixed value, no Id → override template (`PutAsTemplate` / `PutAsValue` force it) |
+| `SharedAncestor.Put(name, key)` · `.FromVariant(key)` · `.CopyingRelatedField(field)` | pin the variant / chain a variant onto a template / copy a field instead of the Id |
+| `.Put(field, expr)` · `.PutRequired(field, rel)` · `.IncludeOptional(...)` · `.Put(path, …)` · `.SetInclusivity(…)` chained onto `Put(name, …)` | shape the shared record's own generation — the same per-record API a generated parent takes |
+| `SharedAncestor.PutIfAbsent(name, record \| key)` | register only if `name` is not registered yet |
+| `SharedAncestor.GetId(name)` · `.Get(name).ResolveNow(lookup, mode)` · `.ResolveNow(lookup, mode, names)` | read the Id / resolve one (+ chain) / resolve a named set, before any `Supply*()` |
+| `SharedAncestor.Disable(name)` · `.ManualResolutionOnly()` | never resolve this one (FK left null) / turn off the pre-phase — see the process-lifetime warning in [known-issues](known-issues.md) |
+| implement `ISharedAncestorDefaults` on a lookup (`RegisterSharedAncestorDefaults()`) | ship a shared ancestor's default so consuming tests need not register it — or `ProviderLookups.Of(providerMap, Dictionary<string,object> defaults)` |
 
 ---
 
 ## Lookup keys
 
-| `XFTY_LookupKey.get(SObjectType)` | plain type key |
-| `XFTY_RecordTypeLookupKey.get(SObjectType, developerName)` | + record type |
-| `XFTY_FlavouredLookupKey.get(SObjectType, [rt,] flavour).matching(predicate)` | + arbitrary conditions (repeat `.matching(...)` = AND) |
-| `XFTY_FieldPredicate.equalTo/notEqualTo/greaterThan/lessThan/isNull/isNotNull/inSet(field, value)` | ready-made single-field conditions |
-| `XFTY_Predicates.allOf(list)/anyOf(list)/negate(one)` | AND / OR / NOT over `XFTY_SObjectPredicateIntf` |
-| implement `XFTY_SObjectPredicateIntf` (`isSatisfiedBy(SObject)`) | any condition the ready-made ones do not express |
-| implement `XFTY_LookupKeyIntf` | a variant discriminator of your own (`getSObjectType` · `isInstanceOf` · `getHashKey` · `getSpecificity`) |
+| `LookupKey.Get(Type)` | plain type key |
+| `FlavouredLookupKey.Get(Type, flavour).Matching(predicate)` | + arbitrary conditions (repeat `.Matching(...)` = AND) |
+| `FieldPredicateFactory.EqualTo/NotEqualTo/GreaterThan/LessThan/IsNull/IsNotNull/InSet(field, value)` | ready-made single-field conditions |
+| `PredicateFactory.AllOf(list)/AnyOf(list)/Negate(one)` | AND / OR / NOT over `IRecordPredicate` |
+| implement `IRecordPredicate` (`IsSatisfiedBy(object?)`) | any condition the ready-made ones do not express |
+| implement `ILookupKey` | a variant discriminator of your own (`SObjectType` · `IsInstanceOf` · `HashKey` · `Specificity`) |
 
 ## Provider extension points
 
-| implement `XFTY_DummySobjectProviderIntf` | `getPrimaryTargetField()` · `getMasterTemplate()` · `createBundle(context, templates)` |
-| implement `XFTY_DummySObjectProviderLookupIntf` | `get(SObjectType)` · `get(XFTY_LookupKeyIntf)` · `keysFor(SObject)` |
-| `XFTY_ProviderLookups.get/keysFor/resolve/of/of(map, defaults)/ofTypes` | the lookup mechanics; `of(map, defaults)` also ships shared-ancestor defaults |
-| `new XFTY_DummySObjectMasterTemplate(primaryTargetField)` | `.put` · `.putRequired` · `.putOptional` |
-| `XFTY_DummySObjectFactory.createBundle(context, masterTemplate, templates)` | the engine entry point |
+| implement `IRecordProvider` | `PrimaryTargetField` · `MasterTemplate` · `CreateBundle(context, templates)` |
+| implement `IProviderLookup` | `Get(Type)` · `Get(ILookupKey)` · `KeysFor(object?)` |
+| `ProviderLookups.Get/KeysFor/Resolve/Of/Of(map, defaults)/OfTypes` | the lookup mechanics; `Of(map, defaults)` also ships shared-ancestor defaults |
+| `new MasterTemplate(primaryTargetField)` | `.Put` · `.PutRequired` · `.PutOptional` · `.Remove` · `.Copy()` |
+| `RecordFactory.CreateBundle(context, masterTemplate, templates)` | the engine entry point |
 
 ## Deferred insert
 
-| `XFTY_DeferredInserter.flush()` | insert every `DEFERRED` graph so far, depth-batched, Ids back-filled |
-| `XFTY_DeferredInserter.pendingCount()` | registered-but-uninserted record count |
+| `DeferredInserter.Register(bundle)` | add a bundle's graph to the pending registry |
+| `DeferredInserter.PendingCount()` | registered-but-unresolved record count |
+| `DeferredInserter.Flush()` | always throws `NotSupportedException` in this port — see [known-issues](known-issues.md) |
+| `DeferredInsertBuffer.Flatten(bundle)` → flattened graph + resolved up-flow values | the usable, non-throwing way to inspect a deferred graph — see [deferred-insert](../use/deferred-insert.md) |
+| `DepthBatchedInserter.ResolveAll(records, links, InsertMode.Mock)` | the depth-batching algorithm, provable without a persistence layer |
 
-## Org seeding — `XFTY_Seeder` (preview, `@IntegrationTest`)
+## Not ported — see [known-issues](known-issues.md)
 
-| `XFTY_Seeder.seed(bundle)` → `XFTY_SeedResult` | best-effort save of the whole bundle into the running org — data persists (no rollback) |
-| `result.attemptedCount()` / `savedCount()` / `failedCount()` / `isFullySeeded()` | how it went |
-| `result.savedRecords()` / `failedRecords()` / `errors()` | which records, and why the failures |
-
-Needs a Winter '27 preview scratch org. Detail: [org-seeding](../use/org-seeding.md).
-
-## Test-user helpers — `XFTY_DefaultUserDataProvider`
-
-| `TEST_ADMIN_USER` | inserted System Administrator, for `System.runAs` |
-| `profileIdFor(label)` · `roleIdFor(developerName)` | cached lookups; **throw** on a miss |
+Org seeding (`XFTY_Seeder`/`XFTY_SeedResult`), test-user helpers
+(`XFTY_DefaultUserDataProvider`'s `TEST_ADMIN_USER`/`profileIdFor`/`roleIdFor`),
+Salesforce Record Type variants (`XFTY_RecordTypeLookupKey` and friends), and
+`XFTY_GovernorBudget`.

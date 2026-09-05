@@ -4,10 +4,10 @@ Look things up.
 
 | Page | Contents |
 |------|----------|
-| [migration](migration.md) | Every breaking change in this release and exactly what to change. |
-| [salesforce-considerations](salesforce-considerations.md) | Platform behaviours that constrain XFTY — `@TestSetup` + statics, mixed DML, governor limits — and recommended practice. |
-| [volume-and-limits](volume-and-limits.md) | How generation scales against each governor limit, where it breaks, and the automatic WARN. |
-| [known-issues](known-issues.md) | The open defect triage list. |
+| [migration](migration.md) | Where this port's own versioning stands (there is no prior C# release to migrate from yet). |
+| [salesforce-considerations](salesforce-considerations.md) | What carries over from the Apex original's platform constraints, and what genuinely changes in a C#/xUnit process — notably, static lifetime is the *opposite* of Apex's. |
+| [volume-and-limits](volume-and-limits.md) | How generation scales, measured by wall-clock time and allocation instead of Salesforce governor limits. |
+| [known-issues](known-issues.md) | The open defect triage list, and the capability gaps versus the Apex original. |
 | [api-cheatsheet](api-cheatsheet.md) | Every public class and fluent method, one line each. |
 
 For plan status (done / in progress / proposed), see [../roadmap/](../roadmap/).
