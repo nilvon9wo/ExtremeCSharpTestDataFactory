@@ -11,10 +11,7 @@ public sealed class UniqueStringExpression : IValueExpression
 
     private readonly string prefix;
 
-    public UniqueStringExpression(string prefix)
-    {
-        this.prefix = prefix;
-    }
+    public UniqueStringExpression(string prefix) => this.prefix = prefix;
 
     public object Get() => $"{this.prefix} {counter++}";
 }

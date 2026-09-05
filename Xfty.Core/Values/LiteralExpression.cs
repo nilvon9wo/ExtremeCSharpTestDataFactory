@@ -5,10 +5,7 @@ public sealed class LiteralExpression : IValueExpression
 {
     private readonly object? value;
 
-    public LiteralExpression(object? value)
-    {
-        this.value = value;
-    }
+    public LiteralExpression(object? value) => this.value = value;
 
     public object? Get() => this.value;
 }

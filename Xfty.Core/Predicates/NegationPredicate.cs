@@ -11,19 +11,12 @@ public sealed class NegationPredicate : IRecordPredicate
 {
     private readonly IRecordPredicate negated;
 
-    private NegationPredicate(IRecordPredicate negated)
-    {
-        this.negated = negated;
-    }
+    private NegationPredicate(IRecordPredicate negated) => this.negated = negated;
 
-    public static NegationPredicate Of(IRecordPredicate? predicate)
-    {
-        if (predicate is null)
-        {
-            throw new XftyConfigurationException("A predicate to negate is required.");
-        }
-        return new NegationPredicate(predicate);
-    }
+    public static NegationPredicate Of(IRecordPredicate? predicate) =>
+        predicate is null
+            ? throw new XftyConfigurationException("A predicate to negate is required.")
+            : new NegationPredicate(predicate);
 
     public bool IsSatisfiedBy(object? record) =>
         !this.negated.IsSatisfiedBy(record);

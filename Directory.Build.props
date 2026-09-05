@@ -1,0 +1,15 @@
+<Project>
+
+  <!--
+    Without EnforceCodeStyleInBuild, the strict IDE0xxx/error-severity rules
+    in .editorconfig are enforced only by an IDE's live analysis (or
+    `dotnet format`), never by `dotnet build` or CI - a silent gap that let
+    real violations through undetected. This closes it for every project in
+    the solution.
+  -->
+  <PropertyGroup>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+</Project>

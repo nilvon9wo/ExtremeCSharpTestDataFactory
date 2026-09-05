@@ -27,24 +27,20 @@ public static class ValueComparison
     }
 
     /// <summary>-1 / 0 / 1. Both arguments must be non-null and of comparable kinds.</summary>
-    public static int Compare(object left, object right)
-    {
-        if (IsNumeric(left) && IsNumeric(right))
+    public static int Compare(object left, object right) =>
+        (left, right) switch
         {
-            return Math.Sign(ToDecimal(left).CompareTo(ToDecimal(right)));
-        }
-        if (left is DateTime leftMoment && right is DateTime rightMoment)
-        {
-            return Math.Sign(leftMoment.CompareTo(rightMoment));
-        }
-        string leftText = Convert.ToString(left, CultureInfo.InvariantCulture) ?? string.Empty;
-        string rightText = Convert.ToString(right, CultureInfo.InvariantCulture) ?? string.Empty;
-        return Math.Sign(string.CompareOrdinal(leftText, rightText));
-    }
+            _ when IsNumeric(left) && IsNumeric(right) => Math.Sign(ToDecimal(left).CompareTo(ToDecimal(right))),
+            (DateTime leftMoment, DateTime rightMoment) => Math.Sign(leftMoment.CompareTo(rightMoment)),
+            _ => Math.Sign(string.CompareOrdinal(ToText(left), ToText(right))),
+        };
 
     private static bool IsNumeric(object value) =>
         value is decimal or int or long or double or float;
 
     private static decimal ToDecimal(object value) =>
         Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+
+    private static string ToText(object value) =>
+        Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
 }

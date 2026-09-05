@@ -14,10 +14,7 @@ public sealed class UniqueStringOfLengthExpression : IValueExpression
 
     private readonly int length;
 
-    public UniqueStringOfLengthExpression(int length)
-    {
-        this.length = length;
-    }
+    public UniqueStringOfLengthExpression(int length) => this.length = length;
 
     public object Get()
     {

@@ -10,10 +10,7 @@ public sealed class UniqueEmailExpression : IValueExpression
 
     private readonly string prefix;
 
-    public UniqueEmailExpression(string prefix)
-    {
-        this.prefix = prefix;
-    }
+    public UniqueEmailExpression(string prefix) => this.prefix = prefix;
 
     public object Get() => $"{this.prefix}{counter++}@example.com";
 }

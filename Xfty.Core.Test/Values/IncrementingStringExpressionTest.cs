@@ -41,8 +41,8 @@ public class IncrementingStringExpressionTest
         // Arrange
         IncrementingStringExpression first = new("P");
         IncrementingStringExpression second = new("P");
-        first.Get();
-        first.Get();
+        _ = first.Get();
+        _ = first.Get();
 
         // Act
         object? secondsFirstValue = second.Get();
