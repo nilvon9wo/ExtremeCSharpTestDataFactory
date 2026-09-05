@@ -83,14 +83,5 @@ public class ExChildRecordsTest
     }
 }
 
-file sealed class BlankCaseProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<Case>(x => x.Id);
-
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
+file sealed class BlankCaseProvider()
+    : SimpleRecordProvider<Case>(new MasterTemplate<Case>(x => x.Id));

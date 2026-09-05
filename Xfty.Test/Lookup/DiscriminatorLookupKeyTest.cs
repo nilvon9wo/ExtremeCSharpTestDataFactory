@@ -63,19 +63,11 @@ public class DiscriminatorLookupKeyTest
         // Assert
         Assert.Equal("Person Default", result.Name);
     }
+}
 
-    private sealed class PersonAccountProvider : IRecordProvider
-    {
-        private MasterTemplate Template { get; } = new MasterTemplate<Account>(x => x.Id)
+file sealed class PersonAccountProvider()
+    : SimpleRecordProvider<Account>(
+        new MasterTemplate<Account>(x => x.Id)
         {
             [x => x.Name] = "Person Default",
-        };
-
-        public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
-
-        public MasterTemplate MasterTemplate => this.Template;
-
-        public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-            RecordFactory.CreateBundle(context, this.Template, templateRecords);
-    }
-}
+        });

@@ -102,15 +102,7 @@ public class ExGeneratingRecordsTest
     }
 }
 
-file sealed class CaseWithAccountProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<Case>(x => x.Id)
-        .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
-
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
+file sealed class CaseWithAccountProvider()
+    : SimpleRecordProvider<Case>(
+        new MasterTemplate<Case>(x => x.Id)
+            .PutRequired(x => x.AccountId, new DefaultRelationship(new Account())));

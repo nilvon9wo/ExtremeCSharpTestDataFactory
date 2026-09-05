@@ -135,48 +135,24 @@ file sealed class IsMinorFlag : IContextAwareExpression
     }
 }
 
-file sealed class CaseUnderAccountProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<Case>(x => x.Id)
-        .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
+file sealed class CaseUnderAccountProvider()
+    : SimpleRecordProvider<Case>(
+        new MasterTemplate<Case>(x => x.Id)
+            .PutRequired(x => x.AccountId, new DefaultRelationship(new Account())));
 
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
+file sealed class AccountWithOwnerProvider()
+    : SimpleRecordProvider<Account>(
+        new MasterTemplate<Account>(x => x.Id)
+        {
+            [x => x.Name] = new IncrementingStringExpression("Acct"),
+        }.PutRequired(x => x.OwnerId, new DefaultRelationship(new User())));
 
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
-
-file sealed class AccountWithOwnerProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<Account>(x => x.Id)
-    {
-        [x => x.Name] = new IncrementingStringExpression("Acct"),
-    }.PutRequired(x => x.OwnerId, new DefaultRelationship(new User()));
-
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
-
-file sealed class LeafUserProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<User>(x => x.Id)
-    {
-        [x => x.LastName] = new IncrementingStringExpression("User"),
-    };
-
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
+file sealed class LeafUserProvider()
+    : SimpleRecordProvider<User>(
+        new MasterTemplate<User>(x => x.Id)
+        {
+            [x => x.LastName] = new IncrementingStringExpression("User"),
+        });
 
 /// <summary>A lookup whose Account provider carries no pre-existing field defaults, so a test controls the value-field order entirely itself.</summary>
 file sealed class BlankAccountProviderLookup : IProviderLookup
@@ -188,44 +164,28 @@ file sealed class BlankAccountProviderLookup : IProviderLookup
     public ISet<ILookupKey> KeysFor(object? record) => new HashSet<ILookupKey> { LookupKey.Get(typeof(Account)) };
 }
 
-file sealed class BlankAccountProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<Account>(x => x.Id);
-
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
+file sealed class BlankAccountProvider()
+    : SimpleRecordProvider<Account>(new MasterTemplate<Account>(x => x.Id));
 
 /// <summary>An Account whose Site is copied up from the Contact that references it.</summary>
 file sealed class AccountReadingChildDepartmentProvider : IRecordProvider
 {
     // on the Account Provider - from docs/use/context-aware-values.md "Reading up from a child"
-    // and docs/use/advanced/matching-values.md "Child value up onto a parent"
-    private MasterTemplate Template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    // and docs/use/advanced/matching-values.md "Child value up onto a parent" - the doc's own
+    // .Put<Account>(...) chain form is kept here verbatim, so this stays off SimpleRecordProvider.
+    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
         .Put<Account>(x => x.Name, new IncrementingStringExpression("Acct"))
         .Put<Account>(x => x.Site, CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department));
 
     public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this.Template;
+    public MasterTemplate MasterTemplate => this._template;
 
     public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 
-file sealed class ContactUnderAccountProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<Contact>(x => x.Id)
-        .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
-
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
+file sealed class ContactUnderAccountProvider()
+    : SimpleRecordProvider<Contact>(
+        new MasterTemplate<Contact>(x => x.Id)
+            .PutRequired(x => x.AccountId, new DefaultRelationship(new Account())));

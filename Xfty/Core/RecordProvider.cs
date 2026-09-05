@@ -29,9 +29,8 @@ public sealed class RecordProvider
     private bool depthBatched;
     private bool forceStructuralChildGeneration;
     private IPersistenceGateway? persistenceGateway;
-    private IRecordProvider? _factoryOutlet { get; set; }
-
-    private MasterTemplate? _template { get; set; }
+    private IRecordProvider? factoryOutlet;
+    private MasterTemplate? template;
 
     public RecordProvider(Type recordType, IProviderLookup providerLookup)
     {
@@ -65,7 +64,8 @@ public sealed class RecordProvider
                 "Cannot derive a record type from an empty or null template list - supply at least one concrete "
                 + "template, or use the (Type, lookup) constructor.");
 
-    private IRecordProvider FactoryOutlet => this._factoryOutlet ??= this.providerLookup.Get(this.ResolveVariantKey());
+    private IRecordProvider ResolveFactoryOutlet() =>
+        this.factoryOutlet ??= this.providerLookup.Get(this.ResolveVariantKey());
 
     /// <summary>
     /// Which Provider variant to use: an explicit key from WithVariant(...),
@@ -80,7 +80,8 @@ public sealed class RecordProvider
             ?? LookupKey.Get(this.recordType);
     }
 
-    private MasterTemplate Template => this._template ??= this.FactoryOutlet.MasterTemplate.Copy();
+    private MasterTemplate ResolveTemplate() =>
+        this.template ??= this.ResolveFactoryOutlet().MasterTemplate.Copy();
 
     // Setters ---------------------------------------------------------
 
@@ -173,20 +174,20 @@ public sealed class RecordProvider
     // Include methods ---------------------------------------------------
 
     public RecordProvider Put(PropertyInfo field, IValueExpression valueTemplate) =>
-        this.PutOnTemplate(() => this.Template.Put(field, valueTemplate));
+        this.PutOnTemplate(() => this.ResolveTemplate().Put(field, valueTemplate));
 
     public RecordProvider Put(PropertyInfo field, IContextAwareExpression contextAwareExpression) =>
-        this.PutOnTemplate(() => this.Template.Put(field, contextAwareExpression));
+        this.PutOnTemplate(() => this.ResolveTemplate().Put(field, contextAwareExpression));
 
     /// <summary>An up-flowing value; needs the DEFERRED insert mode.</summary>
     public RecordProvider Put(PropertyInfo field, IDeferredExpression deferredValue) =>
-        this.PutOnTemplate(() => this.Template.Put(field, deferredValue));
+        this.PutOnTemplate(() => this.ResolveTemplate().Put(field, deferredValue));
 
     public RecordProvider PutRequired(PropertyInfo field, IDefaultRelationship relationshipTemplate) =>
-        this.PutOnTemplate(() => this.Template.Remove(field).PutRequired(field, relationshipTemplate));
+        this.PutOnTemplate(() => this.ResolveTemplate().Remove(field).PutRequired(field, relationshipTemplate));
 
     public RecordProvider PutOptional(PropertyInfo field, IDefaultRelationship relationshipTemplate) =>
-        this.PutOnTemplate(() => this.Template.Remove(field).PutOptional(field, relationshipTemplate));
+        this.PutOnTemplate(() => this.ResolveTemplate().Remove(field).PutOptional(field, relationshipTemplate));
 
     /// <summary>Convenience overload mirroring MasterTemplate.Put(field, object): routed by runtime type.</summary>
     public RecordProvider Put(PropertyInfo field, object? value) =>
@@ -201,7 +202,7 @@ public sealed class RecordProvider
         };
 
     public RecordProvider RemoveFromMasterTemplate(PropertyInfo field) =>
-        this.PutOnTemplate(() => this.Template.Remove(field));
+        this.PutOnTemplate(() => this.ResolveTemplate().Remove(field));
 
     // Lambda overloads - `Put<TRecord>(x => x.Field, value)` instead of `Put(Field.Of<TRecord>(x => x.Field), value)` -----
 
@@ -286,17 +287,17 @@ public sealed class RecordProvider
     /// <summary>Do not generate one specific relationship on this call - required or optional.</summary>
     public RecordProvider ExcludeRelationship(PropertyInfo field) =>
         this.IsRelationshipOnTemplate(field)
-            ? this.PutOnTemplate(() => this.Template.Remove(field))
+            ? this.PutOnTemplate(() => this.ResolveTemplate().Remove(field))
             : throw new XftyConfigurationException($"ExcludeRelationship({field.Name}): {this.recordType} has no relationship on that field.");
 
     /// <summary>Like ExcludeRelationship, but a no-op when the field is not a relationship on this Provider.</summary>
     public RecordProvider ExcludeRelationshipIfPresent(PropertyInfo field) =>
         this.IsRelationshipOnTemplate(field)
-            ? this.PutOnTemplate(() => this.Template.Remove(field))
+            ? this.PutOnTemplate(() => this.ResolveTemplate().Remove(field))
             : this;
 
     private bool IsRelationshipOnTemplate(PropertyInfo field) =>
-        this.Template.RequiredRelationshipByField.ContainsKey(field) || this.Template.OptionalRelationshipByField.ContainsKey(field);
+        this.ResolveTemplate().RequiredRelationshipByField.ContainsKey(field) || this.ResolveTemplate().OptionalRelationshipByField.ContainsKey(field);
 
     // Supply methods ----------------------------------------------------
 
@@ -332,14 +333,14 @@ public sealed class RecordProvider
     }
 
     public List<object> SupplyList() =>
-        this.SupplyBundle().GetList(this.FactoryOutlet.PrimaryTargetField)!;
+        this.SupplyBundle().GetList(this.ResolveFactoryOutlet().PrimaryTargetField)!;
 
     public object Supply() => this.SupplyList()[0];
 
     private Bundle Generate(GenerationContext context, List<object> templates) =>
         this.hasCustomMasterTemplate
-            ? RecordFactory.CreateBundle(context, this.Template, templates)
-            : this.FactoryOutlet.CreateBundle(context, templates);
+            ? RecordFactory.CreateBundle(context, this.ResolveTemplate(), templates)
+            : this.ResolveFactoryOutlet().CreateBundle(context, templates);
 
     private void Persist(Bundle bundle)
     {
@@ -384,7 +385,7 @@ public sealed class RecordProvider
 
     private void GenerateOneChildCollection(Bundle bundle, ChildProvider childProvider, bool structural)
     {
-        List<object> primaries = bundle.GetList(this.FactoryOutlet.PrimaryTargetField)!;
+        List<object> primaries = bundle.GetList(this.ResolveFactoryOutlet().PrimaryTargetField)!;
         List<(object Template, int ParentRow)> childRows = primaries
             .SelectMany((primary, parentRow) => childProvider
                 .TemplatesForParent(structural ? null : IdOf(primary))

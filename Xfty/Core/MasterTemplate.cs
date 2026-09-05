@@ -206,6 +206,16 @@ public sealed class MasterTemplate<TRecord>
         set => this.inner.Put(Field.Of(field), value);
     }
 
+    /// <summary>
+    /// Chainable alternative to the indexer, for building up a template across
+    /// several statements instead of one object initializer.
+    /// </summary>
+    public MasterTemplate<TRecord> Put(Expression<Func<TRecord, object?>> field, object? value)
+    {
+        _ = this.inner.Put(Field.Of(field), value);
+        return this;
+    }
+
     public MasterTemplate<TRecord> PutRequired(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship)
     {
         _ = this.inner.PutRequired(Field.Of(field), relationship);

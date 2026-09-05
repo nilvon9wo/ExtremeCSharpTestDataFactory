@@ -19,9 +19,9 @@ namespace Net.Nowhereatall.Xfty.Test.Relationships;
 /// different child types, and the end-to-end proof: a three-level all-shared
 /// spine, built once, wired everywhere.
 ///
-/// The plain one-record case is in SharedAncestorTest. Apex's Now-mode/DML-
-/// count assertions are adapted to Mock-mode equivalents proving the same
-/// wiring - this port has no persistence layer.
+/// The plain one-record case is in SharedAncestorTest. Uses Mock mode
+/// throughout to prove the wiring itself; real-insert row counts under Now
+/// are proven separately in PersistenceGatewayTest.
 /// </summary>
 public class SharedAncestorHierarchyTest
 {
@@ -226,14 +226,13 @@ public class SharedAncestorHierarchyTest
         Assert.Contains("disabled", thrown.Message);
     }
 
-    // Apex's three ManualResolutionOnly() tests are not portable to a shared-process
-    // xUnit run: unlike every other piece of SharedAncestor's state, that flag is a
-    // single global bool with no unsetter at all (in Apex or here) - Apex gets away
-    // with it because statics reset between test METHODS; once any test in this
-    // process calls SharedAncestor.ManualResolutionOnly(), every other test class
-    // relying on auto-resolution (nearly all of them) would break for the rest of
-    // the run. A dedicated, isolated test process would be needed to cover this
-    // safely, which is out of scope here.
+    // ManualResolutionOnly() is not covered by a test here: unlike every other piece
+    // of SharedAncestor's state, that flag is a single global bool with no unsetter
+    // at all. Once any test in this process calls
+    // SharedAncestor.ManualResolutionOnly(), every other test class relying on
+    // auto-resolution (nearly all of them) would break for the rest of the run. A
+    // dedicated, isolated test process would be needed to cover this safely, which
+    // is out of scope here.
 
     // Cycles ---------------------------------------------------------
 
@@ -510,19 +509,12 @@ public class SharedAncestorHierarchyTest
         });
 }
 
-file sealed class LeafUserProvider : IRecordProvider
+file sealed class LeafUserProvider()
+    : SimpleRecordProvider<User>(
+        new MasterTemplate<User>(x => x.Id)
+            .Put(x => x.LastName, new IncrementingStringExpression("User")))
 {
     public static readonly LeafUserProvider Instance = new();
-
-    private static MasterTemplate Template { get; } = new MasterTemplate(Field.Of<User>(x => x.Id))
-        .Put<User>(x => x.LastName, new IncrementingStringExpression("User"));
-
-    public PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, Template, templateRecords);
 }
 
 /// <summary>A Provider with one required lookup to a named shared ancestor, plus an optional label field its generation needs.</summary>

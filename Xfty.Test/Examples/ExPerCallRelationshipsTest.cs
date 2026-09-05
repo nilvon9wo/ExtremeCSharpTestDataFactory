@@ -48,41 +48,16 @@ public class ExPerCallRelationshipsTest
     }
 }
 
-file sealed class ContactRequiringAccountProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<Contact>(x => x.Id)
-        .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
+file sealed class ContactRequiringAccountProvider()
+    : SimpleRecordProvider<Contact>(
+        new MasterTemplate<Contact>(x => x.Id)
+            .PutRequired(x => x.AccountId, new DefaultRelationship(new Account())));
 
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
+file sealed class AccountWithOptionalOwnerAndParentProvider()
+    : SimpleRecordProvider<Account>(
+        new MasterTemplate<Account>(x => x.Id)
+            .PutOptional(x => x.OwnerId, new DefaultRelationship(new User()))
+            .PutOptional(x => x.ParentId, new DefaultRelationship(new Account())));
 
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
-
-file sealed class AccountWithOptionalOwnerAndParentProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<Account>(x => x.Id)
-        .PutOptional(x => x.OwnerId, new DefaultRelationship(new User()))
-        .PutOptional(x => x.ParentId, new DefaultRelationship(new Account()));
-
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
-
-file sealed class LeafUserProvider : IRecordProvider
-{
-    private MasterTemplate Template { get; } = new MasterTemplate<User>(x => x.Id);
-
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
-
-    public MasterTemplate MasterTemplate => this.Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.Template, templateRecords);
-}
+file sealed class LeafUserProvider()
+    : SimpleRecordProvider<User>(new MasterTemplate<User>(x => x.Id));

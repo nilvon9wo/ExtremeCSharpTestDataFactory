@@ -216,54 +216,36 @@ public class ContextAwareExpressionTest
         HashSet<object?> labels = [.. accounts.Cast<Account>().Select(account => account.Description)];
         Assert.Equal(new HashSet<object?> { "1 of 3", "2 of 3", "3 of 3" }, labels); // each row sees all three sibling primaries and its own rowIndex
     }
+}
 
-    // In-test expressions and Providers ----------------------
+/// <summary>An Account whose Owner is generated, so multi-hop tests have a second level.</summary>
+file sealed class AccountWithOwnerProvider()
+    : SimpleRecordProvider<Account>(
+        new MasterTemplate<Account>(x => x.Id)
+            .Put(x => x.Name, new IncrementingStringExpression("Acct"))
+            .PutRequired(x => x.OwnerId, new DefaultRelationship(new User())));
 
-    /// <summary>An Account whose Owner is generated, so multi-hop tests have a second level.</summary>
-    private sealed class AccountWithOwnerProvider : IRecordProvider
+file sealed class LeafUserProvider()
+    : SimpleRecordProvider<User>(
+        new MasterTemplate<User>(x => x.Id)
+            .Put(x => x.LastName, new IncrementingStringExpression("User")));
+
+/// <summary>Derives a MINOR / ADULT flag from a Birthdate sibling - the kind of logic XFTY leaves to consumers.</summary>
+file sealed class IsMinorFlag(System.Reflection.PropertyInfo birthdateField) : IContextAwareExpression
+{
+    public object? Get(GenerationContext context)
     {
-        private MasterTemplate Template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
-            .Put<Account>(x => x.Name, new IncrementingStringExpression("Acct"))
-            .PutRequired<Account>(x => x.OwnerId, new DefaultRelationship(new User()));
-
-        public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
-
-        public MasterTemplate MasterTemplate => this.Template;
-
-        public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-            RecordFactory.CreateBundle(context, this.Template, templateRecords);
+        DateTime? birthdate = (DateTime?)birthdateField.GetValue(context.RecordBeingBuilt);
+        return birthdate is not null && birthdate.Value.AddYears(18) > DateTime.Today ? "MINOR" : "ADULT";
     }
+}
 
-    private sealed class LeafUserProvider : IRecordProvider
+/// <summary>Reads the whole batch of sibling primary records out of BundleSoFar.</summary>
+file sealed class SiblingCountLabel : IContextAwareExpression
+{
+    public object? Get(GenerationContext context)
     {
-        private MasterTemplate Template { get; } = new MasterTemplate(Field.Of<User>(x => x.Id))
-            .Put<User>(x => x.LastName, new IncrementingStringExpression("User"));
-
-        public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
-
-        public MasterTemplate MasterTemplate => this.Template;
-
-        public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-            RecordFactory.CreateBundle(context, this.Template, templateRecords);
-    }
-
-    /// <summary>Derives a MINOR / ADULT flag from a Birthdate sibling - the kind of logic XFTY leaves to consumers.</summary>
-    private sealed class IsMinorFlag(System.Reflection.PropertyInfo birthdateField) : IContextAwareExpression
-    {
-        public object? Get(GenerationContext context)
-        {
-            DateTime? birthdate = (DateTime?)birthdateField.GetValue(context.RecordBeingBuilt);
-            return birthdate is not null && birthdate.Value.AddYears(18) > DateTime.Today ? "MINOR" : "ADULT";
-        }
-    }
-
-    /// <summary>Reads the whole batch of sibling primary records out of BundleSoFar.</summary>
-    private sealed class SiblingCountLabel : IContextAwareExpression
-    {
-        public object? Get(GenerationContext context)
-        {
-            int siblingCount = context.BundleSoFar!.GetList<Account>(x => x.Id)!.Count;
-            return $"{context.RowIndex + 1} of {siblingCount}";
-        }
+        int siblingCount = context.BundleSoFar!.GetList<Account>(x => x.Id)!.Count;
+        return $"{context.RowIndex + 1} of {siblingCount}";
     }
 }
