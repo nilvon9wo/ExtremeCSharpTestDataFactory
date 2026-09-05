@@ -1,5 +1,5 @@
-using Net.Nowhereatall.Xfty.Core;
 using System.Reflection;
+using Net.Nowhereatall.Xfty.Core;
 using Net.Nowhereatall.Xfty.Demo;
 using Net.Nowhereatall.Xfty.Lookup;
 using Net.Nowhereatall.Xfty.Values;

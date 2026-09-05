@@ -1,10 +1,9 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using Net.Nowhereatall.Xfty.Engine;
 using Net.Nowhereatall.Xfty.Lookup;
 using Net.Nowhereatall.Xfty.Relationships;
 using Net.Nowhereatall.Xfty.Values;
-
-using Net.Nowhereatall.Xfty.Engine;
 namespace Net.Nowhereatall.Xfty.Core;
 
 /// <summary>
