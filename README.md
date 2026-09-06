@@ -26,40 +26,26 @@ Add whichever opt-in packages you want the same way. Only `Xfty` itself is
 required — everything else is independent and opt-in, grouped below by
 what each one actually does:
 
-### Core
-
-| Package | What it does | NuGet | Tests |
-|---|---|:-:|:-:|
-| **Xfty** | Declarative generation, relationships, persistence seam | [![NuGet](https://img.shields.io/nuget/v/Xfty.svg)](https://www.nuget.org/packages/Xfty/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
-
-### Persistence — `IPersistenceGateway` implementations
-
-| Package | What it does | NuGet | Tests |
-|---|---|:-:|:-:|
-| [**Xfty.EntityFrameworkCore**](Xfty.EntityFrameworkCore/README.md) | Real, database-backed persistence via EF Core | [![NuGet](https://img.shields.io/nuget/v/Xfty.EntityFrameworkCore.svg)](https://www.nuget.org/packages/Xfty.EntityFrameworkCore/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
-| [**Xfty<wbr>.VectorDatabases<wbr>.Qdrant**](Xfty.VectorDatabases.Qdrant/README.md) 🧪 | PREVIEW: persistence via Qdrant's own client directly | [![NuGet](https://img.shields.io/nuget/v/Xfty.VectorDatabases.Qdrant.svg)](https://www.nuget.org/packages/Xfty.VectorDatabases.Qdrant/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
-| [**Xfty<wbr>.VectorDatabases<wbr>.MicrosoftExtensionsVectorData**](Xfty.VectorDatabases.MicrosoftExtensionsVectorData/README.md) 🧪 | PREVIEW: persistence via any Microsoft.Extensions.VectorData connector | [![NuGet](https://img.shields.io/nuget/v/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.svg)](https://www.nuget.org/packages/Xfty.VectorDatabases.MicrosoftExtensionsVectorData/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
-
-### Value Generation — bundled `IValueExpression`s
-
-| Package | What it does | NuGet | Tests |
-|---|---|:-:|:-:|
-| [**Xfty.Bogus**](Xfty.Bogus/README.md) | Realistic fake data - names, emails, addresses, paragraphs | [![NuGet](https://img.shields.io/nuget/v/Xfty.Bogus.svg)](https://www.nuget.org/packages/Xfty.Bogus/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
-| [**Xfty.VectorDatabases**](Xfty.VectorDatabases/README.md) | A random-vector value expression for an embedding field | [![NuGet](https://img.shields.io/nuget/v/Xfty.VectorDatabases.svg)](https://www.nuget.org/packages/Xfty.VectorDatabases/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
-
-### Auto-Population Pairings
-
-| Package | What it does | NuGet | Tests |
-|---|---|:-:|:-:|
-| [**Xfty.AutoFixture**](Xfty.AutoFixture/README.md) | Pairs XFTY with AutoFixture, both directions | [![NuGet](https://img.shields.io/nuget/v/Xfty.AutoFixture.svg)](https://www.nuget.org/packages/Xfty.AutoFixture/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
-| [**Xfty.AutoBogus**](Xfty.AutoBogus/README.md) | Pairs XFTY with AutoBogus, both directions | [![NuGet](https://img.shields.io/nuget/v/Xfty.AutoBogus.svg)](https://www.nuget.org/packages/Xfty.AutoBogus/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
-
-### Test-Framework & Language Integration
-
-| Package | What it does | NuGet | Tests |
-|---|---|:-:|:-:|
-| [**Xfty.Xunit**](Xfty.Xunit/README.md) | `[IsolatesSharedAncestor]` xUnit attribute | [![NuGet](https://img.shields.io/nuget/v/Xfty.Xunit.svg)](https://www.nuget.org/packages/Xfty.Xunit/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
-| [**Xfty.FSharpAsync**](Xfty.FSharpAsync/README.md) | `Async<'T>` wrappers for F#'s original `async { }` workflow | [![NuGet](https://img.shields.io/nuget/v/Xfty.FSharpAsync.svg)](https://www.nuget.org/packages/Xfty.FSharpAsync/) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) |
+<table>
+<thead><tr><th>Package</th><th>What it does</th><th align="center">NuGet</th><th align="center">Tests</th></tr></thead>
+<tbody>
+<tr><th colspan="4" align="left">Core</th></tr>
+<tr><td><strong>Xfty</strong></td><td>Declarative generation, relationships, persistence seam</td><td align="center"><a href="https://www.nuget.org/packages/Xfty/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+<tr><th colspan="4" align="left">Persistence — <code>IPersistenceGateway</code> implementations</th></tr>
+<tr><td><a href="Xfty.EntityFrameworkCore/README.md"><strong>Xfty.EntityFrameworkCore</strong></a></td><td>Real, database-backed persistence via EF Core</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.EntityFrameworkCore/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.EntityFrameworkCore.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+<tr><td><a href="Xfty.VectorDatabases.Qdrant/README.md"><strong>Xfty<wbr>.VectorDatabases<wbr>.Qdrant</strong></a> 🧪</td><td>PREVIEW: persistence via Qdrant's own client directly</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.VectorDatabases.Qdrant/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.VectorDatabases.Qdrant.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+<tr><td><a href="Xfty.VectorDatabases.MicrosoftExtensionsVectorData/README.md"><strong>Xfty<wbr>.VectorDatabases<wbr>.MicrosoftExtensionsVectorData</strong></a> 🧪</td><td>PREVIEW: persistence via any Microsoft.Extensions.VectorData connector</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.VectorDatabases.MicrosoftExtensionsVectorData/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+<tr><th colspan="4" align="left">Value Generation — bundled <code>IValueExpression</code>s</th></tr>
+<tr><td><a href="Xfty.Bogus/README.md"><strong>Xfty.Bogus</strong></a></td><td>Realistic fake data - names, emails, addresses, paragraphs</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.Bogus/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.Bogus.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+<tr><td><a href="Xfty.VectorDatabases/README.md"><strong>Xfty.VectorDatabases</strong></a></td><td>A random-vector value expression for an embedding field</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.VectorDatabases/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.VectorDatabases.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+<tr><th colspan="4" align="left">Auto-Population Pairings</th></tr>
+<tr><td><a href="Xfty.AutoFixture/README.md"><strong>Xfty.AutoFixture</strong></a></td><td>Pairs XFTY with AutoFixture, both directions</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.AutoFixture/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.AutoFixture.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+<tr><td><a href="Xfty.AutoBogus/README.md"><strong>Xfty.AutoBogus</strong></a></td><td>Pairs XFTY with AutoBogus, both directions</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.AutoBogus/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.AutoBogus.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+<tr><th colspan="4" align="left">Test-Framework &amp; Language Integration</th></tr>
+<tr><td><a href="Xfty.Xunit/README.md"><strong>Xfty.Xunit</strong></a></td><td><code>[IsolatesSharedAncestor]</code> xUnit attribute</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.Xunit/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.Xunit.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+<tr><td><a href="Xfty.FSharpAsync/README.md"><strong>Xfty.FSharpAsync</strong></a></td><td><code>Async&lt;'T&gt;</code> wrappers for F#'s original <code>async { }</code> workflow</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.FSharpAsync/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.FSharpAsync.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
+</tbody>
+</table>
 
 🧪 = preview proof-of-concept, versioned `0.x-preview` rather than
 `1.0.0-beta.*` - read its own README before depending on it for anything
