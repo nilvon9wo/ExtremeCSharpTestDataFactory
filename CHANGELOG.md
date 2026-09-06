@@ -31,6 +31,41 @@ because those entries describe a change made in *this* repository.
 
 ### Added
 
+- **`Xfty.AutoFixture`** — pairs XFTY with AutoFixture, two independent,
+  non-mutually-exclusive ways: `XftyCustomization`/`XftySpecimenBuilder`
+  points `fixture.Create<T>()` at a registered `RecordProvider` instead of
+  AutoFixture's own generation (falling through to AutoFixture's default
+  for anything unregistered); `IUnsetFieldFiller`/
+  `AutoFixtureUnsetFieldFiller` lets AutoFixture fill in whatever fields a
+  Provider's Master Template never configured at all (not a field XFTY
+  resolved *to* null on purpose), via a new
+  `MasterTemplate.IsConfigured(PropertyInfo)` and a new
+  `RecordProvider.SetUnsetFieldFiller(...)` threaded through
+  `GenerationContext` so it reaches generated ancestors too, each against
+  its own unset fields. `IUnsetFieldFiller` itself lives in core `Xfty`
+  with no dependency on AutoFixture (or anything else); only the adapter
+  package does. Closes the "a real gap, a real design" auto-population
+  pairing noted in
+  [reference/comparison.md](docs/reference/comparison.md) - proven in
+  `Xfty.AutoFixture.Test` (both directions, combined, exclusion, and a
+  self-referencing field that never lets AutoFixture's recursion guard
+  escape as an exception) and `UnsetFieldFillerTest` (the core contract,
+  independent of any one filler implementation). See
+  [use/autofixture.md](docs/use/autofixture.md).
+- **Typed `RecordProvider<TRecord>`/`ChildProvider<TChild>`** — composed
+  generic wrappers (both underlying classes are `sealed`) mirroring
+  `MasterTemplate<TRecord>`'s own pattern: typed `Supply()`/`SupplyList()`
+  with no cast at the call site, a `MasterTemplate<TRecord>`-style
+  object-initializer indexer routed by the value's runtime type, and full
+  fluent forwarding. Surfaced (and fixed) a latent gap in
+  `ChildProvider.Put(PropertyInfo, object?)`, which always treated its
+  value as a literal unlike the equivalent `MasterTemplate`/`RecordProvider`
+  overloads - rewritten to dispatch on the value's runtime type the same
+  way. Also added `LookupKey.Get<TRecord>()`,
+  `FlavouredLookupKey.Get<TRecord>(flavour)`, and
+  `IProviderLookup.Get<TRecord>()` (an extension method), eliminating
+  `typeof(...)` at the two other largest clusters of that pattern in the
+  codebase.
 - **`Xfty.Xunit`** — `[IsolatesSharedAncestor]`, an attribute for a test
   class or method that resets `SharedAncestor`'s registry before and after,
   via xUnit's own `BeforeAfterTestAttribute` hook - the same effect as

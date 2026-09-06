@@ -289,6 +289,12 @@ public sealed class RecordProvider<TRecord>(IProviderLookup providerLookup)
         return this;
     }
 
+    public RecordProvider<TRecord> SetUnsetFieldFiller(IUnsetFieldFiller filler)
+    {
+        _ = this.inner.SetUnsetFieldFiller(filler);
+        return this;
+    }
+
     public RecordProvider<TRecord> AllowAncestorCycles()
     {
         _ = this.inner.AllowAncestorCycles();

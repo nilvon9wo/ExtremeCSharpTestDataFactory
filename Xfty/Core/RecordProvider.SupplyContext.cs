@@ -7,6 +7,7 @@ public sealed partial class RecordProvider
     {
         GenerationContext context = new GenerationContext(this.providerLookup, this.ContextInsertMode(), this.inclusivity)
             .WithPersistenceGateway(this.persistenceGateway)
+            .WithUnsetFieldFiller(this.unsetFieldFiller)
             .WithForcedRelationshipPaths(this.templateConfig.ForcedRelationshipPaths)
             .WithPathValues(this.templateConfig.PathValues)
             .WithAncestorCycleGuard(this.ancestorCyclesAllowed);

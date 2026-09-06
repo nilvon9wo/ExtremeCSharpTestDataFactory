@@ -80,4 +80,18 @@ public sealed partial class MasterTemplate(
         this.OptionalRelationshipByField[field] = relationshipTemplate;
         return this;
     }
+
+    /// <summary>
+    /// Whether field has a default value, a context-aware value, a deferred
+    /// value, a required/optional relationship, or is the primary target
+    /// field itself - i.e. whether this template touches it at all. See
+    /// <see cref="IUnsetFieldFiller"/>, the one consumer of the negation.
+    /// </summary>
+    public bool IsConfigured(PropertyInfo field) =>
+        field == this.PrimaryTargetField
+        || this.DefaultByField.ContainsKey(field)
+        || this.ContextAwareByField.ContainsKey(field)
+        || this.DeferredExpressionByField.ContainsKey(field)
+        || this.RequiredRelationshipByField.ContainsKey(field)
+        || this.OptionalRelationshipByField.ContainsKey(field);
 }

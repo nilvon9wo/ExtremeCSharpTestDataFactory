@@ -1,3 +1,4 @@
+using System.Reflection;
 using Net.Nowhereatall.Xfty.Core;
 using Net.Nowhereatall.Xfty.Engine;
 using Net.Nowhereatall.Xfty.Persistence;
@@ -28,8 +29,32 @@ public sealed class RecordFactory
         new LookupWiring(bundle, this.context, this.template).Wire();
         new ContextAwareValuePass(bundle, this.context, this.template).Complete();
         this.RegisterDeferredValues(bundle);
+        this.FillUnsetFields(records);
         this.Persist(records);
         return bundle;
+    }
+
+    /// <summary>
+    /// Runs after every value/relationship pass, before Persist(...) - late
+    /// enough that a filler never fights XFTY for a field XFTY actually set
+    /// (see <see cref="MasterTemplate.IsConfigured"/>), early enough that a
+    /// real InsertMode.Now database still sees a value for a NOT NULL column
+    /// XFTY itself never cared about.
+    /// </summary>
+    private void FillUnsetFields(List<object> records)
+    {
+        if (this.context.UnsetFieldFiller is not { } filler)
+        {
+            return;
+        }
+
+        List<PropertyInfo> unsetFields = [.. this.template.PrimaryTargetField.DeclaringType!
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(field => field.CanWrite && field.GetIndexParameters().Length == 0 && !this.template.IsConfigured(field))];
+        if (unsetFields.Count > 0)
+        {
+            records.ForEach(record => filler.Fill(record, unsetFields));
+        }
     }
 
     /// <summary>

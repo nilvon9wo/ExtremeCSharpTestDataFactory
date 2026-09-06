@@ -24,6 +24,8 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 | **Realistic fake data** — `FakeFullNameExpression`, `FakeEmailAddressExpression`, `FakeStreetAddressExpression`, `FakeParagraphExpression`, wrapping Bogus | `Xfty.Bogus.Test/*` | [comparison.md](../reference/comparison.md#could-xfty-pair-with-one-of-these-to-close-a-gap) | ✅ Separate opt-in package (`Xfty.Bogus`), not core `Xfty` — the base library has no dependency on Bogus. |
 | **Vector-embedding fields** — `RandomVectorExpression(int dimensions, float min, float max, bool normalize)`, `KnownEmbeddingDimensions` | `Xfty.VectorDatabases.Test/*` | [vector-databases.md](vector-databases.md) | ✅ Separate opt-in package (`Xfty.VectorDatabases`); structurally a vector, not a semantically meaningful embedding — see the detail page for why that's out of scope. |
 | **pgvector persistence** — a `Vector`-typed column through the *existing, unmodified* `EfPersistenceGateway` | `PgVectorPersistenceTest` (`Xfty.EntityFrameworkCore.Test`) | [vector-databases.md](vector-databases.md#pgvector-through-the-existing-efpersistencegateway---proven-no-new-gateway-code) | ✅ No new gateway code - just a `Pgvector.EntityFrameworkCore` reference, a demo entity, and a `pgvector/pgvector:pg16` container image instead of plain `postgres:16-alpine`. |
+| **AutoFixture pairing** — `XftyCustomization`/`XftySpecimenBuilder` (point `fixture.Create<T>()` at a registered `RecordProvider`), `IUnsetFieldFiller`/`AutoFixtureUnsetFieldFiller` (let AutoFixture fill fields a Master Template never configured) | `Xfty.AutoFixture.Test/*`, `UnsetFieldFillerTest` (core contract) | [use](../use/autofixture.md), [detail](autofixture-fallback-fill.md) | ✅ Separate opt-in package (`Xfty.AutoFixture`); core `Xfty` gains only the dependency-free `IUnsetFieldFiller` extension point, not a dependency on AutoFixture itself. |
+| **Typed `RecordProvider<TRecord>`/`ChildProvider<TChild>`** — composed generic wrappers mirroring `MasterTemplate<TRecord>`, plus `LookupKey.Get<TRecord>()`/`FlavouredLookupKey.Get<TRecord>(flavour)`/`lookup.Get<TRecord>()` | `RecordProviderOfTTest`, `ChildProviderOfTTest`, `LookupKeyTest` | — | ✅ Typed `Supply()`/`SupplyList()` (no cast), a `MasterTemplate<TRecord>`-style object-initializer indexer, and full fluent forwarding. |
 
 ## Not ported — genuine capability gaps
 
@@ -42,7 +44,6 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 | Idea | Status | Detail |
 |------|--------|--------|
 | Embedded/denormalized document relationships (a document database's native nested-array shape, distinct from the FK-reference relationships XFTY models today) | 💡 | [embedded-documents.md](embedded-documents.md) |
-| Auto-population fallback via AutoFixture/AutoBogus for fields no Provider declares (likely a separate `Xfty.AutoFixture` adapter package, not a core change) | 💡 | [autofixture-fallback-fill.md](autofixture-fallback-fill.md) |
 
 ---
 
@@ -74,7 +75,7 @@ Considered and turned down on purpose, not gaps waiting to be filled.
 
 | Item | Status | Detail |
 |------|--------|--------|
-| Publish `Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`, `Xfty.VectorDatabases`, and `Xfty.Xunit` to nuget.org | All five packages build/pack cleanly and are verified locally; the actual push needs the maintainer's own nuget.org account and API key. | [contribute/packaging.md](../contribute/packaging.md) |
+| Publish `Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`, `Xfty.VectorDatabases`, `Xfty.Xunit`, and `Xfty.AutoFixture` to nuget.org | All six packages build/pack cleanly and are verified locally; the actual push needs the maintainer's own nuget.org account and API key. | [contribute/packaging.md](../contribute/packaging.md) |
 
 ---
 

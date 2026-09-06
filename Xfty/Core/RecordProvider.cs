@@ -31,6 +31,7 @@ public sealed partial class RecordProvider
     private bool depthBatched;
     private bool forceStructuralChildGeneration;
     private IPersistenceGateway? persistenceGateway;
+    private IUnsetFieldFiller? unsetFieldFiller;
     private IRecordProvider? factoryOutlet;
 
     public RecordProvider(Type recordType, IProviderLookup providerLookup)

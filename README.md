@@ -55,10 +55,12 @@ The result is test code that is:
 - Real persistence through `IPersistenceGateway` — `Xfty.EntityFrameworkCore`
   ships an EF Core implementation, proven against SQLite and a real Postgres
   container — or mock Ids with no database touched at all
-- Optional add-on packages for two common conveniences core `Xfty` doesn't
-  bundle: `Xfty.Bogus` (realistic names/emails/addresses/paragraphs) and
+- Optional add-on packages for common conveniences core `Xfty` doesn't
+  bundle: `Xfty.Bogus` (realistic names/emails/addresses/paragraphs),
   `Xfty.VectorDatabases` (a random-vector value expression for an embedding
-  field) — neither is a dependency of core `Xfty` itself
+  field), and `Xfty.AutoFixture` (point `fixture.Create<T>()` at a
+  `RecordProvider`, and/or let AutoFixture fill fields no Provider declares)
+  — none is a dependency of core `Xfty` itself
 - Deferred and depth-batched insert: build a graph across several calls, then
   insert it once, in dependency order, across mixed record types
 - Multi-variant Providers (`FlavouredLookupKey`, `DiscriminatorLookupKey`) —
@@ -162,8 +164,11 @@ that they don't:
   reading one that hasn't been generated yet.
 
 Core `Xfty` has no built-in realistic fake-data generation (`Xfty.Bogus` is
-an optional add-on for that) and no auto-population - every field a
-Provider cares about is declared, not guessed. See
+an optional add-on for that) and no auto-population by default - every
+field a Provider cares about is declared, not guessed. `Xfty.AutoFixture`
+is an optional pairing for the fields a Provider *doesn't* care about (or
+for pointing AutoFixture's own `Create<T>()` at a Provider directly) -
+neither changes core `Xfty`'s own philosophy. See
 [docs/reference/comparison.md](docs/reference/comparison.md) for the full,
 unvarnished comparison against AutoFixture, Bogus, AutoBogus, and NBuilder,
 including where XFTY is a worse fit than any of them.
@@ -188,10 +193,16 @@ including everything since the 1.0.0-beta.1 tag):
   before/after a test class or method automatically
 - A real, fixed thread-safety issue in `SharedAncestor` under concurrent
   test execution (xUnit's default; this repo's own suite had opted out)
+- Typed `RecordProvider<TRecord>`/`ChildProvider<TChild>` wrappers — no cast
+  at the `Supply()` call site, plus a `MasterTemplate<TRecord>`-style
+  object-initializer indexer
+- `Xfty.AutoFixture` — pairs XFTY with AutoFixture both directions: point
+  `fixture.Create<T>()` at a registered `RecordProvider`, and/or let
+  AutoFixture fill in whatever fields a Provider's Master Template left
+  unset
 
 The full status table — built, not-ported, and open ideas under
-consideration (embedded/denormalized document relationships, an
-AutoFixture-backed auto-population fallback) — is
+consideration (embedded/denormalized document relationships) — is
 [docs/roadmap/README.md](docs/roadmap/README.md).
 
 ---

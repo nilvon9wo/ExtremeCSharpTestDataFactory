@@ -18,4 +18,6 @@
   <Project Path="Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test.csproj" />
   <Project Path="Xfty.Xunit/Xfty.Xunit.csproj" />
   <Project Path="Xfty.Xunit.Test/Xfty.Xunit.Test.csproj" />
+  <Project Path="Xfty.AutoFixture/Xfty.AutoFixture.csproj" />
+  <Project Path="Xfty.AutoFixture.Test/Xfty.AutoFixture.Test.csproj" />
 </Solution>

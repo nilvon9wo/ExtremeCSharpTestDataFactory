@@ -71,6 +71,19 @@ public sealed partial class RecordProvider
         return this;
     }
 
+    /// <summary>
+    /// Opt in to filling fields this Provider's Master Template never
+    /// configured at all - see <see cref="IUnsetFieldFiller"/>. Applies to
+    /// every record this call generates, including ancestors pulled in
+    /// along the way (each against its own Master Template's own unset
+    /// fields). Xfty.AutoFixture bundles an AutoFixture-backed one.
+    /// </summary>
+    public RecordProvider SetUnsetFieldFiller(IUnsetFieldFiller filler)
+    {
+        this.unsetFieldFiller = filler;
+        return this;
+    }
+
     /// <summary>Suppress the ancestor-cycle guard for this call. Use only when the chain genuinely terminates on its own.</summary>
     public RecordProvider AllowAncestorCycles()
     {

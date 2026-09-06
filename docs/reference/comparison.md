@@ -149,19 +149,24 @@ work in each case below.
   `FakeStreetAddressExpression`, `FakeParagraphExpression`) so most Providers
   never have to write that wrapper themselves; writing a custom one for
   anything Bogus offers that isn't bundled still works exactly the same way.
-- **AutoFixture / AutoBogus, for auto-population — a real gap, and a real
-  design, not a trivial fix.** The gap is genuine: a Provider must declare
-  every field it cares about, where AutoFixture's model is "fill in
-  everything, then tell me what you overrode." Closing it *conveniently*
-  (not just "call `Fixture.Create<T>()` yourself before handing the object
-  to XFTY," which already works but means XFTY's own relationship/ancestor
-  logic never sees or touches those fields) would need a genuine
-  integration point - a fallback hook a `RecordProvider` calls for any
-  field neither a Master Template, an override template, nor a relationship
-  set, backed by an injected `ISpecimenBuilder` (or a Bogus `Faker<T>`).
-  That's a small, separate adapter project (`Xfty.AutoFixture`), not a
-  core change - tracked as an idea, not committed:
-  [autofixture-fallback-fill.md](../roadmap/autofixture-fallback-fill.md).
+- **AutoFixture, for auto-population — done, as a separate package, both
+  directions.** The gap was genuine: a Provider must declare every field it
+  cares about, where AutoFixture's model is "fill in everything, then tell
+  me what you overrode." `Xfty.AutoFixture` closes it two ways that compose:
+  `XftyCustomization` points `fixture.Create<T>()` at a registered
+  `RecordProvider` instead of AutoFixture's own generation (so XFTY's
+  relationship/ancestor/cycle logic is what actually runs, not AutoFixture's
+  own recursive auto-property population); `IUnsetFieldFiller`/
+  `AutoFixtureUnsetFieldFiller` is the other direction - a fallback hook
+  `RecordProvider` consults for any field neither a Master Template, an
+  override template, `Put(...)`, nor a relationship configured, backed by an
+  injected `IFixture`. Not just "call `Fixture.Create<T>()` yourself before
+  handing the object to XFTY" (which already worked, but meant XFTY's own
+  logic never saw or touched those fields) - the filler runs inside XFTY's
+  own generation pipeline, late enough to never fight a Provider for a field
+  it actually set. See [use/autofixture.md](../use/autofixture.md) and
+  [roadmap/autofixture-fallback-fill.md](../roadmap/autofixture-fallback-fill.md)
+  (design history).
 - **NBuilder — not really a gap to close.** XFTY already generates *N*
   similar records natively (call a Provider's `Supply()` in a loop, or use
   `With`/`WithChildren` for the nested case); NBuilder's own niche is
