@@ -126,9 +126,18 @@ One-time setup on nuget.org (repo owner only): sign in → username menu →
   `.github/workflows/` path)
 - **Environment:** leave blank (the workflow doesn't declare a GitHub Actions
   `environment:`)
-- **Scope:** a glob covering every package id this workflow pushes — `Xfty*`
-  matches all nine — with "publish new packages" allowed, since every one of
-  them is a first-time publish the first time this runs.
+- **Glob Patterns and Packages:** one glob per line, covering every package
+  id this workflow pushes — a single line is enough:
+  ```
+  Xfty*
+  ```
+  (matches all nine package ids)
+- **Select Scope:**
+  - ✅ **Push**, radio set to **Push new packages and package versions** (the
+    default) — every one of the nine is a first-time publish the first time
+    this runs, so "Push only new package versions" would reject all of them.
+  - ⬜ **Unlist or relist package versions** — leave unchecked; the workflow
+    never does either, so there's no reason to grant it.
 
 A policy against a public repo needs one real publish before it's considered
 fully trusted (a 7-day provisional window guards against someone deleting and
