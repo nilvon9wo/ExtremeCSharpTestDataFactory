@@ -93,6 +93,29 @@ fixing something unrelated.
 
 ## Fixed (kept for context)
 
+- **`RelatedOnly`'s user-facing docs described the opposite of what it
+  actually does - the code was correct, three doc pages were wrong.**
+  `docs/use/insert-modes.md`, `getting-started.md`, and
+  `reference/api-cheatsheet.md` all described `RelatedOnly` as pure,
+  offline Mock-Id generation needing no persistence at all.
+  `docs/contribute/architecture.md` had the correct behavior the whole
+  time: `GenerationContext.ForRelated()` upgrades `RelatedOnly` to `Now`
+  for ancestor generation specifically, by design - confirmed directly
+  ("The code is correct... The use case for RelatedOnly is when the
+  developer needs/wants uninserted records which relates to existing
+  already persisted records"). A primary generated under `RelatedOnly`
+  relates to a **real, persisted (or persistable) ancestor** - a mocked
+  Id would be a dangling reference to nothing once the caller actually
+  inserts the primary itself. Confirmed with a throwaway probe against
+  the real engine before touching anything: `Supply()` on a `RelatedOnly`
+  Contact with a required Account and no gateway configured throws
+  `NotSupportedException`, identical to `Now`. All three doc pages
+  corrected; two permanent regression tests added to
+  `PersistenceGatewayTest` (the ancestor is genuinely inserted through
+  the gateway while the primary stays un-Id'd; the same call throws
+  without one) since nothing end-to-end had exercised this path before -
+  the one existing `RelatedOnly` test used a Provider with no ancestors
+  at all, so it never touched this code.
 - `DeferredInsertBuffer.Collect(bundle)` called `bundle.PrimaryRecords()`
   directly with no null-guard, unlike Apex's null-safe
   `primaryRecordsOf(bundle)` helper — `Add(null)` / `InsertGraph(null)` /

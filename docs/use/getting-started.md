@@ -234,7 +234,7 @@ XFTY supports six insert modes.
 |------|-------------|
 | `Never` | Generate records without Ids. |
 | `Mock` | Generate realistic-looking Ids without any persistence. |
-| `RelatedOnly` | Mock-Id only related records. |
+| `RelatedOnly` | Insert the generated ancestors for real - same as `Now`, throws without a gateway - but leave the primary Id-less for the caller to insert itself. |
 | `Now` | Insert every generated record through the configured `IPersistenceGateway`. **Throws if none is configured.** |
 | `Later` | Behaves like `Never` while documenting that insertion will happen later. |
 | `Deferred` | Generate like `Never` over many calls, registering everything for a single later flush; see [deferred-insert](deferred-insert.md). |

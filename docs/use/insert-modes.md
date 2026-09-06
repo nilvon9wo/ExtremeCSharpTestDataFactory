@@ -25,7 +25,7 @@ controls how much of the graph is generated. The two are independent.
 |------|-----------|
 | `Never` | Generate records without Ids. |
 | `Mock` | Generate realistic-looking Ids **without any persistence**. |
-| `RelatedOnly` | Mock-Id only the generated related records; leave the primary records Id-less. |
+| `RelatedOnly` | Insert the generated **ancestors** for real, through the configured `IPersistenceGateway` — same as `Now` — but leave the primary records Id-less for the caller to insert itself. **Throws `NotSupportedException` if no gateway is configured and an ancestor needs generating.** |
 | `Now` | Insert every generated record through the configured `IPersistenceGateway`. **Throws `NotSupportedException` if none is configured.** |
 | `Later` | Behaves exactly like `Never`; documents that the caller will insert later. |
 | `Deferred` | Generate like `Never`, but register every record so one flush handles the whole set — see [deferred-insert](deferred-insert.md). Flushing also needs a configured gateway, same as `Now`. |
@@ -76,14 +76,25 @@ inserting nothing.
 
 ## `RelatedOnly`
 
-Mock-Ids the generated parents but leaves the primary records untouched — a test
-that needs valid lookup targets but wants to handle the primaries itself.
-Internally XFTY upgrades relationship generation while leaving the primaries
-alone.
+For relating a not-yet-inserted primary to a **real, persisted (or
+persistable) ancestor** — an Account that genuinely exists, or will, not a
+placeholder Id nothing in a real database points at. The primary is
+generated the normal way but left un-Id'd, for the caller to insert itself
+whenever it's ready; every ancestor it needs is generated and **actually
+inserted** through the configured `IPersistenceGateway` first, exactly like
+`Now` does for the whole graph. Internally, `RelatedOnly` upgrades to `Now`
+for ancestor generation only - so **the same gateway requirement as `Now`
+applies**: no gateway configured and an ancestor needs generating throws
+`NotSupportedException`, the same as `Now` would.
+
+If a Provider has no ancestors to generate in the first place, `RelatedOnly`
+never touches a gateway at all — the requirement only exists where there's
+an ancestor to insert.
 
 It only affects a Provider's **ancestors**. Child collections
 ([`With` / `WithChildren`](child-records.md)) are not ancestors, so under
-`RelatedOnly` they are generated but not Id'd.
+`RelatedOnly` they are generated but not inserted or Id'd - only the parent
+side of a relationship is ever "related."
 
 ---
 
@@ -108,7 +119,7 @@ ignored entirely; the whole subtree is generated together.
 | Testing object construction only | `Never` |
 | Test will Id/persist the records itself | `Later` |
 | Data built over several calls, one in-memory graph | `Deferred` |
-| Needs Id'd lookup targets only | `RelatedOnly` |
+| Primary relates to a real, already-persisted (or persistable) ancestor, but the primary itself isn't inserted yet | `RelatedOnly` |
 | A persistence gateway is configured and rows should actually be saved | `Now` |
 
 Start with `Mock` + `Required` inclusivity — realistic Ids, valid required data,

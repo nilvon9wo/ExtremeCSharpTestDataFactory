@@ -85,6 +85,50 @@ public class PersistenceGatewayTest
     }
 
     [Fact]
+    public void SupplyBundle_InRelatedOnlyMode_WithAGateway_InsertsTheAncestorButLeavesThePrimaryUnId()
+    {
+        // Arrange - RelatedOnly relates a not-yet-inserted Contact to a real, persisted Account
+        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
+            .Do(call =>
+            {
+                List<object> records = call.ArgAt<List<object>>(0);
+                System.Reflection.PropertyInfo idField = call.ArgAt<System.Reflection.PropertyInfo>(1);
+                records.ForEach(record => idField.SetValue(record, $"real-{Guid.NewGuid()}"));
+            });
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.RelatedOnly)
+            .SetPersistenceGateway(gateway);
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+
+        // Assert - the Account is genuinely inserted; the Contact primary is left for the caller
+        Contact contact = (Contact)bundle.PrimaryRecords()![0];
+        Account account = (Account)bundle.GetList<Contact>(x => x.AccountId)![0];
+        Assert.Null(contact.Id);
+        Assert.NotNull(account.Id);
+        Assert.Equal(account.Id, contact.AccountId);
+        gateway.Received(1).Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>());
+    }
+
+    [Fact]
+    public void Supply_InRelatedOnlyMode_WithoutAGateway_ThrowsWhenAnAncestorNeedsGenerating()
+    {
+        // Arrange - Contact's required Account ancestor needs a real insert under RelatedOnly, same as Now
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.RelatedOnly);
+
+        // Act
+        NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => provider.Supply());
+
+        // Assert
+        Assert.Contains("persistence gateway", thrown.Message);
+    }
+
+    [Fact]
     public void Supply_NowPlusDepthBatched_WithAGateway_ResolvesOneLayerAtATimeThroughTheGateway()
     {
         // Arrange - a Contact requiring an Account: depth-batched should insert the Account layer,
