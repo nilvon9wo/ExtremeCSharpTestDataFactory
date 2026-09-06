@@ -18,21 +18,49 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      # Xfty.ci-cross-platform.slnf is Xfty.slnx minus Xfty.NetStandardCompat.Test -
+      # that one targets net472 to prove Xfty's netstandard2.0 build actually runs
+      # (netstandard2.0 isn't itself a runnable platform), and .NET Framework
+      # binaries can't execute on Linux at all. See the windows-net472 job below.
       - name: Restore
-        run: dotnet restore Xfty.slnx
+        run: dotnet restore Xfty.ci-cross-platform.slnf
 
       - name: Build (strict .editorconfig analyzers enforced)
-        run: dotnet build Xfty.slnx --no-restore
+        run: dotnet build Xfty.ci-cross-platform.slnf --no-restore
 
       - name: Test (excluding the informational performance suite)
-        run: dotnet test Xfty.slnx --no-build --filter "Category!=Performance"
+        run: dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"
 
       - name: Performance suite (informational - wall-clock ceilings are generous but CI runners vary)
         continue-on-error: true
-        run: dotnet test Xfty.slnx --no-build --filter "Category=Performance"
+        run: dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category=Performance"
 
       - name: Verify every documented code example is exercised by a real test
         run: python3 scripts/verify-doc-examples.py
 
       - name: Verify every relative doc link and anchor resolves
         run: python3 scripts/verify-doc-links.py
+
+  windows-net472:
+    name: netstandard2.0 compat (net472)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      # Proves the netstandard2.0-only polyfills in Xfty/Internal/NetStandardCompat.cs
+      # (GetValueOrDefault/ToHashSet/SharedRandom) actually run, not just compile -
+      # net472 is the one real runtime this repo targets that implements
+      # netstandard2.0, so referencing Xfty from here resolves to that build.
+      - name: Restore
+        run: dotnet restore Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj
+
+      - name: Build
+        run: dotnet build Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-restore
+
+      - name: Test
+        run: dotnet test Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-build

@@ -12,6 +12,49 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+### Added
+
+- **Core `Xfty` now multi-targets `netstandard2.0;net8.0;net10.0`**, not just
+  `net10.0` - a `net8.0`/`net9.0`/`net10.0`+ consumer gets an exact or
+  compatible match either way, and `netstandard2.0` reaches everything else
+  that implements it (.NET Framework 4.6.1+, older .NET Core, Mono/Xamarin)
+  without asking any of them to move off it. Verified empirically, not just
+  assumed: all three TFMs build clean, and (since `netstandard2.0` is a
+  contract, not itself a runnable platform - the actual execution always
+  happens on whatever real runtime implements it) a new `net472` project,
+  `Xfty.NetStandardCompat.Test`, proves the `netstandard2.0`-only
+  compatibility shims genuinely run, not just compile: `Dictionary.GetValueOrDefault`
+  and `IEnumerable.ToHashSet` (.NET Core 2.0+) and `Random.Shared` (.NET 6+)
+  don't exist on `netstandard2.0`'s real BCL, so `Xfty/Internal/NetStandardCompat.cs`
+  supplies each - the same call syntax everywhere else in the codebase, so no
+  other file needed to change - with `SharedRandom` specifically using a
+  per-thread `Random` instance on `netstandard2.0` (matching `Random.Shared`'s
+  actual thread-safety guarantee, not just its name: plain `Random` isn't
+  thread-safe on the older runtimes `netstandard2.0` targets). `init`
+  accessors (used only in the `Xfty.Demo` model classes) needed
+  `IsExternalInit`, supplied by PolySharp rather than a hand-rolled shim.
+  `LangVersion` is now pinned explicitly (`latest`, in `Directory.Build.props`)
+  for the whole solution - without it, `netstandard2.0`'s compile pass would
+  silently default to a much older C# language version and reject `init`,
+  primary constructors, collection expressions, etc. outright. CI gained a
+  dedicated `windows-net472` job (the only real runtime available that
+  implements `netstandard2.0`, and the only one of the three TFMs Linux
+  runners can't execute) - `Xfty.ci-cross-platform.slnf` keeps the existing
+  Linux job scoped to what it can actually run.
+- **`Xfty.FSharpAsync`** - F#-idiomatic `Async<'T>` wrappers
+  (`RecordProviderAsync`, `TypedRecordProviderAsync`, `DeferredInserterAsync`)
+  over the plain and typed `RecordProvider`'s `Task`-based
+  `Supply`/`SupplyList`/`SupplyBundle` and `DeferredInserter.Flush`, for F#
+  code built on the original `async { }` workflow rather than the newer
+  `task { }` computation expression (which needs no wrapper at all - it
+  already consumes `Xfty`'s `Task`-returning members directly). Each function
+  is a thin `Async.AwaitTask` bridge - the underlying work is identical
+  either way; the reason this exists at all is that `Async<'T>` is cold
+  (nothing runs until something starts it) where `Task<'T>` is hot (already
+  running, or scheduled, the moment you hold a reference to it), a real
+  semantic difference `Async.AwaitTask` alone doesn't erase. See
+  [Xfty.FSharpAsync/README.md](Xfty.FSharpAsync/README.md).
+
 ### Changed
 
 - **BREAKING: persistence is now fully async, end to end.** `IPersistenceGateway.Insert`

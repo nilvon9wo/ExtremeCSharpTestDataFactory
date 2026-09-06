@@ -25,7 +25,7 @@ public sealed class UniqueAcrossRunsExpression(string? prefix, string? suffix) :
     private static string BuildRunToken()
     {
         string nowMillis = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
-        string entropy = Math.Abs(Random.Shared.Next()).ToString(CultureInfo.InvariantCulture);
+        string entropy = Math.Abs(SharedRandom.Instance.Next()).ToString(CultureInfo.InvariantCulture);
         return Right(nowMillis, 9) + Right(entropy, 5);
     }
 

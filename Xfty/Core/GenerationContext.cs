@@ -209,7 +209,7 @@ public sealed class GenerationContext
             this.ExcludePrimaryIds, null, this.CycleGuard);
 
     /// <summary>As ForRecord, narrowed to the one context-aware value field being generated now.</summary>
-    public GenerationContext ForValueField(PropertyInfo fieldBeingBuilt, IReadOnlySet<PropertyInfo> pendingContextAwareValues) =>
+    public GenerationContext ForValueField(PropertyInfo fieldBeingBuilt, IReadOnlyCollection<PropertyInfo> pendingContextAwareValues) =>
         new(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex,

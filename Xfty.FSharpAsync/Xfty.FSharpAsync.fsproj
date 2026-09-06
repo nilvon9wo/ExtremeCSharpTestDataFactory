@@ -2,18 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <RootNamespace>Net.Nowhereatall.Xfty.VectorDatabases</RootNamespace>
-    <AssemblyName>Net.Nowhereatall.Xfty.VectorDatabases</AssemblyName>
+    <RootNamespace>Net.Nowhereatall.Xfty.FSharpAsync</RootNamespace>
+    <AssemblyName>Net.Nowhereatall.Xfty.FSharpAsync</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>Xfty.VectorDatabases</PackageId>
+    <PackageId>Xfty.FSharpAsync</PackageId>
     <Version>1.0.0-beta.4</Version>
     <Authors>Brian Kessler</Authors>
-    <Description>A bundled IValueExpression for XFTY that fills a vector-database record's embedding field with a fixed-length array of random floats - structurally a vector, not a semantically meaningful embedding.</Description>
-    <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;vector-database;embeddings</PackageTags>
+    <Description>F#-idiomatic Async&lt;'T&gt; wrappers over XFTY's Task-based API, for F# codebases built on the original async { } workflow rather than the newer task { } computation expression (which already consumes XFTY's Task-returning API directly - see this package's README for when you do and don't need this at all).</Description>
+    <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;fsharp;async</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory</PackageProjectUrl>
     <RepositoryUrl>https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory</RepositoryUrl>
@@ -22,6 +20,12 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="RecordProviderAsync.fs" />
+    <Compile Include="TypedRecordProviderAsync.fs" />
+    <Compile Include="DeferredInserterAsync.fs" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Xfty\Xfty.csproj" />

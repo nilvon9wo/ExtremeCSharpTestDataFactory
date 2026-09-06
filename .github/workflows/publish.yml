@@ -21,14 +21,17 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      # Xfty.ci-cross-platform.slnf is Xfty.slnx minus Xfty.NetStandardCompat.Test,
+      # which targets net472 and can't run on this Linux runner - see ci.yml's
+      # windows-net472 job, which already covers it on every push/PR to master.
       - name: Restore
-        run: dotnet restore Xfty.slnx
+        run: dotnet restore Xfty.ci-cross-platform.slnf
 
       - name: Build (Release)
-        run: dotnet build Xfty.slnx -c Release --no-restore
+        run: dotnet build Xfty.ci-cross-platform.slnf -c Release --no-restore
 
       - name: Test (excluding the informational performance suite)
-        run: dotnet test Xfty.slnx -c Release --no-build --filter "Category!=Performance"
+        run: dotnet test Xfty.ci-cross-platform.slnf -c Release --no-build --filter "Category!=Performance"
 
       - name: Pack every publishable package
         run: |
@@ -41,6 +44,7 @@ jobs:
             Xfty.Xunit/Xfty.Xunit.csproj \
             Xfty.AutoFixture/Xfty.AutoFixture.csproj \
             Xfty.AutoBogus/Xfty.AutoBogus.csproj \
+            Xfty.FSharpAsync/Xfty.FSharpAsync.fsproj \
             Xfty.VectorDatabases.Qdrant/Xfty.VectorDatabases.Qdrant.csproj \
             Xfty.VectorDatabases.MicrosoftExtensionsVectorData/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.csproj \
           ; do

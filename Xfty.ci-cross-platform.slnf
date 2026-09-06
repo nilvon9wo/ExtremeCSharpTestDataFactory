@@ -1,0 +1,28 @@
+{
+  "solution": {
+    "path": "Xfty.slnx",
+    "projects": [
+      "docs/Xfty.Docs.csproj",
+      "Xfty.Test/Xfty.Test.csproj",
+      "Xfty/Xfty.csproj",
+      "Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj",
+      "Xfty.EntityFrameworkCore.Test/Xfty.EntityFrameworkCore.Test.csproj",
+      "Xfty.Bogus/Xfty.Bogus.csproj",
+      "Xfty.Bogus.Test/Xfty.Bogus.Test.csproj",
+      "Xfty.VectorDatabases/Xfty.VectorDatabases.csproj",
+      "Xfty.VectorDatabases.Test/Xfty.VectorDatabases.Test.csproj",
+      "Xfty.VectorDatabases.Qdrant/Xfty.VectorDatabases.Qdrant.csproj",
+      "Xfty.VectorDatabases.Qdrant.Test/Xfty.VectorDatabases.Qdrant.Test.csproj",
+      "Xfty.VectorDatabases.MicrosoftExtensionsVectorData/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.csproj",
+      "Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test.csproj",
+      "Xfty.Xunit/Xfty.Xunit.csproj",
+      "Xfty.Xunit.Test/Xfty.Xunit.Test.csproj",
+      "Xfty.AutoFixture/Xfty.AutoFixture.csproj",
+      "Xfty.AutoFixture.Test/Xfty.AutoFixture.Test.csproj",
+      "Xfty.AutoBogus/Xfty.AutoBogus.csproj",
+      "Xfty.AutoBogus.Test/Xfty.AutoBogus.Test.csproj",
+      "Xfty.FSharpAsync/Xfty.FSharpAsync.fsproj",
+      "Xfty.FSharpAsync.Test/Xfty.FSharpAsync.Test.fsproj"
+    ]
+  }
+}

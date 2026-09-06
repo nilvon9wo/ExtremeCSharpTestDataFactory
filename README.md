@@ -60,8 +60,11 @@ The result is test code that is:
   `Xfty.VectorDatabases` (a random-vector value expression for an embedding
   field), `Xfty.AutoFixture`, and `Xfty.AutoBogus` (both: point
   `Create<T>()`/`Generate<T>()` at a `RecordProvider`, and/or let the tool
-  fill fields no Provider declares) — none is a dependency of core `Xfty`
-  itself
+  fill fields no Provider declares), and `Xfty.FSharpAsync` (`Async<'T>`
+  wrappers, for F# code on the original `async { }` workflow) — none is a
+  dependency of core `Xfty` itself
+- Targets `netstandard2.0`/`net8.0`/`net10.0` — .NET Framework 4.6.1+,
+  Mono/Xamarin, and older .NET Core all work, not just current .NET
 - Deferred and depth-batched insert: build a graph across several calls, then
   insert it once, in dependency order, across mixed record types
 - Multi-variant Providers (`FlavouredLookupKey`, `DiscriminatorLookupKey`) —
@@ -204,6 +207,15 @@ including everything since the 1.0.0-beta.1 tag):
 - `Xfty.AutoBogus` — the same pairing for AutoBogus (AutoFixture-style
   auto-population plus Bogus's realistic generators), completing the
   trifecta: XFTY now pairs with AutoFixture, Bogus, and AutoBogus
+- Persistence is fully `async` end to end — every `Supply`/`SupplyList`/
+  `SupplyBundle` call, and everything reachable from it, is now genuinely
+  `Task`-based, matching how every real backing store (EF Core, a vector
+  database client, a network call) already works underneath
+- Core `Xfty` now multi-targets `netstandard2.0;net8.0;net10.0`, reaching
+  .NET Framework 4.6.1+/Mono/Xamarin as well as modern .NET, verified via a
+  dedicated `net472` test project (`netstandard2.0` isn't itself runnable)
+- `Xfty.FSharpAsync` — `Async<'T>` wrappers for F# code still built on
+  `async { }` rather than the newer `task { }`, which needs no wrapper at all
 
 The full status table — built, not-ported, and open ideas under
 consideration (embedded/denormalized document relationships) — is

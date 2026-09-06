@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Xfty.Xunit</PackageId>
-    <Version>1.0.0-beta.3</Version>
+    <Version>1.0.0-beta.4</Version>
     <Authors>Brian Kessler</Authors>
     <Description>xUnit integration for XFTY: [IsolatesSharedAncestor], an attribute for a test class or method that resets SharedAncestor's registry before and after - so a consumer never has to hand-wire a base test class or fixture to keep shared-ancestor state from leaking between tests.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit</PackageTags>

@@ -16,9 +16,9 @@ namespace Net.Nowhereatall.Xfty.Engine;
 /// a read of a still-pending field loudly rather than handing back a
 /// misleading null.
 /// </summary>
-public sealed class ValueFieldPass(PropertyInfo fieldBeingBuilt, IReadOnlySet<PropertyInfo> pendingContextAwareValues)
+public sealed class ValueFieldPass(PropertyInfo fieldBeingBuilt, IReadOnlyCollection<PropertyInfo> pendingContextAwareValues)
 {
     public PropertyInfo FieldBeingBuilt { get; } = fieldBeingBuilt;
 
-    public IReadOnlySet<PropertyInfo> PendingContextAwareValues { get; } = pendingContextAwareValues;
+    public IReadOnlyCollection<PropertyInfo> PendingContextAwareValues { get; } = pendingContextAwareValues;
 }

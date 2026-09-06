@@ -12,4 +12,17 @@
     <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
 
+  <!--
+    Without this, each multi-targeted TFM's compile pass infers its own
+    default C# language version - netstandard2.0 defaults to a much older
+    one unless told otherwise, and would reject init accessors, primary
+    constructors, collection expressions, etc. outright. Pinning this once,
+    solution-wide, keeps every TFM's compile pass on the same modern syntax
+    rules; per-TFM *runtime*-capability gaps (not syntax) are still handled
+    separately, per project, via PolySharp/#if.
+  -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
 </Project>
