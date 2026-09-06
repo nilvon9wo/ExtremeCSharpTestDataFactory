@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases;
 
 /// <summary>
 /// An <see cref="IValueExpression"/> filling a vector-database record's

@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Bogus.Test;
+namespace Net.NowhereAtAll.Xfty.Bogus.Test;
 
 /// <summary>Proves <see cref="FakeEmailAddressExpression"/> - Get produces well-formed, varied addresses.</summary>
 public class FakeEmailAddressExpressionTest

@@ -1,7 +1,7 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>
 /// The up-flowing values a bundle's primaries still owe - one (row, field,

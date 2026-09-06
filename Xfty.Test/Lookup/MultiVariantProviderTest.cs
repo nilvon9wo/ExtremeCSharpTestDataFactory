@@ -1,12 +1,12 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Lookup;
-using Net.Nowhereatall.Xfty.Relationships;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Relationships;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Test.Lookup;
+namespace Net.NowhereAtAll.Xfty.Test.Lookup;
 
 /// <summary>Proves multi-variant Provider resolution end to end: one record type, several Providers, chosen by lookup key. Mock mode throughout.</summary>
 public class MultiVariantProviderTest

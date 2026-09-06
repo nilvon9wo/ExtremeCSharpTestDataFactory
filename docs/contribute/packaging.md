@@ -5,7 +5,7 @@ directories, no namespace.
 
 ```text
 Xfty.slnx
-Xfty/            - the library (Net.Nowhereatall.Xfty)
+Xfty/            - the library (Net.NowhereAtAll.Xfty)
   Core/          - the public types (RecordProvider, Bundle, MasterTemplate, ...)
   Engine/        - the generation pipeline
   Persistence/   - Id assignment, deferred / depth-batched resolution
@@ -14,7 +14,7 @@ Xfty/            - the library (Net.Nowhereatall.Xfty)
   Lookup/        - LookupKey, FlavouredLookupKey, ProviderLookups
   Predicates/    - the reusable IRecordPredicate conditions
   Demo/          - this port's own bundled Account/Contact Providers + demo record types
-Xfty.Test/       - the xUnit test suite (Net.Nowhereatall.Xfty.Test), mirroring Xfty/'s folders
+Xfty.Test/       - the xUnit test suite (Net.NowhereAtAll.Xfty.Test), mirroring Xfty/'s folders
 Xfty.EntityFrameworkCore/       - optional: IPersistenceGateway via EF Core
 Xfty.EntityFrameworkCore.Test/  - proven against SQLite + a real Postgres container
 Xfty.Bogus/                     - optional: realistic-value IValueExpressions wrapping Bogus

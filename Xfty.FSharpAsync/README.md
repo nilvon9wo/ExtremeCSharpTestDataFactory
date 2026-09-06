@@ -31,8 +31,8 @@ or is simply built on `async { }` throughout, this package bridges the gap.
 ## Usage
 
 ```fsharp
-open Net.Nowhereatall.Xfty.Core
-open Net.Nowhereatall.Xfty.FSharpAsync
+open Net.NowhereAtAll.Xfty.Core
+open Net.NowhereAtAll.Xfty.FSharpAsync
 
 async {
     let provider =

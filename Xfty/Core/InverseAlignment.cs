@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>
 /// The inverse of the 1:1 parent alignment: for each parent record, the child

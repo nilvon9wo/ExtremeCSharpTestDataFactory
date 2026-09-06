@@ -1,9 +1,9 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Lookup;
-using Net.Nowhereatall.Xfty.Relationships;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Relationships;
 
-namespace Net.Nowhereatall.Xfty.Test.Relationships;
+namespace Net.NowhereAtAll.Xfty.Test.Relationships;
 
 /// <summary>
 /// End-to-end proof that SharedAncestor/SharedAncestorResolver actually

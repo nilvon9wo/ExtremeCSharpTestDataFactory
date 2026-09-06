@@ -1,8 +1,8 @@
 using global::AutoBogus;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.AutoBogus;
+namespace Net.NowhereAtAll.Xfty.AutoBogus;
 
 /// <summary>
 /// Intercepts a request for a type with a registered <see cref="IRecordProvider"/>

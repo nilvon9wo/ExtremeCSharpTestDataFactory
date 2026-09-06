@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Engine;
 
-namespace Net.Nowhereatall.Xfty.Test.Engine;
+namespace Net.NowhereAtAll.Xfty.Test.Engine;
 
 /// <summary>Proves AncestorCycleGuard - the key-chain tracking that stops an infinite A -> A -> A ... ancestor cycle. Pure in-memory state, no database access.</summary>
 public class AncestorCycleGuardTest

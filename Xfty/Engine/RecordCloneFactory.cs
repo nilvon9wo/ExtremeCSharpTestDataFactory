@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Engine;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>
 /// Creates full-fidelity in-memory copies of a record via reflection over

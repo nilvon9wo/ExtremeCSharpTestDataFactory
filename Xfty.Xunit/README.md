@@ -11,7 +11,7 @@ dotnet add package Xfty.Xunit
 ## Usage
 
 ```csharp
-using Net.Nowhereatall.Xfty.Xunit;
+using Net.NowhereAtAll.Xfty.Xunit;
 
 [IsolatesSharedAncestor]
 public class MyTests

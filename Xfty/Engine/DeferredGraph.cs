@@ -1,7 +1,7 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Persistence;
+using Net.NowhereAtAll.Xfty.Persistence;
 
-namespace Net.Nowhereatall.Xfty.Engine;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>
 /// The whole in-memory forest a DEFERRED flush has collected - every

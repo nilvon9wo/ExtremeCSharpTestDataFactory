@@ -1,8 +1,8 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Values;
-namespace Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Values;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>The second value pass: the context-aware expressions, run once the plain values, ancestors and lookups are all in place.</summary>
 public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext context, MasterTemplate template)

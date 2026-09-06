@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Values;
+namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
 /// An <see cref="IValueExpression"/> unique within one process's lifetime (the

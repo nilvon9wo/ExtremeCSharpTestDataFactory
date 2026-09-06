@@ -1,8 +1,8 @@
 using System.Reflection;
 
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-namespace Net.Nowhereatall.Xfty.Persistence;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
 /// Collects the records of one or more generated-but-unsaved bundles into

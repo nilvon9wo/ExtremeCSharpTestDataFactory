@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 
-namespace Net.Nowhereatall.Xfty.Relationships;
+namespace Net.NowhereAtAll.Xfty.Relationships;
 
 /// <summary>
 /// One record shared by every relationship that references it - the same

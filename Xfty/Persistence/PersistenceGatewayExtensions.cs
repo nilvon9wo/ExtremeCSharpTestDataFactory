@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Persistence;
+namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
 /// <see cref="IPersistenceGateway.Insert"/> takes one record type at a time;

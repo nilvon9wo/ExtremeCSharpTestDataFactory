@@ -1,9 +1,9 @@
 using System.Reflection;
 using global::AutoFixture;
 using global::AutoFixture.Kernel;
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 
-namespace Net.Nowhereatall.Xfty.AutoFixture;
+namespace Net.NowhereAtAll.Xfty.AutoFixture;
 
 /// <summary>
 /// The bundled <see cref="IUnsetFieldFiller"/>: resolves each field XFTY's

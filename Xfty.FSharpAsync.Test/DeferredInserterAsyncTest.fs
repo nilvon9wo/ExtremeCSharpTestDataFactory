@@ -1,8 +1,8 @@
-module Net.Nowhereatall.Xfty.FSharpAsync.Test.DeferredInserterAsyncTest
+module Net.NowhereAtAll.Xfty.FSharpAsync.Test.DeferredInserterAsyncTest
 
 open System.Threading.Tasks
 open Xunit
-open Net.Nowhereatall.Xfty.FSharpAsync
+open Net.NowhereAtAll.Xfty.FSharpAsync
 
 [<Fact>]
 let ``flush with nothing registered completes without a gateway`` () : Task =

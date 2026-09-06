@@ -11,7 +11,7 @@ defaults.
 | Contact | `ContactDataProvider` |
 | Lookup wiring them | `DefaultProviderLookup` |
 
-All three live in `Net.Nowhereatall.Xfty.Demo`.
+All three live in `Net.NowhereAtAll.Xfty.Demo`.
 
 `DefaultProviderLookup` is also the copy-me example for
 [writing your own lookup](provider-lookups.md) — it is the exact map-plus-utility

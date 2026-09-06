@@ -1,8 +1,8 @@
-using Net.Nowhereatall.Xfty.Values;
-using Net.Nowhereatall.Xfty.VectorDatabases;
+using Net.NowhereAtAll.Xfty.Values;
+using Net.NowhereAtAll.Xfty.VectorDatabases;
 using Pgvector;
 
-namespace Net.Nowhereatall.Xfty.EntityFrameworkCore.Test;
+namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 
 /// <summary>
 /// Adapts <see cref="RandomVectorExpression"/>'s <c>float[]</c> output to

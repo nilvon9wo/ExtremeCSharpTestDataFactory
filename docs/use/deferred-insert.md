@@ -49,7 +49,7 @@ graph.ResolveAll(InsertMode.Mock);   // assigns mock Ids in dependency order, sa
 ```
 
 `DeferredInsertBuffer` and `DepthBatchedInserter` (below) live in
-`Net.Nowhereatall.Xfty.Persistence` and are the lower-level pieces
+`Net.NowhereAtAll.Xfty.Persistence` and are the lower-level pieces
 `RecordProvider` builds on. Reach for them directly when a test wants to prove
 the graph is well-formed (parent-before-child ordering, shared ancestors
 collapsed to one row, up-flow values resolved) without a working `Now`.

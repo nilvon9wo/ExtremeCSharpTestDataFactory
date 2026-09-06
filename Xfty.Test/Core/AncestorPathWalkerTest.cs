@@ -1,8 +1,8 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
 
-namespace Net.Nowhereatall.Xfty.Test.Core;
+namespace Net.NowhereAtAll.Xfty.Test.Core;
 
 /// <summary>Proves AncestorPathWalker - reading a field several relationship hops up a generated ancestor graph. Pure in-memory, no database access.</summary>
 public class AncestorPathWalkerTest

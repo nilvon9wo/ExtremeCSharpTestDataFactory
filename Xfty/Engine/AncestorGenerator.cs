@@ -1,9 +1,9 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Lookup;
-using Net.Nowhereatall.Xfty.Relationships;
-namespace Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Relationships;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>Generates the ancestor sub-bundle for each relationship the inclusivity covers.</summary>
 public sealed class AncestorGenerator(GenerationContext context, int quantity, MasterTemplate template)

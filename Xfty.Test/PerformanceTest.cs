@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Lookup;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Test;
+namespace Net.NowhereAtAll.Xfty.Test;
 
 /// <summary>
 /// Volume tests: generate at a scale a real test suite might reach and prove

@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Enrichment;
 
 /// <summary>A forced scalar on the records of a child collection path reaches downward.</summary>
 public sealed class ChildValue(List<PropertyInfo> path, object? value)

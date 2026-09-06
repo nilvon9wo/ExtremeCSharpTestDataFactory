@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Enrichment;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Enrichment;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>
 /// The record(s) one <c>CreateBundle</c> call has produced: primary records

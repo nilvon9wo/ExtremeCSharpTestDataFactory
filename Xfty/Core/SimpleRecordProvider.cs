@@ -1,7 +1,7 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Engine;
 
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>
 /// Base for a Provider that is nothing more than a Master Template - by far

@@ -1,10 +1,10 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Persistence;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Persistence;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Test.Values;
+namespace Net.NowhereAtAll.Xfty.Test.Values;
 
 /// <summary>
 /// Proves <see cref="CopyFromDescendantExpression"/> by building a

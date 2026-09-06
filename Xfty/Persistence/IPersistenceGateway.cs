@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Persistence;
+namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
 /// The one seam a real backing store plugs into. <see cref="InsertMode.Now"/>

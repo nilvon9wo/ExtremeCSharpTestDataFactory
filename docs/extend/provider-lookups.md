@@ -43,7 +43,7 @@ public sealed class MyProjectLookup : IProviderLookup
 - Lookup keys compare by value (`HashKey`), so they work as dictionary keys
   directly. Obtain them with `LookupKey.Get(...)`, never `new`.
 
-`DefaultProviderLookup` (`Net.Nowhereatall.Xfty.Demo`) is exactly this pattern
+`DefaultProviderLookup` (`Net.NowhereAtAll.Xfty.Demo`) is exactly this pattern
 with this port's own two Providers — the framework uses it for its own
 self-tests, and it is the class to copy as a starting point.
 

@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Predicates;
+namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
 /// Discoverable factory for the ready-made single-field

@@ -22,7 +22,7 @@ answers them with a real, fully-formed XFTY-generated record instead:
 
 ```csharp
 using AutoFixture;
-using Net.Nowhereatall.Xfty.AutoFixture;
+using Net.NowhereAtAll.Xfty.AutoFixture;
 
 IFixture fixture = new Fixture()
     .Customize(new XftyCustomization(lookup));
@@ -80,7 +80,7 @@ declared - and hand AutoFixture only the fields *nothing* touched.
 
 ```csharp
 using AutoFixture;
-using Net.Nowhereatall.Xfty.AutoFixture;
+using Net.NowhereAtAll.Xfty.AutoFixture;
 
 IFixture fixture = new Fixture();
 Account account = (Account)await new RecordProvider(typeof(Account), lookup)

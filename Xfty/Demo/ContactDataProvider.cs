@@ -1,9 +1,9 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Relationships;
-using Net.Nowhereatall.Xfty.Values;
-namespace Net.Nowhereatall.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Relationships;
+using Net.NowhereAtAll.Xfty.Values;
+namespace Net.NowhereAtAll.Xfty.Demo;
 
 /// <summary>The bundled Contact Provider - AccountId is a required relationship to a generated <see cref="Account"/>.</summary>
 public sealed class ContactDataProvider : IRecordProvider

@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Enrichment;
 
 /// <summary>
 /// What <c>bundle.Inject(field, config)</c> should materialise. Start from a

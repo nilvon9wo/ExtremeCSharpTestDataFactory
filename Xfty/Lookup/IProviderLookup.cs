@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-namespace Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+namespace Net.NowhereAtAll.Xfty.Lookup;
 
 /// <summary>Resolves which Provider should generate a given record.</summary>
 public interface IProviderLookup

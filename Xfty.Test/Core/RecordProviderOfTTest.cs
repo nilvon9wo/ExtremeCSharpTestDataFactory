@@ -1,9 +1,9 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Relationships;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Relationships;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Test.Core;
+namespace Net.NowhereAtAll.Xfty.Test.Core;
 
 /// <summary>Proves <see cref="RecordProvider{TRecord}"/> - the typed wrapper - chains and returns TRecord with no cast.</summary>
 public class RecordProviderOfTTest

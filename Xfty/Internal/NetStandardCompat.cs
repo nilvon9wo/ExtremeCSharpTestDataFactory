@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Internal;
+namespace Net.NowhereAtAll.Xfty.Internal;
 
 /// <summary>
 /// Stands in for <c>System.Random.Shared</c> (.NET 6+), which netstandard2.0

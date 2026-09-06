@@ -1,7 +1,7 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 
-namespace Net.Nowhereatall.Xfty.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Enrichment;
 
 /// <summary>
 /// Answers "does this config want the ancestor / child / inverse at this

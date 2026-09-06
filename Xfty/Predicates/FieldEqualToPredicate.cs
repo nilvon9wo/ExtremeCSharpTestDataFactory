@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Predicates;
+namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
 /// An <see cref="IRecordPredicate"/> satisfied when a record's field equals a

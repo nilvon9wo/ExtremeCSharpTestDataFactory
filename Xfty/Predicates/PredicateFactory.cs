@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Predicates;
+namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
 /// Discoverable factory for the boolean combinators over

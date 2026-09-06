@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
 using Testcontainers.PostgreSql;
 
-namespace Net.Nowhereatall.Xfty.EntityFrameworkCore.Test;
+namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 
 /// <summary>
 /// Proves InsertMode.Now against a real client-server database - a Postgres

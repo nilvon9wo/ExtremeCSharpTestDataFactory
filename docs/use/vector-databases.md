@@ -13,7 +13,7 @@ dotnet add package Xfty.VectorDatabases
 ## Usage
 
 ```csharp
-using Net.Nowhereatall.Xfty.VectorDatabases;
+using Net.NowhereAtAll.Xfty.VectorDatabases;
 
 new MasterTemplate<DocumentChunk>(x => x.Id)
 {

@@ -1,7 +1,7 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.Relationships;
+namespace Net.NowhereAtAll.Xfty.Relationships;
 
 /// <summary>
 /// How a related record should be produced for a lookup field.

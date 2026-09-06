@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 public enum PathTargetValueKind
 {

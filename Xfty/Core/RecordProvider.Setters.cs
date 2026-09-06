@@ -1,7 +1,7 @@
-using Net.Nowhereatall.Xfty.Lookup;
-using Net.Nowhereatall.Xfty.Persistence;
+using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Persistence;
 
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>RecordProvider - the per-call configuration setters (everything except field/child config).</summary>
 public sealed partial class RecordProvider

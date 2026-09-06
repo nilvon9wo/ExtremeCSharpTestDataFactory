@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>RecordProvider - building the GenerationContext for a Supply*() call, and the templates it fills.</summary>
 public sealed partial class RecordProvider

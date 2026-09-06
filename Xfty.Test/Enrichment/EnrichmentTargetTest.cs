@@ -1,8 +1,8 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Enrichment;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Enrichment;
 
-namespace Net.Nowhereatall.Xfty.Test.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Test.Enrichment;
 
 /// <summary>Proves EnrichmentTarget - resolving the Inject(field, ...) field to the records, sub-bundle and generated-ancestor flag. Pure in-memory.</summary>
 public class EnrichmentTargetTest

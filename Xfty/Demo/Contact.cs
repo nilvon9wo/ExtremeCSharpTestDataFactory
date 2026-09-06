@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Demo;
+namespace Net.NowhereAtAll.Xfty.Demo;
 
 /// <summary>
 /// The other half of the Contact/Account demo pair (see <see cref="Account"/>).

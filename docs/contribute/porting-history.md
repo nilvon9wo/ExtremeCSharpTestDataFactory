@@ -111,7 +111,7 @@ project, treated as one reasonable precedent, not gospel):
   inner classes, ≤100-line classes, ≤10-line methods, never nest >2 deep).
 
 **2026-09-04 (scaffolding session): decisions resolved.**
-- Root namespace: **`Net.Nowhereatall.Xfty`** (a placeholder-domain pattern,
+- Root namespace: **`Net.NowhereAtAll.Xfty`** (a placeholder-domain pattern,
   keeps the short "XFTY" branding rather than the long folder name).
   Solution/projects are `Xfty.slnx`, `Xfty.Core`, `Xfty.Core.Test`.
 - Demo domain for `providers/`-equivalent showcase code: **Contact/Account**,
@@ -197,7 +197,7 @@ around):**
 - **`XFTY_DummySObjectFtyProviderException` → `XftyConfigurationException`.**
   One shared, C#-idiomatic name (no `XFTY_` prefix - real namespaces make that
   Apex workaround unnecessary) for the "loud, named error"
-  `coding-standards.md` asks for. Lives at `Net.Nowhereatall.Xfty.Core` root
+  `coding-standards.md` asks for. Lives at `Net.NowhereAtAll.Xfty.Core` root
   since every future module needs it, not just `predicates/`.
 - **Demo domain scaffolding started:** `Xfty.Core/Demo/Account.cs`, a minimal
   POCO (`Name`, `Industry`, `Type`, `NumberOfEmployees`, `AnnualRevenue`) with
@@ -209,7 +209,7 @@ around):**
   facade-delegation tests (`AllOf`/`AnyOf`/`Negate` wiring) came across in
   `PredicateFactoryTest`. Revisit once `lookup/` lands.
 - **Folder/namespace shape:** `Xfty.Core/Predicates/` →
-  `Net.Nowhereatall.Xfty.Core.Predicates` (mirrors the Apex package folder,
+  `Net.NowhereAtAll.Xfty.Core.Predicates` (mirrors the Apex package folder,
   matches `dotnet_style_namespace_match_folder`). `XFTY_Predicates` (the AND/
   OR/NOT facade) became `PredicateFactory` and `XFTY_FieldPredicate` became
   `FieldPredicateFactory` rather than keeping the Apex names verbatim - a
@@ -567,10 +567,10 @@ onto a registry Apex never needed to make thread-safe.
 Renamed `Xfty.Core` -> `Xfty` and `Xfty.Core.Test` -> `Xfty.Test` (folders,
 `.csproj` files, `AssemblyName`/`RootNamespace`, `Xfty.slnx` project paths).
 The project wasn't big enough to justify per-feature assemblies, so
-`Net.Nowhereatall.Xfty.Core.Core` (the `Core/` subfolder namespace, doubled
-by the project name) was pure stutter. `Net.Nowhereatall.Xfty.Core` now
+`Net.NowhereAtAll.Xfty.Core.Core` (the `Core/` subfolder namespace, doubled
+by the project name) was pure stutter. `Net.NowhereAtAll.Xfty.Core` now
 means only the `Core/` subfolder - the project root namespace is
-`Net.Nowhereatall.Xfty`. 102/102 tests passing, stable across repeated runs
+`Net.NowhereAtAll.Xfty`. 102/102 tests passing, stable across repeated runs
 with parallelization disabled.
 
 **2026-09-05, later the same day: `enrichment/` ported, per explicit

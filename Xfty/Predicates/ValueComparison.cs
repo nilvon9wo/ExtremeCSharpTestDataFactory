@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Predicates;
+namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
 /// Orders two values the way the ordering field predicates

@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Relationships;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Relationships;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>RecordProvider - `Put&lt;TRecord&gt;(x => x.Field, value)`, naming a field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
 public sealed partial class RecordProvider

@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Lookup;
+namespace Net.NowhereAtAll.Xfty.Lookup;
 
 /// <summary>
 /// Optional companion to <see cref="IProviderLookup"/>. A project whose

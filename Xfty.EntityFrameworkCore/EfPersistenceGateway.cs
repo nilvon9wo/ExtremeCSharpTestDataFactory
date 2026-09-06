@@ -1,8 +1,8 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Net.Nowhereatall.Xfty.Persistence;
+using Net.NowhereAtAll.Xfty.Persistence;
 
-namespace Net.Nowhereatall.Xfty.EntityFrameworkCore;
+namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore;
 
 /// <summary>
 /// The real, database-backed <see cref="IPersistenceGateway"/> - the piece

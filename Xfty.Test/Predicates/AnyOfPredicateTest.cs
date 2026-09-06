@@ -1,8 +1,8 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Predicates;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Predicates;
 
-namespace Net.Nowhereatall.Xfty.Test.Predicates;
+namespace Net.NowhereAtAll.Xfty.Test.Predicates;
 
 /// <summary>
 /// Proves <see cref="AnyOfPredicate"/> - IsSatisfiedBy is true when at least

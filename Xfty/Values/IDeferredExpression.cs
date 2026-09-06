@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-namespace Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
 /// A value that reads **up** the graph - a field on a record derived from one

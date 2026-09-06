@@ -13,7 +13,7 @@ dotnet add package Xfty.VectorDatabases
 ## Usage
 
 ```csharp
-using Net.Nowhereatall.Xfty.VectorDatabases;
+using Net.NowhereAtAll.Xfty.VectorDatabases;
 
 // DocumentChunk here is illustrative - any record with a float[] field works.
 new MasterTemplate<DocumentChunk>(x => x.Id)

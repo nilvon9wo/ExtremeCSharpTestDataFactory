@@ -1,7 +1,7 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant.Test;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.Qdrant.Test;
 
 /// <summary>A demo Provider pairing a `Content` field with a `RandomVectorExpression`-generated embedding.</summary>
 public sealed class DocumentChunkProvider() : SimpleRecordProvider<DocumentChunk>(

@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Bogus.Test;
+namespace Net.NowhereAtAll.Xfty.Bogus.Test;
 
 /// <summary>Proves <see cref="FakeParagraphExpression"/> - Get produces multi-sentence, varied text.</summary>
 public class FakeParagraphExpressionTest

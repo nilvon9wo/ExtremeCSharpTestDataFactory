@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.VectorDatabases.Test;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.Test;
 
 /// <summary>Proves <see cref="RandomVectorExpression"/> - Get produces the requested shape, range, and variety.</summary>
 public class RandomVectorExpressionTest

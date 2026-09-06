@@ -1,9 +1,9 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.Relationships;
+namespace Net.NowhereAtAll.Xfty.Relationships;
 
 /// <summary>SharedAncestor - resolving one instance's shared record, and reading it back afterwards.</summary>
 public sealed partial class SharedAncestor

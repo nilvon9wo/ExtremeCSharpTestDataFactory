@@ -1,8 +1,8 @@
 using System.Reflection;
 using Microsoft.Extensions.VectorData;
-using Net.Nowhereatall.Xfty.Persistence;
+using Net.NowhereAtAll.Xfty.Persistence;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases.MicrosoftExtensionsVectorData;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData;
 
 /// <summary>
 /// PREVIEW / proof-of-concept - see this package's README for the full list

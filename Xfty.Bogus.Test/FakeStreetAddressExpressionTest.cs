@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Bogus.Test;
+namespace Net.NowhereAtAll.Xfty.Bogus.Test;
 
 /// <summary>Proves <see cref="FakeStreetAddressExpression"/> - Get produces varied, non-empty addresses.</summary>
 public class FakeStreetAddressExpressionTest

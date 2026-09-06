@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Persistence;
+namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>A record paired with its position in the list or pass that is working on it.</summary>
 public sealed class IndexedRecord(int index, object record)

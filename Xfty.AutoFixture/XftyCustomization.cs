@@ -1,8 +1,8 @@
 using global::AutoFixture;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.AutoFixture;
+namespace Net.NowhereAtAll.Xfty.AutoFixture;
 
 /// <summary>
 /// Points an <see cref="IFixture"/> at XFTY: <c>fixture.Create&lt;T&gt;()</c>/

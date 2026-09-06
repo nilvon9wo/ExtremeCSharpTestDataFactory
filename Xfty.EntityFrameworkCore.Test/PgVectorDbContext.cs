@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Net.Nowhereatall.Xfty.EntityFrameworkCore.Test;
+namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 
 /// <summary>
 /// A dedicated DbContext for the pgvector proof - kept separate from

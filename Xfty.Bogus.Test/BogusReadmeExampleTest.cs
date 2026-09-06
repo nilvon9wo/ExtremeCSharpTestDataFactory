@@ -1,8 +1,8 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.Bogus.Test;
+namespace Net.NowhereAtAll.Xfty.Bogus.Test;
 
 /// <summary>
 /// Proves the exact usage shown in this package's own README.md and

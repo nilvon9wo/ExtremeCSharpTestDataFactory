@@ -1,8 +1,8 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Relationships;
-namespace Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Relationships;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>Points each primary record's lookup at the matching generated ancestor.</summary>
 public sealed class LookupWiring(Bundle bundle, GenerationContext context, MasterTemplate template)

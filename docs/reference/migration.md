@@ -1,6 +1,6 @@
 # Migration
 
-This is a fresh C# port (`Net.Nowhereatall.Xfty`) — there is no prior release
+This is a fresh C# port (`Net.NowhereAtAll.Xfty`) — there is no prior release
 of it to migrate *from*. Apex's migration guide here covered breaking changes
 between two Apex releases (3.5 → 4.0); none of that history applies to a
 codebase that started from the 4.0-era Apex source as its one-time reference

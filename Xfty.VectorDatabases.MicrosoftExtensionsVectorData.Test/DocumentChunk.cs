@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test;
 
 /// <summary>
 /// A minimal demo record for this package's own test - a chunk of source

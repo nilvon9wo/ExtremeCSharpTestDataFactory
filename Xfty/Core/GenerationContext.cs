@@ -1,9 +1,9 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Lookup;
-using Net.Nowhereatall.Xfty.Persistence;
-namespace Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Persistence;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>
 /// The state that every step of a single generation run needs to see: which

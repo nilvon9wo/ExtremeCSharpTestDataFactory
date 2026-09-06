@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Bogus.Test;
+namespace Net.NowhereAtAll.Xfty.Bogus.Test;
 
 /// <summary>Proves <see cref="FakeFullNameExpression"/> - Get produces varied, well-formed full names.</summary>
 public class FakeFullNameExpressionTest

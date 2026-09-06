@@ -1,9 +1,9 @@
 using System.Collections;
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
 
-namespace Net.Nowhereatall.Xfty.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Enrichment;
 
 /// <summary>
 /// Writes onto record instances what an <c>init</c>-only property rejects

@@ -1,9 +1,9 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.Test.Core;
+namespace Net.NowhereAtAll.Xfty.Test.Core;
 
 /// <summary>Proves <see cref="ChildProvider{TChild}"/> - the typed wrapper - mirrors <see cref="RecordProvider{TRecord}"/>'s own pattern.</summary>
 public class ChildProviderOfTTest

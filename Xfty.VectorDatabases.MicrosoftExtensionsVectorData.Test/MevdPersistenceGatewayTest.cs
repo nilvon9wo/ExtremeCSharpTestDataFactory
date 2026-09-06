@@ -1,10 +1,10 @@
 using global::Qdrant.Client;
 using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel.Connectors.Qdrant;
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 using Testcontainers.Qdrant;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test;
 
 /// <summary>
 /// PREVIEW / proof-of-concept - see ../Xfty.VectorDatabases.MicrosoftExtensionsVectorData/README.md

@@ -1,8 +1,8 @@
 using System.Reflection;
 using global::AutoBogus;
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 
-namespace Net.Nowhereatall.Xfty.AutoBogus;
+namespace Net.NowhereAtAll.Xfty.AutoBogus;
 
 /// <summary>
 /// The AutoBogus-backed <see cref="IUnsetFieldFiller"/>: resolves each field

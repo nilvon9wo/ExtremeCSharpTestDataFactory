@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 
-namespace Net.Nowhereatall.Xfty.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Enrichment;
 
 /// <summary>
 /// Rejects an InjectConfig that describes a shape no single query round-trip

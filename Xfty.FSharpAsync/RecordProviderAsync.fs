@@ -1,6 +1,6 @@
-namespace Net.Nowhereatall.Xfty.FSharpAsync
+namespace Net.NowhereAtAll.Xfty.FSharpAsync
 
-open Net.Nowhereatall.Xfty.Core
+open Net.NowhereAtAll.Xfty.Core
 
 /// <summary>
 /// F#-idiomatic Async&lt;'T&gt; equivalents of the plain <see cref="RecordProvider"/>'s

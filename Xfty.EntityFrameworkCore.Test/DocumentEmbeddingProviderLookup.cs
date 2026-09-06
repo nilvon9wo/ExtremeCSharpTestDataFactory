@@ -1,7 +1,7 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.EntityFrameworkCore.Test;
+namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 
 /// <summary>This test's own tiny Provider Lookup, registering only <see cref="DocumentEmbedding"/>.</summary>
 public sealed class DocumentEmbeddingProviderLookup : IProviderLookup

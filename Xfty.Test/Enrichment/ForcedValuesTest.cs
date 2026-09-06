@@ -1,9 +1,9 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Enrichment;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Enrichment;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Test.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Test.Enrichment;
 
 /// <summary>Proves ForcedValues - placing the config's forced scalars on the injector for a position. In-memory; the injector round-trip is exercised, no persistence.</summary>
 public class ForcedValuesTest

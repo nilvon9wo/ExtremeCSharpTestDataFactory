@@ -1,7 +1,7 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test;
 
 /// <summary>This test's own tiny Provider Lookup, registering only <see cref="DocumentChunk"/>.</summary>
 public sealed class DemoProviderLookup : IProviderLookup

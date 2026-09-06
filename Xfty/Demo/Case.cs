@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Demo;
+namespace Net.NowhereAtAll.Xfty.Demo;
 
 /// <summary>
 /// A third demo record type, needed only to exercise a genuine three-level

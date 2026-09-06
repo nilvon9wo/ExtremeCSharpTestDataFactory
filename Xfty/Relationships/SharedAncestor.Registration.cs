@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.Relationships;
+namespace Net.NowhereAtAll.Xfty.Relationships;
 
 /// <summary>SharedAncestor - registering a shared record (Put*).</summary>
 public sealed partial class SharedAncestor

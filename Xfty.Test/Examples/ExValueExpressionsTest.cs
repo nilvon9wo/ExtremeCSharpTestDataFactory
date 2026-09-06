@@ -1,8 +1,8 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Test.Examples;
+namespace Net.NowhereAtAll.Xfty.Test.Examples;
 
 /// <summary>
 /// Runs the exact code shown in docs/use/value-expressions.md.

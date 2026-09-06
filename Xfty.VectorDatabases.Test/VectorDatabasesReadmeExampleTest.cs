@@ -1,8 +1,8 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Lookup;
-using Net.Nowhereatall.Xfty.Persistence;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Persistence;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases.Test;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.Test;
 
 /// <summary>
 /// Proves the exact usage shown in this package's own README.md and

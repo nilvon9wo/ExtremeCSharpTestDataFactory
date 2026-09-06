@@ -16,7 +16,7 @@ Drop one into any Provider's Master Template exactly like a bundled `Xfty`
 expression:
 
 ```csharp
-using Net.Nowhereatall.Xfty.Bogus;
+using Net.NowhereAtAll.Xfty.Bogus;
 
 new MasterTemplate<Contact>(x => x.Id)
 {

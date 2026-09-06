@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 
-namespace Net.Nowhereatall.Xfty.Persistence;
+namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
 /// The registry behind the DEFERRED insert mode.

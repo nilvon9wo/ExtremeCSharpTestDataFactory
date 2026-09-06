@@ -1,7 +1,7 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.Demo;
+namespace Net.NowhereAtAll.Xfty.Demo;
 
 /// <summary>
 /// This library's own bundled Provider Lookup - the Account / Contact

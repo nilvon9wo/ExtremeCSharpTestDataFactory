@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Test.Values;
+namespace Net.NowhereAtAll.Xfty.Test.Values;
 
 /// <summary>Proves <see cref="LiteralExpression"/> - Get always returns the same fixed value, null included.</summary>
 public class LiteralExpressionTest

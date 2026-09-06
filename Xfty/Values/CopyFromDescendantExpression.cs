@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-namespace Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
 /// An up-flowing value: a field copied from a generated **descendant** - the

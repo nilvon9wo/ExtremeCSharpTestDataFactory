@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant.Test;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.Qdrant.Test;
 
 /// <summary>
 /// A minimal demo record for this package's own test - a chunk of source

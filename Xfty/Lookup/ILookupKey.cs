@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Lookup;
+namespace Net.NowhereAtAll.Xfty.Lookup;
 
 /// <summary>
 /// Identifies which Provider variant should generate a particular record.

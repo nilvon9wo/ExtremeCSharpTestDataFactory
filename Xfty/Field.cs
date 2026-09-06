@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 
-namespace Net.Nowhereatall.Xfty;
+namespace Net.NowhereAtAll.Xfty;
 
 /// <summary>
 /// Resolves one property on a record type to the <see cref="PropertyInfo"/>

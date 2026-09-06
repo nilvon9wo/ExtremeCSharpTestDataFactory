@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>
 /// Thrown when Xfty is misconfigured by its caller - a missing predicate list,

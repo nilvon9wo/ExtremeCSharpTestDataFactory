@@ -1,8 +1,8 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Relationships;
-namespace Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Relationships;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>Applies each IncludeOptional(...) path by promoting its head relationship from optional to required, on a copy of the master template.</summary>
 public static class RelationshipForcer

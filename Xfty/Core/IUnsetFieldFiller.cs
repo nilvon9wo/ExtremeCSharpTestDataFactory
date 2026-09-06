@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>
 /// An optional collaborator, set via <see cref="RecordProvider.SetUnsetFieldFiller"/>,

@@ -1,10 +1,10 @@
 using global::AutoBogus;
-using Net.Nowhereatall.Xfty.AutoBogus;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.AutoBogus;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.AutoBogus.Test;
+namespace Net.NowhereAtAll.Xfty.AutoBogus.Test;
 
 /// <summary>Proves AutoBogusUnsetFieldFiller - the AutoBogus-backed IUnsetFieldFiller. See UnsetFieldFillerTest (Xfty.Test) for the core contract it relies on.</summary>
 public class AutoBogusUnsetFieldFillerTest

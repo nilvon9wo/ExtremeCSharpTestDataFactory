@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Persistence;
+namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
 /// Assigns a placeholder identifier to records before (or instead of) a real

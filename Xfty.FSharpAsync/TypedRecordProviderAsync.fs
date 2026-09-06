@@ -1,6 +1,6 @@
-namespace Net.Nowhereatall.Xfty.FSharpAsync
+namespace Net.NowhereAtAll.Xfty.FSharpAsync
 
-open Net.Nowhereatall.Xfty.Core
+open Net.NowhereAtAll.Xfty.Core
 
 /// <summary>
 /// Async&lt;'T&gt; equivalents of the typed <see cref="RecordProvider{TRecord}"/>'s

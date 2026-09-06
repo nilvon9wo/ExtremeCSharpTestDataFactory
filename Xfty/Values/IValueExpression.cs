@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Values;
+namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
 /// A value that needs no context to produce - a literal, a counter, a random

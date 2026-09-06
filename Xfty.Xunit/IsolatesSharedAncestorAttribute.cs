@@ -1,8 +1,8 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Relationships;
+using Net.NowhereAtAll.Xfty.Relationships;
 using Xunit.v3;
 
-namespace Net.Nowhereatall.Xfty.Xunit;
+namespace Net.NowhereAtAll.Xfty.Xunit;
 
 /// <summary>
 /// Resets <see cref="SharedAncestor"/>'s registry before and after the

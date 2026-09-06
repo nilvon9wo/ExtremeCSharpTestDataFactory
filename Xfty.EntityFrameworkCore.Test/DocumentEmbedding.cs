@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Pgvector;
 
-namespace Net.Nowhereatall.Xfty.EntityFrameworkCore.Test;
+namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 
 /// <summary>
 /// A minimal demo record proving the pgvector option from

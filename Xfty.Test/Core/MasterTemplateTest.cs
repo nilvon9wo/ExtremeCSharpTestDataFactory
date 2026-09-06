@@ -1,9 +1,9 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Relationships;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Relationships;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Test.Core;
+namespace Net.NowhereAtAll.Xfty.Test.Core;
 
 /// <summary>Proves MasterTemplate - the declarative description of how one record type is generated. Pure in-memory map manipulation, no database access.</summary>
 public class MasterTemplateTest

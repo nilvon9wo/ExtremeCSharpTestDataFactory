@@ -1,8 +1,8 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Values;
-namespace Net.Nowhereatall.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Values;
+namespace Net.NowhereAtAll.Xfty.Demo;
 
 /// <summary>The bundled Account Provider - a starter-kit example of a declarative Master Template.</summary>
 public sealed class AccountDataProvider : IRecordProvider

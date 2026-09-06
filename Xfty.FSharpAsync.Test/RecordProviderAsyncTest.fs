@@ -1,10 +1,10 @@
-module Net.Nowhereatall.Xfty.FSharpAsync.Test.RecordProviderAsyncTest
+module Net.NowhereAtAll.Xfty.FSharpAsync.Test.RecordProviderAsyncTest
 
 open System.Threading.Tasks
 open Xunit
-open Net.Nowhereatall.Xfty.Core
-open Net.Nowhereatall.Xfty.Demo
-open Net.Nowhereatall.Xfty.FSharpAsync
+open Net.NowhereAtAll.Xfty.Core
+open Net.NowhereAtAll.Xfty.Demo
+open Net.NowhereAtAll.Xfty.FSharpAsync
 
 let private lookup = DefaultProviderLookup()
 

@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.VectorDatabases;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases;
 
 /// <summary>
 /// Embedding dimensionality for popular models, so a test doesn't have to

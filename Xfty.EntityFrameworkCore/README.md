@@ -13,7 +13,7 @@ dotnet add package Xfty.EntityFrameworkCore
 ## Usage
 
 ```csharp
-using Net.Nowhereatall.Xfty.EntityFrameworkCore;
+using Net.NowhereAtAll.Xfty.EntityFrameworkCore;
 
 Contact contact = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .SetPersistenceGateway(new EfPersistenceGateway(dbContext))

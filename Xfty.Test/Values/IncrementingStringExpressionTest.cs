@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Test.Values;
+namespace Net.NowhereAtAll.Xfty.Test.Values;
 
 /// <summary>
 /// Proves <see cref="IncrementingStringExpression"/> - Get produces "prefix N"

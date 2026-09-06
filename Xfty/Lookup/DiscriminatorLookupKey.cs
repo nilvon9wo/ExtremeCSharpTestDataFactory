@@ -1,8 +1,8 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Predicates;
+using Net.NowhereAtAll.Xfty.Predicates;
 
-namespace Net.Nowhereatall.Xfty.Lookup;
+namespace Net.NowhereAtAll.Xfty.Lookup;
 
 /// <summary>
 /// Selects a Provider variant by one property's value on the record - the

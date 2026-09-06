@@ -1,7 +1,7 @@
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.NetStandardCompat.Test;
+namespace Net.NowhereAtAll.Xfty.NetStandardCompat.Test;
 
 /// <summary>
 /// Proves the three netstandard2.0-only compatibility polyfills in

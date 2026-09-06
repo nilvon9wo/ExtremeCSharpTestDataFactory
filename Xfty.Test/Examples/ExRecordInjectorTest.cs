@@ -1,8 +1,8 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Enrichment;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Enrichment;
 
-namespace Net.Nowhereatall.Xfty.Test.Examples;
+namespace Net.NowhereAtAll.Xfty.Test.Examples;
 
 /// <summary>
 /// Runs the exact code shown in docs/use/record-injector.md.

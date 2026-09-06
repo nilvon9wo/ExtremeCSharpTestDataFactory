@@ -1,5 +1,5 @@
-using Net.Nowhereatall.Xfty.Core;
-namespace Net.Nowhereatall.Xfty.Predicates;
+using Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
 /// An <see cref="IRecordPredicate"/> satisfied only when every member

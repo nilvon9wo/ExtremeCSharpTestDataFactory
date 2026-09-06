@@ -1,7 +1,7 @@
 using global::Bogus;
-using Net.Nowhereatall.Xfty.Values;
+using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.Nowhereatall.Xfty.Bogus;
+namespace Net.NowhereAtAll.Xfty.Bogus;
 
 /// <summary>
 /// An <see cref="IValueExpression"/> producing a lorem-ipsum-style paragraph

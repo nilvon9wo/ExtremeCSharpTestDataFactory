@@ -1,8 +1,8 @@
 using global::Qdrant.Client;
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 using Testcontainers.Qdrant;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant.Test;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.Qdrant.Test;
 
 /// <summary>
 /// PREVIEW / proof-of-concept - see ../Xfty.VectorDatabases.Qdrant/README.md

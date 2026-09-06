@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.Qdrant;
 
 /// <summary>
 /// Reflection helpers for <see cref="QdrantPersistenceGateway"/> - the

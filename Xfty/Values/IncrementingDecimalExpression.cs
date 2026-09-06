@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Values;
+namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>An <see cref="IValueExpression"/> producing ascending decimals, 1, 2, 3... per instance.</summary>
 public sealed class IncrementingDecimalExpression : IValueExpression

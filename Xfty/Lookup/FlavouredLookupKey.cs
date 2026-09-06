@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Predicates;
+using Net.NowhereAtAll.Xfty.Predicates;
 
-namespace Net.Nowhereatall.Xfty.Lookup;
+namespace Net.NowhereAtAll.Xfty.Lookup;
 
 /// <summary>
 /// Selects a Provider variant by record type and one or more arbitrary

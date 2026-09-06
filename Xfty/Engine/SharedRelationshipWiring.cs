@@ -1,8 +1,8 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Relationships;
-namespace Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Relationships;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>Wires a shared ancestor into a bundle: one record stands in for every child at its field, resolved once per test, then repeated quantity times.</summary>
 public sealed class SharedRelationshipWiring(GenerationContext context, ISharedRelationship shared)

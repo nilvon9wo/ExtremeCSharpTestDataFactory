@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Enrichment;
 
 /// <summary>A forced scalar on a record several relationship hops up. Path is the hops then the target field.</summary>
 public sealed class AncestorValue(List<PropertyInfo> path, object? value)

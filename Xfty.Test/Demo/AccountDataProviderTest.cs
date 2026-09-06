@@ -1,7 +1,7 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
 
-namespace Net.Nowhereatall.Xfty.Test.Demo;
+namespace Net.NowhereAtAll.Xfty.Test.Demo;
 
 /// <summary>
 /// Proves AccountDataProvider - its identity, its Master Template defaults,

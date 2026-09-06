@@ -1,5 +1,5 @@
-using Net.Nowhereatall.Xfty.Core;
-namespace Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Lookup;
 
 /// <summary>
 /// The default lookup key: a record type and nothing else. Using only this

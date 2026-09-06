@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Predicates;
+namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
 /// An arbitrary condition on a record. Conditions need not be equality -

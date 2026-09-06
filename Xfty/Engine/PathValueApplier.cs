@@ -1,6 +1,6 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-namespace Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>
 /// Applies the Put(List&lt;PropertyInfo&gt; path, value) overrides that have

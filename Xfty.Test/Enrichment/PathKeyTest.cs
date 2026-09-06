@@ -1,8 +1,8 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Enrichment;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Enrichment;
 
-namespace Net.Nowhereatall.Xfty.Test.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Test.Enrichment;
 
 /// <summary>
 /// Proves PathKey - a comparable string key for a relationship path. The key

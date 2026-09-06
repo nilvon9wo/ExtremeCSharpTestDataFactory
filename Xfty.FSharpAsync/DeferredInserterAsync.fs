@@ -1,6 +1,6 @@
-namespace Net.Nowhereatall.Xfty.FSharpAsync
+namespace Net.NowhereAtAll.Xfty.FSharpAsync
 
-open Net.Nowhereatall.Xfty.Persistence
+open Net.NowhereAtAll.Xfty.Persistence
 
 /// <summary>
 /// Async&lt;'T&gt; equivalent of <see cref="DeferredInserter.Flush"/> - see

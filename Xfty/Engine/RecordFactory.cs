@@ -1,8 +1,8 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Engine;
-using Net.Nowhereatall.Xfty.Persistence;
-namespace Net.Nowhereatall.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Persistence;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>Turns one master template plus the test's own partial templates into a wired Bundle.</summary>
 public sealed class RecordFactory

@@ -1,10 +1,10 @@
 using global::AutoFixture;
-using Net.Nowhereatall.Xfty.AutoFixture;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.AutoFixture;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.AutoFixture.Test;
+namespace Net.NowhereAtAll.Xfty.AutoFixture.Test;
 
 /// <summary>
 /// Proves XftyCustomization/XftySpecimenBuilder - pointing fixture.Create&lt;T&gt;()

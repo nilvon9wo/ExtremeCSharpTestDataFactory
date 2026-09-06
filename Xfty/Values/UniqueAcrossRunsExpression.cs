@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Net.Nowhereatall.Xfty.Values;
+namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
 /// An <see cref="IValueExpression"/> unique across processes, machines, and

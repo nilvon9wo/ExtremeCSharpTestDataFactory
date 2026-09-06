@@ -1,8 +1,8 @@
 using global::AutoBogus;
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Lookup;
 
-namespace Net.Nowhereatall.Xfty.AutoBogus;
+namespace Net.NowhereAtAll.Xfty.AutoBogus;
 
 /// <summary>
 /// The one-line form of <see cref="XftyAutoBogusOverride"/>: an

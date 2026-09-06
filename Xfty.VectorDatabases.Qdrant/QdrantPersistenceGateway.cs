@@ -1,9 +1,9 @@
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Persistence;
+using Net.NowhereAtAll.Xfty.Persistence;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
-namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.Qdrant;
 
 /// <summary>
 /// PREVIEW / proof-of-concept - see this package's README for the full list

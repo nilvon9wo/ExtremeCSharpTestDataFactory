@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Net.Nowhereatall.Xfty.Engine;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>
 /// The narrowest scope of a generation run: the single value field whose

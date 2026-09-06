@@ -1,10 +1,10 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Lookup;
-using Net.Nowhereatall.Xfty.Persistence;
-using Net.Nowhereatall.Xfty.Relationships;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Persistence;
+using Net.NowhereAtAll.Xfty.Relationships;
 
-namespace Net.Nowhereatall.Xfty.Xunit.Test;
+namespace Net.NowhereAtAll.Xfty.Xunit.Test;
 
 /// <summary>
 /// The negative case <see cref="IsolatesSharedAncestorAttribute"/> exists to

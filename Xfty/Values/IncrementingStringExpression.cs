@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Values;
+namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
 /// An <see cref="IValueExpression"/> producing "prefix 1", "prefix 2", ... per

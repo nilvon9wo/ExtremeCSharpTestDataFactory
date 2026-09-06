@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Engine;
+namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>
 /// Tracks the Provider lookup keys currently being generated up the ancestor

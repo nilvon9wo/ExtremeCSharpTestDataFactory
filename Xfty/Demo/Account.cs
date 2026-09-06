@@ -1,4 +1,4 @@
-namespace Net.Nowhereatall.Xfty.Demo;
+namespace Net.NowhereAtAll.Xfty.Demo;
 
 /// <summary>
 /// A minimal demo record type used across this library's own examples and

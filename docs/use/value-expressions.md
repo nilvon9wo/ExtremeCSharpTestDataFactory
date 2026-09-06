@@ -50,7 +50,7 @@ This works both on a Provider's Master Template and on `RecordProvider` itself.
 | `IncrementingDecimalExpression` | incrementing decimals |
 | `UniqueAcrossRunsExpression` | a prefix/suffix wrapped around a value unique even across separate process runs |
 
-All live in `Net.Nowhereatall.Xfty.Values`.
+All live in `Net.NowhereAtAll.Xfty.Values`.
 
 ---
 

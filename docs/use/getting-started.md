@@ -26,8 +26,8 @@ More advanced topics such as implementing Providers and writing custom value exp
 The simplest way to use XFTY is to request an object from a Provider.
 
 ```csharp
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
 
 DefaultProviderLookup providerLookup = new();
 
@@ -82,7 +82,7 @@ RecordProvider provider = new(typeof(Contact), providerLookup);
 Separating Providers from Provider Lookups lets an application register
 different Provider implementations without modifying the framework itself.
 
-`DefaultProviderLookup` (`Net.Nowhereatall.Xfty.Demo`) is this port's own
+`DefaultProviderLookup` (`Net.NowhereAtAll.Xfty.Demo`) is this port's own
 starter-kit lookup — a working example to copy and adjust for your project, not
 a base class to extend. See [extend/provider-lookups](../extend/provider-lookups.md).
 

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 using Pgvector.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
-namespace Net.Nowhereatall.Xfty.EntityFrameworkCore.Test;
+namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 
 /// <summary>
 /// Proves the cheap pgvector option from docs/roadmap/vector-databases.md:

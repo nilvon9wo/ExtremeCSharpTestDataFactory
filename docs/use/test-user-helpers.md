@@ -3,7 +3,7 @@
 There is no bundled Provider exposing ready-made test-user helpers - an
 admin-equivalent inserted user, or role/profile-style lookups - because there
 is no role/profile schema here for such a lookup to resolve against. This
-port's demo `User` (`Net.Nowhereatall.Xfty.Demo.User`) is deliberately
+port's demo `User` (`Net.NowhereAtAll.Xfty.Demo.User`) is deliberately
 minimal (`Id`, `FirstName`, `LastName`, `Email`, `ManagerId`) so it can
 exercise deep/hierarchical relationship paths without needing any of that -
 see [reference/known-issues.md](../reference/known-issues.md).

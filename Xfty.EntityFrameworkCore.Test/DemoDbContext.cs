@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Net.Nowhereatall.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Demo;
 
-namespace Net.Nowhereatall.Xfty.EntityFrameworkCore.Test;
+namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 
 /// <summary>
 /// A minimal real EF Core mapping of this library's own demo domain

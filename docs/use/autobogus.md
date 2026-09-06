@@ -23,7 +23,7 @@ record instead:
 
 ```csharp
 using AutoBogus;
-using Net.Nowhereatall.Xfty.AutoBogus;
+using Net.NowhereAtAll.Xfty.AutoBogus;
 
 IAutoFaker faker = XftyAutoBogus.CreateFaker(lookup);
 
@@ -80,7 +80,7 @@ The inverse pairing - identical in shape to `Xfty.AutoFixture`'s
 
 ```csharp
 using AutoBogus;
-using Net.Nowhereatall.Xfty.AutoBogus;
+using Net.NowhereAtAll.Xfty.AutoBogus;
 
 IAutoFaker faker = AutoFaker.Create();
 Account account = (Account)await new RecordProvider(typeof(Account), lookup)

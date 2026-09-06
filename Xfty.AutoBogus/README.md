@@ -14,7 +14,7 @@ dotnet add package Xfty.AutoBogus
 
 ```csharp
 using AutoBogus;
-using Net.Nowhereatall.Xfty.AutoBogus;
+using Net.NowhereAtAll.Xfty.AutoBogus;
 
 IAutoFaker faker = XftyAutoBogus.CreateFaker(lookup);
 
@@ -33,7 +33,7 @@ object; both are overridable explicitly.
 
 ```csharp
 using AutoBogus;
-using Net.Nowhereatall.Xfty.AutoBogus;
+using Net.NowhereAtAll.Xfty.AutoBogus;
 
 Account account = (Account)await new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Mock)

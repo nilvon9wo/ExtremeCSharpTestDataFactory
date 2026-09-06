@@ -1,9 +1,9 @@
-using Net.Nowhereatall.Xfty.Core;
-using Net.Nowhereatall.Xfty.Demo;
-using Net.Nowhereatall.Xfty.Lookup;
-using Net.Nowhereatall.Xfty.Predicates;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Predicates;
 
-namespace Net.Nowhereatall.Xfty.Test.Lookup;
+namespace Net.NowhereAtAll.Xfty.Test.Lookup;
 
 /// <summary>
 /// Proves how the two ways to name a Provider variant - an explicit lookup

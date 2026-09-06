@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Reflection;
-using Net.Nowhereatall.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core;
 
-namespace Net.Nowhereatall.Xfty.Enrichment;
+namespace Net.NowhereAtAll.Xfty.Enrichment;
 
 /// <summary>
 /// Turns the PropertyInfo hops of an injection path into the navigation
