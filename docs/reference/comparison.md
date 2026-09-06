@@ -7,6 +7,22 @@ Where XFTY has a real edge, it's a narrow one: **generating a related,
 constraint-valid object *graph*, with explicit control over whether and how
 it gets persisted** — not filling in one object's properties.
 
+**This is a comparison, not a rivalry: three of the four tools below don't
+just compete with XFTY, they now *pair* with it.** `Xfty.Bogus`,
+`Xfty.AutoFixture`, and `Xfty.AutoBogus` are separate, opt-in packages that
+let a single test use XFTY for the graph-shaped work it's actually good at
+(relationships, shared ancestors, insert modes) and Bogus/AutoFixture/
+AutoBogus for whichever piece of *their* job XFTY doesn't try to do -
+realistic-looking values, or filling in fields no Provider bothered to
+declare. None of these three is a dependency of core `Xfty`, or of each
+other. The capability comparison below is still worth reading in full - it's
+what motivates *why* each pairing is worth having - but don't read a ❌ next
+to XFTY's name as "and there's no way around it": see
+[Could XFTY pair with one of these to close a gap?](#could-xfty-pair-with-one-of-these-to-close-a-gap)
+for which gaps are actually closed, and how. Only NBuilder and the
+auto-mocking tools (AutoMoq/AutoNSubstitute) remain pure alternatives/
+unrelated concerns, not pairings - see that same section for why.
+
 Compared here: [AutoFixture](https://github.com/AutoFixture/AutoFixture),
 [Bogus](https://github.com/bchavez/Bogus),
 [AutoBogus](https://github.com/nickdodd79/AutoBogus), and
@@ -95,6 +111,12 @@ group, by how many of the five tools have it.
 
 ## Where XFTY genuinely loses
 
+Two of the three gaps below are gaps in *core* `Xfty` specifically, closed
+by pairing with the tool that actually loses to (see
+[Could XFTY pair with one of these to close a gap?](#could-xfty-pair-with-one-of-these-to-close-a-gap)) -
+worth choosing to add the pairing package, not something XFTY does for you
+unasked.
+
 - **No realistic fake data in the core package.** Core `Xfty` ships
   structural value expressions (`IncrementingStringExpression`,
   `UniqueEmailExpression`, `LiteralExpression`, the `CopyFrom*` family) but
@@ -103,14 +125,23 @@ group, by how many of the five tools have it.
   `FakeEmailAddressExpression`, `FakeStreetAddressExpression`,
   `FakeParagraphExpression`) closes that gap as a separate, opt-in package
   instead, so the base library never depends on Bogus.
-- **No auto-population.** Every field a Provider cares about has to be
-  declared somewhere (a Master Template default, an override template, a
-  `Put(...)`). AutoFixture's/AutoBogus's "just fill in everything, I'll tell
-  you what matters" model is a genuinely different, and for many unit tests
-  simpler, default.
+- **No auto-population, by default.** Every field a Provider cares about has
+  to be declared somewhere (a Master Template default, an override
+  template, a `Put(...)`) - that's XFTY's own model, deliberately, and it
+  doesn't change. AutoFixture's/AutoBogus's "just fill in everything, I'll
+  tell you what matters" is a genuinely different, and for many unit tests
+  simpler, default - and it's now available *as an addition*, not just an
+  alternative: `Xfty.AutoFixture`/`Xfty.AutoBogus` let AutoFixture/AutoBogus
+  fill in whatever a Provider left unset, and/or generate straight through a
+  Provider from `Create<T>()`/`Generate<T>()`. A project that wants
+  AutoFixture's/AutoBogus's default for everything *except* the graph-shaped
+  parts XFTY is good at no longer has to choose one tool over the other.
 - **No auto-mocking story.** AutoFixture's AutoMoq/AutoNSubstitute integration
   solves a different-but-adjacent problem (faking *dependencies*, not
-  *data*) that XFTY doesn't touch at all.
+  *data*) that XFTY doesn't touch at all, and pairing doesn't change that -
+  a test that needs both still uses each tool for its own concern
+  independently (see the last bullet of
+  [Could XFTY pair with one of these to close a gap?](#could-xfty-pair-with-one-of-these-to-close-a-gap)).
 - **A bigger API to learn.** `Fixture.Create<T>()` or
   `new Faker<T>().RuleFor(...)` is a one-line mental model. XFTY's Providers,
   Master Templates, lookup keys, insert modes, and relationship inclusivity
@@ -123,18 +154,27 @@ group, by how many of the five tools have it.
 
 ## When to reach for which
 
-- **One object, don't care what's in it:** AutoFixture.
+These aren't all either/or choices anymore - the last two rows are ways of
+combining a tool from the first three with XFTY, not alternatives to it.
+
+- **One object, don't care what's in it:** AutoFixture alone.
 - **One object, needs to *look* real** (a demo, a UI screenshot, believable
-  seed data): Bogus or AutoBogus.
+  seed data): Bogus or AutoBogus alone.
 - **A short, disposable list of similar objects with a couple of tweaks:**
   NBuilder, or just a LINQ `Select` - none of these tools are required for
   something this simple.
 - **A whole related graph — parents, optional relationships, shared
   ancestors, a validation rule that needs the graph to actually be
   constraint-valid — and you want the exact same test to run against a mock
-  and a real database:** XFTY. Nothing above does this; add `Xfty.Bogus` for
-  the realistic-value gap (`FakeFullNameExpression`, `FakeEmailAddressExpression`,
+  and a real database:** XFTY, optionally with `Xfty.Bogus` for the
+  realistic-value gap (`FakeFullNameExpression`, `FakeEmailAddressExpression`,
   and friends compose fine as ordinary `IValueExpression`s).
+- **That same graph, but you don't want to hand-declare every field on
+  every Provider - only the ones your test actually cares about:** XFTY
+  paired with `Xfty.AutoFixture` or `Xfty.AutoBogus`. Either lets AutoFixture/
+  AutoBogus fill in what a Provider left unset, or lets you call
+  `Create<T>()`/`Generate<T>()` straight through to a Provider - see
+  [Could XFTY pair with one of these to close a gap?](#could-xfty-pair-with-one-of-these-to-close-a-gap).
 
 ## Could XFTY pair with one of these to close a gap?
 
