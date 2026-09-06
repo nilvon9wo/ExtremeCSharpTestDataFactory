@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <PackageId>Xfty.FSharpAsync</PackageId>
-    <Version>1.0.0-beta.4</Version>
+    <Version>1.0.0-beta.5</Version>
     <Authors>Brian Kessler</Authors>
     <Description>F#-idiomatic Async&lt;'T&gt; wrappers over XFTY's Task-based API, for F# codebases built on the original async { } workflow rather than the newer task { } computation expression (which already consumes XFTY's Task-returning API directly - see this package's README for when you do and don't need this at all).</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;fsharp;async</PackageTags>

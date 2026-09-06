@@ -101,6 +101,11 @@ because those entries describe a change made in *this* repository.
   once the wrapped call is `Task`-returning: an exception thrown inside an
   `async` method lands in the returned `Task`, never thrown synchronously to
   the caller, so the old form would silently stop verifying anything).
+- **BREAKING: the root namespace is now `Net.NowhereAtAll`, not `Net.Nowhereatall`**
+  (every package: `Net.NowhereAtAll.Xfty`, `Net.NowhereAtAll.Xfty.Bogus`,
+  etc.). C# namespaces are case-sensitive, so this breaks every `using
+  Net.Nowhereatall...` in a consumer's own code - there is no compatibility
+  shim; update the casing on upgrade.
 
 ### Fixed
 
