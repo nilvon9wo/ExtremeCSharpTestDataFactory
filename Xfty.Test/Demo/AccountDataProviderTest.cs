@@ -29,14 +29,14 @@ public class AccountDataProviderTest
     }
 
     [Fact]
-    public void CreateBundle_ProducesAnAccountWithTheDocumentedDefaults()
+    public async Task CreateBundle_ProducesAnAccountWithTheDocumentedDefaults()
     {
         // Arrange
         AccountDataProvider provider = new();
         GenerationContext context = new(Lookup, InsertMode.Mock, InsertInclusivity.None);
 
         // Act
-        Bundle bundle = provider.CreateBundle(context, [new Account()]);
+        Bundle bundle = await provider.CreateBundle(context, [new Account()]);
 
         // Assert
         Account generatedAccount = (Account)bundle.GetList<Account>(x => x.Id)![0];
@@ -46,13 +46,13 @@ public class AccountDataProviderTest
     }
 
     [Fact]
-    public void Supply_InMockMode_GeneratesARecordWithDefaults()
+    public async Task Supply_InMockMode_GeneratesARecordWithDefaults()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup).SetInsertMode(InsertMode.Mock);
 
         // Act
-        Account generatedAccount = (Account)provider.Supply();
+        Account generatedAccount = (Account)await provider.Supply();
 
         // Assert
         Assert.NotNull(generatedAccount.Id);

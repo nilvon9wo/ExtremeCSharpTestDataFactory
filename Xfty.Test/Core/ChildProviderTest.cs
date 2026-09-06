@@ -35,7 +35,7 @@ public class ChildProviderTest
     // Shortcuts -----------------------------------------------------
 
     [Fact]
-    public void WithChildren_GeneratesNChildrenPerPrimaryEachPointingAtItsParent()
+    public async Task WithChildren_GeneratesNChildrenPerPrimaryEachPointingAtItsParent()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -43,7 +43,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         string accountId = ((Account)bundle.PrimaryRecords()![0]).Id!;
@@ -57,7 +57,7 @@ public class ChildProviderTest
     }
 
     [Fact]
-    public void WithChild_GeneratesExactlyOneChild()
+    public async Task WithChild_GeneratesExactlyOneChild()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -65,7 +65,7 @@ public class ChildProviderTest
             .WithChild(Field.Of<Contact>(x => x.AccountId));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         _ = Assert.Single(bundle.GetChildList<Contact>(x => x.AccountId));
@@ -89,7 +89,7 @@ public class ChildProviderTest
     // Templates + multiple configs ----------------------------
 
     [Fact]
-    public void With_AChildProviderTemplate_AppliesToEveryChild()
+    public async Task With_AChildProviderTemplate_AppliesToEveryChild()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -97,7 +97,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buying" }).SetQuantity(2));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         List<object> children = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -106,7 +106,7 @@ public class ChildProviderTest
     }
 
     [Fact]
-    public void With_TwoConfigsOnTheSameField_AreAdditiveAndMultiplyWithTemplateQuantity()
+    public async Task With_TwoConfigsOnTheSameField_AreAdditiveAndMultiplyWithTemplateQuantity()
     {
         // Arrange - the child-records.md worked example: 2 templates x SetQuantityPerTemplate(4) = 8 primaries;
         // config A: 3 per primary -> 24; config B: 2 per primary -> 16; total 40.
@@ -118,7 +118,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(2));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         List<Contact> childContacts = [.. bundle.GetChildList<Contact>(x => x.AccountId).Cast<Contact>()];
@@ -130,7 +130,7 @@ public class ChildProviderTest
     }
 
     [Fact]
-    public void GetChildList_OrderIsConfigThenPrimaryThenQuantity()
+    public async Task GetChildList_OrderIsConfigThenPrimaryThenQuantity()
     {
         // Arrange - 2 primaries, config A (q2) then config B (q1):
         // A/P0, A/P0, A/P1, A/P1, B/P0, B/P1
@@ -141,7 +141,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(1));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         string parentZero = ((Account)bundle.PrimaryRecords()![0]).Id!;
@@ -159,7 +159,7 @@ public class ChildProviderTest
     // Several child types ------------------------------------
 
     [Fact]
-    public void WithChildren_ForSeveralChildTypes_AppliesThemConcurrently()
+    public async Task WithChildren_ForSeveralChildTypes_AppliesThemConcurrently()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -168,7 +168,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Case>(x => x.AccountId), 3);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Assert.Equal(2, bundle.GetChildList<Contact>(x => x.AccountId).Count);
@@ -179,7 +179,7 @@ public class ChildProviderTest
     // Children's own parents --------------------------------
 
     [Fact]
-    public void With_AtRequiredInclusivity_EachChildGeneratesItsOwnRequiredParent()
+    public async Task With_AtRequiredInclusivity_EachChildGeneratesItsOwnRequiredParent()
     {
         // Arrange - Account -> child Case (Case.AccountId) -> Case's own required Contact -> that Contact's Account
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -188,7 +188,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Case>(x => x.AccountId).SetQuantity(2));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         string rootAccountId = ((Account)bundle.PrimaryRecords()![0]).Id!;
@@ -211,7 +211,7 @@ public class ChildProviderTest
     // Grandchildren -----------------------------------------
 
     [Fact]
-    public void With_NestedChildProviders_GenerateGrandchildrenPointingAtTheirParent()
+    public async Task With_NestedChildProviders_GenerateGrandchildrenPointingAtTheirParent()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -221,7 +221,7 @@ public class ChildProviderTest
                     .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         List<object> contacts = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -233,7 +233,7 @@ public class ChildProviderTest
     }
 
     [Fact]
-    public void SupplyBundle_InDeferredMode_BuildsEveryLevelIncludingGrandchildrenStructurally()
+    public async Task SupplyBundle_InDeferredMode_BuildsEveryLevelIncludingGrandchildrenStructurally()
     {
         // Arrange - DEFERRED builds the whole graph structurally; Flush() is where real persistence would happen
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -243,14 +243,14 @@ public class ChildProviderTest
                     .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2)));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert - the whole structural graph exists, including grandchildren, before any flush
         List<object> contacts = bundle.GetChildList<Contact>(x => x.AccountId);
         Assert.Equal(2, contacts.Count);
         List<object> cases = bundle.GetChildBundle<Contact>(x => x.AccountId)!.GetChildList<Case>(x => x.ContactId);
         Assert.Equal(4, cases.Count);
-        NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => DeferredInserter.Flush());
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush());
         Assert.Contains("persistence gateway", thrown.Message);
         DeferredInserter.ResetForTesting(); // the failed Flush() deliberately left the registry non-empty
     }
@@ -273,7 +273,7 @@ public class ChildProviderTest
     // Insert mode --------------------------------------
 
     [Fact]
-    public void WithChildren_ByDefault_TheChildInheritsTheParentInsertMode()
+    public async Task WithChildren_ByDefault_TheChildInheritsTheParentInsertMode()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -281,7 +281,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert - the children got mock Ids too, exactly like the parent (no override given)
         List<object> children = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -290,7 +290,7 @@ public class ChildProviderTest
     }
 
     [Fact]
-    public void With_AChildCanRaiseItsOwnInsertModeAboveTheParents_ButNowWithoutAGatewayStillThrows()
+    public async Task With_AChildCanRaiseItsOwnInsertModeAboveTheParents_ButNowWithoutAGatewayStillThrows()
     {
         // Arrange - parent Never (no persistence attempted), child Now with no gateway configured
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -300,7 +300,7 @@ public class ChildProviderTest
         // Act - the child's Now override is honoured (not silently downgraded to the parent's Never); Now with no
         // gateway configured throws rather than silently skipping the insert (see PersistenceGatewayTest for the
         // configured-gateway case, where Now genuinely persists)
-        NotSupportedException thrown = Assert.Throws<NotSupportedException>(provider.SupplyBundle);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.SupplyBundle);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -310,10 +310,10 @@ public class ChildProviderTest
     // never coexist correctly in the same generated graph, whether or not a persistence gateway is
     // configured for Now.
     [Fact]
-    public void SupplyBundle_WhenAMockParentHasANowChild_Throws() => AssertMockRealMixThrows(InsertMode.Mock, InsertMode.Now);
+    public Task SupplyBundle_WhenAMockParentHasANowChild_Throws() => AssertMockRealMixThrows(InsertMode.Mock, InsertMode.Now);
 
     [Fact]
-    public void SupplyBundle_WhenTheParentIsLater_LeavesChildrenExactlyAsNeverWould()
+    public async Task SupplyBundle_WhenTheParentIsLater_LeavesChildrenExactlyAsNeverWould()
     {
         // Arrange - Later is Never-with-intent, all the way down
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -321,7 +321,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         List<Contact> children = [.. bundle.GetChildList<Contact>(x => x.AccountId).Cast<Contact>()];
@@ -331,7 +331,7 @@ public class ChildProviderTest
     }
 
     [Fact]
-    public void SupplyBundle_WhenTheParentExcludesPrimaryIds_ChildrenStillGetTheirOwnIdButNoBackReference()
+    public async Task SupplyBundle_WhenTheParentExcludesPrimaryIds_ChildrenStillGetTheirOwnIdButNoBackReference()
     {
         // Arrange - ExcludePrimaryIds only ever excludes the call's own primary; a child inherits the
         // parent's InsertMode (Mock), not its exclusion, so it still gets its own mock Id - just with
@@ -342,7 +342,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         List<object> children = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -354,7 +354,7 @@ public class ChildProviderTest
     // Bundle getters ---------------------------------
 
     [Fact]
-    public void GetChildBundle_MergesConfigsAndStaysNavigable()
+    public async Task GetChildBundle_MergesConfigsAndStaysNavigable()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -364,7 +364,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Case>(x => x.AccountId, new Case { Origin = "Phone" }).SetQuantity(1));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Bundle merged = bundle.GetChildBundle<Case>(x => x.AccountId)!;
@@ -374,7 +374,7 @@ public class ChildProviderTest
 
     // Runners + helpers ----------------------------
 
-    private static void AssertMockRealMixThrows(InsertMode parentMode, InsertMode childMode)
+    private static async Task AssertMockRealMixThrows(InsertMode parentMode, InsertMode childMode)
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -382,7 +382,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Contact>(x => x.AccountId).SetInsertMode(childMode));
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(provider.SupplyBundle);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle);
 
         // Assert - a mock/real mix must throw
         Assert.Contains("mix mock", thrown.Message);
@@ -406,6 +406,6 @@ file sealed class CaseProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }

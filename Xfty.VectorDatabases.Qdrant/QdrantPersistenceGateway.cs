@@ -24,13 +24,21 @@ namespace Net.Nowhereatall.Xfty.VectorDatabases.Qdrant;
 /// </summary>
 public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistenceGateway
 {
-    public void Insert(List<object> records, PropertyInfo idField) =>
-        records
-            .GroupBy(record => record.GetType())
-            .ToList()
-            .ForEach(group => this.InsertGroup([.. group], idField));
+    public Task Insert(List<object> records, PropertyInfo idField) =>
+        InsertGroups(this, [.. records.GroupBy(record => record.GetType())], idField);
 
-    private void InsertGroup(List<object> records, PropertyInfo idField)
+    private static Task InsertGroups(QdrantPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField) =>
+        groups.Count == 0
+            ? Task.CompletedTask
+            : InsertRemainingGroups(gateway, groups, idField);
+
+    private static async Task InsertRemainingGroups(QdrantPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField)
+    {
+        await gateway.InsertGroup([.. groups[0]], idField);
+        await InsertGroups(gateway, groups.Skip(1).ToList(), idField);
+    }
+
+    private async Task InsertGroup(List<object> records, PropertyInfo idField)
     {
         QdrantRecordReflection.RequireGuidKey(idField);
         records.ForEach(record => QdrantRecordReflection.FillIdIfMissing(record, idField));
@@ -39,18 +47,18 @@ public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistence
         PropertyInfo vectorField = QdrantRecordReflection.FindVectorField(recordType);
         int dimensions = ((float[])vectorField.GetValue(records[0])!).Length;
 
-        this.EnsureCollectionExists(recordType.Name, dimensions);
+        await this.EnsureCollectionExists(recordType.Name, dimensions);
         List<PointStruct> points = [.. records.Select(record => ToPoint(record, idField, vectorField))];
-        _ = client.UpsertAsync(recordType.Name, points).GetAwaiter().GetResult();
+        _ = await client.UpsertAsync(recordType.Name, points);
     }
 
-    private void EnsureCollectionExists(string collectionName, int dimensions)
+    private async Task EnsureCollectionExists(string collectionName, int dimensions)
     {
-        bool exists = client.CollectionExistsAsync(collectionName).GetAwaiter().GetResult();
+        bool exists = await client.CollectionExistsAsync(collectionName);
         if (!exists)
         {
             VectorParams vectorParams = new() { Size = (ulong)dimensions, Distance = Distance.Cosine };
-            client.CreateCollectionAsync(collectionName, vectorParams).GetAwaiter().GetResult();
+            await client.CreateCollectionAsync(collectionName, vectorParams);
         }
     }
 

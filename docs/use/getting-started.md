@@ -31,7 +31,7 @@ using Net.Nowhereatall.Xfty.Demo;
 
 DefaultProviderLookup providerLookup = new();
 
-Contact contact = (Contact)new RecordProvider(typeof(Contact), providerLookup)
+Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
     .Supply();
 ```
 
@@ -96,7 +96,7 @@ Instead of constructing an entire record, provide an Override Template
 containing only the values relevant to your test.
 
 ```csharp
-Contact contact = (Contact)new RecordProvider(typeof(Contact), providerLookup)
+Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
     .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
     .Supply();
 ```
@@ -140,7 +140,7 @@ There are two ways to create multiple records.
 The simplest is to specify a quantity.
 
 ```csharp
-List<object> contacts = new RecordProvider(typeof(Contact), providerLookup)
+List<object> contacts = await new RecordProvider(typeof(Contact), providerLookup)
     .SetQuantityPerTemplate(5)
     .SupplyList();
 ```
@@ -150,7 +150,7 @@ This generates five Contacts using the same template.
 If each generated record should differ, use an Override Template List instead.
 
 ```csharp
-List<object> contacts = new RecordProvider(typeof(Contact), providerLookup)
+List<object> contacts = await new RecordProvider(typeof(Contact), providerLookup)
     .SetOverrideTemplateList([
         new Contact { FirstName = "Alice" },
         new Contact { FirstName = "Bob" },
@@ -168,7 +168,7 @@ template is generated the requested number of times.
 Relationship generation is controlled independently from persistence.
 
 ```csharp
-Bundle bundle = new RecordProvider(typeof(Contact), providerLookup)
+Bundle bundle = await new RecordProvider(typeof(Contact), providerLookup)
     .SetInsertMode(InsertMode.Mock)
     .SetInclusivity(InsertInclusivity.Required)
     .SupplyBundle();

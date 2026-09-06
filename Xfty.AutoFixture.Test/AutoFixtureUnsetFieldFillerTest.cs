@@ -18,7 +18,7 @@ public class AutoFixtureUnsetFieldFillerTest
         });
 
     [Fact]
-    public void Supply_FillsFieldsTheMasterTemplateNeverConfigured_WithRealAutoFixtureValues()
+    public async Task Supply_FillsFieldsTheMasterTemplateNeverConfigured_WithRealAutoFixtureValues()
     {
         // Arrange
         IFixture fixture = new Fixture();
@@ -27,7 +27,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert - AccountDataProvider's own Master Template never touches these
         _ = Assert.NotNull(result.NumberOfEmployees);
@@ -36,7 +36,7 @@ public class AutoFixtureUnsetFieldFillerTest
     }
 
     [Fact]
-    public void Supply_NeverOverwritesAFieldTheMasterTemplateDidConfigure()
+    public async Task Supply_NeverOverwritesAFieldTheMasterTemplateDidConfigure()
     {
         // Arrange
         IFixture fixture = new Fixture();
@@ -45,7 +45,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert - AccountDataProvider's own declared defaults, untouched by AutoFixture
         Assert.StartsWith(AccountDataProvider.DefaultNamePrefix, result.Name);
@@ -53,7 +53,7 @@ public class AutoFixtureUnsetFieldFillerTest
     }
 
     [Fact]
-    public void Excluding_LeavesThatOneFieldExactlyAsXftyLeftIt()
+    public async Task Excluding_LeavesThatOneFieldExactlyAsXftyLeftIt()
     {
         // Arrange
         IFixture fixture = new Fixture();
@@ -64,7 +64,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert - excluded field stays null; a sibling unset field still gets filled
         Assert.Null(result.Site);
@@ -72,7 +72,7 @@ public class AutoFixtureUnsetFieldFillerTest
     }
 
     [Fact]
-    public void Excluding_ChainedForEveryNavigationProperty_LeavesAllOfThemUntouched()
+    public async Task Excluding_ChainedForEveryNavigationProperty_LeavesAllOfThemUntouched()
     {
         // Arrange - the exact navigation-property triple documented in use/autofixture.md
         IFixture fixture = new Fixture();
@@ -85,7 +85,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert
         Assert.Null(result.Contacts);
@@ -94,7 +94,7 @@ public class AutoFixtureUnsetFieldFillerTest
     }
 
     [Fact]
-    public void Supply_WithOmitOnRecursionBehaviorInstalled_StillFillsTheSelfReferencingFieldWithoutThrowing()
+    public async Task Supply_WithOmitOnRecursionBehaviorInstalled_StillFillsTheSelfReferencingFieldWithoutThrowing()
     {
         // Arrange - the documented alternative to relying on this filler's own catch
         IFixture fixture = new Fixture();
@@ -105,14 +105,14 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Exception? thrown = Record.Exception(() => provider.Supply());
+        Exception? thrown = await Record.ExceptionAsync(provider.Supply);
 
         // Assert
         Assert.Null(thrown);
     }
 
     [Fact]
-    public void Supply_ForASelfReferencingUnsetField_NeverLetsAFixturesRecursionGuardEscape()
+    public async Task Supply_ForASelfReferencingUnsetField_NeverLetsAFixturesRecursionGuardEscape()
     {
         // Arrange - Account.Parent is Account itself; a plain Fixture's default
         // ThrowingRecursionBehavior would raise ObjectCreationException resolving it
@@ -122,14 +122,14 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Exception? thrown = Record.Exception(() => provider.Supply());
+        Exception? thrown = await Record.ExceptionAsync(provider.Supply);
 
         // Assert
         Assert.Null(thrown);
     }
 
     [Fact]
-    public void Supply_CombinedWithXftyCustomization_FillsAScalarFieldWhileStillGeneratingRelationshipsViaXfty()
+    public async Task Supply_CombinedWithXftyCustomization_FillsAScalarFieldWhileStillGeneratingRelationshipsViaXfty()
     {
         // Arrange - the two features compose: XFTY resolves the required Account
         // relationship; AutoFixture fills whatever scalar fields are left over.
@@ -140,7 +140,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Contact result = (Contact)provider.Supply();
+        Contact result = (Contact)await provider.Supply();
 
         // Assert
         Assert.NotNull(result.AccountId); // XFTY's own relationship resolution

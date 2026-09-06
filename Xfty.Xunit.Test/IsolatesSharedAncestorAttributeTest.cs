@@ -27,14 +27,14 @@ public class IsolatesSharedAncestorAttributeTest
         });
 
     [Fact]
-    public void FirstTest_RegistersAndResolvesItsOwnRecord()
+    public async Task FirstTest_RegistersAndResolvesItsOwnRecord()
     {
         // Arrange - a fixed Id makes this a value Put, not a template, so the record itself is the resolved one
         Account first = new() { Name = "First", Id = IdMocker.GenerateId() };
         _ = SharedAncestor.Put(SharedName, first);
 
         // Act
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup())
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(SharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -45,14 +45,14 @@ public class IsolatesSharedAncestorAttributeTest
     }
 
     [Fact]
-    public void SecondTest_ReusingTheSameName_SeesOnlyItsOwnRecord()
+    public async Task SecondTest_ReusingTheSameName_SeesOnlyItsOwnRecord()
     {
         // Arrange - same name as FirstTest; would collide with its resolution without isolation
         Account second = new() { Name = "Second", Id = IdMocker.GenerateId() };
         _ = SharedAncestor.Put(SharedName, second);
 
         // Act
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup())
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(SharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -77,14 +77,14 @@ public class IsolatesSharedAncestorAttributeMethodLevelTest
 
     [Fact]
     [IsolatesSharedAncestor]
-    public void IsolatedTest_RegistersAndResolvesCleanly()
+    public async Task IsolatedTest_RegistersAndResolvesCleanly()
     {
         // Arrange - a fixed Id makes this a value Put, not a template, so the record itself is the resolved one
         Account account = new() { Name = "Method-Level", Id = IdMocker.GenerateId() };
         _ = SharedAncestor.Put(SharedName, account);
 
         // Act
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup())
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(SharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)

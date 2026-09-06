@@ -12,6 +12,53 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING: persistence is now fully async, end to end.** `IPersistenceGateway.Insert`
+  returns `Task` instead of `void`, and every method in the call chain that can
+  reach it now does too - `RecordProvider.Supply()`/`SupplyList()`/`SupplyBundle()`,
+  `IRecordProvider.CreateBundle`, `RecordFactory.Build`, `DepthBatchedInserter.ResolveAll`/`InsertAll`,
+  `DeferredInsertBuffer`/`DeferredInserter.Flush`, `SharedAncestor`'s resolution
+  methods (`ResolveNow`, `PutRequired`'s underlying resolver), and both
+  vector-database gateways (`QdrantPersistenceGateway`, `MevdPersistenceGateway`,
+  now awaiting the Qdrant/MEVD clients' own async APIs directly instead of
+  blocking on them). There was no good reason to keep this synchronous - it was
+  inherited from the Apex original, which has no `async`/`await` at all - and
+  every real backing store (`DbContext.SaveChangesAsync`, a vector database
+  client, a network call) is naturally asynchronous underneath. Two adapters
+  that implement third-party *synchronous* SPIs cannot become `async`
+  themselves - `Xfty.AutoFixture`'s `XftySpecimenBuilder.Create`
+  (`ISpecimenBuilder.Create`) and `Xfty.AutoBogus`'s
+  `XftyAutoBogusOverride.Generate` (`AutoGeneratorOverride.Generate`) - and
+  bridge with `Task.Run(...).GetAwaiter().GetResult()` instead, documented on
+  each. The `Task.Run` wrapper is deliberate, not decoration: it runs XFTY's
+  generation on a fresh thread-pool thread with no captured
+  `SynchronizationContext`, so the blocking wait can never deadlock waiting
+  on a continuation that needed the very thread it's blocking on - safe
+  regardless of what thread calls in (a UI thread, a classic ASP.NET request,
+  anything), not just the xUnit/CI context these adapters are normally used
+  from. XFTY is itself a piece of test infrastructure sitting between the
+  code under test and the tests exercising it, so this errs toward
+  eliminating a whole class of hard-to-diagnose hangs at a negligible
+  thread-pool-hop cost, rather than documenting the risk away for only the
+  contexts already known to be safe. None of
+  the new async methods carry an `Async` suffix - every one of them is the
+  direct (now-`Task`-returning) replacement for the same-named synchronous
+  method it replaces, not a parallel overload, so the suffix would be pure
+  noise next to the `async`/`await` keywords already marking the call.
+  `SharedAncestorResolver`'s old `lock`-based mutual exclusion could not
+  contain `await` at all (and its reentrancy tracking relied on OS-thread
+  identity, which an async continuation can resume on a different thread from)
+  - replaced with a `SemaphoreSlim` + `AsyncLocal<bool>` gate that is
+  genuinely async-safe and still reentrant within one logical call chain.
+  Every call site across every package and test project was updated to
+  `await` accordingly, including `Assert.Throws`/`Record.Exception` calls
+  that wrapped a now-async operation (xUnit's own analyzer flags these -
+  `Assert.ThrowsAsync`/`Record.ExceptionAsync` are required, not optional,
+  once the wrapped call is `Task`-returning: an exception thrown inside an
+  `async` method lands in the returned `Task`, never thrown synchronously to
+  the caller, so the old form would silently stop verifying anything).
+
 ### Fixed
 
 - **`SharedAncestor` could crash under real concurrent access** —

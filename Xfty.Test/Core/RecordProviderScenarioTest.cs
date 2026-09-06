@@ -20,7 +20,7 @@ public class RecordProviderScenarioTest
     private static DefaultProviderLookup Lookup() => new();
 
     [Fact]
-    public void SupplyBundle_WithRequiredInclusivity_GeneratesTheContactAndItsAccount()
+    public async Task SupplyBundle_WithRequiredInclusivity_GeneratesTheContactAndItsAccount()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -29,7 +29,7 @@ public class RecordProviderScenarioTest
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         AssertContactGenerated(bundle);
@@ -39,7 +39,7 @@ public class RecordProviderScenarioTest
     }
 
     [Fact]
-    public void SupplyBundle_InMockMode_WiresTheGraphWithoutTouchingADatabase()
+    public async Task SupplyBundle_InMockMode_WiresTheGraphWithoutTouchingADatabase()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -48,7 +48,7 @@ public class RecordProviderScenarioTest
             .SetInclusivity(InsertInclusivity.All);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         AssertContactGenerated(bundle);
@@ -59,7 +59,7 @@ public class RecordProviderScenarioTest
     }
 
     [Fact]
-    public void Supply_WithNoInclusivity_GeneratesOnlyTheContact()
+    public async Task Supply_WithNoInclusivity_GeneratesOnlyTheContact()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -67,7 +67,7 @@ public class RecordProviderScenarioTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = Assert.IsType<Contact>(provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply());
 
         // Assert
         AssertContactGenerated(result);
@@ -75,13 +75,13 @@ public class RecordProviderScenarioTest
     }
 
     [Fact]
-    public void Supply_WithOnlyAType_AppliesTheMasterTemplateDefaults()
+    public async Task Supply_WithOnlyAType_AppliesTheMasterTemplateDefaults()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup()).SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = Assert.IsType<Contact>(provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply());
 
         // Assert
         Assert.Contains(ContactDataProvider.DefaultFirstNamePrefix, result.FirstName);

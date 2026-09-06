@@ -11,7 +11,7 @@ public class RecordProviderOfTTest
     private static readonly DefaultProviderLookup Lookup = new();
 
     [Fact]
-    public void Supply_ReturnsTheTypedRecord_WithNoCast()
+    public async Task Supply_ReturnsTheTypedRecord_WithNoCast()
     {
         // Arrange
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
@@ -19,14 +19,14 @@ public class RecordProviderOfTTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = provider.Supply();
+        Contact result = await provider.Supply();
 
         // Assert
         Assert.Equal("Alice", result.FirstName);
     }
 
     [Fact]
-    public void SupplyList_ReturnsATypedList()
+    public async Task SupplyList_ReturnsATypedList()
     {
         // Arrange
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
@@ -34,14 +34,14 @@ public class RecordProviderOfTTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        List<Contact> result = provider.SupplyList();
+        List<Contact> result = await provider.SupplyList();
 
         // Assert
         Assert.Equal(3, result.Count);
     }
 
     [Fact]
-    public void SupplyBundle_StillReturnsAPlainBundle()
+    public async Task SupplyBundle_StillReturnsAPlainBundle()
     {
         // Arrange
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
@@ -49,14 +49,14 @@ public class RecordProviderOfTTest
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Assert.NotNull(bundle.GetList<Contact>(x => x.Id));
     }
 
     [Fact]
-    public void ObjectInitializer_RoutesEachValueByRuntimeType()
+    public async Task ObjectInitializer_RoutesEachValueByRuntimeType()
     {
         // Arrange - mirrors MasterTemplate<TRecord>'s own indexer syntax
         RecordProvider<Contact> provider = new(Lookup)
@@ -66,7 +66,7 @@ public class RecordProviderOfTTest
         };
 
         // Act
-        Contact result = provider
+        Contact result = await provider
             .SetInsertMode(InsertMode.Mock)
             .Supply();
 

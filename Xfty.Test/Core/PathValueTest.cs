@@ -46,7 +46,7 @@ public class PathValueTest
     // A value landing on the generated ancestor ------------------------
 
     [Fact]
-    public void Put_WithALiteralPathValue_LandsItOnTheGeneratedAncestor()
+    public async Task Put_WithALiteralPathValue_LandsItOnTheGeneratedAncestor()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -55,7 +55,7 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace");
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert - the path literal overrode the Account Provider default
         Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
@@ -63,7 +63,7 @@ public class PathValueTest
     }
 
     [Fact]
-    public void Put_WithAValueExpressionPathValue_RunsItOncePerGeneratedAncestor()
+    public async Task Put_WithAValueExpressionPathValue_RunsItOncePerGeneratedAncestor()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -74,7 +74,7 @@ public class PathValueTest
                 new IncrementingStringExpression("Path Account"));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         List<object> accounts = bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()!;
@@ -84,7 +84,7 @@ public class PathValueTest
     }
 
     [Fact]
-    public void Put_WithAContextAwarePathValue_EvaluatesItOnTheGeneratedAncestor()
+    public async Task Put_WithAContextAwarePathValue_EvaluatesItOnTheGeneratedAncestor()
     {
         // Arrange - the generated Account's Site copies its own Name (a sibling on the ancestor)
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -95,7 +95,7 @@ public class PathValueTest
                 CopyFromSiblingExpression.From<Account>(x => x.Name));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
@@ -103,7 +103,7 @@ public class PathValueTest
     }
 
     [Fact]
-    public void PutRequired_WithARelationshipPathValue_GivesTheAncestorItsOwnGeneratedParent()
+    public async Task PutRequired_WithARelationshipPathValue_GivesTheAncestorItsOwnGeneratedParent()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -114,7 +114,7 @@ public class PathValueTest
                 new DefaultRelationship(new User()));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
@@ -122,7 +122,7 @@ public class PathValueTest
     }
 
     [Fact]
-    public void Put_WithADeepTwoRelationshipPath_WalksBothHopsAndSetsTheTargetField()
+    public async Task Put_WithADeepTwoRelationshipPath_WalksBothHopsAndSetsTheTargetField()
     {
         // Arrange - Contact -> Account (Contact.AccountId) -> Account (self-referencing ParentId), set the grandparent's Industry
         RecordProvider provider = new RecordProvider(typeof(Contact), DeepAccountLookup())
@@ -134,7 +134,7 @@ public class PathValueTest
                 "DeepValue");
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Bundle accountBundle = bundle.GetBundle<Contact>(x => x.AccountId)!;
@@ -145,7 +145,7 @@ public class PathValueTest
     }
 
     [Fact]
-    public void Put_AtTheDefaultNoneInclusivity_StillForcesTheNamedAncestor()
+    public async Task Put_AtTheDefaultNoneInclusivity_StillForcesTheNamedAncestor()
     {
         // Arrange - naming Contact.AccountId in a path value forces that ancestor even at None
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -153,7 +153,7 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace");
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
@@ -161,7 +161,7 @@ public class PathValueTest
     }
 
     [Fact]
-    public void PutRequired_WithARelationshipPathValue_DrivesAnEntireDeepAncestorHierarchy()
+    public async Task PutRequired_WithARelationshipPathValue_DrivesAnEntireDeepAncestorHierarchy()
     {
         // Arrange - Contact -> Account (path) -> Account.OwnerId := User (path value) -> that User's
         // own required Manager (distinct Provider) -> that Manager's required skip-level Manager.
@@ -183,7 +183,7 @@ public class PathValueTest
                 new DefaultRelationship(new User()));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert - every level of the chain generated
         Bundle accountBundle = bundle.GetBundle<Contact>(x => x.AccountId)!;
@@ -202,7 +202,7 @@ public class PathValueTest
     }
 
     [Fact]
-    public void Put_WhenAnOptionalRelationshipIsNamedByAPathValue_ForcesItAndSetsAFieldOnIt()
+    public async Task Put_WhenAnOptionalRelationshipIsNamedByAPathValue_ForcesItAndSetsAFieldOnIt()
     {
         // Arrange - Contact.ReportsToId is optional on this Provider
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -211,7 +211,7 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.ReportsToId), Field.Of<Contact>(x => x.Department)], "Exec");
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Contact manager = (Contact)bundle.GetBundle<Contact>(x => x.ReportsToId)!.PrimaryRecords()![0];
@@ -221,21 +221,21 @@ public class PathValueTest
     // Loud errors --------------------------------------------------
 
     [Fact]
-    public void Put_WhenAPathFieldIsNotARelationship_Throws()
+    public async Task Put_WhenAPathFieldIsNotARelationship_Throws()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .Put([Field.Of<Contact>(x => x.FirstName), Field.Of<Account>(x => x.Industry)], "x");
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(provider.SupplyBundle);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle);
 
         // Assert - a non-relationship path field is a loud error, not a silent no-op
         Assert.Contains("relationship", thrown.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void Put_WhenThePathTargetsASharedAncestor_Throws()
+    public async Task Put_WhenThePathTargetsASharedAncestor_Throws()
     {
         // Arrange
         _ = SharedAncestor.Put(SharedAcctName, new Account { Name = "Shared HQ" });
@@ -244,7 +244,7 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace");
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(provider.SupplyBundle);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle);
 
         // Assert - a path value into a shared ancestor is a loud error, not a dropped value
         Assert.Contains("shared ancestor", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -279,7 +279,7 @@ file sealed class ContactWithOptionalManagerProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 
@@ -293,7 +293,7 @@ file sealed class ContactUnderSharedAccountProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 
@@ -308,7 +308,7 @@ file sealed class AccountWithOptionalParentProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 
@@ -322,7 +322,7 @@ file sealed class ChainedUserProvider(ILookupKey nextKey) : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 
     internal static MasterTemplate LeafUserTemplate() =>
@@ -339,6 +339,6 @@ file sealed class LeafUserProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }

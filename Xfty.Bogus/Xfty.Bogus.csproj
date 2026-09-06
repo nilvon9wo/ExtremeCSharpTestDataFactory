@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Xfty.Bogus</PackageId>
-    <Version>1.0.0-beta.2</Version>
+    <Version>1.0.0-beta.3</Version>
     <Authors>Brian Kessler</Authors>
     <Description>Bundled IValueExpressions for XFTY that produce realistic-looking fake data - names, emails, addresses, paragraphs - by wrapping Bogus, instead of every Provider writing its own.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;bogus;fake-data</PackageTags>

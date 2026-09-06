@@ -59,7 +59,7 @@ public class VariantResolutionTest
     // End to end through RecordProvider ---------------------------
 
     [Fact]
-    public void Supply_WhenWithVariantContradictsTheOverrideTemplate_Throws()
+    public async Task Supply_WhenWithVariantContradictsTheOverrideTemplate_Throws()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -68,14 +68,14 @@ public class VariantResolutionTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        LookupException thrown = Assert.Throws<LookupException>(provider.Supply);
+        LookupException thrown = await Assert.ThrowsAsync<LookupException>(provider.Supply);
 
         // Assert - WithVariant contradicting the template must throw
         Assert.Contains("contradicts", thrown.Message);
     }
 
     [Fact]
-    public void Supply_WhenWithVariantAgreesWithTheOverrideTemplate_StillAppliesTheTemplate()
+    public async Task Supply_WhenWithVariantAgreesWithTheOverrideTemplate_StillAppliesTheTemplate()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -84,7 +84,7 @@ public class VariantResolutionTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert
         Assert.Equal(5000, result.NumberOfEmployees);

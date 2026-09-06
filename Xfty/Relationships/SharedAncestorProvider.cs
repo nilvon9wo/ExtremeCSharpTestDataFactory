@@ -158,7 +158,7 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     public object? OverrideTemplate() => this.overrideTemplate;
 
     /// <summary>This ancestor's whole graph, generated with no persistence, ready for the depth-batched insert.</summary>
-    public Bundle BuildInMemory(IProviderLookup lookup)
+    public Task<Bundle> BuildInMemory(IProviderLookup lookup)
     {
         InsertInclusivity effectiveInclusivity = this.inclusivity ?? InsertInclusivity.Required;
         GenerationContext context = new GenerationContext(lookup, InsertMode.Never, effectiveInclusivity)

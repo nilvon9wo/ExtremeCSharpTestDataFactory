@@ -14,17 +14,17 @@ namespace Net.Nowhereatall.Xfty.EntityFrameworkCore;
 /// A string-typed Id with no value is filled with a fresh GUID before
 /// <c>Add</c> - the common shape for a string primary key, which EF Core has
 /// no built-in generator for (unlike an integer identity column, which EF
-/// already populates after <see cref="DbContext.SaveChanges()"/> on its own,
-/// left untouched here). One <see cref="DbContext.SaveChanges()"/> call per
+/// already populates after <see cref="DbContext.SaveChangesAsync(System.Threading.CancellationToken)"/>
+/// on its own, left untouched here). One SaveChangesAsync call per
 /// depth-batched layer, matching <see cref="Persistence.DepthBatchedInserter"/>'s
 /// one-call-per-type-per-layer contract.
 /// </summary>
 public sealed class EfPersistenceGateway(DbContext dbContext) : IPersistenceGateway
 {
-    public void Insert(List<object> records, PropertyInfo idField)
+    public async Task Insert(List<object> records, PropertyInfo idField)
     {
         records.ForEach(record => this.AddOne(record, idField));
-        _ = dbContext.SaveChanges();
+        _ = await dbContext.SaveChangesAsync();
     }
 
     private void AddOne(object record, PropertyInfo idField)

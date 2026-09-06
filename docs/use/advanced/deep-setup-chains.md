@@ -27,7 +27,7 @@ public class ContactValidationTests
 
     public ContactValidationTests()
     {
-        this.sharedAccounts = new RecordProvider(typeof(Account), this.lookup)
+        this.sharedAccounts = await new RecordProvider(typeof(Account), this.lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetQuantityPerTemplate(3)
             .SupplyList();
@@ -56,13 +56,13 @@ graph spanning several `SupplyBundle()` calls resolves and links correctly as
 
 <!-- sketch -->
 ```csharp
-private Bundle SeedAccounts() =>
+private Task<Bundle> SeedAccounts() =>
     new RecordProvider(typeof(Account), this.lookup)
         .SetInsertMode(InsertMode.Deferred)
         .SetQuantityPerTemplate(3)
         .SupplyBundle();
 
-private Bundle SeedContacts() =>
+private Task<Bundle> SeedContacts() =>
     new RecordProvider(typeof(Contact), this.lookup)
         .SetInclusivity(InsertInclusivity.Required)
         .SetInsertMode(InsertMode.Deferred)
@@ -73,13 +73,13 @@ private Bundle SeedContacts() =>
 public void TheWholeGraphRegistersBeforeAnyFlushAttempt()
 {
     // Arrange
-    Bundle seededAccounts = this.SeedAccounts();
-    Bundle seededContacts = this.SeedContacts();
+    Bundle seededAccounts = await this.SeedAccounts();
+    Bundle seededContacts = await this.SeedContacts();
     int pendingBeforeFlush = DeferredInserter.PendingCount();
 
     // Act / Assert - both bundles registered as one pending set before any flush
     Assert.True(pendingBeforeFlush >= 12); // 3 Accounts + 9 Contacts (their own Accounts too, if Required)
-    DeferredInserter.Flush(gateway); // one pass, in dependency order, through the given IPersistenceGateway
+    await DeferredInserter.Flush(gateway); // one pass, in dependency order, through the given IPersistenceGateway
 }
 ```
 

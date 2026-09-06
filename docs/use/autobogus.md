@@ -83,7 +83,7 @@ using AutoBogus;
 using Net.Nowhereatall.Xfty.AutoBogus;
 
 IAutoFaker faker = AutoFaker.Create();
-Account account = (Account)new RecordProvider(typeof(Account), lookup)
+Account account = (Account)await new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker))
     .Supply();
@@ -130,7 +130,7 @@ recursion-exception handling at all - there's nothing to catch.
 ```csharp
 IAutoFaker faker = XftyAutoBogus.CreateFaker(lookup);
 
-Contact contact = (Contact)new RecordProvider(typeof(Contact), lookup)
+Contact contact = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetInclusivity(InsertInclusivity.Required)
     .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker))

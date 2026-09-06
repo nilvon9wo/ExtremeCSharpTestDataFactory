@@ -39,7 +39,7 @@ any of the five above.
 ## `Mock` — the default for a unit test
 
 ```csharp
-Contact result = (Contact)new RecordProvider(typeof(Contact), lookup)
+Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .SetInsertMode(InsertMode.Mock)
     .Supply();
 
@@ -59,14 +59,14 @@ optional related records, then inserts them through
 
 <!-- sketch -->
 ```csharp
-Contact result = (Contact)new RecordProvider(typeof(Contact), lookup)
+Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .SetPersistenceGateway(new EfPersistenceGateway(dbContext))
     .SetInsertMode(InsertMode.Now)
     .Supply();
 ```
 
 `IPersistenceGateway` is a one-method seam
-(`Insert(List<object> records, PropertyInfo idField)`), so it works with EF
+(`Task Insert(List<object> records, PropertyInfo idField)`), so it works with EF
 Core, Dapper, raw ADO.NET, or a hand-rolled fake in a test - `Xfty.Test`
 proves the mechanism against an `NSubstitute` mock, and
 `Xfty.EntityFrameworkCore.Test` proves it against a real SQLite database and
@@ -101,7 +101,7 @@ RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
     .ExcludePrimaryIds()
     .SetPersistenceGateway(gateway);
 
-Bundle bundle = provider.SupplyBundle();
+Bundle bundle = await provider.SupplyBundle();
 // bundle's Contact primary is un-Id'd; its Account ancestor is a real, inserted row
 ```
 
@@ -131,8 +131,8 @@ RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
     .SetInsertMode(InsertMode.Deferred)
     .ExcludePrimaryIds();
 
-Bundle bundle = provider.SupplyBundle();
-DeferredInserter.Flush(gateway);
+Bundle bundle = await provider.SupplyBundle();
+await DeferredInserter.Flush(gateway);
 // bundle's Contact primary is still un-Id'd after the flush; its Account
 // ancestor (and anything else registered before the flush) is really inserted
 ```
@@ -160,7 +160,7 @@ RecordProvider provider = new RecordProvider(typeof(Account), lookup)
     .ExcludePrimaryIds()
     .IncludePrimaryIds();
 
-Account result = (Account)provider.Supply();
+Account result = (Account)await provider.Supply();
 Assert.NotNull(result.Id); // back to persisting normally
 ```
 

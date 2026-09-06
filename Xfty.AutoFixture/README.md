@@ -40,7 +40,7 @@ using AutoFixture;
 using Net.Nowhereatall.Xfty.AutoFixture;
 
 IFixture fixture = new Fixture();
-Account account = (Account)new RecordProvider(typeof(Account), lookup)
+Account account = (Account)await new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture))
     .Supply();

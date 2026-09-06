@@ -8,5 +8,5 @@ public interface IRecordProvider
 
     MasterTemplate MasterTemplate { get; }
 
-    Bundle CreateBundle(GenerationContext context, List<object> templateRecords);
+    Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords);
 }

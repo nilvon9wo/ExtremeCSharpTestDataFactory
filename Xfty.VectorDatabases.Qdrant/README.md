@@ -38,14 +38,6 @@ to the MEVD path).
   of any particular library sitting in front of it. `QdrantRecordReflection.RequireGuidKey`
   throws a clear `NotSupportedException` at insert time rather than letting
   a `CS0029`-style failure or Qdrant's own opaque error surface instead.
-- **Sync-over-async bridging.** Every real operation
-  (`CollectionExistsAsync`, `CreateCollectionAsync`, `UpsertAsync`) is
-  `Task`-based; XFTY's `IPersistenceGateway.Insert` is `void`. This gateway
-  bridges with `.GetAwaiter().GetResult()`. Accepted for test-setup code
-  running in a console-style host with no captured `SynchronizationContext`
-  (xUnit, CI) - it would be a real deadlock risk if this gateway were
-  reused inside a classic ASP.NET request or a WinForms/WPF UI thread.
-  Don't do that.
 - **Exactly one `float[]` property is treated as the vector field**, found
   by reflection (the first property of that exact type). A record with two
   `float[]` properties has its second one silently treated as an ordinary

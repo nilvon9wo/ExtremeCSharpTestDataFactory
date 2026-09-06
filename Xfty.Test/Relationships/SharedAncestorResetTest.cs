@@ -28,12 +28,12 @@ public class SharedAncestorResetTest
     public SharedAncestorResetTest() => SharedAncestor.ResetAllForTesting();
 
     [Fact]
-    public void ResetAllForTesting_ClearsTheRegistry_SoANameCanBeReusedWithADifferentRecord()
+    public async Task ResetAllForTesting_ClearsTheRegistry_SoANameCanBeReusedWithADifferentRecord()
     {
         // Arrange - resolve "hq" once, then reset, then register a different record under the same name
         const string name = "reset-test-registry";
         _ = SharedAncestor.Put(name, new Account { Name = "First" });
-        _ = new RecordProvider(typeof(Contact), Lookup())
+        _ = await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -49,7 +49,7 @@ public class SharedAncestorResetTest
     }
 
     [Fact]
-    public void ResetAllForTesting_ClearsDisabledNames()
+    public async Task ResetAllForTesting_ClearsDisabledNames()
     {
         // Arrange - disable a name, then reset
         const string name = "reset-test-disabled";
@@ -59,7 +59,7 @@ public class SharedAncestorResetTest
         // Act
         SharedAncestor.ResetAllForTesting();
         _ = SharedAncestor.Put(name, new Account { Name = "Reused" });
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup())
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -70,7 +70,7 @@ public class SharedAncestorResetTest
     }
 
     [Fact]
-    public void ResetAllForTesting_ClearsManualResolutionOnly_MakingItSafeToTestHere()
+    public async Task ResetAllForTesting_ClearsManualResolutionOnly_MakingItSafeToTestHere()
     {
         // Arrange - turn on manual-resolution mode
         SharedAncestor.ManualResolutionOnly();
@@ -79,7 +79,7 @@ public class SharedAncestorResetTest
         // A lightweight shared ancestor still resolves on demand under manual mode
         const string lightweightName = "reset-test-manual-lightweight";
         _ = SharedAncestor.Put(lightweightName, new Account { Name = "Lightweight HQ" });
-        Contact lightweightResult = (Contact)new RecordProvider(typeof(Contact), Lookup())
+        Contact lightweightResult = (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(lightweightName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -94,7 +94,7 @@ public class SharedAncestorResetTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(heavyName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(heavyProvider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(heavyProvider.Supply);
         Assert.Contains("manual resolution only", thrown.Message);
 
         // Act - reset
@@ -105,7 +105,7 @@ public class SharedAncestorResetTest
         const string afterResetName = "reset-test-manual-after-reset";
         _ = SharedAncestor.Put(afterResetName, new Account { Name = "Auto Again" })
             .PutRequired<Account>(x => x.ParentId, new DefaultRelationship(new Account()));
-        Contact afterResetResult = (Contact)new RecordProvider(typeof(Contact), Lookup())
+        Contact afterResetResult = (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(afterResetName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)

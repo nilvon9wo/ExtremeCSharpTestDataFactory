@@ -10,9 +10,9 @@ public sealed class SharedRelationshipWiring(GenerationContext context, ISharedR
     private readonly GenerationContext context = context;
     private readonly ISharedRelationship shared = shared;
 
-    public void Wire(Bundle bundle, PropertyInfo field, int quantity)
+    public async Task Wire(Bundle bundle, PropertyInfo field, int quantity)
     {
-        object? record = this.shared.ResolveSharedRecord(this.context);
+        object? record = await this.shared.ResolveSharedRecord(this.context);
         this.AssertSavedConsistently();
         List<object> children = Repeat(record!, quantity);
         _ = bundle.Put(field, children);

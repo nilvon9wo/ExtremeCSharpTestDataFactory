@@ -37,7 +37,7 @@ public class SharedAncestorLeaksWithoutIsolationTest
         });
 
     [Fact]
-    public void WithoutIsolation_DisablingAnAncestorContaminatesAnUnrelatedLaterUseOfTheSameName()
+    public async Task WithoutIsolation_DisablingAnAncestorContaminatesAnUnrelatedLaterUseOfTheSameName()
     {
         const string sharedName = "leak-demo-disable";
 
@@ -48,7 +48,7 @@ public class SharedAncestorLeaksWithoutIsolationTest
         // "Logical test B" - has no idea Test A ever ran; registers its own, unrelated record under the same name
         Account fromLogicalTestB = new() { Name = "B", Id = IdMocker.GenerateId() };
         _ = SharedAncestor.Put(sharedName, fromLogicalTestB);
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup())
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)

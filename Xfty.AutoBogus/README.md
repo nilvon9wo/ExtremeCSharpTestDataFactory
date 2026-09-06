@@ -35,7 +35,7 @@ object; both are overridable explicitly.
 using AutoBogus;
 using Net.Nowhereatall.Xfty.AutoBogus;
 
-Account account = (Account)new RecordProvider(typeof(Account), lookup)
+Account account = (Account)await new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker))
     .Supply();

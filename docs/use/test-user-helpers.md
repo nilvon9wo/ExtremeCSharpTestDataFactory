@@ -12,7 +12,7 @@ Generating a plain `User` record for a test that just needs *some* user
 reference works exactly like any other type:
 
 ```csharp
-User someUser = (User)new RecordProvider(typeof(User), lookup)
+User someUser = (User)await new RecordProvider(typeof(User), lookup)
     .SetInsertMode(InsertMode.Mock)
     .Supply();
 ```

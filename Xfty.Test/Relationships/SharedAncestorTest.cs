@@ -34,14 +34,14 @@ public class SharedAncestorTest
         });
 
     [Fact]
-    public void SupplyList_WhenFiftyChildrenShareOneSharedAncestor_TheyAllResolveToOneAccount()
+    public async Task SupplyList_WhenFiftyChildrenShareOneSharedAncestor_TheyAllResolveToOneAccount()
     {
         // Arrange
         const string name = "shared-ancestor-test-fifty-children";
         _ = SharedAncestor.Put(name, new Account { Name = "ACME HQ" });
 
         // Act
-        List<object> contacts = new RecordProvider(typeof(Contact), Lookup())
+        List<object> contacts = await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetQuantityPerTemplate(50)
             .SetInclusivity(InsertInclusivity.Required)
@@ -54,14 +54,14 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void SupplyBundle_WhenManyChildrenShareASharedAncestor_TheyAllPointAtOneParent()
+    public async Task SupplyBundle_WhenManyChildrenShareASharedAncestor_TheyAllPointAtOneParent()
     {
         // Arrange
         const string name = "shared-ancestor-test-many-children";
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
 
         // Act
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetQuantityPerTemplate(5)
             .SetInclusivity(InsertInclusivity.Required)
@@ -78,14 +78,14 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void SupplyList_InMockMode_SharesTheParentExactlyOnceAcrossFourContacts()
+    public async Task SupplyList_InMockMode_SharesTheParentExactlyOnceAcrossFourContacts()
     {
         // Arrange
         const string name = "shared-ancestor-test-four-contacts";
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
 
         // Act
-        List<object> contacts = new RecordProvider(typeof(Contact), Lookup())
+        List<object> contacts = await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetQuantityPerTemplate(4)
             .SetInclusivity(InsertInclusivity.Required)
@@ -97,14 +97,14 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void SupplyBundle_ExposesTheSharedRecordInBothTheListAndTheSubBundle()
+    public async Task SupplyBundle_ExposesTheSharedRecordInBothTheListAndTheSubBundle()
     {
         // Arrange
         const string name = "shared-ancestor-test-list-and-subbundle";
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
 
         // Act
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -117,12 +117,12 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void Supply_WhenAMockResolvedSharedAncestorIsReferencedFromANowCall_Throws()
+    public async Task Supply_WhenAMockResolvedSharedAncestorIsReferencedFromANowCall_Throws()
     {
         // Arrange - resolve the ancestor in Mock mode first, so it has a mock (not real) Id
         const string name = "shared-ancestor-test-mock-then-now";
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
-        _ = new RecordProvider(typeof(Contact), Lookup())
+        _ = await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -133,14 +133,14 @@ public class SharedAncestorTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Now);
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(nowProvider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(nowProvider.Supply);
 
         // Assert - a Mock-then-Now mix must throw, not drift a mock Id into real generation
         Assert.Contains("consistent insert mode", thrown.Message);
     }
 
     [Fact]
-    public void Supply_WhenTheSharedAncestorIsAPreInsertedRecord_AcceptsItAsIs()
+    public async Task Supply_WhenTheSharedAncestorIsAPreInsertedRecord_AcceptsItAsIs()
     {
         // Arrange - the test supplies its own already-persisted-looking HQ and registers it
         const string name = "shared-ancestor-test-pre-inserted";
@@ -148,7 +148,7 @@ public class SharedAncestorTest
         _ = SharedAncestor.Put(name, preInserted);
 
         // Act
-        List<object> contacts = new RecordProvider(typeof(Contact), Lookup())
+        List<object> contacts = await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetQuantityPerTemplate(3)
             .SetInclusivity(InsertInclusivity.Required)
@@ -160,14 +160,14 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void GetBundle_ForAPutSharedAncestor_ReturnsIt()
+    public async Task GetBundle_ForAPutSharedAncestor_ReturnsIt()
     {
         // Arrange
         const string name = "shared-ancestor-test-get-bundle";
         _ = SharedAncestor.Put(name, new Account { Name = "Supplied HQ" });
 
         // Act
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -182,29 +182,29 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void Supply_ReusesTheSameSharedAncestorAcrossSeparateSupplyCalls()
+    public async Task Supply_ReusesTheSameSharedAncestorAcrossSeparateSupplyCalls()
     {
         // Arrange
         const string name = "shared-ancestor-test-reuse-across-calls";
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
 
         // Act - two independent supply calls
-        Contact fromFirstCall = SupplyOneContactUnder(name);
-        Contact fromSecondCall = SupplyOneContactUnder(name);
+        Contact fromFirstCall = await SupplyOneContactUnder(name);
+        Contact fromSecondCall = await SupplyOneContactUnder(name);
 
         // Assert - the shared record survives between Supply() calls
         Assert.Equal(fromFirstCall.AccountId, fromSecondCall.AccountId);
     }
 
     [Fact]
-    public void GetId_AfterResolution_ReturnsTheResolvedRecordsId()
+    public async Task GetId_AfterResolution_ReturnsTheResolvedRecordsId()
     {
         // Arrange
         const string name = "shared-ancestor-test-getid-after";
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
 
         // Act
-        Contact result = SupplyOneContactUnder(name);
+        Contact result = await SupplyOneContactUnder(name);
 
         // Assert
         Assert.Equal(result.AccountId, SharedAncestor.GetId(name));
@@ -225,7 +225,7 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void Put_RegistersATestSuppliedRecord()
+    public async Task Put_RegistersATestSuppliedRecord()
     {
         // Arrange
         const string name = "shared-ancestor-test-put-registers";
@@ -233,21 +233,21 @@ public class SharedAncestorTest
         _ = SharedAncestor.Put(name, preMade);
 
         // Act
-        Contact result = SupplyOneContactUnder(name);
+        Contact result = await SupplyOneContactUnder(name);
 
         // Assert - the pre-made record is used, nothing generated in its place
         Assert.Equal(preMade.Id, result.AccountId);
     }
 
     [Fact]
-    public void Supply_WhenCopyingRelatedField_CopiesThatFieldInsteadOfTheId()
+    public async Task Supply_WhenCopyingRelatedField_CopiesThatFieldInsteadOfTheId()
     {
         // Arrange
         const string name = "shared-ancestor-test-related-field";
         _ = SharedAncestor.Put(name, new Account { Name = "Named HQ" }).CopyingRelatedField<Account>(x => x.Name);
 
         // Act
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup())
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.Department, SharedAncestor.Get(name))
             .RemoveFromMasterTemplate<Contact>(x => x.AccountId)
             .SetInclusivity(InsertInclusivity.Required)
@@ -259,14 +259,14 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void Supply_WhenFromVariantIsUsed_PinsTheProviderVariant()
+    public async Task Supply_WhenFromVariantIsUsed_PinsTheProviderVariant()
     {
         // Arrange
         const string name = "shared-ancestor-test-from-variant";
         _ = SharedAncestor.Put(name, new Account()).FromVariant(LookupKey.Get(typeof(Account)));
 
         // Act
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup())
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -307,7 +307,7 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void Supply_WhenASharedAncestorIsUnregistered_Throws()
+    public async Task Supply_WhenASharedAncestorIsUnregistered_Throws()
     {
         // Arrange - nothing to arrange, 'never-registered' is referenced but never given a template
         const string name = "shared-ancestor-test-never-registered";
@@ -317,14 +317,14 @@ public class SharedAncestorTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(provider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply);
 
         // Assert - an unregistered shared ancestor must throw when generation reaches it
         Assert.Contains("never registered", thrown.Message);
     }
 
     [Fact]
-    public void Supply_WhenDepthBatched_ResolvesTheSharedAncestorPrePhaseBeforeTheMainGraph()
+    public async Task Supply_WhenDepthBatched_ResolvesTheSharedAncestorPrePhaseBeforeTheMainGraph()
     {
         // Arrange - under Now, resolving the shared ancestor is itself a real (depth-batched) insert, same as the
         // main graph; this port has no persistence layer, so both attempts throw the same NotSupportedException -
@@ -338,7 +338,7 @@ public class SharedAncestorTest
             .DepthBatched();
 
         // Act
-        NotSupportedException thrown = Assert.Throws<NotSupportedException>(provider.Supply);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -348,12 +348,12 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void Put_WhenReconfiguringAnAlreadyResolvedSharedAncestor_Throws()
+    public async Task Put_WhenReconfiguringAnAlreadyResolvedSharedAncestor_Throws()
     {
         // Arrange - resolve the ancestor, then try to reconfigure it
         const string name = "shared-ancestor-test-reconfigure-resolved";
         _ = SharedAncestor.Put(name, new Account { Name = "First" });
-        _ = SupplyOneContactUnder(name);
+        _ = await SupplyOneContactUnder(name);
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
@@ -364,7 +364,7 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void Supply_WhenASharedAncestorIsSelfReferential_ThrowsInsteadOfRecursing()
+    public async Task Supply_WhenASharedAncestorIsSelfReferential_ThrowsInsteadOfRecursing()
     {
         // Arrange - the 'loop' Account's own ParentId is the 'loop' shared ancestor
         const string name = "shared-ancestor-test-loop";
@@ -380,7 +380,7 @@ public class SharedAncestorTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(provider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply);
 
         // Assert - a self-referential shared ancestor must throw, not stack-overflow
         Assert.Contains("cycle", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -391,7 +391,7 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void Supply_WhenThreeSharedAncestorsFormAnIndirectCycle_Throws()
+    public async Task Supply_WhenThreeSharedAncestorsFormAnIndirectCycle_Throws()
     {
         // Arrange - tom -> dick -> harry -> tom
         ILookupKey tomKey = FlavouredLookupKey.Get(typeof(Account), "tom");
@@ -413,7 +413,7 @@ public class SharedAncestorTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(provider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply);
 
         // Assert - a three-way shared-ancestor cycle must throw
         Assert.Contains("cycle", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -425,12 +425,12 @@ public class SharedAncestorTest
     }
 
     [Fact]
-    public void Put_OverAResolvedSharedAncestorWithADifferentRecord_Succeeds()
+    public async Task Put_OverAResolvedSharedAncestorWithADifferentRecord_Succeeds()
     {
         // Arrange - resolve the ancestor, then Put a different record over it
         const string name = "shared-ancestor-test-put-over-resolved";
         _ = SharedAncestor.Put(name, new Account { Name = "Generated" });
-        _ = SupplyOneContactUnder(name);
+        _ = await SupplyOneContactUnder(name);
         Account replacement = new() { Name = "Replacement", Id = IdMocker.GenerateId() };
 
         // Act
@@ -442,8 +442,8 @@ public class SharedAncestorTest
 
     // Fixture ------------------------------------------------------------
 
-    private static Contact SupplyOneContactUnder(string sharedName) =>
-        (Contact)new RecordProvider(typeof(Contact), Lookup())
+    private static async Task<Contact> SupplyOneContactUnder(string sharedName) =>
+        (Contact)await new RecordProvider(typeof(Contact), Lookup())
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
@@ -460,7 +460,7 @@ file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecor
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 
@@ -475,6 +475,6 @@ file sealed class ParentedAccountProvider(string parentSharedName) : IRecordProv
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }

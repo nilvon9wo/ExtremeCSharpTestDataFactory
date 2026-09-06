@@ -15,20 +15,20 @@ dotnet add package Xfty.EntityFrameworkCore
 ```csharp
 using Net.Nowhereatall.Xfty.EntityFrameworkCore;
 
-Contact contact = (Contact)new RecordProvider(typeof(Contact), lookup)
+Contact contact = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .SetPersistenceGateway(new EfPersistenceGateway(dbContext))
     .SetInsertMode(InsertMode.Now)
     .Supply();
 
-// contact is a real row, inserted through dbContext.SaveChanges() -
+// contact is a real row, inserted through dbContext.SaveChangesAsync() -
 // including its required Account, inserted first.
 ```
 
 A string-typed Id left unset is filled with a fresh GUID before `Add` - the
 common shape for a string primary key, which EF Core has no built-in
 generator for (an integer identity column is left untouched; EF already
-populates that on its own after `SaveChanges()`). One `SaveChanges()` call
-per depth-batched layer when used with `.DepthBatched()`.
+populates that on its own after `SaveChangesAsync()`). One `SaveChangesAsync()`
+call per depth-batched layer when used with `.DepthBatched()`.
 
 ## Full documentation
 

@@ -9,12 +9,12 @@ namespace Net.Nowhereatall.Xfty.Relationships;
 public sealed partial class SharedAncestor
 {
     /// <summary>Resolve now - e.g. to read GetId(name) before any Supply*() call.</summary>
-    public SharedAncestor ResolveNow(IProviderLookup lookup, InsertMode insertMode)
+    public async Task<SharedAncestor> ResolveNow(IProviderLookup lookup, InsertMode insertMode)
     {
         if (this.resolvedRecord is null)
         {
             SharedAncestorResolver.ApplyLookupDefaults(lookup);
-            new SharedAncestorResolver(lookup, insertMode).Resolve([this]);
+            await new SharedAncestorResolver(lookup, insertMode).Resolve([this]);
         }
 
         return this;

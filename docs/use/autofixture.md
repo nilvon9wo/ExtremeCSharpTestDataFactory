@@ -83,7 +83,7 @@ using AutoFixture;
 using Net.Nowhereatall.Xfty.AutoFixture;
 
 IFixture fixture = new Fixture();
-Account account = (Account)new RecordProvider(typeof(Account), lookup)
+Account account = (Account)await new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture))
     .Supply();
@@ -159,7 +159,7 @@ AutoFixture fills whatever scalars are left:
 ```csharp
 IFixture fixture = new Fixture().Customize(new XftyCustomization(lookup));
 
-Contact contact = (Contact)new RecordProvider(typeof(Contact), lookup)
+Contact contact = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetInclusivity(InsertInclusivity.Required)
     .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture))

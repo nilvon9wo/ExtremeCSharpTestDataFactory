@@ -47,7 +47,7 @@ public class DiscriminatorLookupKeyTest
     }
 
     [Fact]
-    public void Get_ResolvesTheRightProviderThroughAProviderLookup()
+    public async Task Get_ResolvesTheRightProviderThroughAProviderLookup()
     {
         // Arrange
         ILookupKey personKey = DiscriminatorLookupKey.Get<Account>(x => x.Type, "PersonAcct");
@@ -58,7 +58,7 @@ public class DiscriminatorLookupKeyTest
         RecordProvider provider = new(new Account { Type = "PersonAcct" }, lookup);
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert
         Assert.Equal("Person Default", result.Name);

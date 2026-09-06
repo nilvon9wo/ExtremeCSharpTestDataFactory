@@ -20,23 +20,23 @@ public sealed partial class SharedAncestor
 
     public bool IsResolvedRecordPersisted => this._resolvedRecordIsPersisted;
 
-    public object? ResolveSharedRecord(GenerationContext context) =>
+    public async Task<object?> ResolveSharedRecord(GenerationContext context) =>
         Disabled.ContainsKey(this._name)
             ? null
-            : this.resolvedRecord ?? this.ResolveFresh(context);
+            : this.resolvedRecord ?? await this.ResolveFresh(context);
 
-    private object? ResolveFresh(GenerationContext context) =>
+    private Task<object?> ResolveFresh(GenerationContext context) =>
         _manualResolution ? this.ResolveUnderManualMode(context) : this.ResolveAllThenReturnOwn(context);
 
-    private object? ResolveAllThenReturnOwn(GenerationContext context)
+    private async Task<object?> ResolveAllThenReturnOwn(GenerationContext context)
     {
-        SharedAncestorResolver.ResolveAllConfigured(context.ProviderLookup, context.InsertMode);
-        return this.ResolveNow(context.ProviderLookup, context.InsertMode).resolvedRecord;
+        await SharedAncestorResolver.ResolveAllConfigured(context.ProviderLookup, context.InsertMode);
+        return (await this.ResolveNow(context.ProviderLookup, context.InsertMode)).resolvedRecord;
     }
 
-    private object? ResolveUnderManualMode(GenerationContext context) =>
+    private async Task<object?> ResolveUnderManualMode(GenerationContext context) =>
         this.Source().IsLightweight(context.ProviderLookup)
-            ? this.ResolveNow(context.ProviderLookup, context.InsertMode).resolvedRecord
+            ? (await this.ResolveNow(context.ProviderLookup, context.InsertMode)).resolvedRecord
             : throw this.NoAutoResolutionException();
 
     private XftyConfigurationException NoAutoResolutionException() =>

@@ -52,10 +52,6 @@ has with the record types it generates.
   share one vector dimensionality**, read from the *first* record in the
   group.
 - **One collection per CLR type name** (`recordType.Name`, unqualified).
-- **Sync-over-async bridging** (`.GetAwaiter().GetResult()`) - accepted for
-  test-setup code with no captured `SynchronizationContext` (xUnit, CI);
-  a real deadlock risk inside a classic ASP.NET request or a WinForms/WPF
-  UI thread. Don't do that.
 - **Insert-only.** Matches `IPersistenceGateway`'s own single-method
   contract - no read, search, or delete surface.
 - **Tested against exactly one connector (Qdrant), not the several this

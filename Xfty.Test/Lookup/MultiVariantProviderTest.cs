@@ -28,18 +28,18 @@ public class MultiVariantProviderTest
     // lookup.Get(key) ------------------------------------------------
 
     [Fact]
-    public void Get_ForAnExplicitEnterpriseKey_ReturnsTheEnterpriseProvider() => AssertGetIndustry(Enterprise, "Enterprise");
+    public Task Get_ForAnExplicitEnterpriseKey_ReturnsTheEnterpriseProvider() => AssertGetIndustry(Enterprise, "Enterprise");
 
     [Fact]
-    public void Get_ForAnExplicitSmbKey_ReturnsTheSmbProvider() => AssertGetIndustry(Smb, "SMB");
+    public Task Get_ForAnExplicitSmbKey_ReturnsTheSmbProvider() => AssertGetIndustry(Smb, "SMB");
 
     [Fact]
-    public void Get_ForThePlainTypeKey_ReturnsTheDefaultProvider() => AssertGetIndustry(LookupKey.Get(typeof(Account)), "SMB");
+    public Task Get_ForThePlainTypeKey_ReturnsTheDefaultProvider() => AssertGetIndustry(LookupKey.Get(typeof(Account)), "SMB");
 
     // Variant chosen while generating a related record ---------------
 
     [Fact]
-    public void SupplyBundle_WhenTheProvidersRelationshipPinsAVariantByKey_GeneratesThatVariant()
+    public async Task SupplyBundle_WhenTheProvidersRelationshipPinsAVariantByKey_GeneratesThatVariant()
     {
         // Arrange - EnterpriseParentedContactProvider's required Account relationship pins 'enterprise'
         RecordProvider provider = new RecordProvider(typeof(Contact), NewLookup())
@@ -47,14 +47,14 @@ public class MultiVariantProviderTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Assert.Equal("Enterprise", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Industry);
     }
 
     [Fact]
-    public void SupplyBundle_WhenAPerCallRelationshipPinsADifferentVariant_GeneratesThatVariant()
+    public async Task SupplyBundle_WhenAPerCallRelationshipPinsADifferentVariant_GeneratesThatVariant()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), NewLookup())
@@ -63,14 +63,14 @@ public class MultiVariantProviderTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Assert.Equal("SMB", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Industry);
     }
 
     [Fact]
-    public void SupplyBundle_WhenAPerCallRelationshipCarriesNoKey_GeneratesTheDefaultVariant()
+    public async Task SupplyBundle_WhenAPerCallRelationshipCarriesNoKey_GeneratesTheDefaultVariant()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), NewLookup())
@@ -79,7 +79,7 @@ public class MultiVariantProviderTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert - the plain-key Provider
         Assert.Equal("SMB", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Industry);
@@ -87,13 +87,13 @@ public class MultiVariantProviderTest
 
     // Runner -------------------------------------------------------
 
-    private static void AssertGetIndustry(ILookupKey key, string expectedIndustry)
+    private static async Task AssertGetIndustry(ILookupKey key, string expectedIndustry)
     {
         // Arrange
         RecordProvider provider = new RecordProvider(key, NewLookup()).SetInsertMode(InsertMode.Mock);
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert
         Assert.Equal(expectedIndustry, result.Industry);
@@ -108,7 +108,7 @@ file abstract class BaseProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this.Template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this.Template, templateRecords);
 }
 

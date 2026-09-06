@@ -86,14 +86,14 @@ Generate a `Contact` with sensible defaults:
 ```csharp
 DefaultProviderLookup lookup = new();
 
-Contact contact = (Contact)new RecordProvider(typeof(Contact), lookup)
+Contact contact = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .Supply();
 ```
 
 Override only the fields your test actually cares about:
 
 ```csharp
-Contact contact = (Contact)new RecordProvider(typeof(Contact), lookup)
+Contact contact = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .Put<Contact>(x => x.FirstName, "Alice")
     .SetInsertMode(InsertMode.Mock)
     .Supply();
@@ -102,7 +102,7 @@ Contact contact = (Contact)new RecordProvider(typeof(Contact), lookup)
 Generate complete related object graphs:
 
 ```csharp
-Bundle bundle = new RecordProvider(typeof(Contact), lookup)
+Bundle bundle = await new RecordProvider(typeof(Contact), lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetInclusivity(InsertInclusivity.All)
     .SupplyBundle();

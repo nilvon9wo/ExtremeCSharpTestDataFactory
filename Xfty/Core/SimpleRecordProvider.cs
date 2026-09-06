@@ -26,6 +26,6 @@ public abstract class SimpleRecordProvider<TRecord>(MasterTemplate<TRecord> temp
 
     public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

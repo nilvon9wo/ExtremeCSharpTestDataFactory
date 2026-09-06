@@ -12,7 +12,7 @@ Bundles make every generated object available without writing extra lookup code.
 ## Getting a Bundle
 
 ```csharp
-Bundle bundle = new RecordProvider(typeof(Contact), lookup)
+Bundle bundle = await new RecordProvider(typeof(Contact), lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetInclusivity(InsertInclusivity.Required)
     .SupplyBundle();

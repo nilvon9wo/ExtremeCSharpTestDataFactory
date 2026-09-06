@@ -32,9 +32,9 @@ public static class DeferredInserter
     /// registry only clears after a successful save, so a failed Flush()
     /// never silently loses what was registered.
     /// </summary>
-    public static void Flush(IPersistenceGateway? gateway = null)
+    public static async Task Flush(IPersistenceGateway? gateway = null)
     {
-        _buffer.InsertAll(gateway);
+        await _buffer.InsertAll(gateway);
         _buffer = new DeferredInsertBuffer();
     }
 

@@ -17,20 +17,20 @@ public sealed class RecordFactory
         this.template = PathValueApplier.Apply(context.PathValues, forced);
     }
 
-    public static Bundle CreateBundle(GenerationContext context, MasterTemplate masterTemplate, List<object> testTemplates) =>
+    public static Task<Bundle> CreateBundle(GenerationContext context, MasterTemplate masterTemplate, List<object> testTemplates) =>
         new RecordFactory(context, masterTemplate).Build(testTemplates);
 
-    private Bundle Build(List<object> testTemplates)
+    private async Task<Bundle> Build(List<object> testTemplates)
     {
         int quantity = testTemplates.Count;
-        Bundle bundle = new AncestorGenerator(this.context, quantity, this.template).Generate();
+        Bundle bundle = await new AncestorGenerator(this.context, quantity, this.template).Generate();
         List<object> records = PlainValueFiller.CloneAndCompletePlainValues(this.template, testTemplates);
         bundle.PutPrimaries(this.template.PrimaryTargetField, records);
         new LookupWiring(bundle, this.context, this.template).Wire();
         new ContextAwareValuePass(bundle, this.context, this.template).Complete();
         this.RegisterDeferredValues(bundle);
         this.FillUnsetFields(records);
-        this.Persist(records);
+        await this.Persist(records);
         return bundle;
     }
 
@@ -85,31 +85,26 @@ public sealed class RecordFactory
     /// (top-level or ForRelated's own recursion) actually owns; an ancestor
     /// never carries the flag (see GenerationContext.ForRelated).
     /// </summary>
-    private void Persist(List<object> records)
-    {
-        if (this.context.ExcludePrimaryIds)
-        {
-            return;
-        }
+    private Task Persist(List<object> records) =>
+        this.context.ExcludePrimaryIds
+            ? Task.CompletedTask
+            : this.context.InsertMode switch
+            {
+                InsertMode.Mock => MockIds(records, this.template.PrimaryTargetField),
+                InsertMode.Now => this.InsertNow(records),
+                _ => Task.CompletedTask,
+            };
 
-        _ = this.context.InsertMode switch
-        {
-            InsertMode.Mock => IdMocker.AddIds(records, this.template.PrimaryTargetField),
-            InsertMode.Now => this.InsertNow(records),
-            _ => records,
-        };
+    private static Task MockIds(List<object> records, PropertyInfo primaryTargetField)
+    {
+        _ = IdMocker.AddIds(records, primaryTargetField);
+        return Task.CompletedTask;
     }
 
-    private List<object> InsertNow(List<object> records)
-    {
-        if (this.context.PersistenceGateway is null)
-        {
-            throw new NotSupportedException(
+    private Task InsertNow(List<object> records) =>
+        this.context.PersistenceGateway is null
+            ? throw new NotSupportedException(
                 "InsertMode.Now needs a persistence gateway - RecordProvider.SetPersistenceGateway(...) - use "
-                + "Mock or Never when none is configured.");
-        }
-
-        this.context.PersistenceGateway.Insert(records, this.template.PrimaryTargetField);
-        return records;
-    }
+                + "Mock or Never when none is configured.")
+            : this.context.PersistenceGateway.Insert(records, this.template.PrimaryTargetField);
 }

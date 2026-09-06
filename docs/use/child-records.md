@@ -5,7 +5,7 @@ XFTY generates **upward** by default: ask for a `Contact` and it generates the
 that hang **below** a Provider's primaries.
 
 ```csharp
-Bundle bundle = new RecordProvider(typeof(Account), lookup)
+Bundle bundle = await new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Mock)
     .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buyer" }).SetQuantity(3))
     .SupplyBundle();
@@ -88,7 +88,7 @@ A/P0  A/P0  A/P1  A/P1   B/P0  B/P1
 ### Working example
 
 ```csharp
-new RecordProvider(typeof(Account), lookup)
+await new RecordProvider(typeof(Account), lookup)
     .SetOverrideTemplateList([new Account(), new Account()])
     .SetQuantityPerTemplate(4)                                                          // 8 Account primaries
     .SetInsertMode(InsertMode.Mock)
@@ -105,7 +105,7 @@ new RecordProvider(typeof(Account), lookup)
 `ChildProvider` nests:
 
 ```csharp
-new RecordProvider(typeof(Account), lookup)
+await new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Mock)
     .With(
         ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(3)

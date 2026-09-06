@@ -22,11 +22,11 @@ public sealed class DeferredInsertBuffer
     private readonly List<PendingDeferredValue> pendingDeferredValues = [];
     private readonly HashSet<int> excludedIndices = [];
 
-    public static void InsertGraph(Bundle? bundle, IPersistenceGateway? gateway = null, bool excludePrimaryIds = false)
+    public static async Task InsertGraph(Bundle? bundle, IPersistenceGateway? gateway = null, bool excludePrimaryIds = false)
     {
         DeferredInsertBuffer buffer = new();
         buffer.Add(bundle, excludePrimaryIds);
-        buffer.InsertAll(gateway);
+        await buffer.InsertAll(gateway);
     }
 
     /// <summary>The whole graph flattened to its records and parent links, with the up-flow value pass already run.</summary>
@@ -64,17 +64,17 @@ public sealed class DeferredInsertBuffer
     /// <summary>Each record's lookup to another record in Records(), by index.</summary>
     public List<DepthBatchedInserterParentLink> ParentLinks() => this.pendingLinks;
 
-    public void InsertAll(IPersistenceGateway? gateway = null)
+    public Task InsertAll(IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
-        DepthBatchedInserter.InsertAll(this.pendingRecords, this.pendingLinks, gateway, this.excludedIndices);
+        return DepthBatchedInserter.InsertAll(this.pendingRecords, this.pendingLinks, gateway, this.excludedIndices);
     }
 
     /// <summary>Depth-batched resolution of every buffered bundle honouring mode (Now/Mock/Never).</summary>
-    public void ResolveAll(InsertMode mode, IPersistenceGateway? gateway = null)
+    public Task ResolveAll(InsertMode mode, IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
-        DepthBatchedInserter.ResolveAll(this.pendingRecords, this.pendingLinks, mode, gateway, this.excludedIndices);
+        return DepthBatchedInserter.ResolveAll(this.pendingRecords, this.pendingLinks, mode, gateway, this.excludedIndices);
     }
 
     private void ResolveUpFlowValues() =>

@@ -13,10 +13,10 @@ public class ExAdvMatchingValuesTest
     private static readonly DefaultProviderLookup Lookup = new();
 
     [Fact]
-    public void SameRecord_AContextAwareSibling()
+    public async Task SameRecord_AContextAwareSibling()
     {
         // from docs/use/advanced/matching-values.md "Same record - a context-aware sibling"
-        Account result = (Account)new RecordProvider(typeof(Account), Lookup)
+        Account result = (Account)await new RecordProvider(typeof(Account), Lookup)
             .Put<Account>(x => x.ShippingCountry, "Germany")
             .Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCountry))
             .Supply();

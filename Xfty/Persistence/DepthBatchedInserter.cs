@@ -30,7 +30,7 @@ public sealed class DepthBatchedInserter
     }
 
     /// <summary>Depth-batched real insert, via gateway.</summary>
-    public static void InsertAll(
+    public static Task InsertAll(
         List<object> records, List<DepthBatchedInserterParentLink>? links, IPersistenceGateway? gateway = null, HashSet<int>? excludedIndices = null) =>
         ResolveAll(records, links, InsertMode.Now, gateway, excludedIndices);
 
@@ -43,23 +43,20 @@ public sealed class DepthBatchedInserter
     /// still wired to their own resolved parents, and still what unblocks
     /// anything waiting on them, exactly as if they genuinely landed.
     /// </summary>
-    public static void ResolveAll(
+    public static Task ResolveAll(
         List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode,
         IPersistenceGateway? gateway = null, HashSet<int>? excludedIndices = null)
     {
         bool nothingToDo = records.Count == 0 || mode == InsertMode.Never;
-        if (nothingToDo)
-        {
-            return;
-        }
-
-        new DepthBatchedInserter(records, links, mode, gateway, excludedIndices).InsertLayerByLayer();
+        return nothingToDo
+            ? Task.CompletedTask
+            : new DepthBatchedInserter(records, links, mode, gateway, excludedIndices).InsertLayerByLayer();
     }
 
-    private void InsertLayerByLayer() =>
+    private Task InsertLayerByLayer() =>
         this.InsertRemainingLayers([.. Enumerable.Range(0, this.records.Count)]);
 
-    private void InsertRemainingLayers(HashSet<int> unpersisted)
+    private async Task InsertRemainingLayers(HashSet<int> unpersisted)
     {
         if (unpersisted.Count == 0)
         {
@@ -67,8 +64,8 @@ public sealed class DepthBatchedInserter
         }
 
         List<int> layer = this.TakeNextLayer(unpersisted);
-        this.InsertLayer(layer);
-        this.InsertRemainingLayers([.. unpersisted.Except(layer)]);
+        await this.InsertLayer(layer);
+        await this.InsertRemainingLayers([.. unpersisted.Except(layer)]);
     }
 
     private List<int> TakeNextLayer(HashSet<int> unpersisted) =>
@@ -77,38 +74,35 @@ public sealed class DepthBatchedInserter
     private bool ParentsPersisted(int child, HashSet<int> unpersisted) =>
         !this.linksByChild[child].Any(link => unpersisted.Contains(link.ParentIndex));
 
-    private void InsertLayer(List<int> indexes)
+    private Task InsertLayer(List<int> indexes)
     {
         indexes.ForEach(this.PointAtParents);
         List<object> layer = [.. indexes
             .Where(index => !this.excludedIndices.Contains(index))
             .Select(index => this.records[index])
             .Where(record => IdOf(record) is null)];
-        if (layer.Count == 0)
-        {
-            return;
-        }
-
-        _ = this.mode switch
-        {
-            InsertMode.Mock => IdMocker.AddIds(layer),
-            InsertMode.Now => this.InsertNow(layer),
-            _ => layer,
-        };
+        return layer.Count == 0
+            ? Task.CompletedTask
+            : this.mode switch
+            {
+                InsertMode.Mock => MockIds(layer),
+                InsertMode.Now => this.InsertNow(layer),
+                _ => Task.CompletedTask,
+            };
     }
 
-    private List<object> InsertNow(List<object> layer)
+    private static Task MockIds(List<object> layer)
     {
-        if (this.gateway is null)
-        {
-            throw new NotSupportedException(
-                "InsertMode.Now needs a persistence gateway - pass one to ResolveAll(...)/InsertAll(...), or "
-                + "RecordProvider.SetPersistenceGateway(...) - use Mock or Never when none is configured.");
-        }
-
-        this.gateway.InsertMixed(layer);
-        return layer;
+        _ = IdMocker.AddIds(layer);
+        return Task.CompletedTask;
     }
+
+    private Task InsertNow(List<object> layer) =>
+        this.gateway is null
+            ? throw new NotSupportedException(
+                "InsertMode.Now needs a persistence gateway - pass one to ResolveAll(...)/InsertAll(...), or "
+                + "RecordProvider.SetPersistenceGateway(...) - use Mock or Never when none is configured.")
+            : this.gateway.InsertMixed(layer);
 
     private void PointAtParents(int child) =>
         this.linksByChild[child].ForEach(link => link.Field.SetValue(this.records[child], IdOf(this.records[link.ParentIndex])));

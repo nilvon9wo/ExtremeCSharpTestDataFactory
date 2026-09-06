@@ -26,13 +26,21 @@ namespace Net.Nowhereatall.Xfty.VectorDatabases.MicrosoftExtensionsVectorData;
 /// </summary>
 public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersistenceGateway
 {
-    public void Insert(List<object> records, PropertyInfo idField) =>
-        records
-            .GroupBy(record => record.GetType())
-            .ToList()
-            .ForEach(group => this.InsertGroup([.. group], idField));
+    public Task Insert(List<object> records, PropertyInfo idField) =>
+        InsertGroups(this, [.. records.GroupBy(record => record.GetType())], idField);
 
-    private void InsertGroup(List<object> records, PropertyInfo idField)
+    private static Task InsertGroups(MevdPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField) =>
+        groups.Count == 0
+            ? Task.CompletedTask
+            : InsertRemainingGroups(gateway, groups, idField);
+
+    private static async Task InsertRemainingGroups(MevdPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField)
+    {
+        await gateway.InsertGroup([.. groups[0]], idField);
+        await InsertGroups(gateway, groups.Skip(1).ToList(), idField);
+    }
+
+    private async Task InsertGroup(List<object> records, PropertyInfo idField)
     {
         records.ForEach(record => FillIdIfMissing(record, idField));
 
@@ -43,9 +51,9 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
         VectorStoreCollection<object, Dictionary<string, object?>> collection =
             vectorStore.GetDynamicCollection(recordType.Name, definition);
 
-        collection.EnsureCollectionExistsAsync().GetAwaiter().GetResult();
+        await collection.EnsureCollectionExistsAsync();
         List<Dictionary<string, object?>> rows = [.. records.Select(record => ToRow(record, recordType))];
-        collection.UpsertAsync(rows).GetAwaiter().GetResult();
+        await collection.UpsertAsync(rows);
     }
 
     private static void FillIdIfMissing(object record, PropertyInfo idField)
