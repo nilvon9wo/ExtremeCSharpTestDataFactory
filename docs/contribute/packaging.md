@@ -35,7 +35,7 @@ Xfty.AutoBogus.Test/
 
 `Xfty.VectorDatabases.Qdrant` and `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`
 are deliberately not like the others - both are preview proofs-of-concept
-(`0.1.0-preview.1`, not `1.0.0-beta.1`), not yet considered, general-purpose
+(`0.x-preview`, not `1.0.0-beta.1`), not yet considered, general-purpose
 packages, and kept in **separate** packages from each other on purpose (see
 [roadmap/vector-databases.md](../roadmap/vector-databases.md#why-two-packages-not-one)
 for why combining them wasn't worth it even during this comparison phase).

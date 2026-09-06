@@ -1,6 +1,6 @@
 # Xfty.VectorDatabases.Qdrant
 
-**Status: PREVIEW / proof-of-concept.** Versioned `0.1.0-preview.1`, not
+**Status: PREVIEW / proof-of-concept.** Versioned `0.x-preview`, not
 `1.0.0-beta.1` like every other package in this repo, on purpose - see
 [Why "preview" and not "beta"](#why-preview-and-not-beta) below. It works
 (verified against a real Qdrant container, not asserted), but it exists to
@@ -79,7 +79,7 @@ one gateway class, one demo type, one test, built specifically to answer a
 comparison question - see [roadmap/vector-databases.md](../docs/roadmap/vector-databases.md).
 Several of the assumptions above are real limitations rather than
 deliberate design choices, and it has not been used against an actual
-project's schema. `0.1.0-preview.1` says exactly that.
+project's schema. A `0.x-preview` version says exactly that.
 
 ## Not built yet
 

@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Xfty.VectorDatabases.MicrosoftExtensionsVectorData</PackageId>
-    <Version>0.1.0-preview.1</Version>
+    <Version>0.1.0-preview.2</Version>
     <Authors>Brian Kessler</Authors>
     <Description>PREVIEW / proof-of-concept: an IPersistenceGateway that inserts XFTY-generated records into any Microsoft.Extensions.VectorData-backed vector store (Qdrant, Redis, Azure AI Search, pgvector, and more) - no provider-specific dependency in this package at all. See this package's README for known assumptions, risks, and why it is not versioned as a beta.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;vector-database;preview</PackageTags>

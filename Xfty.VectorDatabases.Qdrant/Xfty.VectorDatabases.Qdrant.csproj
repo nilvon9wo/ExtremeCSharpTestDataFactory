@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Xfty.VectorDatabases.Qdrant</PackageId>
-    <Version>0.1.0-preview.1</Version>
+    <Version>0.1.0-preview.2</Version>
     <Authors>Brian Kessler</Authors>
     <Description>PREVIEW / proof-of-concept: an IPersistenceGateway that inserts XFTY-generated records into a real Qdrant vector database through Qdrant's own client directly - no Microsoft.Extensions.VectorData. See this package's README for known assumptions, risks, and why it is not versioned as a beta.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;vector-database;qdrant;preview</PackageTags>

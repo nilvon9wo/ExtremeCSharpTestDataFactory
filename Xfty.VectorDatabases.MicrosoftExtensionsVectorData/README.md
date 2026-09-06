@@ -1,6 +1,6 @@
 # Xfty.VectorDatabases.MicrosoftExtensionsVectorData
 
-**Status: PREVIEW / proof-of-concept.** Versioned `0.1.0-preview.1`, not
+**Status: PREVIEW / proof-of-concept.** Versioned `0.x-preview`, not
 `1.0.0-beta.1` like every other package in this repo, on purpose - see
 [Why "preview" and not "beta"](#why-preview-and-not-beta) below.
 
@@ -77,7 +77,7 @@ has with the record types it generates.
 One gateway class, tested against exactly one of the several connectors it
 claims to support, built to answer a real question
 (see [roadmap/vector-databases.md](../docs/roadmap/vector-databases.md))
-rather than as a fully-considered release. `0.1.0-preview.1` says that
+rather than as a fully-considered release. A `0.x-preview` version says that
 plainly.
 
 ## Not built yet
