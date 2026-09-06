@@ -17,10 +17,10 @@ internal static class SharedRandom
     // auto-property equivalent - the two together are the whole point.
 #pragma warning disable IDE0032
     [ThreadStatic]
-    private static Random? threadInstance;
+    private static Random? _threadInstance;
 #pragma warning restore IDE0032
 
-    public static Random Instance => threadInstance ??= new Random();
+    public static Random Instance => _threadInstance ??= new Random();
 #else
     public static Random Instance => Random.Shared;
 #endif

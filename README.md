@@ -44,6 +44,8 @@ The result is test code that is:
 
 # Features
 
+## Core Generation
+
 - Declarative test data generation, described once per Provider
 - Automatic relationship generation — required, optional, shared ancestors,
   self-referential cycles guarded automatically
@@ -52,9 +54,29 @@ The result is test code that is:
   on a mis-ordered read instead of a silent wrong `null`
 - Per-call relationship control (`IncludeOptional`, `ExcludeRelationship`)
   without touching a Provider's own definition
+- Lambda-based field access throughout (`x => x.Field`, not a bare
+  `PropertyInfo` or `nameof(...)`)
+
+## Persistence
+
 - Real persistence through `IPersistenceGateway` — `Xfty.EntityFrameworkCore`
   ships an EF Core implementation, proven against SQLite and a real Postgres
   container — or mock Ids with no database touched at all
+- Deferred and depth-batched insert: build a graph across several calls, then
+  insert it once, in dependency order, across mixed record types
+- Suitable for both isolated unit tests and real-database integration tests,
+  with the same Provider definitions
+
+## Provider Architecture
+
+- Extensible Provider architecture — implement `IRecordProvider` directly, or
+  use `SimpleRecordProvider<T>` when a Provider is nothing but a template
+- Multi-variant Providers (`FlavouredLookupKey`, `DiscriminatorLookupKey`) —
+  resolve a different Provider for the same type by an arbitrary predicate or
+  field value
+
+## Packages & Platform Support
+
 - Optional add-on packages for common conveniences core `Xfty` doesn't
   bundle: `Xfty.Bogus` (realistic names/emails/addresses/paragraphs),
   `Xfty.VectorDatabases` (a random-vector value expression for an embedding
@@ -65,17 +87,6 @@ The result is test code that is:
   dependency of core `Xfty` itself
 - Targets `netstandard2.0`/`net8.0`/`net10.0` — .NET Framework 4.6.1+,
   Mono/Xamarin, and older .NET Core all work, not just current .NET
-- Deferred and depth-batched insert: build a graph across several calls, then
-  insert it once, in dependency order, across mixed record types
-- Multi-variant Providers (`FlavouredLookupKey`, `DiscriminatorLookupKey`) —
-  resolve a different Provider for the same type by an arbitrary predicate or
-  field value
-- Lambda-based field access throughout (`x => x.Field`, not a bare
-  `PropertyInfo` or `nameof(...)`)
-- Extensible Provider architecture — implement `IRecordProvider` directly, or
-  use `SimpleRecordProvider<T>` when a Provider is nothing but a template
-- Suitable for both isolated unit tests and real-database integration tests,
-  with the same Provider definitions
 
 See [How XFTY compares](#how-xfty-compares) for how this stacks up against
 AutoFixture, Bogus, and similar libraries.
@@ -184,22 +195,11 @@ including where XFTY is a worse fit than any of them.
 Recently landed (see the [CHANGELOG](CHANGELOG.md) for the full detail,
 including everything since the 1.0.0-beta.1 tag):
 
-- Real persistence via `IPersistenceGateway` (`Xfty.EntityFrameworkCore`,
-  proven against SQLite and a real Postgres container)
-- `DiscriminatorLookupKey` — resolving a Provider by a field's value
-- Lambda-based field access across the whole public API
-- A full sweep to a from-scratch, idiomatic C# port with no remaining
-  Salesforce-specific surface
+## New Packages
+
 - `Xfty.Bogus` and `Xfty.VectorDatabases` — optional packages for realistic
   fake data and vector-embedding fields, without adding either dependency to
   core `Xfty`
-- `Xfty.Xunit` — `[IsolatesSharedAncestor]`, resetting `SharedAncestor`
-  before/after a test class or method automatically
-- A real, fixed thread-safety issue in `SharedAncestor` under concurrent
-  test execution (xUnit's default; this repo's own suite had opted out)
-- Typed `RecordProvider<TRecord>`/`ChildProvider<TChild>` wrappers — no cast
-  at the `Supply()` call site, plus a `MasterTemplate<TRecord>`-style
-  object-initializer indexer
 - `Xfty.AutoFixture` — pairs XFTY with AutoFixture both directions: point
   `fixture.Create<T>()` at a registered `RecordProvider`, and/or let
   AutoFixture fill in whatever fields a Provider's Master Template left
@@ -207,15 +207,34 @@ including everything since the 1.0.0-beta.1 tag):
 - `Xfty.AutoBogus` — the same pairing for AutoBogus (AutoFixture-style
   auto-population plus Bogus's realistic generators), completing the
   trifecta: XFTY now pairs with AutoFixture, Bogus, and AutoBogus
+- `Xfty.Xunit` — `[IsolatesSharedAncestor]`, resetting `SharedAncestor`
+  before/after a test class or method automatically
+- `Xfty.FSharpAsync` — `Async<'T>` wrappers for F# code still built on
+  `async { }` rather than the newer `task { }`, which needs no wrapper at all
+
+## Core Engine
+
+- `DiscriminatorLookupKey` — resolving a Provider by a field's value
+- Lambda-based field access across the whole public API
+- Typed `RecordProvider<TRecord>`/`ChildProvider<TChild>` wrappers — no cast
+  at the `Supply()` call site, plus a `MasterTemplate<TRecord>`-style
+  object-initializer indexer
+- Real persistence via `IPersistenceGateway` (`Xfty.EntityFrameworkCore`,
+  proven against SQLite and a real Postgres container)
 - Persistence is fully `async` end to end — every `Supply`/`SupplyList`/
   `SupplyBundle` call, and everything reachable from it, is now genuinely
   `Task`-based, matching how every real backing store (EF Core, a vector
   database client, a network call) already works underneath
+
+## Platform & Reliability
+
+- A full sweep to a from-scratch, idiomatic C# port with no remaining
+  Salesforce-specific surface
+- A real, fixed thread-safety issue in `SharedAncestor` under concurrent
+  test execution (xUnit's default; this repo's own suite had opted out)
 - Core `Xfty` now multi-targets `netstandard2.0;net8.0;net10.0`, reaching
   .NET Framework 4.6.1+/Mono/Xamarin as well as modern .NET, verified via a
   dedicated `net472` test project (`netstandard2.0` isn't itself runnable)
-- `Xfty.FSharpAsync` — `Async<'T>` wrappers for F# code still built on
-  `async { }` rather than the newer `task { }`, which needs no wrapper at all
 
 The full status table — built, not-ported, and open ideas under
 consideration (embedded/denormalized document relationships) — is
