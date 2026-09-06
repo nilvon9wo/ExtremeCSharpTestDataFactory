@@ -252,6 +252,7 @@ public class ChildProviderTest
         Assert.Equal(4, cases.Count);
         NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => DeferredInserter.Flush());
         Assert.Contains("persistence gateway", thrown.Message);
+        DeferredInserter.ResetForTesting(); // the failed Flush() deliberately left the registry non-empty
     }
 
     // Sanity guards -----------------------------------------
@@ -330,12 +331,14 @@ public class ChildProviderTest
     }
 
     [Fact]
-    public void SupplyBundle_WhenTheParentIsRelatedOnly_DoesNotPersistItsChildren()
+    public void SupplyBundle_WhenTheParentExcludesPrimaryIds_ChildrenStillGetTheirOwnIdButNoBackReference()
     {
-        // Arrange - RelatedOnly does not insert the primaries, so from a child's point of view there is no
-        // persisted parent and RelatedOnly flows down
+        // Arrange - ExcludePrimaryIds only ever excludes the call's own primary; a child inherits the
+        // parent's InsertMode (Mock), not its exclusion, so it still gets its own mock Id - just with
+        // nothing to point its FK at, since the parent it would reference was never given one
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
-            .SetInsertMode(InsertMode.RelatedOnly)
+            .SetInsertMode(InsertMode.Mock)
+            .ExcludePrimaryIds()
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
@@ -344,7 +347,8 @@ public class ChildProviderTest
         // Assert
         List<object> children = bundle.GetChildList<Contact>(x => x.AccountId);
         Assert.Equal(2, children.Count);
-        Assert.Null(((Contact)children[0]).Id); // children are not inserted
+        Assert.NotNull(((Contact)children[0]).Id); // the child's own Id is unaffected
+        Assert.Null(((Contact)children[0]).AccountId); // no parent Id to point at
     }
 
     // Bundle getters ---------------------------------

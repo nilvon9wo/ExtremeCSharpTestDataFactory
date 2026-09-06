@@ -85,9 +85,9 @@ public class PersistenceGatewayTest
     }
 
     [Fact]
-    public void SupplyBundle_InRelatedOnlyMode_WithAGateway_InsertsTheAncestorButLeavesThePrimaryUnId()
+    public void SupplyBundle_NowWithExcludePrimaryIds_WithAGateway_InsertsTheAncestorButLeavesThePrimaryUnId()
     {
-        // Arrange - RelatedOnly relates a not-yet-inserted Contact to a real, persisted Account
+        // Arrange - ExcludePrimaryIds relates a not-yet-inserted Contact to a real, persisted Account
         IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
         gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
             .Do(call =>
@@ -98,7 +98,8 @@ public class PersistenceGatewayTest
             });
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
             .SetInclusivity(InsertInclusivity.Required)
-            .SetInsertMode(InsertMode.RelatedOnly)
+            .SetInsertMode(InsertMode.Now)
+            .ExcludePrimaryIds()
             .SetPersistenceGateway(gateway);
 
         // Act
@@ -114,12 +115,14 @@ public class PersistenceGatewayTest
     }
 
     [Fact]
-    public void Supply_InRelatedOnlyMode_WithoutAGateway_ThrowsWhenAnAncestorNeedsGenerating()
+    public void Supply_NowWithExcludePrimaryIds_WithoutAGateway_ThrowsWhenAnAncestorNeedsGenerating()
     {
-        // Arrange - Contact's required Account ancestor needs a real insert under RelatedOnly, same as Now
+        // Arrange - Contact's required Account ancestor still needs a real insert, same as bare Now -
+        // ExcludePrimaryIds only changes what happens to the primary, never how an ancestor is persisted
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
             .SetInclusivity(InsertInclusivity.Required)
-            .SetInsertMode(InsertMode.RelatedOnly);
+            .SetInsertMode(InsertMode.Now)
+            .ExcludePrimaryIds();
 
         // Act
         NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => provider.Supply());
@@ -129,13 +132,14 @@ public class PersistenceGatewayTest
     }
 
     [Fact]
-    public void SupplyBundle_InMockRelatedOnlyMode_MockIdsTheAncestorButLeavesThePrimaryUnId()
+    public void SupplyBundle_MockWithExcludePrimaryIds_MockIdsTheAncestorButLeavesThePrimaryUnId()
     {
-        // Arrange - MockRelatedOnly is RelatedOnly's offline sibling: same "leave the primary
-        // un-Id'd" shape, but the ancestor only needs a mock Id, not a real gateway
+        // Arrange - Mock + ExcludePrimaryIds is the offline shape: same "leave the primary
+        // un-Id'd" outcome, but the ancestor only needs a mock Id, not a real gateway
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
             .SetInclusivity(InsertInclusivity.Required)
-            .SetInsertMode(InsertMode.MockRelatedOnly);
+            .SetInsertMode(InsertMode.Mock)
+            .ExcludePrimaryIds();
 
         // Act
         Bundle bundle = provider.SupplyBundle();
@@ -149,18 +153,71 @@ public class PersistenceGatewayTest
     }
 
     [Fact]
-    public void Supply_InMockRelatedOnlyMode_WithoutAGateway_NeverThrows()
+    public void Supply_ExcludePrimaryIdsThenIncludePrimaryIds_PersistsThePrimaryNormally()
     {
-        // Arrange - the whole point of MockRelatedOnly is not needing one, unlike RelatedOnly
+        // Arrange - IncludePrimaryIds() undoes ExcludePrimaryIds(), last call wins - useful for a
+        // helper that decides dynamically, or just for spelling out the default explicitly
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
+            .SetInsertMode(InsertMode.Mock)
+            .ExcludePrimaryIds()
+            .IncludePrimaryIds();
+
+        // Act
+        Account result = (Account)provider.Supply();
+
+        // Assert
+        Assert.NotNull(result.Id);
+    }
+
+    [Fact]
+    public void Supply_MockWithExcludePrimaryIds_WithoutAGateway_NeverThrows()
+    {
+        // Arrange - Mock never needs a gateway, with or without ExcludePrimaryIds
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
             .SetInclusivity(InsertInclusivity.Required)
-            .SetInsertMode(InsertMode.MockRelatedOnly);
+            .SetInsertMode(InsertMode.Mock)
+            .ExcludePrimaryIds();
 
         // Act
         Exception? thrown = Record.Exception(() => provider.Supply());
 
         // Assert
         Assert.Null(thrown);
+    }
+
+    [Fact]
+    public void Flush_AfterDeferredWithExcludePrimaryIds_InsertsEverythingExceptTheExcludedPrimary()
+    {
+        // Arrange - the capability RelatedOnly/MockRelatedOnly could never express: a whole 10-level-deep
+        // ancestor tree (Account here stands in for one) built efficiently under Deferred, flushed for
+        // real, while the primary that relates to it stays un-Id'd the entire time
+        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        int insertCalls = 0;
+        gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
+            .Do(call =>
+            {
+                insertCalls++;
+                List<object> records = call.ArgAt<List<object>>(0);
+                System.Reflection.PropertyInfo idField = call.ArgAt<System.Reflection.PropertyInfo>(1);
+                records.ForEach(record => idField.SetValue(record, $"real-{Guid.NewGuid()}"));
+            });
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Deferred)
+            .ExcludePrimaryIds();
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+        DeferredInserter.Flush(gateway);
+
+        // Assert - the Account is genuinely inserted (proving DEFERRED's own efficient batching engaged
+        // at all); the Contact primary this call itself produced is never given an Id, even after flush
+        Contact contact = (Contact)bundle.PrimaryRecords()![0];
+        Account account = (Account)bundle.GetList<Contact>(x => x.AccountId)![0];
+        Assert.Null(contact.Id);
+        Assert.NotNull(account.Id);
+        Assert.Equal(account.Id, contact.AccountId);
+        Assert.Equal(1, insertCalls);
     }
 
     [Fact]

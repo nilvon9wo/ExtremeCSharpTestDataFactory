@@ -20,11 +20,12 @@ public sealed class DeferredInsertBuffer
     private readonly List<DepthBatchedInserterParentLink> pendingLinks = [];
     private readonly List<object> pendingRecords = [];
     private readonly List<PendingDeferredValue> pendingDeferredValues = [];
+    private readonly HashSet<int> excludedIndices = [];
 
-    public static void InsertGraph(Bundle? bundle, IPersistenceGateway? gateway = null)
+    public static void InsertGraph(Bundle? bundle, IPersistenceGateway? gateway = null, bool excludePrimaryIds = false)
     {
         DeferredInsertBuffer buffer = new();
-        buffer.Add(bundle);
+        buffer.Add(bundle, excludePrimaryIds);
         buffer.InsertAll(gateway);
     }
 
@@ -37,7 +38,23 @@ public sealed class DeferredInsertBuffer
         return buffer;
     }
 
-    public void Add(Bundle? bundle) => this.Collect(bundle);
+    /// <summary>
+    /// Collects bundle's records and parent links. excludePrimaryIds marks
+    /// only bundle's own top-level primaries - the first records this call
+    /// appends, before any ancestor/child it recurses into - as never to
+    /// receive an Id, however the rest of this (and any other buffered)
+    /// bundle ends up persisted.
+    /// </summary>
+    public void Add(Bundle? bundle, bool excludePrimaryIds = false)
+    {
+        int startIndex = this.pendingRecords.Count;
+        int primaryCount = bundle?.PrimaryRecords()?.Count ?? 0;
+        _ = this.Collect(bundle);
+        if (excludePrimaryIds)
+        {
+            Enumerable.Range(startIndex, primaryCount).ToList().ForEach(index => this.excludedIndices.Add(index));
+        }
+    }
 
     public int PendingCount() => this.pendingRecords.Count;
 
@@ -50,14 +67,14 @@ public sealed class DeferredInsertBuffer
     public void InsertAll(IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
-        DepthBatchedInserter.InsertAll(this.pendingRecords, this.pendingLinks, gateway);
+        DepthBatchedInserter.InsertAll(this.pendingRecords, this.pendingLinks, gateway, this.excludedIndices);
     }
 
     /// <summary>Depth-batched resolution of every buffered bundle honouring mode (Now/Mock/Never).</summary>
     public void ResolveAll(InsertMode mode, IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
-        DepthBatchedInserter.ResolveAll(this.pendingRecords, this.pendingLinks, mode, gateway);
+        DepthBatchedInserter.ResolveAll(this.pendingRecords, this.pendingLinks, mode, gateway, this.excludedIndices);
     }
 
     private void ResolveUpFlowValues() =>

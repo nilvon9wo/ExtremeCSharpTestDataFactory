@@ -99,13 +99,15 @@ public class SharedAncestorIntegrationTest
     }
 
     [Fact]
-    public void SupplyBundle_InMockRelatedOnlyMode_WithASharedAncestor_MockResolvesItWithoutAGateway()
+    public void SupplyBundle_MockWithExcludePrimaryIds_WithASharedAncestor_MockResolvesItWithoutAGateway()
     {
-        // Arrange - MockRelatedOnly's shared-ancestor resolution is eager too, but as Mock, not Now
-        const string sharedName = "shared-ancestor-test-mock-related-only";
-        _ = SharedAncestor.PutAsTemplate(sharedName, new Account { Name = "Mock Related Only HQ" });
+        // Arrange - a shared ancestor resolves eagerly under Mock the same way it always did;
+        // ExcludePrimaryIds only changes what happens to this call's own primary
+        const string sharedName = "shared-ancestor-test-mock-exclude-primary-ids";
+        _ = SharedAncestor.PutAsTemplate(sharedName, new Account { Name = "Mock Exclude Primary Ids HQ" });
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
-            .SetInsertMode(InsertMode.MockRelatedOnly)
+            .SetInsertMode(InsertMode.Mock)
+            .ExcludePrimaryIds()
             .SetInclusivity(InsertInclusivity.Required)
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName));
 

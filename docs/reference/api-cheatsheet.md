@@ -31,6 +31,7 @@ under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
 | `.ExcludeRelationship(field)` / `.ExcludeRelationshipIfPresent(field)` | skip one relationship this call only; the `IfPresent` form is a no-op instead of throwing when `field` is not a relationship |
 | `.With(ChildProvider)` / `.WithChildren(field, n)` / `.WithChild(field)` | downward — generate child records; read via `bundle.GetChild/GetChildList/GetChildBundle(field)` |
 | `.DepthBatched()` | opt in to one resolution pass per depth (`Now` + a configured gateway only) |
+| `.ExcludePrimaryIds()` / `.IncludePrimaryIds()` | this call's own primary is never persisted, however its ancestors are ([insert modes](../use/insert-modes.md#excluding-the-primary---excludeprimaryids)) - `IncludePrimaryIds()` is the default |
 | `.AllowAncestorCycles()` | suppress the guard that throws on a self-referential relationship chain |
 
 | Terminal | Returns |
@@ -43,7 +44,7 @@ under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
 
 ## Enums
 
-| `InsertMode` | `Never` · `Mock` · `RelatedOnly` (needs a gateway for ancestors, else throws) · `MockRelatedOnly` (same shape, mock ancestors, no gateway) · `Now` (needs a gateway, else throws) · `Later` · `Deferred` |
+| `InsertMode` | `Never` · `Mock` · `Now` (needs a gateway, else throws) · `Later` · `Deferred` |
 | `InsertInclusivity` | `None` · `Required` · `All` · `PreventCascade` |
 
 ---

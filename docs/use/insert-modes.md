@@ -25,13 +25,14 @@ controls how much of the graph is generated. The two are independent.
 |------|-----------|
 | `Never` | Generate records without Ids. |
 | `Mock` | Generate realistic-looking Ids **without any persistence**. |
-| `RelatedOnly` | Insert the generated **ancestors** for real, through the configured `IPersistenceGateway` — same as `Now` — but leave the primary records Id-less for the caller to insert itself. **Throws `NotSupportedException` if no gateway is configured and an ancestor needs generating.** |
-| `MockRelatedOnly` | The same shape as `RelatedOnly` — primary records left Id-less — but the ancestors only get a **mock** Id, no gateway needed at all. |
 | `Now` | Insert every generated record through the configured `IPersistenceGateway`. **Throws `NotSupportedException` if none is configured.** |
 | `Later` | Behaves exactly like `Never`; documents that the caller will insert later. |
 | `Deferred` | Generate like `Never`, but register every record so one flush handles the whole set — see [deferred-insert](deferred-insert.md). Flushing also needs a configured gateway, same as `Now`. |
 
 The generated data is identical regardless of mode; only persistence changes.
+[`.ExcludePrimaryIds()`](#excluding-the-primary---excludeprimaryids) is a
+separate, orthogonal setting - not a mode of its own - that composes with
+any of the five above.
 
 ---
 
@@ -75,51 +76,99 @@ inserting nothing.
 
 ---
 
-## `RelatedOnly`
+## Excluding the primary - `.ExcludePrimaryIds()`
 
-For relating a not-yet-inserted primary to a **real, persisted (or
-persistable) ancestor** — an Account that genuinely exists, or will, not a
-placeholder Id nothing in a real database points at. The primary is
-generated the normal way but left un-Id'd, for the caller to insert itself
-whenever it's ready; every ancestor it needs is generated and **actually
-inserted** through the configured `IPersistenceGateway` first, exactly like
-`Now` does for the whole graph. Internally, `RelatedOnly` upgrades to `Now`
-for ancestor generation only - so **the same gateway requirement as `Now`
-applies**: no gateway configured and an ancestor needs generating throws
-`NotSupportedException`, the same as `Now` would.
+For a not-yet-inserted primary that must still relate to a **real, or
+realistically Id'd, ancestor** — an Account that genuinely exists (or will),
+not a placeholder Id nothing points at. `.ExcludePrimaryIds()` leaves this
+call's own primary record(s) un-Id'd — no Mock Id, no real insert, no
+`Deferred` registration for them specifically — while every ancestor they
+need is persisted exactly as the configured `InsertMode` already says.
+Ancestors are never affected, no matter how deep the chain; only this call's
+own top-level output is excluded. `.IncludePrimaryIds()` undoes it, back to
+the default.
 
-If a Provider has no ancestors to generate in the first place, `RelatedOnly`
-never touches a gateway at all — the requirement only exists where there's
-an ancestor to insert.
+It composes with any mode, which is the point - each combination answers a
+different version of "how does the ancestor need to be real":
 
-It only affects a Provider's **ancestors**. Child collections
-([`With` / `WithChildren`](child-records.md)) are not ancestors, so under
-`RelatedOnly` they are generated but not inserted or Id'd - only the parent
-side of a relationship is ever "related."
-
----
-
-## `MockRelatedOnly`
-
-The same use case as `RelatedOnly` - relate a not-yet-inserted primary to
-an Id'd ancestor, leave the primary itself un-Id'd - for when the ancestor
-doesn't need to be a genuinely persisted row, just a valid-looking one
-nothing downstream checks against a real database. No `IPersistenceGateway`
-required at all, unlike `RelatedOnly`:
+**`Now` + `.ExcludePrimaryIds()`** — the ancestor is genuinely inserted,
+one at a time as it's generated, through the configured gateway:
 
 ```csharp
-Contact result = (Contact)new RecordProvider(typeof(Contact), lookup)
+RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
     .SetInclusivity(InsertInclusivity.Required)
-    .SetInsertMode(InsertMode.MockRelatedOnly)
-    .Supply();
+    .SetInsertMode(InsertMode.Now)
+    .ExcludePrimaryIds()
+    .SetPersistenceGateway(gateway);
 
-Assert.Null(result.Id);          // the primary - handle it yourself
-Assert.NotNull(result.AccountId); // the ancestor - mock-Id'd, no gateway needed
+Bundle bundle = provider.SupplyBundle();
+// bundle's Contact primary is un-Id'd; its Account ancestor is a real, inserted row
 ```
 
-Internally, `MockRelatedOnly` upgrades to `Mock` for ancestor generation
-only (`RelatedOnly` upgrades to `Now` the same way) - so a shared ancestor
-referenced under `MockRelatedOnly` resolves eagerly too, as `Mock`.
+Throws `NotSupportedException` if no gateway is configured and an ancestor
+needs generating - the same requirement bare `Now` has, since nothing about
+excluding the primary changes how an ancestor gets persisted.
+
+**`Mock` + `.ExcludePrimaryIds()`** — the same shape, but the ancestor only
+needs a mock Id; no gateway required at all:
+
+```csharp
+RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
+    .SetInclusivity(InsertInclusivity.Required)
+    .SetInsertMode(InsertMode.Mock)
+    .ExcludePrimaryIds();
+```
+
+**`Deferred` + `.ExcludePrimaryIds()`** — the capability that needs the
+efficient, multi-provider registry: a primary with a deep ancestor tree (or
+several separate Providers' worth of ancestors) built and flushed together,
+depth-batched, in one real pass, while the primary that relates to it stays
+un-Id'd for the whole lifetime of the call:
+
+```csharp
+RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
+    .SetInclusivity(InsertInclusivity.Required)
+    .SetInsertMode(InsertMode.Deferred)
+    .ExcludePrimaryIds();
+
+Bundle bundle = provider.SupplyBundle();
+DeferredInserter.Flush(gateway);
+// bundle's Contact primary is still un-Id'd after the flush; its Account
+// ancestor (and anything else registered before the flush) is really inserted
+```
+
+This is the one thing `Now`/`Mock` + `.ExcludePrimaryIds()` alone cannot do:
+`Now`'s ancestor insertion is one-at-a-time as each ancestor is generated -
+exactly right when insertion order matters (real trigger order, say), but
+not batched. Registering under `Deferred` instead lets the whole tree - and
+anything else registered before the same flush, across as many other
+Providers as needed - resolve together in one depth-batched pass, the
+primary excluded throughout.
+
+It only ever affects a Provider's own **primary**. Child collections
+([`With` / `WithChildren`](child-records.md)) are not primaries of this
+call, so `.ExcludePrimaryIds()` on the parent doesn't touch them - they
+still get their own Id under whatever mode they inherit or set, just with a
+`null` back-reference if the parent they'd point at was excluded.
+
+**`.IncludePrimaryIds()`** undoes it, back to the default - the last call
+wins:
+
+```csharp
+RecordProvider provider = new RecordProvider(typeof(Account), lookup)
+    .SetInsertMode(InsertMode.Mock)
+    .ExcludePrimaryIds()
+    .IncludePrimaryIds();
+
+Account result = (Account)provider.Supply();
+Assert.NotNull(result.Id); // back to persisting normally
+```
+
+Rarely needed explicitly, since `.IncludePrimaryIds()` is already the
+default - but real for a helper method deciding dynamically (a shared
+setup routine toggling it based on a parameter, say), or simply for a
+caller who would rather state the default outright than lean on it
+silently.
 
 ---
 
@@ -144,8 +193,9 @@ ignored entirely; the whole subtree is generated together.
 | Testing object construction only | `Never` |
 | Test will Id/persist the records itself | `Later` |
 | Data built over several calls, one in-memory graph | `Deferred` |
-| Primary relates to a real, already-persisted (or persistable) ancestor, but the primary itself isn't inserted yet | `RelatedOnly` |
-| Same, but the ancestor doesn't need to be a real row either - just a valid-looking Id | `MockRelatedOnly` |
+| Primary relates to a real, already-persisted (or persistable) ancestor, one at a time as it's generated, but the primary itself isn't inserted yet | `Now` + `.ExcludePrimaryIds()` |
+| Same, but the ancestor doesn't need to be a real row either - just a valid-looking Id | `Mock` + `.ExcludePrimaryIds()` |
+| Same as the `Now` row, but the ancestor tree is deep (or spans several Providers) and needs efficient, batched insertion | `Deferred` + `.ExcludePrimaryIds()` |
 | A persistence gateway is configured and rows should actually be saved | `Now` |
 
 Start with `Mock` + `Required` inclusivity — realistic Ids, valid required data,

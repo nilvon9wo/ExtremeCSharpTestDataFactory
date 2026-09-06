@@ -10,7 +10,8 @@ public sealed partial class RecordProvider
             .WithUnsetFieldFiller(this.unsetFieldFiller)
             .WithForcedRelationshipPaths(this.templateConfig.ForcedRelationshipPaths)
             .WithPathValues(this.templateConfig.PathValues)
-            .WithAncestorCycleGuard(this.ancestorCyclesAllowed);
+            .WithAncestorCycleGuard(this.ancestorCyclesAllowed)
+            .WithPrimaryIdsExcluded(this.excludePrimaryIds);
         return this.BuildsStructurallyForBatchedInsert() ? context.ForBatchedInsert() : context;
     }
 

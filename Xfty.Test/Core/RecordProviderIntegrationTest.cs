@@ -135,5 +135,6 @@ public class RecordProviderIntegrationTest
 
         // Assert - the registry actually tried to persist, not silently no-op
         Assert.Contains("persistence gateway", thrown.Message);
+        DeferredInserter.ResetForTesting(); // the failed Flush() deliberately left the registry non-empty
     }
 }

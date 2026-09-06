@@ -237,15 +237,21 @@ paths, and the `BatchedInsertPending` flag. These travel together as a
 immutable; derive a new one with `ForRelated`/`ForRecord`/`ForValueField`
 rather than mutating.
 
-The context is also where the two **recursion transforms** live, in
-`context.ForRelated()`:
+The context is also where `context.ForRelated()`'s **recursion transform**
+lives:
 
 | Parent context | Child context | Why |
 |----------------|---------------|-----|
-| `InsertMode = RelatedOnly` | `InsertMode = Now` | The parents of a not-persisted primary record must still be persisted, or the primary can't reference them. (Needs a configured gateway - throws without one, same as any other `Now` call.) |
-| `InsertMode = MockRelatedOnly` | `InsertMode = Mock` | Same shape as `RelatedOnly`, but the parent only needs a valid-looking Id, not a genuinely persisted row - no gateway required. `SharedAncestorResolver.Eager()` makes the same substitution for a shared ancestor resolved under this mode. |
 | `Inclusivity = PreventCascade` | `Inclusivity = None` | The direct relationships are generated, but they do not generate their own — the cascade stops one level down. |
+| `ExcludePrimaryIds = true` | `ExcludePrimaryIds = false`, always | Excluding a primary from persistence is a property of *this call's own output*, never of an ancestor - an ancestor is always persisted exactly as the configured `InsertMode` already says, regardless of what the record referencing it opted out of. See [use/insert-modes.md](../use/insert-modes.md#excluding-the-primary---excludeprimaryids). |
 | anything else | unchanged | |
+
+`InsertMode` itself is never transformed here - `ExcludePrimaryIds` used to
+be baked into two extra `InsertMode` values (`RelatedOnly`/`MockRelatedOnly`)
+that this exact transform mapped to `Now`/`Mock` respectively. Pulling the
+concept out into its own orthogonal flag removed the need for that
+substitution entirely: an ancestor just inherits `InsertMode` unchanged,
+the same as it always did for every other mode.
 
 ---
 

@@ -28,6 +28,7 @@ public sealed partial class RecordProvider
     private InsertMode insertMode = InsertMode.Never;
     private InsertInclusivity inclusivity = InsertInclusivity.None;
     private bool ancestorCyclesAllowed;
+    private bool excludePrimaryIds;
     private bool depthBatched;
     private bool forceStructuralChildGeneration;
     private IPersistenceGateway? persistenceGateway;

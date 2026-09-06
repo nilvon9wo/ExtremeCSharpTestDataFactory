@@ -92,6 +92,28 @@ public sealed partial class RecordProvider
     }
 
     /// <summary>
+    /// This call's own primary record(s) are never persisted - no Mock Id,
+    /// no real insert, no Deferred registration for them specifically -
+    /// however every ancestor they need still is, exactly as the configured
+    /// InsertMode says. For a not-yet-inserted record that must reference
+    /// real (or realistically Id'd) ancestors: relate to something without
+    /// claiming to have saved it. Ancestors are never affected, no matter
+    /// how deep - only this call's own top-level output is excluded.
+    /// </summary>
+    public RecordProvider ExcludePrimaryIds()
+    {
+        this.excludePrimaryIds = true;
+        return this;
+    }
+
+    /// <summary>Undoes ExcludePrimaryIds() - back to the default of persisting the primary like everything else.</summary>
+    public RecordProvider IncludePrimaryIds()
+    {
+        this.excludePrimaryIds = false;
+        return this;
+    }
+
+    /// <summary>
     /// Opt in to one insert per dependency depth for this Now call, instead
     /// of one per Provider. Not supported with shared ancestors resolved
     /// under manual mode.

@@ -135,17 +135,17 @@ public class GenerationContextTest
     // ForRelated() --------------------------------------------------
 
     [Fact]
-    public void ForRelated_WhenTheModeIsRelatedOnly_BecomesNow()
+    public void ForRelated_AlwaysResetsExcludePrimaryIdsToFalse()
     {
-        // Arrange
-        GenerationContext baseContext = Context(InsertMode.RelatedOnly, InsertInclusivity.Required);
+        // Arrange - ExcludePrimaryIds means "this call's own primary," never an ancestor
+        GenerationContext baseContext = Context(InsertMode.Now, InsertInclusivity.Required).WithPrimaryIdsExcluded(true);
 
         // Act
         GenerationContext related = baseContext.ForRelated();
 
         // Assert
-        Assert.Equal(InsertMode.Now, related.InsertMode); // ancestors of a RelatedOnly run are inserted
-        Assert.Equal(InsertInclusivity.Required, related.Inclusivity); // inclusivity is unchanged
+        Assert.False(related.ExcludePrimaryIds); // an ancestor is always persisted, regardless of the primary's own setting
+        Assert.Equal(InsertMode.Now, related.InsertMode); // insert mode itself is unaffected
     }
 
     [Fact]

@@ -14,19 +14,6 @@ because those entries describe a change made in *this* repository.
 
 ### Fixed
 
-- **`RelatedOnly`'s user-facing docs described the opposite of what it
-  actually does.** `insert-modes.md`, `getting-started.md`, and
-  `api-cheatsheet.md` all described it as pure, offline Mock-Id
-  generation needing no persistence; `architecture.md` had the correct
-  behavior documented the whole time and nobody cross-checked the two.
-  `RelatedOnly` relates a not-yet-inserted primary to a **real, persisted
-  (or persistable) ancestor** - a mocked ancestor Id would be a dangling
-  reference to nothing once the primary is actually inserted. The code
-  (`GenerationContext.ForRelated()` upgrading `RelatedOnly` to `Now` for
-  ancestor generation) was correct all along. All three doc pages
-  corrected; two permanent regression tests added to
-  `PersistenceGatewayTest` since nothing end-to-end had exercised this
-  path before.
 - **`SharedAncestor` could crash under real concurrent access** —
   `ByName`/`Disabled` were a plain `Dictionary`/`HashSet`, and
   `SharedAncestorResolver`'s own `_running`/`InProgress` fields were
@@ -42,26 +29,42 @@ because those entries describe a change made in *this* repository.
   the fix and re-running it) and passes reliably - 200 concurrent
   attempts, repeated runs - against the fix.
 
-### Added
+### Changed
 
-- **`InsertMode.MockRelatedOnly`** — the offline sibling of `RelatedOnly`:
-  the same shape (primary left Id-less for the caller to insert itself),
-  but the ancestor only gets a **mock** Id instead of a genuine insert, so
-  no `IPersistenceGateway` is needed at all. Requested directly: the
-  Apex original's equivalent workflow just used `Mock` everywhere and
-  nulled out the primary's own Id by hand when only that was needed;
-  cheap to do inline in one codebase, less convenient to ask every
-  consumer of a published library to reinvent. Mechanically small because
-  the two places that special-case `RelatedOnly` already composed
-  cleanly: `GenerationContext.ForRelated()` gained a second branch
-  (`MockRelatedOnly` → `Mock`, next to `RelatedOnly` → `Now`), and
-  `SharedAncestorResolver.Eager()` gained the same second branch, so a
-  shared ancestor referenced under `MockRelatedOnly` resolves eagerly too,
-  as `Mock` rather than `Now`. Every other call site already worked
-  through those two, unchanged. Proven end-to-end (an ancestor-bearing
-  primary, and separately a shared-ancestor reference) in
-  `PersistenceGatewayTest`/`SharedAncestorIntegrationTest` - both prove no
-  gateway is ever required. See [use/insert-modes.md](docs/use/insert-modes.md).
+- **`InsertMode.RelatedOnly` is gone, replaced by `.ExcludePrimaryIds()`/`.IncludePrimaryIds()`
+  - an orthogonal setting on `RecordProvider`, not a mode.** Requested
+  directly, then corrected twice over: excluding a call's own primary from
+  persistence while its ancestors are still persisted normally is a
+  different concern from *how* they're persisted, and baking it into
+  `InsertMode` made the two impossible to combine - `RelatedOnly` and
+  `Deferred` could never both apply to the same call, exactly the
+  combination needed to build a primary with a deep (or multi-Provider)
+  ancestor tree efficiently while leaving the primary itself un-Id'd.
+  `Now` + `.ExcludePrimaryIds()` reproduces `RelatedOnly`'s exact original
+  behavior (one-at-a-time ancestor inserts, so real trigger order is
+  preserved - deliberately not batched, even under `.DepthBatched()`, on
+  request); `Mock` + `.ExcludePrimaryIds()` reproduces the equally-short-lived
+  `InsertMode.MockRelatedOnly` (added and removed the same day, never
+  published); `Deferred` + `.ExcludePrimaryIds()` is the new capability
+  neither `InsertMode` value could ever express. Mechanically, this
+  *removed* special-casing rather than added it: `GenerationContext.ForRelated()`
+  no longer transforms `InsertMode` at all (an ancestor simply inherits it
+  unchanged, like every other mode always did), and `ExcludePrimaryIds`
+  itself resets to `false` for every ancestor context, so it can never leak
+  past the one call that set it. `RecordFactory.Persist` gained one guard
+  clause; `DeferredInsertBuffer`/`DepthBatchedInserter` gained an excluded-index
+  set threaded through the existing depth-batched machinery, unchanged
+  otherwise. Proven end-to-end - the `Now`/`Mock` cases, the new `Deferred`
+  case (an ancestor really inserted while the primary stays un-Id'd even
+  after `Flush()`), a shared ancestor referenced under exclusion, and the
+  explicit `.IncludePrimaryIds()` toggle - in `PersistenceGatewayTest`/
+  `SharedAncestorIntegrationTest`. Found and fixed along the way: three
+  existing tests that deliberately trigger `Flush()`'s "no gateway
+  configured" throw left the shared static `DeferredInserter` registry
+  permanently non-empty afterward (by design - a failed flush must never
+  silently lose what was registered) with no way to clean up; added
+  `DeferredInserter.ResetForTesting()` and wired it into all three. See
+  [use/insert-modes.md](docs/use/insert-modes.md#excluding-the-primary---excludeprimaryids).
 - **`Xfty.AutoBogus`** — the same pairing as `Xfty.AutoFixture`, for
   AutoBogus instead: `XftyAutoBogus.CreateFaker(lookup)`/
   `XftyAutoBogusOverride` points `faker.Generate<T>()` at a registered

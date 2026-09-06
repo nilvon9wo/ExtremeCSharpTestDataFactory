@@ -145,6 +145,10 @@ public class ExContextAwareValuesTest
         Account account = (Account)graph.Records().OfType<Account>().Single();
 
         Assert.Equal("Field Ops", account.Site);
+
+        // Cleanup - SupplyBundle() under Deferred also registered this bundle into the global
+        // static registry as a side effect; this test only ever inspects its own local Flatten() copy
+        DeferredInserter.ResetForTesting();
     }
 }
 

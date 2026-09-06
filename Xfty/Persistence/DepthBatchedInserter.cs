@@ -17,26 +17,35 @@ public sealed class DepthBatchedInserter
     private readonly List<object> records;
     private readonly InsertMode mode;
     private readonly IPersistenceGateway? gateway;
+    private readonly HashSet<int> excludedIndices;
 
-    private DepthBatchedInserter(List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode, IPersistenceGateway? gateway)
+    private DepthBatchedInserter(
+        List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode, IPersistenceGateway? gateway, HashSet<int>? excludedIndices)
     {
         this.records = records;
         this.mode = mode;
         this.gateway = gateway;
+        this.excludedIndices = excludedIndices ?? [];
         this.linksByChild = GroupLinksByChild(records.Count, links);
     }
 
     /// <summary>Depth-batched real insert, via gateway.</summary>
-    public static void InsertAll(List<object> records, List<DepthBatchedInserterParentLink>? links, IPersistenceGateway? gateway = null) =>
-        ResolveAll(records, links, InsertMode.Now, gateway);
+    public static void InsertAll(
+        List<object> records, List<DepthBatchedInserterParentLink>? links, IPersistenceGateway? gateway = null, HashSet<int>? excludedIndices = null) =>
+        ResolveAll(records, links, InsertMode.Now, gateway, excludedIndices);
 
     /// <summary>
     /// Depth-batched resolution honouring the mode: Now inserts each depth
     /// layer through <paramref name="gateway"/>, Mock gives it mock Ids -
     /// either way the child lookups are pointed at the layer above as it
-    /// lands. Never does nothing.
+    /// lands. Never does nothing. excludedIndices never receive an Id no
+    /// matter the mode (see DeferredInsertBuffer.Add's excludePrimaryIds) -
+    /// still wired to their own resolved parents, and still what unblocks
+    /// anything waiting on them, exactly as if they genuinely landed.
     /// </summary>
-    public static void ResolveAll(List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode, IPersistenceGateway? gateway = null)
+    public static void ResolveAll(
+        List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode,
+        IPersistenceGateway? gateway = null, HashSet<int>? excludedIndices = null)
     {
         bool nothingToDo = records.Count == 0 || mode == InsertMode.Never;
         if (nothingToDo)
@@ -44,7 +53,7 @@ public sealed class DepthBatchedInserter
             return;
         }
 
-        new DepthBatchedInserter(records, links, mode, gateway).InsertLayerByLayer();
+        new DepthBatchedInserter(records, links, mode, gateway, excludedIndices).InsertLayerByLayer();
     }
 
     private void InsertLayerByLayer() =>
@@ -72,6 +81,7 @@ public sealed class DepthBatchedInserter
     {
         indexes.ForEach(this.PointAtParents);
         List<object> layer = [.. indexes
+            .Where(index => !this.excludedIndices.Contains(index))
             .Select(index => this.records[index])
             .Where(record => IdOf(record) is null)];
         if (layer.Count == 0)

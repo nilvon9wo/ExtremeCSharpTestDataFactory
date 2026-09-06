@@ -79,13 +79,26 @@ public sealed class RecordFactory
         bundle.DeferValues(this.template.DeferredExpressionByField);
     }
 
-    private void Persist(List<object> records) =>
+    /// <summary>
+    /// ExcludePrimaryIds always wins - it means "this call's own primary,"
+    /// and this method only ever runs for the record(s) whichever call
+    /// (top-level or ForRelated's own recursion) actually owns; an ancestor
+    /// never carries the flag (see GenerationContext.ForRelated).
+    /// </summary>
+    private void Persist(List<object> records)
+    {
+        if (this.context.ExcludePrimaryIds)
+        {
+            return;
+        }
+
         _ = this.context.InsertMode switch
         {
             InsertMode.Mock => IdMocker.AddIds(records, this.template.PrimaryTargetField),
             InsertMode.Now => this.InsertNow(records),
             _ => records,
         };
+    }
 
     private List<object> InsertNow(List<object> records)
     {

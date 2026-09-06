@@ -46,11 +46,11 @@ public sealed partial class RecordProvider
     {
         if (this.FlushesGraphWhenThisCallEnds())
         {
-            DeferredInsertBuffer.InsertGraph(bundle, this.persistenceGateway);
+            DeferredInsertBuffer.InsertGraph(bundle, this.persistenceGateway, this.excludePrimaryIds);
         }
         else if (this.DeferredToRegistry())
         {
-            DeferredInserter.Register(bundle);
+            DeferredInserter.Register(bundle, this.excludePrimaryIds);
         }
     }
 }

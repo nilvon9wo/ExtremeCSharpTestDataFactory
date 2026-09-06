@@ -31,6 +31,7 @@ public class ExDeferredInsertTest
         Assert.NotEmpty(accounts.PrimaryRecords()!);
         Assert.NotEmpty(contacts.PrimaryRecords()!);
         Assert.Contains("persistence gateway", thrown.Message);
+        DeferredInserter.ResetForTesting(); // the failed Flush() deliberately left the registry non-empty
     }
 
     [Fact]
@@ -46,5 +47,9 @@ public class ExDeferredInsertTest
         graph.ResolveAll(InsertMode.Mock);
 
         Assert.All(graph.Records(), record => Assert.NotNull(record.GetType().GetProperty("Id")!.GetValue(record)));
+
+        // Cleanup - SupplyBundle() under Deferred also registered this bundle into the global
+        // static registry as a side effect; this test only ever inspects its own local Flatten() copy
+        DeferredInserter.ResetForTesting();
     }
 }

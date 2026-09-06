@@ -56,13 +56,22 @@ public sealed class GenerationContext
     /// <summary>True on a structural build whose records get inserted later, depth-batched.</summary>
     public bool BatchedInsertPending { get; }
 
+    /// <summary>
+    /// True only for the top-level record(s) this call itself is generating -
+    /// never for an ancestor, regardless of how it was set. Excludes those
+    /// specific records from persistence (Mock-Id assignment or a real
+    /// insert) however the rest of the graph is being persisted; see
+    /// <see cref="RecordProvider.ExcludePrimaryIds"/>.
+    /// </summary>
+    public bool ExcludePrimaryIds { get; }
+
     /// <summary>The Provider keys currently being generated up the ancestor chain.</summary>
     public AncestorCycleGuard CycleGuard { get; }
 
     public GenerationContext(IProviderLookup providerLookup, InsertMode? insertMode, InsertInclusivity? inclusivity)
         : this(
             providerLookup, insertMode, inclusivity, null, null, null, null, -1,
-            [], [], false, null, new AncestorCycleGuard(cyclesAllowed: false))
+            [], [], false, false, null, new AncestorCycleGuard(cyclesAllowed: false))
     {
     }
 
@@ -78,6 +87,7 @@ public sealed class GenerationContext
         List<List<PropertyInfo>>? forcedRelationshipPaths,
         List<PathValue>? pathValues,
         bool batchedInsertPending,
+        bool excludePrimaryIds,
         ValueFieldPass? valueFieldPass,
         AncestorCycleGuard cycleGuard)
     {
@@ -92,6 +102,7 @@ public sealed class GenerationContext
         this.ForcedRelationshipPaths = forcedRelationshipPaths ?? [];
         this.PathValues = pathValues ?? [];
         this.BatchedInsertPending = batchedInsertPending;
+        this.ExcludePrimaryIds = excludePrimaryIds;
         this.ValueFieldPass = valueFieldPass;
         this.CycleGuard = cycleGuard;
     }
@@ -101,28 +112,28 @@ public sealed class GenerationContext
         new(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, gateway, this.UnsetFieldFiller,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex, this.ForcedRelationshipPaths, this.PathValues,
-            this.BatchedInsertPending, this.ValueFieldPass, this.CycleGuard);
+            this.BatchedInsertPending, this.ExcludePrimaryIds, this.ValueFieldPass, this.CycleGuard);
 
     /// <summary>A copy carrying the given unset-field filler (top-level entry point).</summary>
     public GenerationContext WithUnsetFieldFiller(IUnsetFieldFiller? filler) =>
         new(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, filler,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex, this.ForcedRelationshipPaths, this.PathValues,
-            this.BatchedInsertPending, this.ValueFieldPass, this.CycleGuard);
+            this.BatchedInsertPending, this.ExcludePrimaryIds, this.ValueFieldPass, this.CycleGuard);
 
     /// <summary>A copy carrying the given IncludeOptional(...) paths (top-level entry point).</summary>
     public GenerationContext WithForcedRelationshipPaths(List<List<PropertyInfo>>? paths) =>
         new(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex, paths, this.PathValues,
-            this.BatchedInsertPending, this.ValueFieldPass, this.CycleGuard);
+            this.BatchedInsertPending, this.ExcludePrimaryIds, this.ValueFieldPass, this.CycleGuard);
 
     /// <summary>A copy with a different inclusivity - used to force an explicitly-requested ancestor fully formed.</summary>
     public GenerationContext WithInclusivity(InsertInclusivity newInclusivity) =>
         new(
             this.ProviderLookup, this.InsertMode, newInclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex, this.ForcedRelationshipPaths, this.PathValues,
-            this.BatchedInsertPending, this.ValueFieldPass, this.CycleGuard);
+            this.BatchedInsertPending, this.ExcludePrimaryIds, this.ValueFieldPass, this.CycleGuard);
 
     /// <summary>A copy carrying the given Put(path, value) overrides, their relationship prefixes folded into the forced paths.</summary>
     public GenerationContext WithPathValues(List<PathValue> pathValues)
@@ -131,7 +142,7 @@ public sealed class GenerationContext
         return new GenerationContext(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex, forced, pathValues,
-            this.BatchedInsertPending, this.ValueFieldPass, this.CycleGuard);
+            this.BatchedInsertPending, this.ExcludePrimaryIds, this.ValueFieldPass, this.CycleGuard);
     }
 
     /// <summary>A copy whose cycle guard permits repeated Provider keys only if cyclesAllowed. Top-level entry point.</summary>
@@ -139,31 +150,39 @@ public sealed class GenerationContext
         new(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex, this.ForcedRelationshipPaths,
-            this.PathValues, this.BatchedInsertPending, this.ValueFieldPass, new AncestorCycleGuard(cyclesAllowed));
+            this.PathValues, this.BatchedInsertPending, this.ExcludePrimaryIds, this.ValueFieldPass, new AncestorCycleGuard(cyclesAllowed));
+
+    /// <summary>A copy carrying whether this call's own primary record(s) are excluded from persistence (top-level entry point).</summary>
+    public GenerationContext WithPrimaryIdsExcluded(bool excluded) =>
+        new(
+            this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
+            this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex, this.ForcedRelationshipPaths,
+            this.PathValues, this.BatchedInsertPending, excluded, this.ValueFieldPass, this.CycleGuard);
 
     /// <summary>A copy whose cycle guard has descended one level into providerKeyHash.</summary>
     public GenerationContext EnteringProviderFor(string providerKeyHash) =>
         new(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex, this.ForcedRelationshipPaths,
-            this.PathValues, this.BatchedInsertPending, this.ValueFieldPass, this.CycleGuard.DescendingInto(providerKeyHash));
+            this.PathValues, this.BatchedInsertPending, this.ExcludePrimaryIds, this.ValueFieldPass, this.CycleGuard.DescendingInto(providerKeyHash));
 
     /// <summary>A copy marked as a structural build whose records get inserted later, depth-batched.</summary>
     public GenerationContext ForBatchedInsert() =>
         new(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex, this.ForcedRelationshipPaths, this.PathValues, true,
-            this.ValueFieldPass, this.CycleGuard);
+            this.ExcludePrimaryIds, this.ValueFieldPass, this.CycleGuard);
 
     /// <summary>
     /// The context for generating one level of related (ancestor) records:
-    /// RelatedOnly becomes Now (the ancestor must be genuinely persisted, or
-    /// the not-yet-inserted primary can't reference it), MockRelatedOnly
-    /// becomes Mock (the same shape, but a real gateway isn't required),
-    /// PreventCascade becomes None. Every other mode/inclusivity is carried
-    /// through unchanged; the per-record fields are cleared.
-    /// Forced-relationship paths do not propagate through this overload -
-    /// use ForRelated(field) from the recursion.
+    /// PreventCascade becomes None; ExcludePrimaryIds always resets to
+    /// false, since that setting means "this call's own primary," never an
+    /// ancestor - an ancestor is always persisted the same way it always
+    /// was, regardless of what the record referencing it opted out of.
+    /// Every other mode/inclusivity is carried through unchanged; the
+    /// per-record fields are cleared. Forced-relationship paths do not
+    /// propagate through this overload - use ForRelated(field) from the
+    /// recursion.
     /// </summary>
     public GenerationContext ForRelated() => this.ForRelated(null);
 
@@ -176,31 +195,25 @@ public sealed class GenerationContext
         List<PathValue> childPathValues = [.. this.PathValues
             .Where(pathValue => relationshipField is not null && !pathValue.IsAtTarget() && pathValue.Head() == relationshipField)
             .Select(pathValue => pathValue.Tail())];
-        InsertMode relatedMode = this.InsertMode switch
-        {
-            InsertMode.RelatedOnly => InsertMode.Now,
-            InsertMode.MockRelatedOnly => InsertMode.Mock,
-            _ => this.InsertMode,
-        };
         InsertInclusivity relatedInclusivity = this.Inclusivity == InsertInclusivity.PreventCascade ? InsertInclusivity.None : this.Inclusivity;
         return new GenerationContext(
-            this.ProviderLookup, relatedMode, relatedInclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
-            null, null, -1, childPaths, childPathValues, this.BatchedInsertPending, null, this.CycleGuard);
+            this.ProviderLookup, this.InsertMode, relatedInclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
+            null, null, -1, childPaths, childPathValues, this.BatchedInsertPending, false, null, this.CycleGuard);
     }
 
     /// <summary>The context for evaluating a context-aware value on record (row rowIndex), with bundleSoFar holding everything generated so far.</summary>
     public GenerationContext ForRecord(object record, Bundle bundleSoFar, int rowIndex) =>
         new(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
-            record, bundleSoFar, rowIndex, this.ForcedRelationshipPaths, this.PathValues, this.BatchedInsertPending, null,
-            this.CycleGuard);
+            record, bundleSoFar, rowIndex, this.ForcedRelationshipPaths, this.PathValues, this.BatchedInsertPending,
+            this.ExcludePrimaryIds, null, this.CycleGuard);
 
     /// <summary>As ForRecord, narrowed to the one context-aware value field being generated now.</summary>
     public GenerationContext ForValueField(PropertyInfo fieldBeingBuilt, IReadOnlySet<PropertyInfo> pendingContextAwareValues) =>
         new(
             this.ProviderLookup, this.InsertMode, this.Inclusivity, this.PersistenceGateway, this.UnsetFieldFiller,
             this.RecordBeingBuilt, this.BundleSoFar, this.RowIndex,
-            this.ForcedRelationshipPaths, this.PathValues, this.BatchedInsertPending,
+            this.ForcedRelationshipPaths, this.PathValues, this.BatchedInsertPending, this.ExcludePrimaryIds,
             new ValueFieldPass(fieldBeingBuilt, pendingContextAwareValues), this.CycleGuard);
 
     /// <summary>

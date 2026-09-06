@@ -116,6 +116,15 @@ fixing something unrelated.
   without one) since nothing end-to-end had exercised this path before -
   the one existing `RelatedOnly` test used a Provider with no ancestors
   at all, so it never touched this code.
+
+  **Superseded the same day:** `RelatedOnly`/`MockRelatedOnly` no longer
+  exist as `InsertMode` values - the behavior above is unchanged, but it's
+  reached via `.ExcludePrimaryIds()`/`.IncludePrimaryIds()` (an orthogonal
+  setting on `RecordProvider`, not a mode) plus whichever `InsertMode`
+  fits, e.g. `Now` + `.ExcludePrimaryIds()`. See
+  [use/insert-modes.md](../use/insert-modes.md#excluding-the-primary---excludeprimaryids).
+  Kept this entry for the "why the code is right, not a bug" reasoning,
+  which still holds - only the API shape changed.
 - `DeferredInsertBuffer.Collect(bundle)` called `bundle.PrimaryRecords()`
   directly with no null-guard, unlike Apex's null-safe
   `primaryRecordsOf(bundle)` helper — `Add(null)` / `InsertGraph(null)` /

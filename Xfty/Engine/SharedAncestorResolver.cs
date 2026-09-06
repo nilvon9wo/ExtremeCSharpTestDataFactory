@@ -32,8 +32,7 @@ namespace Net.Nowhereatall.Xfty.Engine;
 /// matter here: resolution happens once per name, ever, in a process, not
 /// under sustained concurrent load.
 /// </summary>
-/// <remarks>mode is the triggering call's insert mode; Deferred/RelatedOnly
-/// resolve eagerly, as Now; MockRelatedOnly resolves eagerly too, as Mock.</remarks>
+/// <remarks>mode is the triggering call's insert mode; Deferred resolves eagerly, as Now.</remarks>
 public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mode)
 {
     private static readonly Lock ResolutionLock = new();
@@ -177,8 +176,7 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
     private static InsertMode Eager(InsertMode? callMode) =>
         callMode switch
         {
-            null or InsertMode.Deferred or InsertMode.RelatedOnly => InsertMode.Now,
-            InsertMode.MockRelatedOnly => InsertMode.Mock,
+            null or InsertMode.Deferred => InsertMode.Now,
             _ => callMode.Value,
         };
 

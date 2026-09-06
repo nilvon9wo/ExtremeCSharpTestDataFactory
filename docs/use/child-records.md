@@ -131,12 +131,19 @@ level unless a child overrides them.
 | `Mock` | everything gets mock Ids; FKs wired |
 | `Never` | nothing persisted; children have a `null` back-reference (no primary Id to point at) — a child can still `SetInsertMode(Mock)` to get its own Ids |
 | `Later` | identical to `Never` — the children are generated, nothing is persisted, the back-reference is `null` |
-| `RelatedOnly` / `MockRelatedOnly` | the primaries (the parents here) are **not** persisted, so the children have a `null` back-reference — both modes target a Provider's *ancestors*, and children are not ancestors. Not a useful mode for downward generation. |
 | `Deferred` / `.DepthBatched()` | the **whole** child subtree joins the same deferred graph, generated structurally with FKs wired at flatten time. A per-child `SetInsertMode(...)` override is **ignored** here — the subtree stays structural until the graph is flattened. Flushing that graph to real persistence throws in this port; see [deferred-insert](deferred-insert.md). |
 
 Each child still generates its **own** other required parents (at its
 inclusivity) — a `Case` child that needs a `Contact` gets one, and that Contact
 gets its Account.
+
+**`.ExcludePrimaryIds()` on the parent does not flow down to children** the
+way `SetInsertMode`/`SetInclusivity` do — it only ever excludes the Provider
+it's called on. A child collection under an excluded parent still generates
+and persists normally, under whatever mode it inherits (or sets itself); it
+just has nothing to point its FK at, since the parent it references was
+never given an Id, so its own back-reference comes back `null` — see
+[insert-modes](insert-modes.md#excluding-the-primary---excludeprimaryids).
 
 ### A child cannot mix mock Ids with real DML
 
@@ -145,8 +152,7 @@ A child collection may raise or lower its own insert mode
 mixing mock Ids with `Now` in either direction: parent `Mock` + child `Now`, or
 parent `Now` + child `Mock`, throws `XftyConfigurationException` before either
 side even reaches the (always-throwing) persistence layer. Every other pairing
-is allowed (though `Mock` parent + `RelatedOnly` child, for instance, is rarely
-what you want).
+is allowed.
 
 See also: [relationships](relationships.md) · [shared-ancestors](shared-ancestors.md)
 (the opposite — many children, **one** shared parent) · [bundles](bundles.md)

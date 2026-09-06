@@ -301,6 +301,18 @@ public sealed class RecordProvider<TRecord>(IProviderLookup providerLookup)
         return this;
     }
 
+    public RecordProvider<TRecord> ExcludePrimaryIds()
+    {
+        _ = this.inner.ExcludePrimaryIds();
+        return this;
+    }
+
+    public RecordProvider<TRecord> IncludePrimaryIds()
+    {
+        _ = this.inner.IncludePrimaryIds();
+        return this;
+    }
+
     public RecordProvider<TRecord> DepthBatched()
     {
         _ = this.inner.DepthBatched();
