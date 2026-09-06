@@ -19,12 +19,18 @@ namespace Net.Nowhereatall.Xfty.Engine;
 /// ResolveNow), so serializing those two - not scattering locks across
 /// SharedAncestor itself - is enough to make the whole subsystem safe under
 /// concurrent test execution (xUnit's default; this port's own suite opts
-/// out, but a consumer's typically doesn't). The lock is a plain
-/// Monitor-based one, deliberately: this method already recurses on the
-/// same thread (resolving one ancestor's sub-graph can itself trigger
-/// ordinary record generation that calls back into ResolveAllConfigured),
-/// and Monitor's same-thread reentrancy is well-established, unlike newer
-/// lock primitives this codebase has never needed to reason about before.
+/// out, but a consumer's typically doesn't). One global lock, deliberately,
+/// not one per shared-ancestor name: this method already recurses on the
+/// same thread (a shared ancestor generating its own sub-graph can reach a
+/// *different*, non-nested shared ancestor through an ordinary child
+/// relationship, which calls back into ResolveAllConfigured before the
+/// outer call has returned), and <see cref="Lock"/> is reentrant for that
+/// same-thread case, same as <see cref="System.Threading.Monitor"/> - but
+/// per-name locks would not compose safely with nested shared ancestors
+/// (one name's template referencing another) without a canonical
+/// lock-acquisition order to avoid deadlock, for a benefit that does not
+/// matter here: resolution happens once per name, ever, in a process, not
+/// under sustained concurrent load.
 /// </summary>
 /// <remarks>mode is the triggering call's insert mode; Deferred/RelatedOnly resolve eagerly, as Now.</remarks>
 public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mode)
