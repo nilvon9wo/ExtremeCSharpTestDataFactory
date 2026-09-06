@@ -188,6 +188,17 @@ dotnet_naming_rule.private_property_should_be_underscore_prefix___camelcase.seve
 dotnet_naming_rule.private_property_should_be_underscore_prefix___camelcase.symbols = private_property
 dotnet_naming_rule.private_property_should_be_underscore_prefix___camelcase.style = underscore_prefix___camelcase
 
+# Order matters: a readonly field also matches the broader private_field symbol
+# below it, and the first rule whose symbol matches wins - so the more specific
+# readonly rule must come first, or it would never be reached.
+dotnet_naming_rule.private_readonly_field_should_be_pascal_case.severity = error
+dotnet_naming_rule.private_readonly_field_should_be_pascal_case.symbols = private_readonly_field
+dotnet_naming_rule.private_readonly_field_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.private_field_should_be_underscore_prefix___camelcase.severity = error
+dotnet_naming_rule.private_field_should_be_underscore_prefix___camelcase.symbols = private_field
+dotnet_naming_rule.private_field_should_be_underscore_prefix___camelcase.style = underscore_prefix___camelcase
+
 dotnet_naming_rule.interface_should_be_begins_with_i.severity = error
 dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
 dotnet_naming_rule.interface_should_be_begins_with_i.style = begins_with_i
@@ -216,7 +227,15 @@ dotnet_naming_symbols.non_field_members.required_modifiers =
 
 dotnet_naming_symbols.private_property.applicable_kinds = property
 dotnet_naming_symbols.private_property.applicable_accessibilities = private
-dotnet_naming_symbols.private_property.required_modifiers = 
+dotnet_naming_symbols.private_property.required_modifiers =
+
+dotnet_naming_symbols.private_readonly_field.applicable_kinds = field
+dotnet_naming_symbols.private_readonly_field.applicable_accessibilities = private
+dotnet_naming_symbols.private_readonly_field.required_modifiers = readonly
+
+dotnet_naming_symbols.private_field.applicable_kinds = field
+dotnet_naming_symbols.private_field.applicable_accessibilities = private
+dotnet_naming_symbols.private_field.required_modifiers =
 
 # Naming styles
 

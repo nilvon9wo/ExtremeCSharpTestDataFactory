@@ -31,9 +31,16 @@ jobs:
       - name: Test (excluding the informational performance suite)
         run: dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"
 
+      # Xfty.Test is the only project with any Category=Performance tests - targeting
+      # the whole solution filter here made every other project report "zero tests
+      # ran" (a failure exit code), which continue-on-error silently swallowed
+      # alongside any real performance regression. Scoping to the one project that
+      # actually has these tests means this step's outcome means something again;
+      # continue-on-error stays, for the reason the step's name already says -
+      # wall-clock-based assertions are expected to be flaky across CI runners.
       - name: Performance suite (informational - wall-clock ceilings are generous but CI runners vary)
         continue-on-error: true
-        run: dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category=Performance"
+        run: dotnet test Xfty.Test/Xfty.Test.csproj --no-build --filter "Category=Performance"
 
       - name: Verify every documented code example is exercised by a real test
         run: python3 scripts/verify-doc-examples.py
