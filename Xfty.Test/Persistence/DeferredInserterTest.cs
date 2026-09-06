@@ -56,7 +56,7 @@ public class DeferredInserterTest
     }
 
     [Fact]
-    public void Flush_Throws_AndDoesNotSilentlyLoseTheRegisteredRecords()
+    public async Task Flush_Throws_AndDoesNotSilentlyLoseTheRegisteredRecords()
     {
         // Arrange
         Bundle bundle = new();
@@ -65,7 +65,7 @@ public class DeferredInserterTest
         int beforeFlush = DeferredInserter.PendingCount();
 
         // Act
-        NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => DeferredInserter.Flush());
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush());
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);

@@ -22,10 +22,10 @@ public class ExChildRecordsTest
         });
 
     [Fact]
-    public void TheHeadlineExample()
+    public async Task TheHeadlineExample()
     {
         // from docs/use/child-records.md, top of the page
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup)
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buyer" }).SetQuantity(3))
             .SupplyBundle();
@@ -50,10 +50,10 @@ public class ExChildRecordsTest
     }
 
     [Fact]
-    public void AttachingIt_Additive()
+    public async Task AttachingIt_Additive()
     {
         // from docs/use/child-records.md "Attaching it"
-        Bundle bundle = new RecordProvider(typeof(Account), LookupWithCase())
+        Bundle bundle = await new RecordProvider(typeof(Account), LookupWithCase())
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "A" }).SetQuantity(3))
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(2))  // additive
             .With(ChildProvider.For<Case>(x => x.AccountId).SetQuantity(2))                                      // another type
@@ -65,10 +65,10 @@ public class ExChildRecordsTest
     }
 
     [Fact]
-    public void Grandchildren_ChildProviderNests()
+    public async Task Grandchildren_ChildProviderNests()
     {
         // from docs/use/child-records.md "Grandchildren"
-        Bundle bundle = new RecordProvider(typeof(Account), LookupWithCase())
+        Bundle bundle = await new RecordProvider(typeof(Account), LookupWithCase())
             .SetInsertMode(InsertMode.Mock)
             .With(
                 ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(3)

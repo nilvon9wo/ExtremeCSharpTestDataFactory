@@ -58,7 +58,7 @@ public sealed class PgVectorPersistenceTest : IAsyncLifetime
     }
 
     [Fact]
-    public void Supply_InNowMode_AgainstARealPgvectorColumn_ActuallyInsertsTheVector()
+    public async Task Supply_InNowMode_AgainstARealPgvectorColumn_ActuallyInsertsTheVector()
     {
         Assert.SkipUnless(this.dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
 
@@ -68,7 +68,7 @@ public sealed class PgVectorPersistenceTest : IAsyncLifetime
             .SetPersistenceGateway(new EfPersistenceGateway(this.dbContext!));
 
         // Act
-        DocumentEmbedding result = (DocumentEmbedding)provider.Supply();
+        DocumentEmbedding result = (DocumentEmbedding)await provider.Supply();
 
         // Assert
         Assert.NotNull(result.Id);

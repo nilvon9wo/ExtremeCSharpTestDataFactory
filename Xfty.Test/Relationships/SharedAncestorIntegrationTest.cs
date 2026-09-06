@@ -25,7 +25,7 @@ public class SharedAncestorIntegrationTest
         });
 
     [Fact]
-    public void SupplyList_WithASharedAncestor_PointsEveryChildAtTheSameGeneratedParent()
+    public async Task SupplyList_WithASharedAncestor_PointsEveryChildAtTheSameGeneratedParent()
     {
         // Arrange - two Contacts sharing one Account
         const string sharedName = "shared-ancestor-test-two-contacts";
@@ -37,7 +37,7 @@ public class SharedAncestorIntegrationTest
             .SetQuantityPerTemplate(2);
 
         // Act
-        List<object> results = provider.SupplyList();
+        List<object> results = await provider.SupplyList();
 
         // Assert - both contacts point at the very same generated Account Id
         List<string?> accountIds = [.. results.Cast<Contact>().Select(contact => contact.AccountId).Distinct()];
@@ -46,14 +46,14 @@ public class SharedAncestorIntegrationTest
     }
 
     [Fact]
-    public void GetId_AfterResolveNow_ReturnsTheGeneratedId()
+    public async Task GetId_AfterResolveNow_ReturnsTheGeneratedId()
     {
         // Arrange
         const string sharedName = "shared-ancestor-test-resolve-now";
         _ = SharedAncestor.PutAsTemplate(sharedName, new Account { Name = "Resolved Up Front" });
 
         // Act
-        _ = SharedAncestor.Get(sharedName).ResolveNow(Lookup(), InsertMode.Mock);
+        _ = await SharedAncestor.Get(sharedName).ResolveNow(Lookup(), InsertMode.Mock);
 
         // Assert
         Assert.NotNull(SharedAncestor.GetId(sharedName));
@@ -74,7 +74,7 @@ public class SharedAncestorIntegrationTest
     }
 
     [Fact]
-    public void Supply_WhenTheLookupRegistersASharedAncestorDefault_ResolvesItWithoutBeingPutExplicitly()
+    public async Task Supply_WhenTheLookupRegistersASharedAncestorDefault_ResolvesItWithoutBeingPutExplicitly()
     {
         // Arrange - the lookup itself supplies the default template (ISharedAncestorDefaults), not the test
         const string sharedName = "shared-ancestor-test-lookup-default";
@@ -91,7 +91,7 @@ public class SharedAncestorIntegrationTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName));
 
         // Act
-        Contact result = Assert.IsType<Contact>(provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply());
 
         // Assert
         Assert.NotNull(result.AccountId);
@@ -99,7 +99,7 @@ public class SharedAncestorIntegrationTest
     }
 
     [Fact]
-    public void SupplyBundle_MockWithExcludePrimaryIds_WithASharedAncestor_MockResolvesItWithoutAGateway()
+    public async Task SupplyBundle_MockWithExcludePrimaryIds_WithASharedAncestor_MockResolvesItWithoutAGateway()
     {
         // Arrange - a shared ancestor resolves eagerly under Mock the same way it always did;
         // ExcludePrimaryIds only changes what happens to this call's own primary
@@ -112,7 +112,7 @@ public class SharedAncestorIntegrationTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName));
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert - the shared Account resolved with a mock Id; the Contact primary stays un-Id'd
         Contact contact = (Contact)bundle.PrimaryRecords()![0];

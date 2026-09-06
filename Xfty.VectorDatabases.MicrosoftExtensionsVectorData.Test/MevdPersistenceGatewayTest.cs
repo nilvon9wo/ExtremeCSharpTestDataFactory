@@ -51,7 +51,7 @@ public sealed class MevdPersistenceGatewayTest : IAsyncLifetime
     }
 
     [Fact]
-    public void Supply_InNowMode_AgainstARealVectorStore_ActuallyInsertsARecord()
+    public async Task Supply_InNowMode_AgainstARealVectorStore_ActuallyInsertsARecord()
     {
         Assert.SkipUnless(this.dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
 
@@ -62,7 +62,7 @@ public sealed class MevdPersistenceGatewayTest : IAsyncLifetime
             .SetPersistenceGateway(new MevdPersistenceGateway(vectorStore));
 
         // Act
-        DocumentChunk result = (DocumentChunk)provider.Supply();
+        DocumentChunk result = (DocumentChunk)await provider.Supply();
 
         // Assert
         _ = Assert.NotNull(result.Id);

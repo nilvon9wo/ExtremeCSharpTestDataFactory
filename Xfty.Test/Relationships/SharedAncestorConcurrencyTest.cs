@@ -78,10 +78,15 @@ public class SharedAncestorConcurrencyTest
         }
     }
 
+    // PLINQ needs these blocking (not awaited) - the whole point of this test is
+    // forcing the race across real OS threads, independent of how the thread pool
+    // happens to schedule async continuations. Same sync-over-async bridge (and
+    // the same caveat) as XftySpecimenBuilder/XftyAutoBogusOverride: safe here
+    // because xUnit's test threads carry no captured SynchronizationContext.
     private static string? SupplyOneContact(IProviderLookup lookup, string name) =>
         ((Contact)new RecordProvider(typeof(Contact), lookup)
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply()).AccountId;
+            .Supply().GetAwaiter().GetResult()).AccountId;
 }

@@ -16,7 +16,7 @@ public class ChildProviderOfTTest
         });
 
     [Fact]
-    public void ObjectInitializer_RoutesEachValueByRuntimeType()
+    public async Task ObjectInitializer_RoutesEachValueByRuntimeType()
     {
         // Arrange - mirrors RecordProvider<TRecord>'s own indexer syntax
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -27,7 +27,7 @@ public class ChildProviderOfTTest
             });
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Contact child = Assert.IsType<Contact>(Assert.Single(bundle.GetChildList<Contact>(x => x.AccountId)));
@@ -49,7 +49,7 @@ public class ChildProviderOfTTest
     }
 
     [Fact]
-    public void With_AcceptsATypedChildProviderThroughTheImplicitConversion()
+    public async Task With_AcceptsATypedChildProviderThroughTheImplicitConversion()
     {
         // Arrange - RecordProvider.With(ChildProvider) should accept ChildProvider<TChild> directly
         RecordProvider<Account> provider = new RecordProvider<Account>(Lookup())
@@ -57,7 +57,7 @@ public class ChildProviderOfTTest
             .With(new ChildProvider<Contact>(x => x.AccountId).SetQuantity(2));
 
         // Act
-        Account result = provider.Supply();
+        Account result = await provider.Supply();
 
         // Assert
         Assert.NotNull(result.Id);

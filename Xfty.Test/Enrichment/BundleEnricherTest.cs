@@ -24,10 +24,10 @@ public class BundleEnricherTest
         });
 
     [Fact]
-    public void InjectAll_ForThePrimary_GraftsTheGeneratedAncestorOntoEveryRecord()
+    public async Task InjectAll_ForThePrimary_GraftsTheGeneratedAncestorOntoEveryRecord()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SetQuantityPerTemplate(2)
@@ -43,10 +43,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithParentDepthTwo_GraftsTheWholeAncestorChain()
+    public async Task Inject_WithParentDepthTwo_GraftsTheWholeAncestorChain()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)])
@@ -63,10 +63,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithParentDepthOne_StopsBeforeTheGrandparent()
+    public async Task Inject_WithParentDepthOne_StopsBeforeTheGrandparent()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)])
@@ -84,10 +84,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void InjectAllChildren_ForThePrimary_GraftsTheChildSubquery()
+    public async Task InjectAllChildren_ForThePrimary_GraftsTheChildSubquery()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
             .SupplyBundle();
@@ -101,10 +101,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void InjectAll_ForAGeneratedAncestorField_GraftsTheInverseChildren()
+    public async Task InjectAll_ForAGeneratedAncestorField_GraftsTheInverseChildren()
     {
         // Arrange - two Contacts, each generates its own Account
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SetQuantityPerTemplate(2)
@@ -119,10 +119,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithInjectValueOnTheRecord_ForcesTheScalar()
+    public async Task Inject_WithInjectValueOnTheRecord_ForcesTheScalar()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
@@ -137,10 +137,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithAnAncestorPathValue_ForcesAScalarSeveralHopsUp()
+    public async Task Inject_WithAnAncestorPathValue_ForcesAScalarSeveralHopsUp()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
@@ -155,10 +155,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithExcludeParent_SkipsThatAncestor()
+    public async Task Inject_WithExcludeParent_SkipsThatAncestor()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
@@ -172,10 +172,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void InjectAll_ForAFieldTheBundleDoesNotHold_Throws()
+    public async Task InjectAll_ForAFieldTheBundleDoesNotHold_Throws()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.None)
             .SupplyBundle();
@@ -189,10 +189,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_Always_LeavesTheOriginalBundleUntouched()
+    public async Task Inject_Always_LeavesTheOriginalBundleUntouched()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
@@ -205,10 +205,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WhenAllowDeeperGraphIsNotSet_RejectsAnOverDeepParentDepth()
+    public async Task Inject_WhenAllowDeeperGraphIsNotSet_RejectsAnOverDeepParentDepth()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
@@ -223,10 +223,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void InjectAll_ForThePrimary_AlsoPutsTheAncestorsInverseChildOntoIt()
+    public async Task InjectAll_ForThePrimary_AlsoPutsTheAncestorsInverseChildOntoIt()
     {
         // Arrange - one Contact; InjectAll should give it contact.Account and contact.Account.Contacts
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
@@ -240,10 +240,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void InjectAll_ForThePrimary_GivesEachDownwardChildItsOwnAncestor()
+    public async Task InjectAll_ForThePrimary_GivesEachDownwardChildItsOwnAncestor()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2)
@@ -257,10 +257,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithChildDepthTwoAndAllowDeeperGraph_GraftsGrandchildren()
+    public async Task Inject_WithChildDepthTwoAndAllowDeeperGraph_GraftsGrandchildren()
     {
         // Arrange - Account -> 2 Contacts -> 3 Cases each
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .With(ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
                 .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)))
@@ -275,10 +275,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithChildDepthTwoButNoAllowDeeperGraph_Throws()
+    public async Task Inject_WithChildDepthTwoButNoAllowDeeperGraph_Throws()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
             .SupplyBundle();
@@ -293,10 +293,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithInjectChildValue_ForcesTheScalarOnEveryChild()
+    public async Task Inject_WithInjectChildValue_ForcesTheScalarOnEveryChild()
     {
         // Arrange - Account with 3 Contacts
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
             .SupplyBundle();
@@ -313,10 +313,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithInjectChildValueExpression_GivesEachChildADistinctValue()
+    public async Task Inject_WithInjectChildValueExpression_GivesEachChildADistinctValue()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
             .SupplyBundle();
@@ -360,10 +360,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithAnInjectChildValuePathTheGraphNeverProduced_Throws()
+    public async Task Inject_WithAnInjectChildValuePathTheGraphNeverProduced_Throws()
     {
         // Arrange - no Cases generated, so the InjectChildValue path is never reached
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
             .SupplyBundle();
@@ -378,10 +378,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_WithAnInjectChildValueDeeperThanChildDepth_Throws()
+    public async Task Inject_WithAnInjectChildValueDeeperThanChildDepth_Throws()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
             .SupplyBundle();
@@ -397,10 +397,10 @@ public class BundleEnricherTest
     }
 
     [Fact]
-    public void Inject_ReturnsThePlainListOfEnrichedTargetRecords()
+    public async Task Inject_ReturnsThePlainListOfEnrichedTargetRecords()
     {
         // Arrange
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SetQuantityPerTemplate(2)
@@ -424,7 +424,7 @@ file sealed class CaseProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 
@@ -438,6 +438,6 @@ file sealed class AccountWithParentProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }

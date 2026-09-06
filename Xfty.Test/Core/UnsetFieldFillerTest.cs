@@ -24,21 +24,21 @@ public class UnsetFieldFillerTest
         });
 
     [Fact]
-    public void Supply_WithNoFillerConfigured_LeavesUnconfiguredFieldsAtTheirDefault()
+    public async Task Supply_WithNoFillerConfigured_LeavesUnconfiguredFieldsAtTheirDefault()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert - AccountDataProvider's Master Template never puts NumberOfEmployees
         Assert.Null(result.NumberOfEmployees);
     }
 
     [Fact]
-    public void Supply_WithAFillerConfigured_FillsOnlyFieldsTheMasterTemplateNeverConfigured()
+    public async Task Supply_WithAFillerConfigured_FillsOnlyFieldsTheMasterTemplateNeverConfigured()
     {
         // Arrange
         RecordingFiller filler = new();
@@ -47,7 +47,7 @@ public class UnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        _ = provider.Supply();
+        _ = await provider.Supply();
 
         // Assert
         List<string> fieldNames = [.. filler.FieldNamesSeen];
@@ -59,7 +59,7 @@ public class UnsetFieldFillerTest
     }
 
     [Fact]
-    public void Supply_TheFilledValue_SurvivesIntoTheReturnedRecord()
+    public async Task Supply_TheFilledValue_SurvivesIntoTheReturnedRecord()
     {
         // Arrange
         SettingFiller filler = new(nameof(Account.NumberOfEmployees), 42);
@@ -68,14 +68,14 @@ public class UnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert
         Assert.Equal(42, result.NumberOfEmployees);
     }
 
     [Fact]
-    public void Supply_ForARequiredRelationship_AppliesTheSameFillerToTheGeneratedAncestorToo()
+    public async Task Supply_ForARequiredRelationship_AppliesTheSameFillerToTheGeneratedAncestorToo()
     {
         // Arrange - Contact requires an Account; the filler should see both records' own unset fields
         RecordingFiller filler = new();
@@ -85,7 +85,7 @@ public class UnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        _ = provider.Supply();
+        _ = await provider.Supply();
 
         // Assert
         Assert.Contains(typeof(Contact), filler.RecordTypesSeen);
@@ -93,7 +93,7 @@ public class UnsetFieldFillerTest
     }
 
     [Fact]
-    public void Supply_ARelationshipsOwnScalarField_IsNeverTreatedAsUnset()
+    public async Task Supply_ARelationshipsOwnScalarField_IsNeverTreatedAsUnset()
     {
         // Arrange - AccountId is a required relationship field, not a "nothing touched it" field
         RecordingFiller filler = new();
@@ -103,7 +103,7 @@ public class UnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        _ = provider.Supply();
+        _ = await provider.Supply();
 
         // Assert
         Assert.DoesNotContain(nameof(Contact.AccountId), filler.FieldNamesSeen);

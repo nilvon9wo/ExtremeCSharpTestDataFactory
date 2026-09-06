@@ -7,7 +7,7 @@ The three `Supply*()` methods and the ways to ask for more than one record.
 ## One record
 
 ```csharp
-Contact result = (Contact)new RecordProvider(typeof(Contact), lookup)
+Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .Supply();
 ```
 
@@ -34,7 +34,7 @@ Use `Supply()` / `SupplyList()` when the test only needs the requested records;
 ## Many copies of one template
 
 ```csharp
-List<object> results = new RecordProvider(typeof(Contact), lookup)
+List<object> results = await new RecordProvider(typeof(Contact), lookup)
     .SetQuantityPerTemplate(5)
     .SupplyList();
 ```
@@ -44,7 +44,7 @@ List<object> results = new RecordProvider(typeof(Contact), lookup)
 ## Different values per record
 
 ```csharp
-List<object> results = new RecordProvider(typeof(Contact), lookup)
+List<object> results = await new RecordProvider(typeof(Contact), lookup)
     .SetOverrideTemplateList([
         new Contact { FirstName = "Alice" },
         new Contact { FirstName = "Bob" },

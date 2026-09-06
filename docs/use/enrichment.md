@@ -51,7 +51,7 @@ elsewhere in this port; there is no relationship-name string to get right.
 ## `InjectAll` — everything the graph holds
 
 ```csharp
-Bundle bundle = new RecordProvider(typeof(Contact), lookup)
+Bundle bundle = await new RecordProvider(typeof(Contact), lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetInclusivity(InsertInclusivity.Required)
     .SetQuantityPerTemplate(2)

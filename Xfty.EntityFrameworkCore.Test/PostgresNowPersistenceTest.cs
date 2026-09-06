@@ -54,7 +54,7 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
     }
 
     [Fact]
-    public void Supply_InNowMode_AgainstARealPostgresContainer_ActuallyInsertsARow()
+    public async Task Supply_InNowMode_AgainstARealPostgresContainer_ActuallyInsertsARow()
     {
         Assert.SkipUnless(this.dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
 
@@ -64,7 +64,7 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
             .SetPersistenceGateway(new EfPersistenceGateway(this.dbContext!));
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert
         Assert.NotNull(result.Id);
@@ -73,7 +73,7 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
     }
 
     [Fact]
-    public void SupplyBundle_NowPlusDepthBatched_AgainstARealPostgresContainer_WiresTheRealForeignKey()
+    public async Task SupplyBundle_NowPlusDepthBatched_AgainstARealPostgresContainer_WiresTheRealForeignKey()
     {
         Assert.SkipUnless(this.dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
 
@@ -85,7 +85,7 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
             .DepthBatched();
 
         // Act
-        Contact result = (Contact)provider.Supply();
+        Contact result = (Contact)await provider.Supply();
 
         // Assert
         Contact rereadContact = this.dbContext!.Contacts.AsNoTracking().First(c => c.Id == result.Id);

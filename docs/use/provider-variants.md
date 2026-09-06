@@ -28,7 +28,7 @@ MyProjectLookupKeys.VipAccount   // an ILookupKey
 
 <!-- sketch -->
 ```csharp
-new RecordProvider(typeof(Account), lookup)
+await new RecordProvider(typeof(Account), lookup)
     .WithVariant(MyProjectLookupKeys.VipAccount)
     .Supply();
 ```
@@ -40,7 +40,7 @@ the resolved Provider (it throws otherwise).
 
 <!-- sketch -->
 ```csharp
-new RecordProvider(MyProjectLookupKeys.VipAccount, lookup)
+await new RecordProvider(MyProjectLookupKeys.VipAccount, lookup)
     .Supply();
 ```
 
@@ -50,7 +50,7 @@ Same effect as `WithVariant`, and takes the record type from the key.
 
 <!-- sketch -->
 ```csharp
-new RecordProvider(new Account { AnnualRevenue = 5_000_000m }, lookup)
+await new RecordProvider(new Account { AnnualRevenue = 5_000_000m }, lookup)
     .Supply();
 ```
 

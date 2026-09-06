@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Xfty</PackageId>
-    <Version>1.0.0-beta.2</Version>
+    <Version>1.0.0-beta.3</Version>
     <Authors>Brian Kessler</Authors>
     <Description>A declarative test data factory: describe only the fields your test cares about, and XFTY generates the rest of the object graph - required/optional relationships, shared ancestors, context-aware values - then mocks or actually persists it through a pluggable IPersistenceGateway.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;object-mother;test-data-factory</PackageTags>

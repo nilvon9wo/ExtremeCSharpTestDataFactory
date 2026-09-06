@@ -28,13 +28,13 @@ public class BogusReadmeExampleTest
         });
 
     [Fact]
-    public void Supply_UsingBogusExpressionsInAMasterTemplate_ProducesRealisticLookingFields()
+    public async Task Supply_UsingBogusExpressionsInAMasterTemplate_ProducesRealisticLookingFields()
     {
         // Arrange
         IProviderLookup lookup = Lookup();
 
         // Act
-        Contact result = (Contact)new RecordProvider(typeof(Contact), lookup).Supply();
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup).Supply();
 
         // Assert
         Assert.False(string.IsNullOrWhiteSpace(result.FirstName));

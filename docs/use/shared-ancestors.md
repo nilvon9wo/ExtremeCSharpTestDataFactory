@@ -66,7 +66,7 @@ new MasterTemplate(Field.Of<Contact>(x => x.Id))
 
 <!-- sketch -->
 ```csharp
-List<object> contacts = new RecordProvider(typeof(Contact), lookup)
+List<object> contacts = await new RecordProvider(typeof(Contact), lookup)
     .SetQuantityPerTemplate(50)
     .SetInclusivity(InsertInclusivity.Required)
     .SetInsertMode(InsertMode.Mock)
@@ -223,7 +223,7 @@ object hqId = SharedAncestor.GetId("acme-hq");  // after it has resolved
 
 <!-- sketch -->
 ```csharp
-SharedAncestor.Get("root").ResolveNow(lookup, InsertMode.Mock);
+await SharedAncestor.Get("root").ResolveNow(lookup, InsertMode.Mock);
 object rootId = SharedAncestor.GetId("root");
 ```
 
@@ -267,7 +267,7 @@ at all (see the warning below).
 <!-- sketch -->
 ```csharp
 SharedAncestor.ManualResolutionOnly();
-SharedAncestor.ResolveNow(lookup, InsertMode.Mock, ["division", "region"]);
+await SharedAncestor.ResolveNow(lookup, InsertMode.Mock, ["division", "region"]);
 // the package's other shared-ancestor defaults are never built
 ```
 

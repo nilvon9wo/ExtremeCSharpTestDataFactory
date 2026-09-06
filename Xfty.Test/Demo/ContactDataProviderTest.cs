@@ -23,13 +23,13 @@ public class ContactDataProviderTest
             .SetInsertMode(mode);
 
     [Fact]
-    public void SupplyBundle_AtNoneInclusivity_GeneratesTheContactButNotAnAccount()
+    public async Task SupplyBundle_AtNoneInclusivity_GeneratesTheContactButNotAnAccount()
     {
         // Arrange
         RecordProvider provider = ContactProvider(InsertInclusivity.None, InsertMode.Mock);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         AssertContactGenerated(bundle);
@@ -38,13 +38,13 @@ public class ContactDataProviderTest
     }
 
     [Fact]
-    public void SupplyBundle_AtAllInclusivityInMockMode_GeneratesTheContactAndItsAccountWithTheDocumentedDefaults()
+    public async Task SupplyBundle_AtAllInclusivityInMockMode_GeneratesTheContactAndItsAccountWithTheDocumentedDefaults()
     {
         // Arrange
         RecordProvider provider = ContactProvider(InsertInclusivity.All, InsertMode.Mock);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         AssertContactGenerated(bundle);
@@ -56,13 +56,13 @@ public class ContactDataProviderTest
     }
 
     [Fact]
-    public void SupplyBundle_AtAllInclusivityInMockMode_WiresTheGraphWithoutTouchingADatabase()
+    public async Task SupplyBundle_AtAllInclusivityInMockMode_WiresTheGraphWithoutTouchingADatabase()
     {
         // Arrange
         RecordProvider provider = ContactProvider(InsertInclusivity.All, InsertMode.Mock);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         AssertContactGenerated(bundle);
@@ -88,7 +88,7 @@ public class ContactDataProviderTest
     }
 
     [Fact]
-    public void SupplyList_WithQuantity_GeneratesAUniqueEmailPerRecord()
+    public async Task SupplyList_WithQuantity_GeneratesAUniqueEmailPerRecord()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
@@ -96,7 +96,7 @@ public class ContactDataProviderTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        List<object> contacts = provider.SupplyList();
+        List<object> contacts = await provider.SupplyList();
 
         // Assert
         HashSet<object?> emails = [.. contacts.Cast<Contact>().Select(contact => contact.Email)];

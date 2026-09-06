@@ -19,7 +19,7 @@ public class AncestorCycleTest
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get(typeof(Contact))] = new SelfReferringContactProvider() });
 
     [Fact]
-    public void SupplyBundle_WithOneLevelOfSelfReference_StopsTheChainOnItsOwn()
+    public async Task SupplyBundle_WithOneLevelOfSelfReference_StopsTheChainOnItsOwn()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), SelfReferringLookup())
@@ -28,7 +28,7 @@ public class AncestorCycleTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Sanity Check
         Assert.NotNull(bundle.GetBundle<Contact>(x => x.ReportsToId)); // the manager Contact was generated
@@ -38,7 +38,7 @@ public class AncestorCycleTest
     }
 
     [Fact]
-    public void SupplyBundle_WhenAForcedPathRepeatsTheSameRelationshipKey_Throws()
+    public async Task SupplyBundle_WhenAForcedPathRepeatsTheSameRelationshipKey_Throws()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), SelfReferringLookup())
@@ -47,7 +47,7 @@ public class AncestorCycleTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(provider.SupplyBundle);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle);
 
         // Assert - a deeper same-key chain must throw
         Assert.Contains("cycle", thrown.Message);
@@ -55,7 +55,7 @@ public class AncestorCycleTest
     }
 
     [Fact]
-    public void SupplyBundle_WhenAllowAncestorCyclesIsSet_BuildsTheForcedDeepChainThenStops()
+    public async Task SupplyBundle_WhenAllowAncestorCyclesIsSet_BuildsTheForcedDeepChainThenStops()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), SelfReferringLookup())
@@ -65,7 +65,7 @@ public class AncestorCycleTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         Bundle levelTwo = bundle.GetBundle<Contact>(x => x.ReportsToId)!.GetBundle<Contact>(x => x.ReportsToId)!;
@@ -84,6 +84,6 @@ file sealed class SelfReferringContactProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }

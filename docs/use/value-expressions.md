@@ -9,7 +9,7 @@ Provider produces.
 ## `Put(...)` an expression
 
 ```csharp
-new RecordProvider(typeof(Contact), lookup)
+await new RecordProvider(typeof(Contact), lookup)
     .Put<Contact>(x => x.FirstName, new IncrementingStringExpression("Test Contact"))
     .SupplyBundle();
 // -> "Test Contact 1", "Test Contact 2", "Test Contact 3", ...
@@ -65,7 +65,7 @@ The value is whatever the field forms accept — **not just an exact value**:
 
 <!-- sketch -->
 ```csharp
-new RecordProvider(typeof(Contact), lookup)
+await new RecordProvider(typeof(Contact), lookup)
     .SetInclusivity(InsertInclusivity.Required)
 
     // an exact value

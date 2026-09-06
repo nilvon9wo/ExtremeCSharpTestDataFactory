@@ -24,5 +24,5 @@ public interface IPersistenceGateway
     /// type - and set <paramref name="idField"/> on each to its real,
     /// generated identifier.
     /// </summary>
-    void Insert(List<object> records, PropertyInfo idField);
+    Task Insert(List<object> records, PropertyInfo idField);
 }

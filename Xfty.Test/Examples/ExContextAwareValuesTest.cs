@@ -17,10 +17,10 @@ public class ExContextAwareValuesTest
     private static readonly DefaultProviderLookup Lookup = new();
 
     [Fact]
-    public void CopyASiblingField()
+    public async Task CopyASiblingField()
     {
         // from docs/use/context-aware-values.md "Copy a sibling field"
-        Account result = (Account)new RecordProvider(typeof(Account), Lookup)
+        Account result = (Account)await new RecordProvider(typeof(Account), Lookup)
             .Put<Account>(x => x.ShippingCity, "Berlin")
             .Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCity))
             .Supply();
@@ -29,10 +29,10 @@ public class ExContextAwareValuesTest
     }
 
     [Fact]
-    public void CopyAFieldFromAGeneratedAncestor_OneHop()
+    public async Task CopyAFieldFromAGeneratedAncestor_OneHop()
     {
         // from docs/use/context-aware-values.md "Copy a field from a generated ancestor" (one hop)
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup)
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
             .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account { Site = "HQ" }))
             .Put<Contact>(x => x.Department, CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Site))
             .SetInclusivity(InsertInclusivity.Required)
@@ -42,7 +42,7 @@ public class ExContextAwareValuesTest
     }
 
     [Fact]
-    public void CopyAFieldFromAGeneratedAncestor_MultiHop()
+    public async Task CopyAFieldFromAGeneratedAncestor_MultiHop()
     {
         // from docs/use/context-aware-values.md "Copy a field from a generated ancestor" (several hops)
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
@@ -51,7 +51,7 @@ public class ExContextAwareValuesTest
             [LookupKey.Get(typeof(Account))] = new AccountWithOwnerProvider(),
             [LookupKey.Get(typeof(User))] = new LeafUserProvider(),
         });
-        Case result = (Case)new RecordProvider(typeof(Case), lookup)
+        Case result = (Case)await new RecordProvider(typeof(Case), lookup)
             .Put<Case>(x => x.Subject, new CopyFromAncestorExpression([
                 Field.Of<Case>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId), Field.Of<User>(x => x.LastName),
             ]))
@@ -62,10 +62,10 @@ public class ExContextAwareValuesTest
     }
 
     [Fact]
-    public void YourOwnLogic_CustomContextAwareExpression()
+    public async Task YourOwnLogic_CustomContextAwareExpression()
     {
         // from docs/use/context-aware-values.md "Your own logic"
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup)
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
             .Put<Contact>(x => x.Birthdate, new DateTime(2010, 1, 1))
             .Put<Contact>(x => x.Department, new IsMinorFlag())
             .Supply();
@@ -74,7 +74,7 @@ public class ExContextAwareValuesTest
     }
 
     [Fact]
-    public void HowItRuns_TheOneOrderingRule()
+    public async Task HowItRuns_TheOneOrderingRule()
     {
         // from docs/use/context-aware-values.md "How it runs, and the one ordering rule" - the wrong-order example throws
         // (a bare MasterTemplate, not a Provider with its own pre-existing field-order, keeps the example's
@@ -83,7 +83,7 @@ public class ExContextAwareValuesTest
             .Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCity))
             .Put<Account>(x => x.ShippingCity, CopyFromSiblingExpression.From<Account>(x => x.Site));
 
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => provider.Supply());
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply);
         Assert.Contains("ShippingCity", thrown.Message);
     }
 
@@ -127,7 +127,7 @@ public class ExContextAwareValuesTest
     }
 
     [Fact]
-    public void ReadingUpFromAChild_NeedsDeferredMode()
+    public async Task ReadingUpFromAChild_NeedsDeferredMode()
     {
         // from docs/use/context-aware-values.md - "it only works under Deferred (or .DepthBatched())"
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
@@ -140,7 +140,7 @@ public class ExContextAwareValuesTest
             .SetInsertMode(InsertMode.Deferred)
             .Put<Contact>(x => x.Department, "Field Ops");
 
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
         DeferredInsertBuffer graph = DeferredInsertBuffer.Flatten(bundle);
         Account account = (Account)graph.Records().OfType<Account>().Single();
 
@@ -207,7 +207,7 @@ file sealed class AccountReadingChildDepartmentProvider : IRecordProvider
 
     public MasterTemplate MasterTemplate => this._template;
 
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 

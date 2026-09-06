@@ -20,14 +20,13 @@ public sealed partial class SharedAncestor
     public static bool IsManualResolutionOnly() => _manualResolution;
 
     /// <summary>Resolve a named set of shared ancestors up front, in one depth-batched pass.</summary>
-    public static void ResolveNow(IProviderLookup lookup, InsertMode insertMode, List<string> names)
+    public static Task ResolveNow(IProviderLookup lookup, InsertMode insertMode, List<string> names)
     {
         SharedAncestorResolver.ApplyLookupDefaults(lookup);
         List<SharedAncestor> toResolve = [.. names.Select(Get).Where(ancestor => ancestor.resolvedRecord is null)];
-        if (toResolve.Count > 0)
-        {
-            new SharedAncestorResolver(lookup, insertMode).Resolve(toResolve);
-        }
+        return toResolve.Count > 0
+            ? new SharedAncestorResolver(lookup, insertMode).Resolve(toResolve)
+            : Task.CompletedTask;
     }
 
     /// <summary>Every registered ancestor not yet resolved.</summary>

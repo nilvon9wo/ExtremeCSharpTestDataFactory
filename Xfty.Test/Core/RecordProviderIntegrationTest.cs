@@ -22,7 +22,7 @@ public class RecordProviderIntegrationTest
         });
 
     [Fact]
-    public void Supply_ForAContactWithARequiredAccountRelationship_GeneratesBothRecords()
+    public async Task Supply_ForAContactWithARequiredAccountRelationship_GeneratesBothRecords()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -30,7 +30,7 @@ public class RecordProviderIntegrationTest
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
-        object result = provider.Supply();
+        object result = await provider.Supply();
 
         // Assert
         Contact contact = Assert.IsType<Contact>(result);
@@ -40,7 +40,7 @@ public class RecordProviderIntegrationTest
     }
 
     [Fact]
-    public void Supply_WhenInclusivityIsNone_LeavesTheRelationshipUngenerated()
+    public async Task Supply_WhenInclusivityIsNone_LeavesTheRelationshipUngenerated()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -48,7 +48,7 @@ public class RecordProviderIntegrationTest
             .SetInclusivity(InsertInclusivity.None);
 
         // Act
-        object result = provider.Supply();
+        object result = await provider.Supply();
 
         // Assert - no ancestor was generated, so there is nothing to wire the lookup to
         Contact contact = Assert.IsType<Contact>(result);
@@ -56,7 +56,7 @@ public class RecordProviderIntegrationTest
     }
 
     [Fact]
-    public void SupplyList_WithAQuantity_GeneratesOneAccountPerContact()
+    public async Task SupplyList_WithAQuantity_GeneratesOneAccountPerContact()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -65,7 +65,7 @@ public class RecordProviderIntegrationTest
             .SetQuantityPerTemplate(3);
 
         // Act
-        List<object> results = provider.SupplyList();
+        List<object> results = await provider.SupplyList();
 
         // Assert
         List<Contact> contacts = [.. results.Cast<Contact>()];
@@ -74,13 +74,13 @@ public class RecordProviderIntegrationTest
     }
 
     [Fact]
-    public void Supply_WithAnOverrideTemplate_TheOverrideWins()
+    public async Task Supply_WithAnOverrideTemplate_TheOverrideWins()
     {
         // Arrange
         RecordProvider provider = new(new Contact { LastName = "Explicit" }, Lookup());
 
         // Act
-        object result = provider.Supply();
+        object result = await provider.Supply();
 
         // Assert
         Contact contact = Assert.IsType<Contact>(result);
@@ -88,7 +88,7 @@ public class RecordProviderIntegrationTest
     }
 
     [Fact]
-    public void SupplyBundle_WithChildren_GeneratesTheConfiguredChildCollectionWiredToTheParent()
+    public async Task SupplyBundle_WithChildren_GeneratesTheConfiguredChildCollectionWiredToTheParent()
     {
         // Arrange - downward generation: an Account with three Contact children
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -96,7 +96,7 @@ public class RecordProviderIntegrationTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3);
 
         // Act
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Assert
         List<object> children = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -106,7 +106,7 @@ public class RecordProviderIntegrationTest
     }
 
     [Fact]
-    public void Supply_WhenDepthBatchedWithNowMode_AttemptsRealPersistence()
+    public async Task Supply_WhenDepthBatchedWithNowMode_AttemptsRealPersistence()
     {
         // Arrange - depth-batched insert always needs a real persistence layer, which this port doesn't have yet
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -115,23 +115,23 @@ public class RecordProviderIntegrationTest
             .DepthBatched();
 
         // Act
-        NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => provider.Supply());
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply);
 
         // Assert - the depth-batched path was actually engaged, not silently skipped
         Assert.Contains("persistence gateway", thrown.Message);
     }
 
     [Fact]
-    public void DeferredInserter_Flush_AfterADeferredSupply_AttemptsRealPersistence()
+    public async Task DeferredInserter_Flush_AfterADeferredSupply_AttemptsRealPersistence()
     {
         // Arrange - DEFERRED mode builds the graph like Never and registers it; Flush() is where real persistence would happen
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Deferred)
             .SetInclusivity(InsertInclusivity.Required);
-        _ = provider.Supply();
+        _ = await provider.Supply();
 
         // Act
-        NotSupportedException thrown = Assert.Throws<NotSupportedException>(() => DeferredInserter.Flush());
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush());
 
         // Assert - the registry actually tried to persist, not silently no-op
         Assert.Contains("persistence gateway", thrown.Message);

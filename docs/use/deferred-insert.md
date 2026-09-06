@@ -10,17 +10,17 @@ record.
 ## `Deferred` — generate over many calls, register instead of inserting
 
 ```csharp
-Bundle accounts = new RecordProvider(typeof(Account), lookup)
+Bundle accounts = await new RecordProvider(typeof(Account), lookup)
     .SetInsertMode(InsertMode.Deferred)
     .SetQuantityPerTemplate(3)
     .SupplyBundle();
 
-Bundle contacts = new RecordProvider(typeof(Contact), lookup)
+Bundle contacts = await new RecordProvider(typeof(Contact), lookup)
     .SetInclusivity(InsertInclusivity.Required)
     .SetInsertMode(InsertMode.Deferred)
     .SupplyBundle();
 
-DeferredInserter.Flush(gateway);   // one pass, in dependency order, through the given IPersistenceGateway
+await DeferredInserter.Flush(gateway);   // one pass, in dependency order, through the given IPersistenceGateway
 ```
 
 `Deferred` generates exactly like `Never` — no Ids — but registers every
@@ -62,7 +62,7 @@ By default `Now` would run one insert per Provider. `.DepthBatched()` collapses
 that to one pass per dependency depth:
 
 ```csharp
-new RecordProvider(typeof(Case), lookup)
+await new RecordProvider(typeof(Case), lookup)
     .SetInclusivity(InsertInclusivity.Required)
     .SetInsertMode(InsertMode.Now)
     .DepthBatched()

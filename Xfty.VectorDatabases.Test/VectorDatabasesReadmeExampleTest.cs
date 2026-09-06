@@ -28,13 +28,13 @@ public class VectorDatabasesReadmeExampleTest
         });
 
     [Fact]
-    public void Supply_UsingRandomVectorExpressionInAMasterTemplate_ProducesAVectorOfTheDeclaredDimension()
+    public async Task Supply_UsingRandomVectorExpressionInAMasterTemplate_ProducesAVectorOfTheDeclaredDimension()
     {
         // Arrange
         IProviderLookup lookup = Lookup();
 
         // Act
-        DocumentChunk result = (DocumentChunk)new RecordProvider(typeof(DocumentChunk), lookup)
+        DocumentChunk result = (DocumentChunk)await new RecordProvider(typeof(DocumentChunk), lookup)
             .SetInsertMode(InsertMode.Mock)
             .Supply();
 

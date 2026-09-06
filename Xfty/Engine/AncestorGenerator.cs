@@ -12,12 +12,23 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
     private readonly int quantity = quantity;
     private readonly MasterTemplate template = template;
 
-    public Bundle Generate()
+    public async Task<Bundle> Generate()
     {
         Bundle bundle = new();
         HashSet<PropertyInfo> forcedHeads = this.ExplicitlyRequestedRelationshipHeads();
-        this.RelationshipFields().ForEach(field => this.AddAncestor(bundle, field, forcedHeads.Contains(field)));
+        await this.AddRemainingAncestors(bundle, this.RelationshipFields(), forcedHeads);
         return bundle;
+    }
+
+    private async Task AddRemainingAncestors(Bundle bundle, List<PropertyInfo> fields, HashSet<PropertyInfo> forcedHeads)
+    {
+        if (fields.Count == 0)
+        {
+            return;
+        }
+
+        await this.AddAncestor(bundle, fields[0], forcedHeads.Contains(fields[0]));
+        await this.AddRemainingAncestors(bundle, fields.Skip(1).ToList(), forcedHeads);
     }
 
     private List<PropertyInfo> RelationshipFields()
@@ -59,17 +70,16 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         this.template.RequiredRelationshipByField.ContainsKey(field)
         || this.template.OptionalRelationshipByField.ContainsKey(field);
 
-    private void AddAncestor(Bundle bundle, PropertyInfo field, bool isForced)
+    private Task AddAncestor(Bundle bundle, PropertyInfo field, bool isForced)
     {
         IDefaultRelationship relationship = this.RelationshipOn(field)!;
         if (relationship is ISharedRelationship shared)
         {
             this.AssertNoPathValueInto(field);
-            this.WireSharedAncestor(bundle, field, shared);
-            return;
+            return this.WireSharedAncestor(bundle, field, shared);
         }
 
-        this.GenerateAncestor(bundle, field, relationship, isForced);
+        return this.GenerateAncestor(bundle, field, relationship, isForced);
     }
 
     /// <summary>
@@ -90,10 +100,10 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         }
     }
 
-    private void WireSharedAncestor(Bundle bundle, PropertyInfo field, ISharedRelationship shared) =>
+    private Task WireSharedAncestor(Bundle bundle, PropertyInfo field, ISharedRelationship shared) =>
         new SharedRelationshipWiring(this.context, shared).Wire(bundle, field, this.quantity);
 
-    private void GenerateAncestor(Bundle bundle, PropertyInfo field, IDefaultRelationship relationship, bool isForced)
+    private async Task GenerateAncestor(Bundle bundle, PropertyInfo field, IDefaultRelationship relationship, bool isForced)
     {
         ILookupKey childKey = relationship.ResolveLookupKey(this.context.ProviderLookup)!;
         this.AssertNoAncestorCycle(field, childKey);
@@ -101,7 +111,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         GenerationContext childContext = this.ForcedChildContext(this.context.ForRelated(field), isForced)
             .EnteringProviderFor(childKey.HashKey);
         List<object> templates = ClonedTemplatesFor(relationship, this.quantity);
-        Bundle generated = provider.CreateBundle(childContext, templates);
+        Bundle generated = await provider.CreateBundle(childContext, templates);
         List<object>? primaries = generated.GetList(provider.PrimaryTargetField);
         _ = bundle.Put(field, generated);
         _ = bundle.Put(field, primaries!);

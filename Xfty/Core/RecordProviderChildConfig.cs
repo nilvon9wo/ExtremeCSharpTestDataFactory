@@ -16,20 +16,29 @@ internal sealed class RecordProviderChildConfig
 
     public bool HasAny => this.childProviders.Count > 0;
 
-    public void GenerateAll(Bundle bundle, bool structural, RecordProviderExecutionState state)
+    public Task GenerateAll(Bundle bundle, bool structural, RecordProviderExecutionState state) =>
+        this.HasAny
+            ? GenerateRemainingCollections(bundle, this.childProviders, structural, state)
+            : Task.CompletedTask;
+
+    private static async Task GenerateRemainingCollections(
+        Bundle bundle, List<ChildProvider> childProviders, bool structural, RecordProviderExecutionState state)
     {
-        if (this.HasAny)
+        if (childProviders.Count == 0)
         {
-            this.childProviders.ForEach(childProvider => GenerateOneCollection(bundle, childProvider, structural, state));
+            return;
         }
+
+        await GenerateOneCollection(bundle, childProviders[0], structural, state);
+        await GenerateRemainingCollections(bundle, childProviders.Skip(1).ToList(), structural, state);
     }
 
-    private static void GenerateOneCollection(Bundle bundle, ChildProvider childProvider, bool structural, RecordProviderExecutionState state)
+    private static async Task GenerateOneCollection(Bundle bundle, ChildProvider childProvider, bool structural, RecordProviderExecutionState state)
     {
         PropertyInfo primaryField = state.FactoryOutlet.PrimaryTargetField;
         List<(object Template, int ParentRow)> childRows = ChildRowsFor(bundle, primaryField, childProvider, structural);
         RecordProvider childInstance = BuildChildInstance(childProvider, structural, childRows, state);
-        Bundle childBundle = childInstance.SupplyBundle();
+        Bundle childBundle = await childInstance.SupplyBundle();
         _ = bundle.PutChild(childProvider.RelationshipField, childBundle, [.. childRows.Select(row => row.ParentRow)]);
     }
 

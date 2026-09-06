@@ -9,7 +9,7 @@ properties you set are overridden; everything else is still generated.
 ## The simplest case
 
 ```csharp
-Contact result = (Contact)new RecordProvider(typeof(Contact), lookup)
+Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup)
     .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
     .Supply();
 ```
@@ -23,7 +23,7 @@ A single override template can go straight to the constructor, which derives the
 record type (and any Provider variant) from it:
 
 ```csharp
-new RecordProvider(new Contact { FirstName = "Alice" }, lookup)
+await new RecordProvider(new Contact { FirstName = "Alice" }, lookup)
     .Supply();
 ```
 

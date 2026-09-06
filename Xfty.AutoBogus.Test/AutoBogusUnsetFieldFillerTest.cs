@@ -17,7 +17,7 @@ public class AutoBogusUnsetFieldFillerTest
         });
 
     [Fact]
-    public void Supply_FillsFieldsTheMasterTemplateNeverConfigured_WithRealAutoBogusValues()
+    public async Task Supply_FillsFieldsTheMasterTemplateNeverConfigured_WithRealAutoBogusValues()
     {
         // Arrange
         IAutoFaker faker = AutoFaker.Create();
@@ -26,7 +26,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert - AccountDataProvider's own Master Template never touches these
         _ = Assert.NotNull(result.NumberOfEmployees);
@@ -35,7 +35,7 @@ public class AutoBogusUnsetFieldFillerTest
     }
 
     [Fact]
-    public void Supply_NeverOverwritesAFieldTheMasterTemplateDidConfigure()
+    public async Task Supply_NeverOverwritesAFieldTheMasterTemplateDidConfigure()
     {
         // Arrange
         IAutoFaker faker = AutoFaker.Create();
@@ -44,7 +44,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert - AccountDataProvider's own declared defaults, untouched by AutoBogus
         Assert.StartsWith(AccountDataProvider.DefaultNamePrefix, result.Name);
@@ -52,7 +52,7 @@ public class AutoBogusUnsetFieldFillerTest
     }
 
     [Fact]
-    public void Excluding_LeavesThatOneFieldExactlyAsXftyLeftIt()
+    public async Task Excluding_LeavesThatOneFieldExactlyAsXftyLeftIt()
     {
         // Arrange
         IAutoFaker faker = AutoFaker.Create();
@@ -63,7 +63,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert - excluded field stays null; a sibling unset field still gets filled
         Assert.Null(result.Site);
@@ -71,7 +71,7 @@ public class AutoBogusUnsetFieldFillerTest
     }
 
     [Fact]
-    public void Excluding_ChainedForEveryNavigationProperty_LeavesAllOfThemUntouched()
+    public async Task Excluding_ChainedForEveryNavigationProperty_LeavesAllOfThemUntouched()
     {
         // Arrange - the exact navigation-property triple documented in use/autobogus.md
         IAutoFaker faker = AutoFaker.Create();
@@ -84,7 +84,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)provider.Supply();
+        Account result = (Account)await provider.Supply();
 
         // Assert
         Assert.Null(result.Contacts);
@@ -93,7 +93,7 @@ public class AutoBogusUnsetFieldFillerTest
     }
 
     [Fact]
-    public void Supply_ForASelfReferencingUnsetField_NeverThrows()
+    public async Task Supply_ForASelfReferencingUnsetField_NeverThrows()
     {
         // Arrange - Account.Parent is Account itself; AutoBogus self-limits
         // recursion depth rather than throwing, unlike AutoFixture's default
@@ -103,14 +103,14 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
         // Act
-        Exception? thrown = Record.Exception(() => provider.Supply());
+        Exception? thrown = await Record.ExceptionAsync(provider.Supply);
 
         // Assert
         Assert.Null(thrown);
     }
 
     [Fact]
-    public void Supply_CombinedWithXftyAutoBogus_FillsAScalarFieldWhileStillGeneratingRelationshipsViaXfty()
+    public async Task Supply_CombinedWithXftyAutoBogus_FillsAScalarFieldWhileStillGeneratingRelationshipsViaXfty()
     {
         // Arrange - the two features compose: XFTY resolves the required Account
         // relationship; AutoBogus fills whatever scalar fields are left over.
@@ -121,7 +121,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
         // Act
-        Contact result = (Contact)provider.Supply();
+        Contact result = (Contact)await provider.Supply();
 
         // Assert
         Assert.NotNull(result.AccountId); // XFTY's own relationship resolution

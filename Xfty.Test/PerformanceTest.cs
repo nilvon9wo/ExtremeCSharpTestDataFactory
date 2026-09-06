@@ -31,7 +31,7 @@ public class PerformanceTest
         });
 
     [Fact]
-    public void Supply_ForThreeThousandPrimariesWithARequiredParent_CompletesWellUnderASecond()
+    public async Task Supply_ForThreeThousandPrimariesWithARequiredParent_CompletesWellUnderASecond()
     {
         // Arrange - a Contact + its Account is 2 records per primary, so 3 000 primaries = 6 000 records
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -41,7 +41,7 @@ public class PerformanceTest
 
         // Act
         Stopwatch stopwatch = Stopwatch.StartNew();
-        List<object> results = provider.SupplyList();
+        List<object> results = await provider.SupplyList();
         stopwatch.Stop();
 
         // Assert
@@ -51,7 +51,7 @@ public class PerformanceTest
     }
 
     [Fact]
-    public void SupplyBundle_ForFiveThousandPrimariesHeldInMemory_StaysWithinAGenerousMemoryBudget()
+    public async Task SupplyBundle_ForFiveThousandPrimariesHeldInMemory_StaysWithinAGenerousMemoryBudget()
     {
         // Arrange - 5 000 primaries with a generated parent each, held in memory, no insert
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -61,7 +61,7 @@ public class PerformanceTest
 
         // Act
         long before = GC.GetTotalMemory(forceFullCollection: true);
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
         long allocatedRoughly = GC.GetTotalMemory(forceFullCollection: false) - before;
 
         // Assert
@@ -70,7 +70,7 @@ public class PerformanceTest
     }
 
     [Fact]
-    public void SupplyBundle_ForDownwardGenerationOfNestedChildren_MultipliesRecordsNotWallClock()
+    public async Task SupplyBundle_ForDownwardGenerationOfNestedChildren_MultipliesRecordsNotWallClock()
     {
         // Arrange - 15 Accounts, 10 Contacts each: 15 + 150 = 165 records, structurally batched
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
@@ -80,7 +80,7 @@ public class PerformanceTest
 
         // Act
         Stopwatch stopwatch = Stopwatch.StartNew();
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
         stopwatch.Stop();
 
         // Assert
@@ -90,7 +90,7 @@ public class PerformanceTest
     }
 
     [Fact]
-    public void Supply_WithTwoContextAwareExpressionsPerRecordAtVolume_StaysCheap()
+    public async Task Supply_WithTwoContextAwareExpressionsPerRecordAtVolume_StaysCheap()
     {
         // Arrange - 3 000 Contacts, each with a sibling copy and a custom context-aware expression
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
@@ -101,7 +101,7 @@ public class PerformanceTest
 
         // Act
         Stopwatch stopwatch = Stopwatch.StartNew();
-        List<object> results = provider.SupplyList();
+        List<object> results = await provider.SupplyList();
         stopwatch.Stop();
 
         // Assert

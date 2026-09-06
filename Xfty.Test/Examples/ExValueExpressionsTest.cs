@@ -13,10 +13,10 @@ public class ExValueExpressionsTest
     private static readonly DefaultProviderLookup Lookup = new();
 
     [Fact]
-    public void PutAnExpression()
+    public async Task PutAnExpression()
     {
         // from docs/use/value-expressions.md "Put(...) an expression"
-        List<object> results = new RecordProvider(typeof(Contact), Lookup)
+        List<object> results = await new RecordProvider(typeof(Contact), Lookup)
             .Put<Contact>(x => x.FirstName, new IncrementingStringExpression("Test Contact"))
             .SetQuantityPerTemplate(3)
             .SupplyList();
@@ -25,15 +25,15 @@ public class ExValueExpressionsTest
     }
 
     [Fact]
-    public void ImplicitExactValues()
+    public async Task ImplicitExactValues()
     {
         // from docs/use/value-expressions.md "Implicit exact values"
-        Account withImplicitLiterals = (Account)new RecordProvider(typeof(Account), Lookup)
+        Account withImplicitLiterals = (Account)await new RecordProvider(typeof(Account), Lookup)
             .Put<Account>(x => x.Type, "Customer")
             .Put<Account>(x => x.NumberOfEmployees, 500)
             .Supply();
 
-        Account withExplicitLiterals = (Account)new RecordProvider(typeof(Account), Lookup)
+        Account withExplicitLiterals = (Account)await new RecordProvider(typeof(Account), Lookup)
             .Put<Account>(x => x.Type, new LiteralExpression("Customer"))
             .Put<Account>(x => x.NumberOfEmployees, new LiteralExpression(500))
             .Supply();

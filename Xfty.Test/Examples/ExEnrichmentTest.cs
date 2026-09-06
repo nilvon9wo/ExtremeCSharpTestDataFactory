@@ -12,7 +12,7 @@ public class ExEnrichmentTest
 {
     private static readonly DefaultProviderLookup Lookup = new();
 
-    private static Bundle SampleBundle() =>
+    private static Task<Bundle> SampleBundle() =>
         new RecordProvider(typeof(Contact), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
@@ -20,10 +20,10 @@ public class ExEnrichmentTest
             .SupplyBundle();
 
     [Fact]
-    public void InjectAll_TheHeadlineExample()
+    public async Task InjectAll_TheHeadlineExample()
     {
         // from docs/use/enrichment.md "InjectAll - everything the graph holds"
-        Bundle bundle = SampleBundle();
+        Bundle bundle = await SampleBundle();
 
         List<object> contacts = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
 
@@ -32,10 +32,10 @@ public class ExEnrichmentTest
     }
 
     [Fact]
-    public void InjectWithABroadStart()
+    public async Task InjectWithABroadStart()
     {
         // from docs/use/enrichment.md - configuring a broad pass
-        Bundle bundle = SampleBundle();
+        Bundle bundle = await SampleBundle();
 
         List<object> result = bundle.Inject(Field.Of<Contact>(x => x.Id), InjectConfig.AllParents().ParentDepth(2));
 
@@ -43,10 +43,10 @@ public class ExEnrichmentTest
     }
 
     [Fact]
-    public void InjectOneChildCollectionNothingElse()
+    public async Task InjectOneChildCollectionNothingElse()
     {
         // from docs/use/enrichment.md "Inject(field, config) - name exactly what you want"
-        Bundle bundle = new RecordProvider(typeof(Account), Lookup)
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2)
             .SupplyBundle();
@@ -57,10 +57,10 @@ public class ExEnrichmentTest
     }
 
     [Fact]
-    public void InjectAScalarAndAValueTwoHopsUp()
+    public async Task InjectAScalarAndAValueTwoHopsUp()
     {
         // from docs/use/enrichment.md "a scalar the platform would compute, and a value two hops up"
-        Bundle bundle = SampleBundle();
+        Bundle bundle = await SampleBundle();
 
         InjectConfig config = InjectConfig.Nothing()
             .InjectValue(Field.Of<Contact>(x => x.Birthdate), new DateTime(2020, 1, 1))
@@ -73,10 +73,10 @@ public class ExEnrichmentTest
     }
 
     [Fact]
-    public void ForcingAValueThatDependsOnTheGraph()
+    public async Task ForcingAValueThatDependsOnTheGraph()
     {
         // from docs/use/enrichment.md "Runs after generation"
-        Bundle bundle = SampleBundle();
+        Bundle bundle = await SampleBundle();
 
         object? parentName = bundle.GetValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)]);
         InjectConfig config = InjectConfig.Nothing()

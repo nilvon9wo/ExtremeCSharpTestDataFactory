@@ -16,7 +16,7 @@ public interface ISharedRelationship : IDefaultRelationship
     string SharedName { get; }
 
     /// <summary>The one shared record - generated (and cached) on first call, reused after.</summary>
-    object? ResolveSharedRecord(GenerationContext context);
+    Task<object?> ResolveSharedRecord(GenerationContext context);
 
     /// <summary>A single-record sub-bundle exposing the shared record. Never null once the record is resolved.</summary>
     Bundle GetResolvedBundle();

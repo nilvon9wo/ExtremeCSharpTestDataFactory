@@ -18,7 +18,7 @@ namespace Net.Nowhereatall.Xfty.Core;
 /// no cast at the call site:
 ///
 /// <code>
-/// Contact result = new RecordProvider&lt;Contact&gt;(lookup)
+/// Contact result = await new RecordProvider&lt;Contact&gt;(lookup)
 ///     .Put(x => x.FirstName, "Alice")
 ///     .SetInsertMode(InsertMode.Mock)
 ///     .Supply();
@@ -51,11 +51,11 @@ public sealed class RecordProvider<TRecord>(IProviderLookup providerLookup)
 
     // Terminal (Supply) ---------------------------------------------------
 
-    public TRecord Supply() => (TRecord)this.inner.Supply();
+    public async Task<TRecord> Supply() => (TRecord)await this.inner.Supply();
 
-    public List<TRecord> SupplyList() => [.. this.inner.SupplyList().Cast<TRecord>()];
+    public async Task<List<TRecord>> SupplyList() => [.. (await this.inner.SupplyList()).Cast<TRecord>()];
 
-    public Bundle SupplyBundle() => this.inner.SupplyBundle();
+    public Task<Bundle> SupplyBundle() => this.inner.SupplyBundle();
 
     // Child collections -----------------------------------------------------
 

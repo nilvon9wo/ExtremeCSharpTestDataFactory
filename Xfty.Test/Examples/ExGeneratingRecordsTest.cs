@@ -16,10 +16,10 @@ public class ExGeneratingRecordsTest
     private static readonly DefaultProviderLookup Lookup = new();
 
     [Fact]
-    public void Supply_TheSimplestCase_ReturnsOneRecord()
+    public async Task Supply_TheSimplestCase_ReturnsOneRecord()
     {
         // from docs/use/generating-records.md "One record"
-        Contact result = (Contact)new RecordProvider(typeof(Contact), Lookup)
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
             .Supply();
 
         Assert.NotNull(result);
@@ -27,12 +27,12 @@ public class ExGeneratingRecordsTest
     }
 
     [Fact]
-    public void ShorthandConstructors_FromDocs_AllWork()
+    public async Task ShorthandConstructors_FromDocs_AllWork()
     {
         // from docs/use/generating-records.md "Shorthand constructors"
-        Contact fromTemplate = (Contact)new RecordProvider(new Contact { FirstName = "Alice" }, Lookup).Supply();
-        List<object> fromList = new RecordProvider([new Contact(), new Contact()], Lookup).SupplyList();
-        object fromKey = new RecordProvider(LookupKey.Get(typeof(Contact)), Lookup).Supply();
+        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, Lookup).Supply();
+        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], Lookup).SupplyList();
+        object fromKey = await new RecordProvider(LookupKey.Get(typeof(Contact)), Lookup).Supply();
 
         Assert.Equal("Alice", fromTemplate.FirstName);
         Assert.Equal(2, fromList.Count);
@@ -40,24 +40,24 @@ public class ExGeneratingRecordsTest
     }
 
     [Fact]
-    public void GettingStarted_CreatingYourFirstRecord()
+    public async Task GettingStarted_CreatingYourFirstRecord()
     {
         // from docs/use/getting-started.md "Creating Your First Record"
         DefaultProviderLookup providerLookup = new();
 
-        Contact contact = (Contact)new RecordProvider(typeof(Contact), providerLookup)
+        Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
             .Supply();
 
         Assert.NotNull(contact);
     }
 
     [Fact]
-    public void GettingStarted_OverrideTemplates()
+    public async Task GettingStarted_OverrideTemplates()
     {
         // from docs/use/getting-started.md "Override Templates"
         DefaultProviderLookup providerLookup = new();
 
-        Contact contact = (Contact)new RecordProvider(typeof(Contact), providerLookup)
+        Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
             .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
             .Supply();
 
@@ -66,14 +66,14 @@ public class ExGeneratingRecordsTest
     }
 
     [Fact]
-    public void GettingStarted_ShorthandConstructors()
+    public async Task GettingStarted_ShorthandConstructors()
     {
         // from docs/use/getting-started.md "Shorthand Constructors"
         DefaultProviderLookup providerLookup = new();
 
-        Contact fromTemplate = (Contact)new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup).Supply();
-        List<object> fromList = new RecordProvider([new Contact(), new Contact()], providerLookup).SupplyList();
-        object fromKey = new RecordProvider(LookupKey.Get(typeof(Contact)), providerLookup).Supply();
+        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup).Supply();
+        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], providerLookup).SupplyList();
+        object fromKey = await new RecordProvider(LookupKey.Get(typeof(Contact)), providerLookup).Supply();
 
         Assert.Equal("Alice", fromTemplate.FirstName);
         Assert.Equal(2, fromList.Count);
@@ -81,7 +81,7 @@ public class ExGeneratingRecordsTest
     }
 
     [Fact]
-    public void GettingStarted_UnderstandingBundles()
+    public async Task GettingStarted_UnderstandingBundles()
     {
         // from docs/use/getting-started.md "Understanding Bundles" - a Case pulling in an Account
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
@@ -89,7 +89,7 @@ public class ExGeneratingRecordsTest
             [LookupKey.Get(typeof(Case))] = new CaseWithAccountProvider(),
             [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
         });
-        Bundle bundle = new RecordProvider(typeof(Case), lookup)
+        Bundle bundle = await new RecordProvider(typeof(Case), lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();

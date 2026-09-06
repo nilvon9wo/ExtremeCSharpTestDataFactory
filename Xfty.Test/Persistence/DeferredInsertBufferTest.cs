@@ -14,29 +14,29 @@ namespace Net.Nowhereatall.Xfty.Test.Persistence;
 public class DeferredInsertBufferTest
 {
     [Fact]
-    public void ResolveAll_ForANullBundle_DoesNothing()
+    public async Task ResolveAll_ForANullBundle_DoesNothing()
     {
         // Arrange
         DeferredInsertBuffer buffer = new();
         buffer.Add(null);
 
         // Act / Assert - no throw
-        buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock);
     }
 
     [Fact]
-    public void ResolveAll_ForABundleWithNoPrimaryRecords_DoesNothing()
+    public async Task ResolveAll_ForABundleWithNoPrimaryRecords_DoesNothing()
     {
         // Arrange
         DeferredInsertBuffer buffer = new();
         buffer.Add(new Bundle());
 
         // Act / Assert - no throw
-        buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock);
     }
 
     [Fact]
-    public void ResolveAll_ForAParentAndChild_ResolvesTheParentFirstAndPointsTheLookup()
+    public async Task ResolveAll_ForAParentAndChild_ResolvesTheParentFirstAndPointsTheLookup()
     {
         // Arrange
         Account parent = new() { Name = "Buffer Parent" };
@@ -48,14 +48,14 @@ public class DeferredInsertBufferTest
         buffer.Add(childBundle);
 
         // Act
-        buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock);
 
         // Assert - the child lookup points at the freshly-mocked parent Id
         Assert.Equal(parent.Id, child.AccountId);
     }
 
     [Fact]
-    public void ResolveAll_WhenAChildLookupIsAlreadySet_LeavesItAlone()
+    public async Task ResolveAll_WhenAChildLookupIsAlreadySet_LeavesItAlone()
     {
         // Arrange
         Account existing = new() { Name = "Already Linked", Id = IdMocker.GenerateId() };
@@ -68,7 +68,7 @@ public class DeferredInsertBufferTest
         buffer.Add(childBundle);
 
         // Act
-        buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock);
 
         // Assert
         Assert.Equal(existing.Id, child.AccountId); // the pre-set lookup is not repointed
@@ -76,7 +76,7 @@ public class DeferredInsertBufferTest
     }
 
     [Fact]
-    public void ResolveAll_WhenARelationshipFieldHasNoSubBundle_SkipsItAndStillResolvesThePrimary()
+    public async Task ResolveAll_WhenARelationshipFieldHasNoSubBundle_SkipsItAndStillResolvesThePrimary()
     {
         // Arrange
         Account onlyRecord = new() { Name = "No Parent Bundle" };
@@ -86,14 +86,14 @@ public class DeferredInsertBufferTest
         buffer.Add(bundle);
 
         // Act
-        buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock);
 
         // Assert
         Assert.NotNull(onlyRecord.Id);
     }
 
     [Fact]
-    public void ResolveAll_ForOneParentSharedByManyChildren_PointsEveryChildAtIt()
+    public async Task ResolveAll_ForOneParentSharedByManyChildren_PointsEveryChildAtIt()
     {
         // Arrange - a shared ancestor: 3 Contacts, one Account bundle
         Account sharedParent = new() { Name = "Shared Parent" };
@@ -106,7 +106,7 @@ public class DeferredInsertBufferTest
         buffer.Add(bundle);
 
         // Act
-        buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock);
 
         // Assert
         Assert.All(contacts.Cast<Contact>(), contact => Assert.Equal(sharedParent.Id, contact.AccountId));

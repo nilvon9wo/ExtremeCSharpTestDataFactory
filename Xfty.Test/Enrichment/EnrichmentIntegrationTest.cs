@@ -22,13 +22,13 @@ public class EnrichmentIntegrationTest
         });
 
     [Fact]
-    public void InjectAll_ForAGeneratedAncestor_PopulatesTheNavigationPropertyOnNewInstances()
+    public async Task InjectAll_ForAGeneratedAncestor_PopulatesTheNavigationPropertyOnNewInstances()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required);
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Act - InjectAll targets the bundle's primary field, not the ancestor key (which addresses the ancestor sub-bundle itself)
         List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
@@ -42,13 +42,13 @@ public class EnrichmentIntegrationTest
     }
 
     [Fact]
-    public void InjectAll_ForAGeneratedChildCollection_PopulatesTheCollectionNavigationProperty()
+    public async Task InjectAll_ForAGeneratedChildCollection_PopulatesTheCollectionNavigationProperty()
     {
         // Arrange - downward generation: an Account with three Contact children
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3);
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Act
         List<object> enriched = bundle.InjectAll(Field.Of<Account>(x => x.Id));
@@ -61,13 +61,13 @@ public class EnrichmentIntegrationTest
     }
 
     [Fact]
-    public void InjectAll_WhenTheGraphHasNothingToInject_Throws()
+    public async Task InjectAll_WhenTheGraphHasNothingToInject_Throws()
     {
         // Arrange - no ancestor generated, no children configured
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.None);
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
@@ -78,13 +78,13 @@ public class EnrichmentIntegrationTest
     }
 
     [Fact]
-    public void Inject_WithInjectValue_ForcesAScalarOntoEveryRow()
+    public async Task Inject_WithInjectValue_ForcesAScalarOntoEveryRow()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetQuantityPerTemplate(2);
-        Bundle bundle = provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle();
         InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(x => x.Department), "Sales");
 
         // Act

@@ -21,10 +21,10 @@ public class ExPerCallRelationshipsTest
         });
 
     [Fact]
-    public void TheSimplestCase()
+    public async Task TheSimplestCase()
     {
         // from docs/use/per-call-relationships.md "The simplest case"
-        Account result = (Account)new RecordProvider(typeof(Account), Lookup())
+        Account result = (Account)await new RecordProvider(typeof(Account), Lookup())
             .IncludeOptional<Account>(x => x.OwnerId)       // generate this optional one too
             .ExcludeRelationship<Account>(x => x.ParentId)  // do not generate this one, even though it is required
             .SetInsertMode(InsertMode.Mock)
@@ -35,10 +35,10 @@ public class ExPerCallRelationshipsTest
     }
 
     [Fact]
-    public void ReachingDeeper_APath()
+    public async Task ReachingDeeper_APath()
     {
         // from docs/use/per-call-relationships.md "Reaching deeper - a path"
-        Bundle bundle = new RecordProvider(typeof(Contact), Lookup())
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)])
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle();
