@@ -117,36 +117,16 @@ No `NUGET_API_KEY` (or any other long-lived credential) is stored in this
 repo at all — nuget.org itself now recommends Trusted Publishing over a
 stored key for any supported CI/CD workflow, GitHub Actions included.
 
-One-time setup on nuget.org (repo owner only): sign in → username menu →
-**Trusted Publishing** → add a policy with:
-
-- **Repository Owner:** `nilvon9wo`
-- **Repository:** `ExtremeCSharpTestDataFactory`
-- **Workflow File:** `publish.yml` (file name only, not the
-  `.github/workflows/` path)
-- **Environment:** leave blank (the workflow doesn't declare a GitHub Actions
-  `environment:`)
-- **Glob Patterns and Packages:** one glob per line, covering every package
-  id this workflow pushes — a single line is enough:
-  ```
-  Xfty*
-  ```
-  (matches all nine package ids)
-- **Select Scope:**
-  - ✅ **Push**, radio set to **Push new packages and package versions** (the
-    default) — every one of the nine is a first-time publish the first time
-    this runs, so "Push only new package versions" would reject all of them.
-  - ⬜ **Unlist or relist package versions** — leave unchecked; the workflow
-    never does either, so there's no reason to grant it.
-
-A policy against a public repo needs one real publish before it's considered
-fully trusted (a 7-day provisional window guards against someone deleting and
-recreating the repo to hijack it) — the first tag push starts that clock.
-
-Then add a repository **variable** (not a secret — it's just a username, not
-a credential) named `NUGET_USERNAME`, set to the nuget.org profile name (not
-the email the account was registered with) under Settings → Secrets and
-variables → Actions → Variables.
+One-time setup on nuget.org (repo owner only, under the username menu's
+**Trusted Publishing** page): a policy pointing at this repo and at
+`publish.yml`, scoped to the glob `Xfty*` rather than one entry per package -
+**every publishable package in this solution is named with that prefix
+specifically so a new one is covered automatically**; naming a new
+publishable package anything else means either renaming it or widening the
+policy before `publish.yml` can push it. Push access, not unlist/relist. A
+repository **variable** (not a secret - it's a username, not a credential)
+named `NUGET_USERNAME` holds the nuget.org profile name the login step logs
+in as.
 
 ### One-off manual push from the command line — still needs an API key
 
