@@ -72,6 +72,46 @@ public class AutoFixtureUnsetFieldFillerTest
     }
 
     [Fact]
+    public void Excluding_ChainedForEveryNavigationProperty_LeavesAllOfThemUntouched()
+    {
+        // Arrange - the exact navigation-property triple documented in use/autofixture.md
+        IFixture fixture = new Fixture();
+        AutoFixtureUnsetFieldFiller filler = new AutoFixtureUnsetFieldFiller(fixture)
+            .Excluding(Field.Of<Account>(x => x.Contacts))
+            .Excluding(Field.Of<Account>(x => x.Parent))
+            .Excluding(Field.Of<Account>(x => x.ChildAccounts));
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+            .SetInsertMode(InsertMode.Mock)
+            .SetUnsetFieldFiller(filler);
+
+        // Act
+        Account result = (Account)provider.Supply();
+
+        // Assert
+        Assert.Null(result.Contacts);
+        Assert.Null(result.Parent);
+        Assert.Null(result.ChildAccounts);
+    }
+
+    [Fact]
+    public void Supply_WithOmitOnRecursionBehaviorInstalled_StillFillsTheSelfReferencingFieldWithoutThrowing()
+    {
+        // Arrange - the documented alternative to relying on this filler's own catch
+        IFixture fixture = new Fixture();
+        _ = fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().Single());
+        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+            .SetInsertMode(InsertMode.Mock)
+            .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
+
+        // Act
+        Exception? thrown = Record.Exception(() => provider.Supply());
+
+        // Assert
+        Assert.Null(thrown);
+    }
+
+    [Fact]
     public void Supply_ForASelfReferencingUnsetField_NeverLetsAFixturesRecursionGuardEscape()
     {
         // Arrange - Account.Parent is Account itself; a plain Fixture's default

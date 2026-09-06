@@ -83,4 +83,17 @@ public class XftyAutoBogusTest
         // Assert
         Assert.NotNull(account.Id);
     }
+
+    [Fact]
+    public void Generate_WithInclusivityOverriddenToNone_LeavesTheRelationshipUngenerated()
+    {
+        // Arrange - overriding back to RecordProvider's own defaults, explicitly
+        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup(), InsertMode.Mock, InsertInclusivity.None);
+
+        // Act
+        Contact contact = faker.Generate<Contact>();
+
+        // Assert
+        Assert.Null(contact.AccountId);
+    }
 }

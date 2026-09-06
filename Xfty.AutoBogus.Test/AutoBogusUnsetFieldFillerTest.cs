@@ -71,6 +71,28 @@ public class AutoBogusUnsetFieldFillerTest
     }
 
     [Fact]
+    public void Excluding_ChainedForEveryNavigationProperty_LeavesAllOfThemUntouched()
+    {
+        // Arrange - the exact navigation-property triple documented in use/autobogus.md
+        IAutoFaker faker = AutoFaker.Create();
+        AutoBogusUnsetFieldFiller filler = new AutoBogusUnsetFieldFiller(faker)
+            .Excluding(Field.Of<Account>(x => x.Contacts))
+            .Excluding(Field.Of<Account>(x => x.Parent))
+            .Excluding(Field.Of<Account>(x => x.ChildAccounts));
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+            .SetInsertMode(InsertMode.Mock)
+            .SetUnsetFieldFiller(filler);
+
+        // Act
+        Account result = (Account)provider.Supply();
+
+        // Assert
+        Assert.Null(result.Contacts);
+        Assert.Null(result.Parent);
+        Assert.Null(result.ChildAccounts);
+    }
+
+    [Fact]
     public void Supply_ForASelfReferencingUnsetField_NeverThrows()
     {
         // Arrange - Account.Parent is Account itself; AutoBogus self-limits

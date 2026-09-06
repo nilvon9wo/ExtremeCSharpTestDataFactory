@@ -50,14 +50,21 @@ else.
   relationship null because nothing asked for it explicitly would surprise
   anyone coming from AutoFixture's side of this pairing.
 
+Override either default explicitly - here, back to `RecordProvider`'s own
+defaults instead of the ones tuned for AutoFixture:
+
 ```csharp
 IFixture fixture = new Fixture().Customize(
-    new XftyCustomization(lookup, InsertMode.Now, InsertInclusivity.All));
+    new XftyCustomization(lookup, InsertMode.Mock, InsertInclusivity.None));
+
+Contact contact = fixture.Create<Contact>();
+// contact.AccountId is null again - nothing asked for the relationship explicitly.
 ```
 
-use a different `InsertMode`/`InsertInclusivity` (with
+`InsertMode.Now` works the same way (with
 `RecordProvider.SetPersistenceGateway(...)` configured on the Providers
-involved, for `Now`) for a customization that should behave differently.
+involved) for a customization that should insert for real instead of
+mocking Ids.
 
 This is deliberately a thin `ISpecimenBuilder` - if it needs to work
 differently for some request (a specific variant key, a per-call override

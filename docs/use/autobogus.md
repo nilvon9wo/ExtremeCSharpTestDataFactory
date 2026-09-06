@@ -44,18 +44,34 @@ defaults to `InsertInclusivity.Required`, not `RecordProvider`'s own
 default of `None` - AutoBogus users expect `Generate<T>()` to hand back a
 complete object.
 
+Override either default explicitly - here, back to `RecordProvider`'s own
+defaults instead of the ones tuned for AutoBogus:
+
 ```csharp
-IAutoFaker faker = XftyAutoBogus.CreateFaker(lookup, InsertMode.Now, InsertInclusivity.All);
+IAutoFaker faker = XftyAutoBogus.CreateFaker(lookup, InsertMode.Mock, InsertInclusivity.None);
+
+Contact contact = faker.Generate<Contact>();
+// contact.AccountId is null again - nothing asked for the relationship explicitly.
 ```
+
+`InsertMode.Now` works the same way (with
+`RecordProvider.SetPersistenceGateway(...)` configured on the Providers
+involved) for a customization that should insert for real instead of
+mocking Ids.
 
 Under the hood this is `XftyAutoBogusOverride`, an `AutoGeneratorOverride`
 with `Preinitialize => false` - AutoBogus never constructs or populates an
 instance of its own before handing control to the override, so nothing it
 generates is thrown away or overwritten by XFTY's own result. Register it
-directly (`AutoFaker.Configure(builder => builder.WithOverride(new
-XftyAutoBogusOverride(lookup, InsertMode.Mock, InsertInclusivity.Required)))`,
-or `AutoFaker.Create(...)` for a scoped, non-global faker) if you need it
-alongside other overrides `CreateFaker`'s one-liner doesn't expose.
+directly with `AutoFaker.Create(builder => builder.WithOverride(new
+XftyAutoBogusOverride(lookup, InsertMode.Mock, InsertInclusivity.Required)))`
+if you need it alongside other overrides `CreateFaker`'s one-liner doesn't
+expose. Prefer `AutoFaker.Create(...)` (a scoped, independent faker) over
+`AutoFaker.Configure(...)` for this - `Configure` mutates AutoBogus's
+*global*, process-wide default, which leaks between unrelated tests the
+same way an unreset `SharedAncestor` used to (see
+[shared-ancestors.md](shared-ancestors.md)); `Create(...)` scopes the
+override to the one faker instance you hand out.
 
 ## 2. Let AutoBogus fill in what a Provider left unset
 
