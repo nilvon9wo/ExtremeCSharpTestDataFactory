@@ -30,6 +30,9 @@ public sealed class LookupKey : ILookupKey
     public static LookupKey Get(object? record) =>
         Get(record?.GetType());
 
+    /// <summary>Get(typeof(TRecord)), without the typeof.</summary>
+    public static LookupKey Get<TRecord>() => Get(typeof(TRecord));
+
     public Type RecordType { get; }
 
     public bool IsInstanceOf(object? record) =>

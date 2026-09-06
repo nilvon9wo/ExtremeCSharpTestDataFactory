@@ -92,6 +92,18 @@ public class LookupKeyTest
     }
 
     [Fact]
+    public void GetOfTRecord_IsTheSameInternedInstanceAsGetOfType()
+    {
+        // Arrange - nothing to arrange, the flyweight is under test
+
+        // Act
+        LookupKey fromTypeParameter = LookupKey.Get<Account>();
+
+        // Assert
+        Assert.Same(LookupKey.Get(typeof(Account)), fromTypeParameter);
+    }
+
+    [Fact]
     public void Get_WhenTheTypeIsNull_Throws()
     {
         // Arrange - nothing to arrange
@@ -122,6 +134,18 @@ public class LookupKeyTest
 
     [Fact]
     public void IsInstanceOf_WhenThePredicateFails_ReturnsFalse() => AssertNamedFlavourIsInstanceOf(new Account(), false);
+
+    [Fact]
+    public void FlavouredGetOfTRecord_IsTheSameInternedInstanceAsGetOfType()
+    {
+        // Arrange - nothing to arrange, the flyweight is under test
+
+        // Act
+        FlavouredLookupKey fromTypeParameter = FlavouredLookupKey.Get<Account>("named-runner");
+
+        // Assert
+        Assert.Same(NamedFlavour, fromTypeParameter);
+    }
 
     [Fact]
     public void HashKey_ForAFlavouredKey_IsTypeAndFlavour()
@@ -202,6 +226,20 @@ public class LookupKeyTest
         // Assert
         _ = Assert.IsType<AccountDataProvider>(first);
         Assert.Same(first, lookup.Get(typeof(Account))); // Get(Type) resolves the same way and caches
+    }
+
+    [Fact]
+    public void GetOfTRecord_OnAnInstanceMapLookup_ReturnsTheRegisteredProvider()
+    {
+        // Arrange
+        IRecordProvider provider = new AccountDataProvider();
+        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get(typeof(Account))] = provider });
+
+        // Act
+        IRecordProvider resolved = lookup.Get<Account>();
+
+        // Assert
+        Assert.Same(provider, resolved);
     }
 
     [Fact]

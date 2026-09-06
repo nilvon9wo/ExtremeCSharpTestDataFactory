@@ -43,6 +43,9 @@ public sealed class FlavouredLookupKey : ILookupKey
         return existing;
     }
 
+    /// <summary>Get(typeof(TRecord), flavour), without the typeof.</summary>
+    public static FlavouredLookupKey Get<TRecord>(string flavour) => Get(typeof(TRecord), flavour);
+
     /// <summary>Add a condition the record must satisfy to belong to this flavour. Chainable.</summary>
     public FlavouredLookupKey Matching(IRecordPredicate predicate)
     {

@@ -12,6 +12,9 @@ public static class ProviderLookups
 {
     // Resolving a Provider ---------------------------------------------------
 
+    /// <summary>lookup.Get(typeof(TRecord)), without the typeof.</summary>
+    public static IRecordProvider Get<TRecord>(this IProviderLookup lookup) => lookup.Get(typeof(TRecord));
+
     /// <summary>Look up (and lazily instantiate + cache) a Provider for key.</summary>
     public static IRecordProvider Get(
         Dictionary<ILookupKey, Type> providerTypeByKey,

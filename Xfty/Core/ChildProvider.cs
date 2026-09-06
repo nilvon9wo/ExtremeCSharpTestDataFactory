@@ -72,8 +72,22 @@ public sealed class ChildProvider
     public ChildProvider Put(PropertyInfo field, IContextAwareExpression contextAwareExpression) =>
         this.AddPendingPut(ChildProviderPendingPut.OfContextAware(field, contextAwareExpression));
 
-    public ChildProvider Put(PropertyInfo field, object? literal) =>
-        this.AddPendingPut(ChildProviderPendingPut.OfLiteral(field, literal));
+    /// <summary>
+    /// Convenience overload mirroring MasterTemplate.Put(field, object): routed by runtime
+    /// type - a relationship is rejected (its requiredness has to be stated via
+    /// PutRequired/PutOptional); anything else is treated as an exact literal.
+    /// </summary>
+    public ChildProvider Put(PropertyInfo field, object? value) =>
+        value switch
+        {
+            IContextAwareExpression contextAware => this.Put(field, contextAware),
+            IValueExpression valueExpression => this.Put(field, valueExpression),
+            IDefaultRelationship => throw RelationshipsNeedPutRequiredOrOptional(),
+            _ => this.AddPendingPut(ChildProviderPendingPut.OfLiteral(field, value)),
+        };
+
+    private static XftyConfigurationException RelationshipsNeedPutRequiredOrOptional() =>
+        new("Relationships must be added with PutRequired(...) or PutOptional(...), not Put(...).");
 
     public ChildProvider PutRequired(PropertyInfo field, IDefaultRelationship relationship) =>
         this.AddPendingPut(ChildProviderPendingPut.OfRequiredRelationship(field, relationship));
