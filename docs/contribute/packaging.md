@@ -94,8 +94,55 @@ only wants the considered packages simply doesn't install these two.
 ## Publishing to nuget.org
 
 This is the one remaining step, and it needs the package owner's own
-nuget.org account and API key — nothing about it can be scripted or done on
-someone else's behalf:
+nuget.org account — nothing about it can be scripted or done on someone
+else's behalf. Once a version is live, it's automatically searchable from
+Visual Studio's NuGet Package Manager (VS searches nuget.org by default) — no
+separate listing step. `Xfty.EntityFrameworkCore` depends on the `Xfty`
+package id/version, so `Xfty` has to land first; `Xfty.Bogus`,
+`Xfty.VectorDatabases`, `Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`,
+and the two vector-database preview packages all depend only on `Xfty` too,
+so the same order works for all nine.
+
+### CI: Trusted Publishing — no stored secret at all
+
+[`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) — push
+a `v*` tag, or run it manually from the Actions tab — builds, tests, packs
+every publishable package including the two preview ones, and pushes all of
+them with `--skip-duplicate`. It uses nuget.org's
+[Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing):
+the workflow requests a GitHub OIDC token (`permissions: id-token: write`),
+`NuGet/login@v1` exchanges it for a NuGet API key that lives for one hour and
+never touches a GitHub secret, and that key is what `dotnet nuget push` uses.
+No `NUGET_API_KEY` (or any other long-lived credential) is stored in this
+repo at all — nuget.org itself now recommends Trusted Publishing over a
+stored key for any supported CI/CD workflow, GitHub Actions included.
+
+One-time setup on nuget.org (repo owner only): sign in → username menu →
+**Trusted Publishing** → add a policy with:
+
+- **Repository Owner:** `nilvon9wo`
+- **Repository:** `ExtremeCSharpTestDataFactory`
+- **Workflow File:** `publish.yml` (file name only, not the
+  `.github/workflows/` path)
+- **Environment:** leave blank (the workflow doesn't declare a GitHub Actions
+  `environment:`)
+- **Scope:** a glob covering every package id this workflow pushes — `Xfty*`
+  matches all nine — with "publish new packages" allowed, since every one of
+  them is a first-time publish the first time this runs.
+
+A policy against a public repo needs one real publish before it's considered
+fully trusted (a 7-day provisional window guards against someone deleting and
+recreating the repo to hijack it) — the first tag push starts that clock.
+
+Then add a repository **variable** (not a secret — it's just a username, not
+a credential) named `NUGET_USERNAME`, set to the nuget.org profile name (not
+the email the account was registered with) under Settings → Secrets and
+variables → Actions → Variables.
+
+### One-off manual push from the command line — still needs an API key
+
+nuget.org's own guidance: API keys "continue to work" for this case, just not
+as the recommended choice for CI anymore.
 
 ```bash
 dotnet nuget push ./local-packages/Xfty.<version>.nupkg \
@@ -103,18 +150,5 @@ dotnet nuget push ./local-packages/Xfty.<version>.nupkg \
   --source https://api.nuget.org/v3/index.json
 ```
 
-`Xfty.EntityFrameworkCore` depends on the `Xfty` package id/version, so push
-`Xfty` first; `Xfty.Bogus`, `Xfty.VectorDatabases`, `Xfty.Xunit`,
-`Xfty.AutoFixture`, and `Xfty.AutoBogus` all depend only on `Xfty` too, so
-the same order works for all seven. Once a
-version is live on nuget.org, it's automatically searchable from Visual
-Studio's NuGet Package Manager (VS searches nuget.org by default) — no
-separate listing step.
-
-The repeatable alternative — [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml)
-— is already in the repo: pushing a `v*` tag (or running it manually from the
-Actions tab) builds, tests, packs every publishable package including the two
-preview ones, and pushes all of them with `--skip-duplicate`. It needs a
-`NUGET_API_KEY` repository secret (Settings → Secrets and variables → Actions)
-set to an API key scoped the same way as a manual push — nothing about a
-secret's value can be set by anyone other than the repository owner.
+Generate a key under username menu → **API Keys** → Create, the same place
+Trusted Publishing lives (right next to it in the nuget.org UI).

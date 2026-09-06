@@ -10,6 +10,9 @@ jobs:
   publish:
     name: Pack + push
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required so NuGet/login can request a GitHub OIDC token
     steps:
       - uses: actions/checkout@v5
 
@@ -44,9 +47,15 @@ jobs:
             dotnet pack "$proj" -c Release --no-build -o ./packages
           done
 
+      - name: NuGet login (OIDC -> short-lived API key, no stored secret)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ vars.NUGET_USERNAME }} # nuget.org profile name, not email - see docs/contribute/packaging.md
+
       - name: Push to nuget.org
         run: >
           dotnet nuget push "./packages/*.nupkg"
-          --api-key "${{ secrets.NUGET_API_KEY }}"
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
