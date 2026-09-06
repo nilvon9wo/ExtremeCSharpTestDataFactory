@@ -97,4 +97,25 @@ public class SharedAncestorIntegrationTest
         Assert.NotNull(result.AccountId);
         Assert.Equal(result.AccountId, SharedAncestor.GetId(sharedName));
     }
+
+    [Fact]
+    public void SupplyBundle_InMockRelatedOnlyMode_WithASharedAncestor_MockResolvesItWithoutAGateway()
+    {
+        // Arrange - MockRelatedOnly's shared-ancestor resolution is eager too, but as Mock, not Now
+        const string sharedName = "shared-ancestor-test-mock-related-only";
+        _ = SharedAncestor.PutAsTemplate(sharedName, new Account { Name = "Mock Related Only HQ" });
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
+            .SetInsertMode(InsertMode.MockRelatedOnly)
+            .SetInclusivity(InsertInclusivity.Required)
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName));
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+
+        // Assert - the shared Account resolved with a mock Id; the Contact primary stays un-Id'd
+        Contact contact = (Contact)bundle.PrimaryRecords()![0];
+        Assert.Null(contact.Id);
+        Assert.NotNull(contact.AccountId);
+        Assert.Equal(SharedAncestor.GetId(sharedName), contact.AccountId);
+    }
 }

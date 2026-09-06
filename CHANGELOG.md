@@ -14,6 +14,19 @@ because those entries describe a change made in *this* repository.
 
 ### Fixed
 
+- **`RelatedOnly`'s user-facing docs described the opposite of what it
+  actually does.** `insert-modes.md`, `getting-started.md`, and
+  `api-cheatsheet.md` all described it as pure, offline Mock-Id
+  generation needing no persistence; `architecture.md` had the correct
+  behavior documented the whole time and nobody cross-checked the two.
+  `RelatedOnly` relates a not-yet-inserted primary to a **real, persisted
+  (or persistable) ancestor** - a mocked ancestor Id would be a dangling
+  reference to nothing once the primary is actually inserted. The code
+  (`GenerationContext.ForRelated()` upgrading `RelatedOnly` to `Now` for
+  ancestor generation) was correct all along. All three doc pages
+  corrected; two permanent regression tests added to
+  `PersistenceGatewayTest` since nothing end-to-end had exercised this
+  path before.
 - **`SharedAncestor` could crash under real concurrent access** —
   `ByName`/`Disabled` were a plain `Dictionary`/`HashSet`, and
   `SharedAncestorResolver`'s own `_running`/`InProgress` fields were
@@ -31,6 +44,24 @@ because those entries describe a change made in *this* repository.
 
 ### Added
 
+- **`InsertMode.MockRelatedOnly`** — the offline sibling of `RelatedOnly`:
+  the same shape (primary left Id-less for the caller to insert itself),
+  but the ancestor only gets a **mock** Id instead of a genuine insert, so
+  no `IPersistenceGateway` is needed at all. Requested directly: the
+  Apex original's equivalent workflow just used `Mock` everywhere and
+  nulled out the primary's own Id by hand when only that was needed;
+  cheap to do inline in one codebase, less convenient to ask every
+  consumer of a published library to reinvent. Mechanically small because
+  the two places that special-case `RelatedOnly` already composed
+  cleanly: `GenerationContext.ForRelated()` gained a second branch
+  (`MockRelatedOnly` → `Mock`, next to `RelatedOnly` → `Now`), and
+  `SharedAncestorResolver.Eager()` gained the same second branch, so a
+  shared ancestor referenced under `MockRelatedOnly` resolves eagerly too,
+  as `Mock` rather than `Now`. Every other call site already worked
+  through those two, unchanged. Proven end-to-end (an ancestor-bearing
+  primary, and separately a shared-ancestor reference) in
+  `PersistenceGatewayTest`/`SharedAncestorIntegrationTest` - both prove no
+  gateway is ever required. See [use/insert-modes.md](docs/use/insert-modes.md).
 - **`Xfty.AutoBogus`** — the same pairing as `Xfty.AutoFixture`, for
   AutoBogus instead: `XftyAutoBogus.CreateFaker(lookup)`/
   `XftyAutoBogusOverride` points `faker.Generate<T>()` at a registered

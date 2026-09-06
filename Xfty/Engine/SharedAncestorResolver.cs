@@ -32,7 +32,8 @@ namespace Net.Nowhereatall.Xfty.Engine;
 /// matter here: resolution happens once per name, ever, in a process, not
 /// under sustained concurrent load.
 /// </summary>
-/// <remarks>mode is the triggering call's insert mode; Deferred/RelatedOnly resolve eagerly, as Now.</remarks>
+/// <remarks>mode is the triggering call's insert mode; Deferred/RelatedOnly
+/// resolve eagerly, as Now; MockRelatedOnly resolves eagerly too, as Mock.</remarks>
 public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mode)
 {
     private static readonly Lock ResolutionLock = new();
@@ -173,13 +174,13 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
         ancestor.AcceptResolved(record, graph, this.mode == InsertMode.Now);
     }
 
-    private static InsertMode Eager(InsertMode? callMode)
-    {
-        bool resolveEagerly = callMode is null or InsertMode.Deferred or InsertMode.RelatedOnly;
-        return resolveEagerly
-            ? InsertMode.Now
-            : callMode!.Value;
-    }
+    private static InsertMode Eager(InsertMode? callMode) =>
+        callMode switch
+        {
+            null or InsertMode.Deferred or InsertMode.RelatedOnly => InsertMode.Now,
+            InsertMode.MockRelatedOnly => InsertMode.Mock,
+            _ => callMode.Value,
+        };
 
     private static XftyConfigurationException Cycle(string name) =>
         new($"Shared ancestors form a cycle involving \"{name}\". Break it by pre-registering one side with "

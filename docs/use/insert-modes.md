@@ -26,6 +26,7 @@ controls how much of the graph is generated. The two are independent.
 | `Never` | Generate records without Ids. |
 | `Mock` | Generate realistic-looking Ids **without any persistence**. |
 | `RelatedOnly` | Insert the generated **ancestors** for real, through the configured `IPersistenceGateway` — same as `Now` — but leave the primary records Id-less for the caller to insert itself. **Throws `NotSupportedException` if no gateway is configured and an ancestor needs generating.** |
+| `MockRelatedOnly` | The same shape as `RelatedOnly` — primary records left Id-less — but the ancestors only get a **mock** Id, no gateway needed at all. |
 | `Now` | Insert every generated record through the configured `IPersistenceGateway`. **Throws `NotSupportedException` if none is configured.** |
 | `Later` | Behaves exactly like `Never`; documents that the caller will insert later. |
 | `Deferred` | Generate like `Never`, but register every record so one flush handles the whole set — see [deferred-insert](deferred-insert.md). Flushing also needs a configured gateway, same as `Now`. |
@@ -98,6 +99,30 @@ side of a relationship is ever "related."
 
 ---
 
+## `MockRelatedOnly`
+
+The same use case as `RelatedOnly` - relate a not-yet-inserted primary to
+an Id'd ancestor, leave the primary itself un-Id'd - for when the ancestor
+doesn't need to be a genuinely persisted row, just a valid-looking one
+nothing downstream checks against a real database. No `IPersistenceGateway`
+required at all, unlike `RelatedOnly`:
+
+```csharp
+Contact result = (Contact)new RecordProvider(typeof(Contact), lookup)
+    .SetInclusivity(InsertInclusivity.Required)
+    .SetInsertMode(InsertMode.MockRelatedOnly)
+    .Supply();
+
+Assert.Null(result.Id);          // the primary - handle it yourself
+Assert.NotNull(result.AccountId); // the ancestor - mock-Id'd, no gateway needed
+```
+
+Internally, `MockRelatedOnly` upgrades to `Mock` for ancestor generation
+only (`RelatedOnly` upgrades to `Now` the same way) - so a shared ancestor
+referenced under `MockRelatedOnly` resolves eagerly too, as `Mock`.
+
+---
+
 ## Child collections
 
 A child collection ([`With` / `WithChildren`](child-records.md)) inherits the
@@ -120,6 +145,7 @@ ignored entirely; the whole subtree is generated together.
 | Test will Id/persist the records itself | `Later` |
 | Data built over several calls, one in-memory graph | `Deferred` |
 | Primary relates to a real, already-persisted (or persistable) ancestor, but the primary itself isn't inserted yet | `RelatedOnly` |
+| Same, but the ancestor doesn't need to be a real row either - just a valid-looking Id | `MockRelatedOnly` |
 | A persistence gateway is configured and rows should actually be saved | `Now` |
 
 Start with `Mock` + `Required` inclusivity — realistic Ids, valid required data,

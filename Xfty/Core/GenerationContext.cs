@@ -157,10 +157,13 @@ public sealed class GenerationContext
 
     /// <summary>
     /// The context for generating one level of related (ancestor) records:
-    /// RelatedOnly becomes Now, PreventCascade becomes None. Every other
-    /// mode/inclusivity is carried through unchanged; the per-record fields
-    /// are cleared. Forced-relationship paths do not propagate through this
-    /// overload - use ForRelated(field) from the recursion.
+    /// RelatedOnly becomes Now (the ancestor must be genuinely persisted, or
+    /// the not-yet-inserted primary can't reference it), MockRelatedOnly
+    /// becomes Mock (the same shape, but a real gateway isn't required),
+    /// PreventCascade becomes None. Every other mode/inclusivity is carried
+    /// through unchanged; the per-record fields are cleared.
+    /// Forced-relationship paths do not propagate through this overload -
+    /// use ForRelated(field) from the recursion.
     /// </summary>
     public GenerationContext ForRelated() => this.ForRelated(null);
 
@@ -173,7 +176,12 @@ public sealed class GenerationContext
         List<PathValue> childPathValues = [.. this.PathValues
             .Where(pathValue => relationshipField is not null && !pathValue.IsAtTarget() && pathValue.Head() == relationshipField)
             .Select(pathValue => pathValue.Tail())];
-        InsertMode relatedMode = this.InsertMode == InsertMode.RelatedOnly ? InsertMode.Now : this.InsertMode;
+        InsertMode relatedMode = this.InsertMode switch
+        {
+            InsertMode.RelatedOnly => InsertMode.Now,
+            InsertMode.MockRelatedOnly => InsertMode.Mock,
+            _ => this.InsertMode,
+        };
         InsertInclusivity relatedInclusivity = this.Inclusivity == InsertInclusivity.PreventCascade ? InsertInclusivity.None : this.Inclusivity;
         return new GenerationContext(
             this.ProviderLookup, relatedMode, relatedInclusivity, this.PersistenceGateway, this.UnsetFieldFiller,

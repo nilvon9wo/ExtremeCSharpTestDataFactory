@@ -43,7 +43,7 @@ under `Net.Nowhereatall.Xfty.*`; field tokens throughout are
 
 ## Enums
 
-| `InsertMode` | `Never` · `Mock` · `RelatedOnly` (needs a gateway for ancestors, else throws) · `Now` (needs a gateway, else throws) · `Later` · `Deferred` |
+| `InsertMode` | `Never` · `Mock` · `RelatedOnly` (needs a gateway for ancestors, else throws) · `MockRelatedOnly` (same shape, mock ancestors, no gateway) · `Now` (needs a gateway, else throws) · `Later` · `Deferred` |
 | `InsertInclusivity` | `None` · `Required` · `All` · `PreventCascade` |
 
 ---

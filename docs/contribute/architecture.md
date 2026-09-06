@@ -243,6 +243,7 @@ The context is also where the two **recursion transforms** live, in
 | Parent context | Child context | Why |
 |----------------|---------------|-----|
 | `InsertMode = RelatedOnly` | `InsertMode = Now` | The parents of a not-persisted primary record must still be persisted, or the primary can't reference them. (Needs a configured gateway - throws without one, same as any other `Now` call.) |
+| `InsertMode = MockRelatedOnly` | `InsertMode = Mock` | Same shape as `RelatedOnly`, but the parent only needs a valid-looking Id, not a genuinely persisted row - no gateway required. `SharedAncestorResolver.Eager()` makes the same substitution for a shared ancestor resolved under this mode. |
 | `Inclusivity = PreventCascade` | `Inclusivity = None` | The direct relationships are generated, but they do not generate their own — the cascade stops one level down. |
 | anything else | unchanged | |
 

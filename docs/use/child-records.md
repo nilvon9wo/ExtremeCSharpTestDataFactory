@@ -131,7 +131,7 @@ level unless a child overrides them.
 | `Mock` | everything gets mock Ids; FKs wired |
 | `Never` | nothing persisted; children have a `null` back-reference (no primary Id to point at) — a child can still `SetInsertMode(Mock)` to get its own Ids |
 | `Later` | identical to `Never` — the children are generated, nothing is persisted, the back-reference is `null` |
-| `RelatedOnly` | the primaries (the parents here) are **not** persisted, so the children have a `null` back-reference — `RelatedOnly` targets a Provider's *ancestors*, and children are not ancestors. Not a useful mode for downward generation. |
+| `RelatedOnly` / `MockRelatedOnly` | the primaries (the parents here) are **not** persisted, so the children have a `null` back-reference — both modes target a Provider's *ancestors*, and children are not ancestors. Not a useful mode for downward generation. |
 | `Deferred` / `.DepthBatched()` | the **whole** child subtree joins the same deferred graph, generated structurally with FKs wired at flatten time. A per-child `SetInsertMode(...)` override is **ignored** here — the subtree stays structural until the graph is flattened. Flushing that graph to real persistence throws in this port; see [deferred-insert](deferred-insert.md). |
 
 Each child still generates its **own** other required parents (at its

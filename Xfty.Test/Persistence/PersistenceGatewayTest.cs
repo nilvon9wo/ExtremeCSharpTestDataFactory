@@ -129,6 +129,41 @@ public class PersistenceGatewayTest
     }
 
     [Fact]
+    public void SupplyBundle_InMockRelatedOnlyMode_MockIdsTheAncestorButLeavesThePrimaryUnId()
+    {
+        // Arrange - MockRelatedOnly is RelatedOnly's offline sibling: same "leave the primary
+        // un-Id'd" shape, but the ancestor only needs a mock Id, not a real gateway
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.MockRelatedOnly);
+
+        // Act
+        Bundle bundle = provider.SupplyBundle();
+
+        // Assert - the Account gets a mock Id; the Contact primary is left for the caller
+        Contact contact = (Contact)bundle.PrimaryRecords()![0];
+        Account account = (Account)bundle.GetList<Contact>(x => x.AccountId)![0];
+        Assert.Null(contact.Id);
+        Assert.NotNull(account.Id);
+        Assert.Equal(account.Id, contact.AccountId);
+    }
+
+    [Fact]
+    public void Supply_InMockRelatedOnlyMode_WithoutAGateway_NeverThrows()
+    {
+        // Arrange - the whole point of MockRelatedOnly is not needing one, unlike RelatedOnly
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.MockRelatedOnly);
+
+        // Act
+        Exception? thrown = Record.Exception(() => provider.Supply());
+
+        // Assert
+        Assert.Null(thrown);
+    }
+
+    [Fact]
     public void Supply_NowPlusDepthBatched_WithAGateway_ResolvesOneLayerAtATimeThroughTheGateway()
     {
         // Arrange - a Contact requiring an Account: depth-batched should insert the Account layer,

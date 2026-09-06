@@ -75,7 +75,7 @@ Every consumer-facing capability and its page.
 | `bundle.GetList` / `GetBundle` / navigation | [bundles](bundles.md) |
 | `bundle.Inject(field, config)` / `InjectAll*`, `InjectConfig` | [enrichment](enrichment.md) |
 | `RecordInjector` — standalone graft (parents, children, values) | [record-injector](record-injector.md) |
-| insert modes `Never` / `Mock` / `RelatedOnly` / `Now` / `Later` / `Deferred` | [insert-modes](insert-modes.md) |
+| insert modes `Never` / `Mock` / `RelatedOnly` / `MockRelatedOnly` / `Now` / `Later` / `Deferred` | [insert-modes](insert-modes.md) |
 | `Deferred` registry, `.DepthBatched()` | [deferred-insert](deferred-insert.md) |
 | `WithVariant` / lookup-key ctor (flavour keys) | [provider-variants](provider-variants.md) |
 
