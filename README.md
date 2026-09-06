@@ -22,11 +22,29 @@ fields, and evolving business logic.
 dotnet add package Xfty
 ```
 
-Add whichever opt-in packages you want the same way (`dotnet add package
-Xfty.EntityFrameworkCore`, `Xfty.Bogus`, `Xfty.VectorDatabases`,
-`Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`, `Xfty.FSharpAsync`) — see
-[Packages & Platform Support](#packages--platform-support) below for what
-each one does. Only `Xfty` itself is required.
+Add whichever opt-in packages you want the same way. Only `Xfty` itself is
+required — everything else is independent and opt-in:
+
+| Package | What it does | README | Tests | NuGet |
+|---|---|:-:|:-:|:-:|
+| `Xfty` | Core: declarative generation, relationships, persistence seam | *(this page)* | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.svg)](https://www.nuget.org/packages/Xfty/) |
+| `Xfty.EntityFrameworkCore` | Real, database-backed persistence via EF Core | [README](Xfty.EntityFrameworkCore/README.md) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.EntityFrameworkCore.svg)](https://www.nuget.org/packages/Xfty.EntityFrameworkCore/) |
+| `Xfty.Bogus` | Realistic fake data - names, emails, addresses, paragraphs | [README](Xfty.Bogus/README.md) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.Bogus.svg)](https://www.nuget.org/packages/Xfty.Bogus/) |
+| `Xfty.VectorDatabases` | A random-vector value expression for an embedding field | [README](Xfty.VectorDatabases/README.md) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.VectorDatabases.svg)](https://www.nuget.org/packages/Xfty.VectorDatabases/) |
+| `Xfty.VectorDatabases.Qdrant` 🧪 | PREVIEW: persistence via Qdrant's own client directly | [README](Xfty.VectorDatabases.Qdrant/README.md) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.VectorDatabases.Qdrant.svg)](https://www.nuget.org/packages/Xfty.VectorDatabases.Qdrant/) |
+| `Xfty.VectorDatabases.MicrosoftExtensionsVectorData` 🧪 | PREVIEW: persistence via any Microsoft.Extensions.VectorData connector | [README](Xfty.VectorDatabases.MicrosoftExtensionsVectorData/README.md) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.svg)](https://www.nuget.org/packages/Xfty.VectorDatabases.MicrosoftExtensionsVectorData/) |
+| `Xfty.Xunit` | `[IsolatesSharedAncestor]` xUnit attribute | [README](Xfty.Xunit/README.md) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.Xunit.svg)](https://www.nuget.org/packages/Xfty.Xunit/) |
+| `Xfty.AutoFixture` | Pairs XFTY with AutoFixture, both directions | [README](Xfty.AutoFixture/README.md) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.AutoFixture.svg)](https://www.nuget.org/packages/Xfty.AutoFixture/) |
+| `Xfty.AutoBogus` | Pairs XFTY with AutoBogus, both directions | [README](Xfty.AutoBogus/README.md) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.AutoBogus.svg)](https://www.nuget.org/packages/Xfty.AutoBogus/) |
+| `Xfty.FSharpAsync` | `Async<'T>` wrappers for F#'s original `async { }` workflow | [README](Xfty.FSharpAsync/README.md) | [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml) | [![NuGet](https://img.shields.io/nuget/v/Xfty.FSharpAsync.svg)](https://www.nuget.org/packages/Xfty.FSharpAsync/) |
+
+🧪 = preview proof-of-concept, versioned `0.x-preview` rather than
+`1.0.0-beta.*` - read its own README before depending on it for anything
+beyond the question it was built to answer.
+
+Every "Tests" badge above points at the same single CI workflow — this
+repo builds and tests every package together, not each in isolation, so
+there's no per-package signal distinct from the whole solution's.
 
 ---
 
@@ -91,13 +109,8 @@ The result is test code that is:
 ## Packages & Platform Support
 
 - Optional add-on packages for common conveniences core `Xfty` doesn't
-  bundle: `Xfty.Bogus` (realistic names/emails/addresses/paragraphs),
-  `Xfty.VectorDatabases` (a random-vector value expression for an embedding
-  field), `Xfty.AutoFixture`, and `Xfty.AutoBogus` (both: point
-  `Create<T>()`/`Generate<T>()` at a `RecordProvider`, and/or let the tool
-  fill fields no Provider declares), and `Xfty.FSharpAsync` (`Async<'T>`
-  wrappers, for F# code on the original `async { }` workflow) — none is a
-  dependency of core `Xfty` itself
+  bundle - none is a dependency of core `Xfty` itself. See the
+  [package table](#installation) up top for the full roster.
 - Targets `netstandard2.0`/`net8.0`/`net10.0` — .NET Framework 4.6.1+,
   Mono/Xamarin, and older .NET Core all work, not just current .NET
 
