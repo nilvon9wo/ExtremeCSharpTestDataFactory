@@ -84,9 +84,12 @@ dotnet nuget add source ./local-packages -n xfty-local
 ```
 
 `Xfty.VectorDatabases.Qdrant` and `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`
-also pack cleanly (`dotnet pack` verified for both), but are deliberately
-excluded from the publish plan below - a `0.x-preview` proof-of-concept
-isn't ready for a public nuget.org listing yet.
+also pack cleanly (`dotnet pack` verified for both) and are included in the
+publish plan below despite being `0.x-preview` - nuget.org has no issue
+hosting a preview version alongside `1.0.0-beta.1` releases, and each one's
+README is explicit about being a proof-of-concept with named, accepted
+limitations rather than a considered general-purpose package. A viewer who
+only wants the considered packages simply doesn't install these two.
 
 ## Publishing to nuget.org
 
@@ -108,7 +111,10 @@ version is live on nuget.org, it's automatically searchable from Visual
 Studio's NuGet Package Manager (VS searches nuget.org by default) — no
 separate listing step.
 
-A repeatable alternative is a GitHub Actions step, triggered on tag push,
-that runs `dotnet pack` then `dotnet nuget push` using a `NUGET_API_KEY`
-repository secret — avoids re-typing the API key locally for every release,
-at the cost of storing it as a secret instead.
+The repeatable alternative — [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml)
+— is already in the repo: pushing a `v*` tag (or running it manually from the
+Actions tab) builds, tests, packs every publishable package including the two
+preview ones, and pushes all of them with `--skip-duplicate`. It needs a
+`NUGET_API_KEY` repository secret (Settings → Secrets and variables → Actions)
+set to an API key scoped the same way as a manual push — nothing about a
+secret's value can be set by anyone other than the repository owner.

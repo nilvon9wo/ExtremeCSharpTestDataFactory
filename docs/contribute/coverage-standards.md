@@ -40,6 +40,6 @@ class it named, in CI, on every push. **Porting that script to check
 ` ```csharp ` blocks against `Xfty.Test` is not done** — the docs currently
 carry no `Runnable:` markers and no automated guarantee they stay in sync with
 the code they describe. See
-[csharp-port-idea.md](../../csharp-port-idea.md) for this as tracked,
+[porting-history](porting-history.md) for this as tracked,
 open work. Until it exists, treat every code block in `docs/` as
 believed-correct-but-unverified, and flag drift by hand when you notice it.

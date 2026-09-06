@@ -9,7 +9,7 @@ namespace Net.Nowhereatall.Xfty.Test;
 /// <summary>
 /// Volume tests: generate at a scale a real test suite might reach and prove
 /// nothing degrades badly. There is no resource-limit budget to check against
-/// here (see csharp-port-idea.md's runtime-budget carve-out), so what matters
+/// here (see docs/contribute/porting-history.md's runtime-budget carve-out), so what matters
 /// is wall-clock time and allocation - this uses Stopwatch and
 /// GC.GetTotalMemory rather than counting operations against a fixed quota.
 ///

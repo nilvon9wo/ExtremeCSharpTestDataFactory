@@ -1,25 +1,34 @@
+# Porting History
+
+A running development log of the decisions made while porting XFTY from Apex
+to C# — design calls, corrections, and things that turned out differently
+than planned once real code and real test runs were in front of them. This
+is history, not current-state documentation — see [architecture](architecture.md)
+for what the engine actually looks like today. Several entries below describe
+an earlier design that was later reworked or reversed; read a topic to its
+end before treating an early entry in it as still true.
+
+Referenced directly from a few places in the code — `BundleEnricher`,
+`PerformanceTest`, `DepthBatchedInserterTest` — where the rationale recorded
+here is the actual reason behind a specific implementation choice, not
+background color.
+
 ---
-name: csharp-port-idea
-description: "discussion of porting XFTY concepts to C#/.NET as a portfolio + practical showcase"
-metadata: 
-  node_type: memory
-  type: project
-  originSessionId: a085fbeb-e844-4c0d-b85f-eaab06462005
-  modified: 2026-09-04T16:07:30.292Z
----
+
+## Why port XFTY to C#
 
 Brian raised (post `b24f389`, conversation lost to a closed window, recounted
 2026-09-04): whether it's viable and worth the effort to port XFTY to C#.
 Motivation is dual — showcase his C# ability, and XFTY has real features
 AutoFixture and similar .NET test-data libraries don't offer, notably
-**context-aware values** (see [[org-seeding-branch]] / beta's
+**context-aware values** (see the org-seeding branch / beta's
 `GenerationContext` work).
 
 Points agreed so far (no build started, this is still at the "should we"
 stage):
 - **Drop the serialize/deserialize trick.** That's an Apex workaround (see
-  [[serialization-enrichment-branch]] territory) — C# has real reflection, so
-  a port would build/inspect object graphs directly instead.
+  the serialization-enrichment work) — C# has real reflection, so a port
+  would build/inspect object graphs directly instead.
 - **Deferred/depth-batched saving is optional in C#, not core.** Apex needs it
   because there's no ORM doing dependency-ordered inserts. A C# project on EF
   already gets that from EF's change tracker/SaveChanges — the deferred-save
@@ -31,8 +40,8 @@ stage):
 **2026-09-04: decision made to proceed.** New repo location:
 **`E:\projects\CSharp\XFTY`** (Brian is copying this whole Apex project there
 as a starting scaffold/reference, then restarting Claude Code in that folder —
-this memory file is the handoff since neither conversation state nor
-project-scoped memory carries over automatically to a new working directory).
+this log was the handoff since neither conversation state nor project-scoped
+memory carries over automatically to a new working directory).
 
 **Approach agreed (hybrid, not pure mechanical port, not pure from-scratch):**
 Use the Apex repo as a **read-only reference/scaffold**, not a base to build
@@ -51,9 +60,9 @@ directly on top of.
   for Apex having no real reflection over dynamic SObject shape. The C# port
   keeps enrichment as a capability but implements it directly via reflection
   instead of serialize/deserialize.
-- `seeding/` (the `@IntegrationTest` DML-without-rollback hack, see
-  [[org-seeding-branch]]) — **true dead end, zero C# analog.** C# unit tests
-  just call `SaveChanges`/persist normally, no special hack needed.
+- `seeding/` (the `@IntegrationTest` DML-without-rollback hack) — **true dead
+  end, zero C# analog.** C# unit tests just call `SaveChanges`/persist
+  normally, no special hack needed.
 - `persistence/` (`IdMocker`, `DeferredInsertBuffer`/`DepthBatchedInserter`) —
   **corrected from an earlier draft of this plan that wrongly called these
   Salesforce-only.** `IdMocker`'s purpose (placeholder FK values before/without
@@ -76,38 +85,34 @@ directly on top of.
 - Tests: carry over the *scenarios* (what's verified) as the spec for new
   xUnit tests, not the Apex `Assert`/AAA syntax verbatim.
 
-**Conventions to match** (found by inspecting `E:\projects\CSharp\Skroob5000`
-as a template — Brian later clarified (2026-09-04) it's *not* confirmed to be
-his most recent/best-configured C# project, maybe Certara is, he wasn't sure
-and said it isn't important; treat Skroob5000's setup below as one reasonable
-precedent, not gospel):
+**Conventions to match** (found by inspecting a prior C# project as a
+template — not confirmed to be Brian's most recent/best-configured C#
+project, treated as one reasonable precedent, not gospel):
 - `net10.0`, `ImplicitUsings`/`Nullable` enabled.
 - Test stack: `xunit` + `xunit.runner.visualstudio` + `NSubstitute` +
   `coverlet.collector` + `Microsoft.NET.Test.Sdk`. **Not** FluentAssertions,
-  despite matching Skroob5000 - Brian caught (2026-09-04) that FluentAssertions
+  despite matching the template - Brian caught (2026-09-04) that FluentAssertions
   8.x is Xceed-licensed, free for non-commercial use only, and didn't want a
   license-encumbered dependency for something as trivial as an assertion,
   especially one potential users of a portfolio library would shy away from.
   Plain xUnit `Assert.*` instead - no extra dependency, and it happens to
   read closer to Apex's own `Assert.*` calls than a fluent chain would.
-- `LanguageExt.Core` in the main project — matches
-  `E:\projects\CSharp\CSharp Style Rules.txt` rule 1 ("never use for/while,
-  prefer functional") which plain C# can't really honor for stateful code
-  without a library like this (`Option`/`Either` etc.).
+- `LanguageExt.Core` in the main project — matches this project's own style
+  rule ("never use for/while, prefer functional") which plain C# can't really
+  honor for stateful code without a library like this (`Option`/`Either` etc.).
 - Project split: `<Name>.Core` + `<Name>.Core.Test`, `RootNamespace`/
   `AssemblyName` both set explicitly, `ProjectReference` wiring, `<Using
   Include="Xunit" />` global usings block.
 - Strict `.editorconfig` at repo root encoding the style rules as analyzer
   errors (`dotnet_style_qualification_for_*=true:error`,
-  `dotnet_style_parentheses_*:error`, etc.) — copy `Skroob5000/.editorconfig`
-  as the starting point.
-- Full style rules doc: `E:\projects\CSharp\CSharp Style Rules.txt` (matches
-  [[feedback-code-style]] closely: one-expr-per-line, verbs/nouns, no inner
-  classes, ≤100-line classes, ≤10-line methods, never nest >2 deep).
+  `dotnet_style_parentheses_*:error`, etc.).
+- Full style rules: this port's own house rules, folded into
+  [coding-standards](coding-standards.md) (one-expr-per-line, verbs/nouns, no
+  inner classes, ≤100-line classes, ≤10-line methods, never nest >2 deep).
 
 **2026-09-04 (scaffolding session): decisions resolved.**
-- Root namespace: **`Net.Nowhereatall.Xfty`** (Skroob5000's placeholder-domain
-  pattern, keeps the short "XFTY" branding rather than the long folder name).
+- Root namespace: **`Net.Nowhereatall.Xfty`** (a placeholder-domain pattern,
+  keeps the short "XFTY" branding rather than the long folder name).
   Solution/projects are `Xfty.slnx`, `Xfty.Core`, `Xfty.Core.Test`.
 - Demo domain for `providers/`-equivalent showcase code: **Contact/Account**,
   mirroring the Apex standard objects 1:1 for clean before/after comparison.
@@ -115,11 +120,11 @@ precedent, not gospel):
   The Apex checkout's `.git` was deleted and reinitialized fresh in
   `E:\projects\CSharp\ExtremeCSharpTestDataFactory` — no shared history, no
   `origin` pointing at ExtremeApexTestDataFactory. The Apex source tree
-  (`force-app/`, `docs/`, etc.) stays in the working tree as the read-only
+  (`force-app/`, `docs/`, etc.) stayed in the working tree as the read-only
   reference/scaffold described above; it just no longer carries Apex commit
   history into the new repo.
 - Scaffold built and verified this session: `Xfty.slnx` (slnx format, a
-  `Solution Items` folder holding `.editorconfig`/style-rules/this file),
+  `Solution Items` folder holding `.editorconfig`/style-rules/this log),
   `Xfty.Core` (net10.0, `LanguageExt.Core`), `Xfty.Core.Test` (xunit,
   FluentAssertions, NSubstitute, coverlet.collector, `Microsoft.NET.Test.Sdk`,
   project reference to `Xfty.Core`). `dotnet build`/`dotnet test` both clean
@@ -191,9 +196,9 @@ around):**
   to test.
 - **`XFTY_DummySObjectFtyProviderException` → `XftyConfigurationException`.**
   One shared, C#-idiomatic name (no `XFTY_` prefix - real namespaces make that
-  Apex workaround unnecessary) for the "loud, named error" `coding-
-  standards.md` asks for. Lives at `Net.Nowhereatall.Xfty.Core` root since
-  every future module needs it, not just `predicates/`.
+  Apex workaround unnecessary) for the "loud, named error"
+  `coding-standards.md` asks for. Lives at `Net.Nowhereatall.Xfty.Core` root
+  since every future module needs it, not just `predicates/`.
 - **Demo domain scaffolding started:** `Xfty.Core/Demo/Account.cs`, a minimal
   POCO (`Name`, `Industry`, `Type`, `NumberOfEmployees`, `AnnualRevenue`) with
   only the fields the ported predicate tests exercise. Will grow when
@@ -445,12 +450,6 @@ ported - **but it's new structure Apex doesn't have, so it needs an explicit
 "yes, build this" the same way the reflection-vs-generics question did,** not
 a silent addition. Flagging here so it survives to that point.
 
-**Still open when picked back up (superseded by the next entry - the whole
-list below got built the same session):** ~~`XFTY_DummySObjectBundle`,
-`XFTY_PathValue`/`XFTY_PathTargetValue`, `XFTY_DummySObjectMasterTemplate`,
-the `relationships/` interfaces, and eventually `lookup/` and the actual
-generation engine.~~
-
 ## 2026-09-05: the whole generation engine, mechanically ported in one sitting
 
 After the fidelity correction above, Brian pushed back once more, much more
@@ -640,8 +639,8 @@ called out the test-count gap and repo clutter directly.** Removed `.forceignore
 `config/`, `nimbus.properties`, `sfdx-project.json`, `stubs/` - tracked SFDX-CLI
 / Nimbus-local-Apex-runtime deployment tooling with zero function in a
 standalone C# repo (this repo never runs `sf project deploy` or Nimbus).
-`force-app/`, `docs/`, `test-support/`, `scripts/` stay - `force-app/` is
-still the active reference source mid-port, and the other three are pending
+`force-app/`, `docs/`, `test-support/`, `scripts/` stayed - `force-app/` was
+still the active reference source mid-port, and the other three were pending
 work, not clutter (see below).
 
 Replaced both GitHub Actions workflows - `ci.yml` ran `sf project deploy
@@ -663,17 +662,6 @@ CI runner could trip. Tagged `[Trait("Category", "Performance")]` and run as
 a separate, `continue-on-error` CI step - not blocking, the same role
 `XFTY_Load` plays running only in the scheduled full-suite workflow rather
 than on every push.
-
-**Update:** the Apex test-suite parity pass (below) and the full `docs/` port
-(further below) are both now done - see those sections. **Still genuinely
-open, not done, not faked:** `scripts/verify-doc-examples.py` (a real, clever
-CI gate: every ` ```apex ` block on a page carrying a `Runnable:` marker must
-have every significant line backed by an actual test) still parses Apex
-syntax and points at `force-app`/`test-support`; it was dropped from `ci.yml`
-outright rather than left silently broken, but porting it to check ` ```csharp `
-blocks against `Xfty.Test` - and building the `examples/`-style runnable-doc-
-test suite it would check against - is unstarted. This is its own dedicated
-pass, not a quick add-on.
 
 **Found and fixed while doing that:** `MapBackedLookup.RegisterSharedAncestorDefaults`
 still threw `NotSupportedException("Shared ancestors are not ported to C#
@@ -701,8 +689,8 @@ unrelated tests depending on run order); a real null-safety regression in
 `primaryRecordsOf(bundle)` helper had) was found and fixed. This is now the
 established, documented pattern for working in a shared xUnit process instead
 of Apex's per-test-method-reset one - see
-`docs/reference/salesforce-considerations.md` and
-`docs/reference/known-issues.md`.
+[reference/salesforce-considerations](../reference/salesforce-considerations.md)
+and [reference/known-issues](../reference/known-issues.md).
 
 **`docs/` (~45 markdown pages): fully ported.** Every page under `docs/use/`,
 `docs/extend/`, `docs/reference/`, `docs/contribute/`, and `docs/roadmap/` was
@@ -724,17 +712,17 @@ out of doing this carefully:
   the first place. A genuine simplification, not a gap.
 - Static-state lifetime is the single biggest "coming from Apex" surprise and
   now has its own reference page
-  (`docs/reference/salesforce-considerations.md`, kept at that filename for
-  link stability even though it's no longer really about Salesforce): Apex
-  resets every static per test method; a shared xUnit process does not, ever,
-  for the life of the process - the opposite risk from what Apex's own
-  `@TestSetup` caveat warned about.
+  ([reference/salesforce-considerations](../reference/salesforce-considerations.md),
+  kept at that filename for link stability even though it's no longer really
+  about Salesforce): Apex resets every static per test method; a shared xUnit
+  process does not, ever, for the life of the process - the opposite risk
+  from what Apex's own `@TestSetup` caveat warned about.
 - `docs/articles/` (3 personal essays) and the one dated announcement page
   were deliberately left unconverted (with a one-paragraph note explaining
   why) rather than rewritten - they're first-person history/opinion about the
   author's own Apex career, not API documentation a mechanical port could
   honestly touch.
 
-Not done: `scripts/verify-doc-examples.py`'s C# equivalent and an `examples/`-
-style runnable-doc-test suite to check it against - both still open, per the
-note above.
+Not done at that point: `scripts/verify-doc-examples.py`'s C# equivalent and
+an `examples/`-style runnable-doc-test suite to check it against - both still
+open as of this writing (see [coverage-standards](coverage-standards.md)).

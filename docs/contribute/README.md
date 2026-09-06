@@ -11,9 +11,10 @@ You are here to **work on XFTY itself** — the engine, its tests, packaging.
 | [coverage-standards](coverage-standards.md) | "A consumer must never have to debug the framework"; line floor vs branch goal. |
 | [packaging](packaging.md) | Project layout — `Xfty/` vs `Xfty.Test/` — and NuGet packaging status. |
 | [ci](ci.md) | What the GitHub Actions workflow runs. |
+| [porting-history](porting-history.md) | The session-by-session log of decisions made while porting XFTY from Apex to C# — history, not current-state documentation. |
 
 For what is built / in progress / proposed, see [../roadmap/](../roadmap/).
 
 House style is not optional — the full rules are in
-[coding-standards](coding-standards.md), `.editorconfig` (analyzer-enforced at
-build time), and `CSharp Style Rules.txt` at the repo root.
+[coding-standards](coding-standards.md) and `.editorconfig` (analyzer-enforced
+at build time).

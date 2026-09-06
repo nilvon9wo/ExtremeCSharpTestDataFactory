@@ -3,21 +3,40 @@
 The rules this port's code is held to. They apply to anyone changing this
 repo — human or AI. When a change is reviewed, this is the checklist.
 
-**The authoritative style rules live in two files at the repo root, not
-here:**
+**The authoritative style rules:**
 
-- **`.editorconfig`** — `EnforceCodeStyleInBuild=true`, so `dotnet build`
-  itself fails a violation. Notably: IDE0058 (discard unused fluent-return
-  values with `_ =`), IDE0032 (private fields as `{ get; }` properties, not
-  plain fields), IDE0022 (expression-bodied methods where possible), IDE0090
-  (`new()` target-typed construction).
-- **`CSharp Style Rules.txt`** — the project's own house rules, layered on top
-  of the analyzers: prefer functional over imperative (no `for`/`while`),
-  explicit over implicit, methods under 10 lines, one expression per line, no
-  nesting past two blocks, no unnamed magic numbers/strings, ternary over
-  if/else (never on one line), classes under 100 lines, **no nested/inner
-  classes** (use C#'s `file` access modifier for a helper scoped to one file
-  instead), no circular dependencies.
+- **`.editorconfig`**, at the repo root — `EnforceCodeStyleInBuild=true`, so
+  `dotnet build` itself fails a violation. Notably: IDE0058 (discard unused
+  fluent-return values with `_ =`), IDE0032 (private fields as `{ get; }`
+  properties, not plain fields), IDE0022 (expression-bodied methods where
+  possible), IDE0090 (`new()` target-typed construction).
+- **This project's own house rules**, layered on top of the analyzers above
+  (not separately tool-enforced — reviewed by hand on every change):
+  1. Prefer functional over imperative: never use `for` or `while`.
+  2. Prefer explicit over implicit.
+  3. Methods must always be less than 10 lines.
+  4. Never more than one expression per line.
+  5. Blocks must not be nested more than two deep.
+  6. Never nest expressions.
+  7. Use variables or methods to name the results of all complex expressions.
+  8. All classes, methods, and variables must be named to communicate
+     intentions — never a single letter or abbreviation.
+  9. Always use nouns to name objects.
+  10. Always use verbs to name methods.
+  11. Always use adjectives to name interfaces.
+  12. Always name booleans like `isSomething`, `wasSomething`, `hasSomething`,
+      etc.
+  13. Always use the keyword `this`, except to reference static members.
+  14. Always extract magic numbers and strings to constants.
+  15. Prefer ternary to if/then, but never squeeze the condition and both
+      outputs onto one line — three lines.
+  16. Don't nest a complicated expression inside a ternary: extract it to a
+      variable or method first.
+  17. Classes must not exceed 100 lines; use helper classes to separate
+      concerns and stay under it.
+  18. Never use inner classes — see [No nested classes, ever](#design) below
+      for the `file`-scoped-class replacement.
+  19. Avoid circular dependencies.
 
 This page covers what those two don't: naming/design principles carried over
 from the Apex original, and this port's own testing conventions.

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Exists only so Visual Studio / Rider show docs/ in Solution Explorer -
+    neither IDE displays a file that isn't part of some project. An SDK-style
+    project auto-includes every non-code file under its own directory as a
+    <None> item with no itemization needed - the same default-glob mechanism
+    that makes a stray README.md show up next to an ordinary .csproj without
+    anyone listing it. So this project carries no <ItemGroup> at all: drop a
+    new .md file anywhere under docs/ (including a new subfolder) and it just
+    shows up, nested to match the physical folder layout. Nothing here to
+    maintain by hand.
+
+    Not meant to build anything real - no Compile items, not packed, not
+    referenced by any other project.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);NETSDK1085</NoWarn>
+  </PropertyGroup>
+
+</Project>

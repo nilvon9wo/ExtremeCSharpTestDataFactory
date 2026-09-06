@@ -1,0 +1,52 @@
+name: Publish to NuGet
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Pack + push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore Xfty.slnx
+
+      - name: Build (Release)
+        run: dotnet build Xfty.slnx -c Release --no-restore
+
+      - name: Test (excluding the informational performance suite)
+        run: dotnet test Xfty.slnx -c Release --no-build --filter "Category!=Performance"
+
+      - name: Pack every publishable package
+        run: |
+          mkdir -p ./packages
+          for proj in \
+            Xfty/Xfty.csproj \
+            Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj \
+            Xfty.Bogus/Xfty.Bogus.csproj \
+            Xfty.VectorDatabases/Xfty.VectorDatabases.csproj \
+            Xfty.Xunit/Xfty.Xunit.csproj \
+            Xfty.AutoFixture/Xfty.AutoFixture.csproj \
+            Xfty.AutoBogus/Xfty.AutoBogus.csproj \
+            Xfty.VectorDatabases.Qdrant/Xfty.VectorDatabases.Qdrant.csproj \
+            Xfty.VectorDatabases.MicrosoftExtensionsVectorData/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.csproj \
+          ; do
+            dotnet pack "$proj" -c Release --no-build -o ./packages
+          done
+
+      - name: Push to nuget.org
+        run: >
+          dotnet nuget push "./packages/*.nupkg"
+          --api-key "${{ secrets.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate

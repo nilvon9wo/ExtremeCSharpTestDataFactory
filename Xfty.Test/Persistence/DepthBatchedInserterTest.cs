@@ -14,7 +14,7 @@ namespace Net.Nowhereatall.Xfty.Test.Persistence;
 /// in PersistenceGatewayTest.
 ///
 /// Best-effort org-wide seeding is explicitly out of scope for this port
-/// (see csharp-port-idea.md) and is not covered here.
+/// (see docs/contribute/porting-history.md) and is not covered here.
 /// </summary>
 public class DepthBatchedInserterTest
 {

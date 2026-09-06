@@ -24,7 +24,7 @@ namespace Net.Nowhereatall.Xfty.Enrichment;
 /// InverseAlignment, ForcedValues, QueryableShapeValidator.
 ///
 /// XFTY_GovernorBudget is not ported (no C# analog for Limits.getCpuTime()) -
-/// see csharp-port-idea.md.
+/// see docs/contribute/porting-history.md.
 /// </summary>
 public sealed class BundleEnricher
 {
