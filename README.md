@@ -58,9 +58,10 @@ The result is test code that is:
 - Optional add-on packages for common conveniences core `Xfty` doesn't
   bundle: `Xfty.Bogus` (realistic names/emails/addresses/paragraphs),
   `Xfty.VectorDatabases` (a random-vector value expression for an embedding
-  field), and `Xfty.AutoFixture` (point `fixture.Create<T>()` at a
-  `RecordProvider`, and/or let AutoFixture fill fields no Provider declares)
-  — none is a dependency of core `Xfty` itself
+  field), `Xfty.AutoFixture`, and `Xfty.AutoBogus` (both: point
+  `Create<T>()`/`Generate<T>()` at a `RecordProvider`, and/or let the tool
+  fill fields no Provider declares) — none is a dependency of core `Xfty`
+  itself
 - Deferred and depth-batched insert: build a graph across several calls, then
   insert it once, in dependency order, across mixed record types
 - Multi-variant Providers (`FlavouredLookupKey`, `DiscriminatorLookupKey`) —
@@ -166,9 +167,9 @@ that they don't:
 Core `Xfty` has no built-in realistic fake-data generation (`Xfty.Bogus` is
 an optional add-on for that) and no auto-population by default - every
 field a Provider cares about is declared, not guessed. `Xfty.AutoFixture`
-is an optional pairing for the fields a Provider *doesn't* care about (or
-for pointing AutoFixture's own `Create<T>()` at a Provider directly) -
-neither changes core `Xfty`'s own philosophy. See
+and `Xfty.AutoBogus` are optional pairings for the fields a Provider
+*doesn't* care about (or for pointing the tool's own generation at a
+Provider directly) - neither changes core `Xfty`'s own philosophy. See
 [docs/reference/comparison.md](docs/reference/comparison.md) for the full,
 unvarnished comparison against AutoFixture, Bogus, AutoBogus, and NBuilder,
 including where XFTY is a worse fit than any of them.
@@ -200,6 +201,9 @@ including everything since the 1.0.0-beta.1 tag):
   `fixture.Create<T>()` at a registered `RecordProvider`, and/or let
   AutoFixture fill in whatever fields a Provider's Master Template left
   unset
+- `Xfty.AutoBogus` — the same pairing for AutoBogus (AutoFixture-style
+  auto-population plus Bogus's realistic generators), completing the
+  trifecta: XFTY now pairs with AutoFixture, Bogus, and AutoBogus
 
 The full status table — built, not-ported, and open ideas under
 consideration (embedded/denormalized document relationships) — is

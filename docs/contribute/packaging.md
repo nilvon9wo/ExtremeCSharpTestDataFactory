@@ -29,6 +29,8 @@ Xfty.Xunit/                     - optional: [IsolatesSharedAncestor] xUnit attri
 Xfty.Xunit.Test/
 Xfty.AutoFixture/               - optional: pairs XFTY with AutoFixture, both directions
 Xfty.AutoFixture.Test/
+Xfty.AutoBogus/                 - optional: pairs XFTY with AutoBogus, both directions
+Xfty.AutoBogus.Test/
 ```
 
 `Xfty.VectorDatabases.Qdrant` and `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`
@@ -51,14 +53,15 @@ Read each package's own README before depending on either.
 ## Consuming XFTY
 
 `Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`, `Xfty.VectorDatabases`,
-`Xfty.Xunit`, and `Xfty.AutoFixture` all carry NuGet package metadata
-(`PackageId`, `Version`, `Authors`, `PackageLicenseExpression`, embedded
-`README.md`, symbol packages) and `dotnet pack` produces a valid
-`.nupkg`/`.snupkg` pair for each — verified locally, not yet published. Only
-`Xfty` is required; the other five are independent, opt-in add-ons a
-project references only if it wants that specific convenience (EF Core
-persistence, Bogus-backed realistic values, a random-vector expression, the
-`[IsolatesSharedAncestor]` xUnit attribute, pairing with AutoFixture).
+`Xfty.Xunit`, `Xfty.AutoFixture`, and `Xfty.AutoBogus` all carry NuGet
+package metadata (`PackageId`, `Version`, `Authors`,
+`PackageLicenseExpression`, embedded `README.md`, symbol packages) and
+`dotnet pack` produces a valid `.nupkg`/`.snupkg` pair for each — verified
+locally, not yet published. Only `Xfty` is required; the other six are
+independent, opt-in add-ons a project references only if it wants that
+specific convenience (EF Core persistence, Bogus-backed realistic values, a
+random-vector expression, the `[IsolatesSharedAncestor]` xUnit attribute,
+pairing with AutoFixture, pairing with AutoBogus).
 
 Until a version is pushed to nuget.org, consume XFTY the same way any
 not-yet-published package is consumed:
@@ -76,6 +79,7 @@ dotnet pack Xfty.Bogus/Xfty.Bogus.csproj -c Release -o ./local-packages
 dotnet pack Xfty.VectorDatabases/Xfty.VectorDatabases.csproj -c Release -o ./local-packages
 dotnet pack Xfty.Xunit/Xfty.Xunit.csproj -c Release -o ./local-packages
 dotnet pack Xfty.AutoFixture/Xfty.AutoFixture.csproj -c Release -o ./local-packages
+dotnet pack Xfty.AutoBogus/Xfty.AutoBogus.csproj -c Release -o ./local-packages
 dotnet nuget add source ./local-packages -n xfty-local
 ```
 
@@ -97,9 +101,9 @@ dotnet nuget push ./local-packages/Xfty.<version>.nupkg \
 ```
 
 `Xfty.EntityFrameworkCore` depends on the `Xfty` package id/version, so push
-`Xfty` first; `Xfty.Bogus`, `Xfty.VectorDatabases`, `Xfty.Xunit`, and
-`Xfty.AutoFixture` all depend only on `Xfty` too, so the same order works
-for all six. Once a
+`Xfty` first; `Xfty.Bogus`, `Xfty.VectorDatabases`, `Xfty.Xunit`,
+`Xfty.AutoFixture`, and `Xfty.AutoBogus` all depend only on `Xfty` too, so
+the same order works for all seven. Once a
 version is live on nuget.org, it's automatically searchable from Visual
 Studio's NuGet Package Manager (VS searches nuget.org by default) — no
 separate listing step.

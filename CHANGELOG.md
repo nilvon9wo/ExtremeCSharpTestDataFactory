@@ -31,6 +31,29 @@ because those entries describe a change made in *this* repository.
 
 ### Added
 
+- **`Xfty.AutoBogus`** — the same pairing as `Xfty.AutoFixture`, for
+  AutoBogus instead: `XftyAutoBogus.CreateFaker(lookup)`/
+  `XftyAutoBogusOverride` points `faker.Generate<T>()` at a registered
+  `RecordProvider` (an `AutoGeneratorOverride` with `Preinitialize =>
+  false`, confirmed empirically to mean AutoBogus never constructs or
+  populates its own instance before the override runs - nothing it
+  generates is thrown away or overwritten by XFTY's result);
+  `AutoBogusUnsetFieldFiller` reuses the same core `IUnsetFieldFiller`
+  extension point `Xfty.AutoFixture` introduced, backed by an `IAutoFaker`
+  instead of an `IFixture` - no further core change needed. One real
+  behavioral difference from the AutoFixture filler, documented rather than
+  papered over: AutoBogus never throws for a field that circles back on its
+  own type (it self-limits recursion depth instead of AutoFixture's default
+  `ThrowingRecursionBehavior`), so `AutoBogusUnsetFieldFiller` has no
+  recursion-exception handling at all. `IAutoFaker`'s public surface is
+  generic-only, so resolving a field's runtime `Type` needs one
+  `MakeGenericMethod` call per distinct field type, cached after first use.
+  Proven in `Xfty.AutoBogus.Test` (both directions, combined, exclusion,
+  and the self-referencing-field case) reusing the same core
+  `UnsetFieldFillerTest`. XFTY now pairs with all three of AutoFixture,
+  Bogus, and AutoBogus - see
+  [reference/comparison.md](docs/reference/comparison.md#could-xfty-pair-with-one-of-these-to-close-a-gap)
+  and [use/autobogus.md](docs/use/autobogus.md).
 - **`Xfty.AutoFixture`** — pairs XFTY with AutoFixture, two independent,
   non-mutually-exclusive ways: `XftyCustomization`/`XftySpecimenBuilder`
   points `fixture.Create<T>()` at a registered `RecordProvider` instead of

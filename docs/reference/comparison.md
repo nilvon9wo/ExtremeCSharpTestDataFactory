@@ -140,7 +140,10 @@ group, by how many of the five tools have it.
 
 Sometimes, and it's worth being specific about which gap and how much work
 each pairing actually takes - "compose" is doing very different amounts of
-work in each case below.
+work in each case below. As of this writing, XFTY pairs with all three of
+Bogus, AutoFixture, and AutoBogus, each as its own opt-in package
+(`Xfty.Bogus`, `Xfty.AutoFixture`, `Xfty.AutoBogus`) - none a dependency of
+core `Xfty` or of each other.
 
 - **Bogus, for realistic values — done, as a separate package.** An
   `IValueExpression` is just an interface; nothing stops it from calling a
@@ -167,6 +170,20 @@ work in each case below.
   it actually set. See [use/autofixture.md](../use/autofixture.md) and
   [roadmap/autofixture-fallback-fill.md](../roadmap/autofixture-fallback-fill.md)
   (design history).
+- **AutoBogus, for auto-population plus realistic values together — done,
+  as a separate package, the same two directions as the AutoFixture
+  pairing.** `Xfty.AutoBogus` mirrors `Xfty.AutoFixture` exactly:
+  `XftyAutoBogus.CreateFaker(lookup)` points `faker.Generate<T>()` at a
+  registered `RecordProvider`; `AutoBogusUnsetFieldFiller` is the same
+  `IUnsetFieldFiller` fallback hook, backed by an `IAutoFaker` instead of an
+  `IFixture`. One real difference worth knowing: AutoBogus never throws for
+  a field that circles back on its own type (it self-limits recursion
+  depth instead), where AutoFixture's default behavior does - see
+  [use/autobogus.md](../use/autobogus.md) for the detail. Built on
+  `AutoGeneratorOverride`'s own `Preinitialize` flag (confirmed, not
+  assumed: set false, AutoBogus never constructs or populates its own
+  instance before the override runs, so nothing it generates is thrown away
+  or overwritten by XFTY's result).
 - **NBuilder — not really a gap to close.** XFTY already generates *N*
   similar records natively (call a Provider's `Supply()` in a loop, or use
   `With`/`WithChildren` for the nested case); NBuilder's own niche is

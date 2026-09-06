@@ -20,4 +20,6 @@
   <Project Path="Xfty.Xunit.Test/Xfty.Xunit.Test.csproj" />
   <Project Path="Xfty.AutoFixture/Xfty.AutoFixture.csproj" />
   <Project Path="Xfty.AutoFixture.Test/Xfty.AutoFixture.Test.csproj" />
+  <Project Path="Xfty.AutoBogus/Xfty.AutoBogus.csproj" />
+  <Project Path="Xfty.AutoBogus.Test/Xfty.AutoBogus.Test.csproj" />
 </Solution>
