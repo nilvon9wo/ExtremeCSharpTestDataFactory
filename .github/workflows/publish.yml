@@ -14,10 +14,10 @@ jobs:
       contents: read
       id-token: write # required so NuGet/login can request a GitHub OIDC token
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
