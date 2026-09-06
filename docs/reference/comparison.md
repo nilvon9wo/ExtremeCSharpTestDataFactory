@@ -70,7 +70,7 @@ group, by how many of the five tools have it.
 | Dependency-ordered batch insert across mixed types | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Graft onto an `init`-only model a real constructor rejects | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Realistic fake data | ◐ | ❌ | ✅ | ✅ | ❌ |
-| Auto-populates every property, no rules written | ❌ | ✅ | ❌ | ✅ | ❌ |
+| Auto-populates every property, no rules written | ◐ | ✅ | ❌ | ✅ | ❌ |
 | Auto-mocking of service dependencies (not data) | ❌ | ✅ | ❌ | ❌ | ❌ |
 | Maturity / ecosystem *(not a capability — kept last, unsorted)* | new — first beta | very mature | mature | smaller, less active recently | older, largely superseded |
 
