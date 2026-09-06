@@ -15,6 +15,7 @@ Xfty/            - the library (Net.NowhereAtAll.Xfty)
   Predicates/    - the reusable IRecordPredicate conditions
   Demo/          - this port's own bundled Account/Contact Providers + demo record types
 Xfty.Test/       - the xUnit test suite (Net.NowhereAtAll.Xfty.Test), mirroring Xfty/'s folders
+Xfty.NetStandardCompat.Test/    - proves the netstandard2.0-only compatibility polyfills actually run (net472 - see ci.md)
 Xfty.EntityFrameworkCore/       - optional: IPersistenceGateway via EF Core
 Xfty.EntityFrameworkCore.Test/  - proven against SQLite + a real Postgres container
 Xfty.Bogus/                     - optional: realistic-value IValueExpressions wrapping Bogus
@@ -31,6 +32,8 @@ Xfty.AutoFixture/               - optional: pairs XFTY with AutoFixture, both di
 Xfty.AutoFixture.Test/
 Xfty.AutoBogus/                 - optional: pairs XFTY with AutoBogus, both directions
 Xfty.AutoBogus.Test/
+Xfty.FSharpAsync/               - optional: Async<'T> wrappers for F# code on the original async { } workflow
+Xfty.FSharpAsync.Test/
 ```
 
 `Xfty.VectorDatabases.Qdrant` and `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`
@@ -53,18 +56,28 @@ Read each package's own README before depending on either.
 ## Consuming XFTY
 
 `Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`, `Xfty.VectorDatabases`,
-`Xfty.Xunit`, `Xfty.AutoFixture`, and `Xfty.AutoBogus` all carry NuGet
-package metadata (`PackageId`, `Version`, `Authors`,
-`PackageLicenseExpression`, embedded `README.md`, symbol packages) and
-`dotnet pack` produces a valid `.nupkg`/`.snupkg` pair for each — verified
-locally, not yet published. Only `Xfty` is required; the other six are
+`Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`, and `Xfty.FSharpAsync`
+are all published on nuget.org. Only `Xfty` is required; the other seven are
 independent, opt-in add-ons a project references only if it wants that
 specific convenience (EF Core persistence, Bogus-backed realistic values, a
 random-vector expression, the `[IsolatesSharedAncestor]` xUnit attribute,
-pairing with AutoFixture, pairing with AutoBogus).
+pairing with AutoFixture, pairing with AutoBogus, F#'s `Async<'T>`).
 
-Until a version is pushed to nuget.org, consume XFTY the same way any
-not-yet-published package is consumed:
+```bash
+dotnet add package Xfty
+```
+
+Add whichever opt-in packages you want the same way (`dotnet add package
+Xfty.EntityFrameworkCore`, etc.). `Xfty.VectorDatabases.Qdrant` and
+`Xfty.VectorDatabases.MicrosoftExtensionsVectorData` are published too, as
+`0.x-preview` versions rather than `1.0.0-beta.*` like the rest — each one's
+own README is explicit about being a proof-of-concept with named, accepted
+limitations rather than a considered general-purpose package; read it before
+depending on either.
+
+Working against an unpublished local change instead (contributing to XFTY
+itself, or trying something before it's released) uses the same pattern as
+any not-yet-published package:
 
 ```bash
 dotnet add reference path/to/Xfty/Xfty.csproj
@@ -74,34 +87,24 @@ or build the packages yourself and add a local NuGet feed:
 
 ```bash
 dotnet pack Xfty/Xfty.csproj -c Release -o ./local-packages
-dotnet pack Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj -c Release -o ./local-packages
-dotnet pack Xfty.Bogus/Xfty.Bogus.csproj -c Release -o ./local-packages
-dotnet pack Xfty.VectorDatabases/Xfty.VectorDatabases.csproj -c Release -o ./local-packages
-dotnet pack Xfty.Xunit/Xfty.Xunit.csproj -c Release -o ./local-packages
-dotnet pack Xfty.AutoFixture/Xfty.AutoFixture.csproj -c Release -o ./local-packages
-dotnet pack Xfty.AutoBogus/Xfty.AutoBogus.csproj -c Release -o ./local-packages
 dotnet nuget add source ./local-packages -n xfty-local
 ```
 
-`Xfty.VectorDatabases.Qdrant` and `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`
-also pack cleanly (`dotnet pack` verified for both) and are included in the
-publish plan below despite being `0.x-preview` - nuget.org has no issue
-hosting a preview version alongside `1.0.0-beta.1` releases, and each one's
-README is explicit about being a proof-of-concept with named, accepted
-limitations rather than a considered general-purpose package. A viewer who
-only wants the considered packages simply doesn't install these two.
-
 ## Publishing to nuget.org
 
-This is the one remaining step, and it needs the package owner's own
+Already set up and in active use — currently at `1.0.0-beta.5` for the
+eight non-preview packages and `0.1.0-preview.3` for the two vector-database
+preview ones, across several releases so far (see
+[CHANGELOG.md](../../CHANGELOG.md) for what shipped in each). Cutting a new
+one needs the package owner's own
 nuget.org account — nothing about it can be scripted or done on someone
 else's behalf. Once a version is live, it's automatically searchable from
 Visual Studio's NuGet Package Manager (VS searches nuget.org by default) — no
 separate listing step. `Xfty.EntityFrameworkCore` depends on the `Xfty`
 package id/version, so `Xfty` has to land first; `Xfty.Bogus`,
 `Xfty.VectorDatabases`, `Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`,
-and the two vector-database preview packages all depend only on `Xfty` too,
-so the same order works for all nine.
+`Xfty.FSharpAsync`, and the two vector-database preview packages all depend
+only on `Xfty` too, so the same order works for all ten.
 
 ### CI: Trusted Publishing — no stored secret at all
 

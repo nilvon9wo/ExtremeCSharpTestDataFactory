@@ -1,5 +1,7 @@
 # Xfty.AutoBogus
 
+[![NuGet](https://img.shields.io/nuget/v/Xfty.AutoBogus.svg)](https://www.nuget.org/packages/Xfty.AutoBogus/)
+
 Pairs [`Xfty`](https://www.nuget.org/packages/Xfty) with
 [AutoBogus](https://github.com/nickdodd79/AutoBogus) - AutoFixture-style
 auto-population, plus Bogus's realistic generators - in both directions.

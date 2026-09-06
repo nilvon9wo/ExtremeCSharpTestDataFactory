@@ -1,5 +1,7 @@
 # Xfty.VectorDatabases.Qdrant
 
+[![NuGet](https://img.shields.io/nuget/v/Xfty.VectorDatabases.Qdrant.svg)](https://www.nuget.org/packages/Xfty.VectorDatabases.Qdrant/)
+
 **Status: PREVIEW / proof-of-concept.** Versioned `0.x-preview`, not
 `1.0.0-beta.1` like every other package in this repo, on purpose - see
 [Why "preview" and not "beta"](#why-preview-and-not-beta) below. It works
@@ -8,6 +10,10 @@ answer a research question - "is talking to Qdrant directly simpler and
 safer than going through Microsoft.Extensions.VectorData?" - not as a
 fully-considered, general-purpose package yet. Read this whole file before
 using it for anything beyond that question.
+
+```bash
+dotnet add package Xfty.VectorDatabases.Qdrant
+```
 
 ## What it does
 

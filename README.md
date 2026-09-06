@@ -1,6 +1,7 @@
 # XFTY — Extreme C# Test Data Factory
 
 [![CI](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg)](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/v/Xfty.svg)](https://www.nuget.org/packages/Xfty/)
 
 XFTY is a declarative test data factory for C#.
 
@@ -14,6 +15,18 @@ unit test and a real database integration test.
 By centralizing test data definitions, XFTY dramatically reduces boilerplate
 and makes tests more resilient to changing validation rules, required
 fields, and evolving business logic.
+
+## Installation
+
+```bash
+dotnet add package Xfty
+```
+
+Add whichever opt-in packages you want the same way (`dotnet add package
+Xfty.EntityFrameworkCore`, `Xfty.Bogus`, `Xfty.VectorDatabases`,
+`Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`, `Xfty.FSharpAsync`) — see
+[Packages & Platform Support](#packages--platform-support) below for what
+each one does. Only `Xfty` itself is required.
 
 ---
 

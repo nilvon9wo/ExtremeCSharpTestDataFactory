@@ -1,8 +1,14 @@
 # Xfty.VectorDatabases.MicrosoftExtensionsVectorData
 
+[![NuGet](https://img.shields.io/nuget/v/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.svg)](https://www.nuget.org/packages/Xfty.VectorDatabases.MicrosoftExtensionsVectorData/)
+
 **Status: PREVIEW / proof-of-concept.** Versioned `0.x-preview`, not
 `1.0.0-beta.1` like every other package in this repo, on purpose - see
 [Why "preview" and not "beta"](#why-preview-and-not-beta) below.
+
+```bash
+dotnet add package Xfty.VectorDatabases.MicrosoftExtensionsVectorData
+```
 
 ## What it does
 

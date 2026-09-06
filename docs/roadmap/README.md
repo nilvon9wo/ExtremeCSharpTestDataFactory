@@ -27,6 +27,9 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 | **AutoFixture pairing** — `XftyCustomization`/`XftySpecimenBuilder` (point `fixture.Create<T>()` at a registered `RecordProvider`), `IUnsetFieldFiller`/`AutoFixtureUnsetFieldFiller` (let AutoFixture fill fields a Master Template never configured) | `Xfty.AutoFixture.Test/*`, `UnsetFieldFillerTest` (core contract) | [use](../use/autofixture.md), [detail](autofixture-fallback-fill.md) | ✅ Separate opt-in package (`Xfty.AutoFixture`); core `Xfty` gains only the dependency-free `IUnsetFieldFiller` extension point, not a dependency on AutoFixture itself. |
 | **AutoBogus pairing** — `XftyAutoBogus`/`XftyAutoBogusOverride` (point `faker.Generate<T>()` at a registered `RecordProvider`), `AutoBogusUnsetFieldFiller` (the same `IUnsetFieldFiller` extension point, backed by `IAutoFaker`) | `Xfty.AutoBogus.Test/*`, `UnsetFieldFillerTest` (core contract) | [use](../use/autobogus.md) | ✅ Separate opt-in package (`Xfty.AutoBogus`); mirrors the AutoFixture pairing exactly, reusing the same core `IUnsetFieldFiller` extension point - no further core change needed. AutoBogus self-limits recursion depth instead of throwing, unlike AutoFixture's default, so its filler needs no recursion-exception handling. |
 | **Typed `RecordProvider<TRecord>`/`ChildProvider<TChild>`** — composed generic wrappers mirroring `MasterTemplate<TRecord>`, plus `LookupKey.Get<TRecord>()`/`FlavouredLookupKey.Get<TRecord>(flavour)`/`lookup.Get<TRecord>()` | `RecordProviderOfTTest`, `ChildProviderOfTTest`, `LookupKeyTest` | — | ✅ Typed `Supply()`/`SupplyList()` (no cast), a `MasterTemplate<TRecord>`-style object-initializer indexer, and full fluent forwarding. |
+| **Fully async persistence, end to end** — `Supply()`/`SupplyList()`/`SupplyBundle()` and everything reachable from them (`IPersistenceGateway.Insert`, `DeferredInserter.Flush`, `SharedAncestor`'s resolution methods, both vector-database gateways) are genuinely `Task`-based | The whole suite - every test that calls any of these | [use/getting-started](../use/getting-started.md) | ✅ No `Async` suffix on any of it - see [CHANGELOG.md](../../CHANGELOG.md) for the full reasoning. |
+| **Multi-targeting** — core `Xfty` builds for `netstandard2.0`/`net8.0`/`net10.0`, reaching .NET Framework 4.6.1+/Mono/Xamarin/older .NET Core alongside modern .NET | `Xfty.NetStandardCompat.Test` (a real `net472` project - `netstandard2.0` isn't itself runnable) | — | ✅ |
+| **`Xfty.FSharpAsync`** — `Async<'T>` wrappers (`RecordProviderAsync`, `TypedRecordProviderAsync`, `DeferredInserterAsync`) for F# code on the original `async { }` workflow | `Xfty.FSharpAsync.Test/*` | [package README](../../Xfty.FSharpAsync/README.md) | ✅ Separate opt-in package; not needed at all if your F# code already uses the newer `task { }` computation expression, which consumes `Xfty`'s `Task`-returning API directly. |
 
 ## Not ported — genuine capability gaps
 
@@ -69,14 +72,6 @@ Considered and turned down on purpose, not gaps waiting to be filled.
 | Idea | Why declined | Detail |
 |------|--------------|--------|
 | Calling a real embedding API (OpenAI, Cohere, …) to produce a semantically meaningful vector | Breaks XFTY's offline/no-network/no-credential contract that every other value expression, `Xfty.Bogus` included, holds to. A project that needs real embeddings is better served by its own small helper than by XFTY adopting a paid-API pattern it uses nowhere else. | [vector-databases.md](vector-databases.md#deliberately-out-of-scope-calling-a-real-embedding-model) |
-
----
-
-## Decided, not yet done
-
-| Item | Status | Detail |
-|------|--------|--------|
-| Publish `Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`, `Xfty.VectorDatabases`, `Xfty.Xunit`, `Xfty.AutoFixture`, and `Xfty.AutoBogus` to nuget.org | All seven packages build/pack cleanly and are verified locally; the actual push needs the maintainer's own nuget.org account and API key. | [contribute/packaging.md](../contribute/packaging.md) |
 
 ---
 

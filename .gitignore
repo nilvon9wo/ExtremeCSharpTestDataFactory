@@ -35,3 +35,8 @@ bin/
 obj/
 *.user
 .vs/
+
+# Rider - safety-backup copies it creates before a bulk refactor across
+# project files (e.g. Replace in Path); meant to be transient, not always
+# cleaned up automatically
+*.Backup.tmp

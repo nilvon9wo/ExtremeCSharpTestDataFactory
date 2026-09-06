@@ -1,5 +1,7 @@
 # Xfty.VectorDatabases
 
+[![NuGet](https://img.shields.io/nuget/v/Xfty.VectorDatabases.svg)](https://www.nuget.org/packages/Xfty.VectorDatabases/)
+
 A bundled [`Xfty`](https://www.nuget.org/packages/Xfty) `IValueExpression`
 for a vector-database record's embedding field - a fixed-length `float[]` of
 independent random values, structurally a vector but **not** a semantically

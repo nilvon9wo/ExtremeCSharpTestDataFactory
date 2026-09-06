@@ -1,5 +1,7 @@
 # Xfty.FSharpAsync
 
+[![NuGet](https://img.shields.io/nuget/v/Xfty.FSharpAsync.svg)](https://www.nuget.org/packages/Xfty.FSharpAsync/)
+
 F#-idiomatic `Async<'T>` wrappers over [`Xfty`](https://www.nuget.org/packages/Xfty)'s
 `Task`-based API, for F# code built on the original `async { }` workflow.
 

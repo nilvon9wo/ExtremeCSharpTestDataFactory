@@ -1,5 +1,7 @@
 # Xfty.Bogus
 
+[![NuGet](https://img.shields.io/nuget/v/Xfty.Bogus.svg)](https://www.nuget.org/packages/Xfty.Bogus/)
+
 Four [`Xfty`](https://www.nuget.org/packages/Xfty) `IValueExpression`s backed
 by [Bogus](https://github.com/bchavez/Bogus), for a field that needs to
 *look* like real data rather than merely be present. Core `Xfty` has no

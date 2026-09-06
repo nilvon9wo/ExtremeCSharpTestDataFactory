@@ -1,5 +1,7 @@
 # Xfty.EntityFrameworkCore
 
+[![NuGet](https://img.shields.io/nuget/v/Xfty.EntityFrameworkCore.svg)](https://www.nuget.org/packages/Xfty.EntityFrameworkCore/)
+
 The real, database-backed `IPersistenceGateway` for
 [`Xfty`](https://www.nuget.org/packages/Xfty) - the piece that makes
 `InsertMode.Now` and `.DepthBatched()` actually persist, proven against a

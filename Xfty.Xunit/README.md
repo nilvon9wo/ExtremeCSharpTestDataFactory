@@ -1,5 +1,7 @@
 # Xfty.Xunit
 
+[![NuGet](https://img.shields.io/nuget/v/Xfty.Xunit.svg)](https://www.nuget.org/packages/Xfty.Xunit/)
+
 One xUnit attribute for a [`Xfty`](https://www.nuget.org/packages/Xfty)
 consumer's own test suite: `[IsolatesSharedAncestor]`, resetting
 `SharedAncestor`'s registry before and after a test.

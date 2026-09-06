@@ -1,5 +1,7 @@
 # Xfty.AutoFixture
 
+[![NuGet](https://img.shields.io/nuget/v/Xfty.AutoFixture.svg)](https://www.nuget.org/packages/Xfty.AutoFixture/)
+
 Pairs [`Xfty`](https://www.nuget.org/packages/Xfty) with
 [AutoFixture](https://github.com/AutoFixture/AutoFixture), in both
 directions - core `Xfty` has no dependency on AutoFixture, and never will.
