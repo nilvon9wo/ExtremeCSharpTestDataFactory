@@ -38,7 +38,11 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 # API, and must never be checked against the test suite.
 DOC_DIRS = [ROOT / "docs" / "use", ROOT / "docs" / "extend"]
 EXCLUDE_DIRS = [ROOT / "docs" / "articles"]
-TEST_DIRS = [ROOT / "Xfty.Test"]
+# Every *.Test project, not just the core Xfty.Test - an add-on package's own
+# docs page (autofixture.md, say) is proven by tests in ITS OWN Test project
+# (Xfty.AutoFixture.Test), which previously wasn't scanned at all. Discovered,
+# not hardcoded, so a new add-on package's Test project is covered automatically.
+TEST_DIRS = sorted(p for p in ROOT.glob("*.Test") if p.is_dir())
 
 RUNNABLE_RE = re.compile(r"Runnable:\s*(.+)$", re.M)
 CLASS_RE = re.compile(r"`(\w+Test)`")

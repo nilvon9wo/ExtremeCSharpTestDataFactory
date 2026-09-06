@@ -61,6 +61,36 @@ rather than approximated:
 
 ---
 
+## Doc-verification gap
+
+`scripts/verify-doc-examples.py` only ever scanned `Xfty.Test/` for backing
+tests, even after add-on packages (`Xfty.AutoFixture`, `Xfty.AutoBogus`,
+`Xfty.Bogus`, …) got their own `Xfty.*.Test` projects and their own
+`docs/use/*.md` pages — those pages' code blocks were never actually checked
+against anything, silently, because none of them carry a `Runnable:` marker.
+Fixed the scanning gap itself: `TEST_DIRS` now discovers every `*.Test`
+project, not just the core one.
+
+**Still open:** turning that check *on* for `docs/use/autofixture.md` and
+`docs/use/autobogus.md` (adding their `Runnable:` line) currently fails —
+their examples are genuinely backed by real tests
+(`XftyCustomizationTest`/`AutoFixtureUnsetFieldFillerTest`,
+`XftyAutoBogusTest`/`AutoBogusUnsetFieldFillerTest`), but small, real drift
+has crept in between the doc prose and the test code since they were last
+hand-verified: the docs' placeholder variable is `lookup`, the tests call a
+`Lookup()` helper method instead, and the docs' `CreateMany<Contact>(3)`
+example has no `Contact` counterpart in either test file (only `Account` is
+covered). None of this means the *behavior* is wrong — both pages'
+philosophy and API shape were traced by hand against the real source while
+writing each package's own nuget.org README — but closing it properly means
+either renaming to a shared `lookup` local at the relevant call sites (this
+port's own established convention — see any core `docs/use` page's Runnable
+tests) or adding the missing `Contact` coverage, not just adding the marker
+and letting it fail. Tracked here rather than done as a drive-by while
+fixing something unrelated.
+
+---
+
 ## Fixed (kept for context)
 
 - `DeferredInsertBuffer.Collect(bundle)` called `bundle.PrimaryRecords()`

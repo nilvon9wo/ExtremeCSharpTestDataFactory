@@ -36,6 +36,13 @@ Then, as needed:
 - [provider-variants](provider-variants.md) — pick a flavour variant
 - [advanced/](advanced/) — combining features
 
+Optional add-on packages, each independent of the others:
+
+- [autofixture](autofixture.md) — pair with AutoFixture, both directions
+- [autobogus](autobogus.md) — pair with AutoBogus, both directions
+- [bogus](bogus.md) — realistic names/emails/addresses/paragraphs via Bogus
+- [vector-databases](vector-databases.md) — a random-vector value expression for an embedding field
+
 Two pages describe features deliberately not provided —
 [org-seeding](org-seeding.md) and [test-user-helpers](test-user-helpers.md) —
 kept as short stubs explaining why, rather than removed outright.

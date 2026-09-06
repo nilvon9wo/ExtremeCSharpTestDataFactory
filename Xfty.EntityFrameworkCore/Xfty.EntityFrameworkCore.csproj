@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Xfty.EntityFrameworkCore</PackageId>
-    <Version>1.0.0-beta.1</Version>
+    <Version>1.0.0-beta.2</Version>
     <Authors>Brian Kessler</Authors>
     <Description>An IPersistenceGateway implementation for XFTY that inserts generated records through Entity Framework Core, instead of mocking them.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;entity-framework-core;ef-core</PackageTags>
@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

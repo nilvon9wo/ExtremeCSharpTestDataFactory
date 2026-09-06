@@ -14,18 +14,12 @@ abstract `VectorStore` - **any** `VectorStore`. It depends on nothing but
 connector you construct the `VectorStore` from (Qdrant, Redis, Azure AI
 Search, pgvector, SQLite, Weaviate, …) is entirely your choice, made
 outside this package. This gateway has no idea, and no dependency on,
-which one you picked.
-
-This is a real correction, not just a rename: an earlier version of this
-idea lived inside `Xfty.VectorDatabases.Qdrant` and constructed a
-`QdrantVectorStore` internally, which made it needlessly Qdrant-specific
-for no actual reason - nothing about the logic touches Qdrant. `GetDynamicCollection`,
-`EnsureCollectionExistsAsync`, and `UpsertAsync` are all declared on the
-abstract `VectorStore` base class itself, so the exact same code already
-worked against any connector once the constructor took a `VectorStore`
-instead of building one. See `Xfty.VectorDatabases.Qdrant`'s own README for
-the direct-client alternative this package is deliberately kept separate
-from.
+which one you picked. `GetDynamicCollection`, `EnsureCollectionExistsAsync`,
+and `UpsertAsync` are declared on the abstract `VectorStore` base class
+itself, so none of this is actually Qdrant-specific, despite Qdrant being
+what this package's own test happens to use - see
+[`Xfty.VectorDatabases.Qdrant`](../Xfty.VectorDatabases.Qdrant/README.md)
+for the direct-client alternative, kept in its own package on purpose.
 
 It uses MEVD's *dynamic* mapping (`Dictionary<string, object?>`, not a
 compile-time-known record type) - the one mapping style needing no

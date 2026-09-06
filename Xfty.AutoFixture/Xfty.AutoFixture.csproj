@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Xfty.AutoFixture</PackageId>
-    <Version>1.0.0-beta.1</Version>
+    <Version>1.0.0-beta.2</Version>
     <Authors>Brian Kessler</Authors>
     <Description>Pairs XFTY with AutoFixture: point a Fixture's Create&lt;T&gt;() at a registered RecordProvider instead of AutoFixture's own generation, and/or let AutoFixture fill in whatever fields a Provider's Master Template left unset.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;autofixture</PackageTags>
@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

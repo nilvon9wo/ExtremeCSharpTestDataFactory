@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Xfty.VectorDatabases</PackageId>
-    <Version>1.0.0-beta.1</Version>
+    <Version>1.0.0-beta.2</Version>
     <Authors>Brian Kessler</Authors>
     <Description>A bundled IValueExpression for XFTY that fills a vector-database record's embedding field with a fixed-length array of random floats - structurally a vector, not a semantically meaningful embedding.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;vector-database;embeddings</PackageTags>
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

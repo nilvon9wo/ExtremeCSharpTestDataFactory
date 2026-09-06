@@ -20,32 +20,15 @@ through `Qdrant.Client` directly - no Microsoft.Extensions.VectorData
 abstraction. Depends only on Qdrant's own stable client (`Qdrant.Client`,
 1.19.0) - nothing preview, nothing Semantic-Kernel-branded.
 
-**This package used to also ship an MEVD-backed gateway, for comparison.**
-It was split out on purpose, not left combined even during preview: keeping
-them together meant anyone who wanted only the direct-client approach was
-already forced to take a transitive dependency on MEVD and Microsoft's
-still-preview Qdrant connector, starting from the moment they installed
-this package - not a future cost, a real one from day one. The MEVD-backed
-gateway now lives in its own package,
-[`Xfty.VectorDatabases.MicrosoftExtensionsVectorData`](../Xfty.VectorDatabases.MicrosoftExtensionsVectorData/README.md)
-- and turned out to deserve its own package for a second reason: it isn't
-actually Qdrant-specific at all (see that package's README).
-
-**The comparison that motivated this split:** the direct gateway here
-compiled and passed against a real container on the first real attempt.
-The MEVD-backed gateway needed a correction unique to its abstraction layer
-(a vector property's schema `Type` has to be the container type, not the
-element type - no equivalent step exists on this direct path at all, since
-`PointStruct.Vectors` just takes a `float[]`). One shared constraint - the
-`Guid`-only id, below - was independently reconfirmed on this path too, not
-assumed to carry over: assigning a plain `string` to `PointStruct.Id` fails
-at **compile time** here (`CS0029`), versus a *runtime* validation error on
-the MEVD path - two different failure modes, the same real Qdrant
-constraint either way. MEVD's actual win is schema/mapping code you don't
-write by hand, useful once records look like Microsoft's own `Hotel`-style
-examples (several data properties, multiple vector fields); for the simple
-shape this PoC tested, going without it was both simpler and had less
-documentation-drift risk.
+There's also a separate package,
+[`Xfty.VectorDatabases.MicrosoftExtensionsVectorData`](../Xfty.VectorDatabases.MicrosoftExtensionsVectorData/README.md),
+doing the same job through Microsoft's `VectorStore` abstraction instead of
+Qdrant's client directly - its own package on purpose, so depending on this
+one never pulls in MEVD or a Semantic-Kernel-branded connector this class
+doesn't use. See [roadmap/vector-databases.md](../docs/roadmap/vector-databases.md#why-two-packages-not-one)
+for the full comparison between the two approaches, including the one real,
+concrete difference the comparison turned up (a schema-`Type` gotcha unique
+to the MEVD path).
 
 ## Known and accepted assumptions, and why they're accepted
 
