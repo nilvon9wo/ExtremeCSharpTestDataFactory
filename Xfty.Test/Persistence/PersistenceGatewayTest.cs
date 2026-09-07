@@ -14,7 +14,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Persistence;
 /// (a real database behind the same interface) lives in
 /// Xfty.EntityFrameworkCore.Test.
 /// </summary>
-public class PersistenceGatewayTest
+public class PersistenceGatewayTest : IDisposable
 {
     private static readonly DefaultProviderLookup Lookup = new();
 
@@ -189,6 +189,9 @@ public class PersistenceGatewayTest
     [Fact]
     public async Task Flush_AfterDeferredWithExcludePrimaryIds_InsertsEverythingExceptTheExcludedPrimary()
     {
+        // Sanity Check - DeferredInserter should be empty at the start of this test.
+        Assert.Equal(0, DeferredInserter.PendingCount());
+
         // Arrange - the capability RelatedOnly/MockRelatedOnly could never express: a whole 10-level-deep
         // ancestor tree (Account here stands in for one) built efficiently under Deferred, flushed for
         // real, while the primary that relates to it stays un-Id'd the entire time
@@ -277,4 +280,7 @@ public class PersistenceGatewayTest
         Assert.All(bundle.PrimaryRecords()!.Cast<Account>(), account => Assert.NotNull(account.Id));
         Assert.Equal(0, DeferredInserter.PendingCount());
     }
+
+    public void Dispose()
+        => DeferredInserter.ResetForTesting();
 }
