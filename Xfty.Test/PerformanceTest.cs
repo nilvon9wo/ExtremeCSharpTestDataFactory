@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Values;
@@ -26,8 +28,8 @@ public class PerformanceTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
@@ -41,7 +43,7 @@ public class PerformanceTest
 
         // Act
         Stopwatch stopwatch = Stopwatch.StartNew();
-        List<object> results = await provider.SupplyList();
+        List<object> results = await provider.SupplyList().ConfigureAwait(true);
         stopwatch.Stop();
 
         // Assert
@@ -61,7 +63,7 @@ public class PerformanceTest
 
         // Act
         long before = GC.GetTotalMemory(forceFullCollection: true);
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
         long allocatedRoughly = GC.GetTotalMemory(forceFullCollection: false) - before;
 
         // Assert
@@ -80,7 +82,7 @@ public class PerformanceTest
 
         // Act
         Stopwatch stopwatch = Stopwatch.StartNew();
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
         stopwatch.Stop();
 
         // Assert
@@ -101,7 +103,7 @@ public class PerformanceTest
 
         // Act
         Stopwatch stopwatch = Stopwatch.StartNew();
-        List<object> results = await provider.SupplyList();
+        List<object> results = await provider.SupplyList().ConfigureAwait(true);
         stopwatch.Stop();
 
         // Assert

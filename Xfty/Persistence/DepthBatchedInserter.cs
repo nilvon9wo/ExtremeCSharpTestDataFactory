@@ -1,5 +1,4 @@
 using Net.NowhereAtAll.Xfty.Core;
-using Net.NowhereAtAll.Xfty.Engine;
 namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
@@ -64,8 +63,8 @@ public sealed class DepthBatchedInserter
         }
 
         List<int> layer = this.TakeNextLayer(unpersisted);
-        await this.InsertLayer(layer);
-        await this.InsertRemainingLayers([.. unpersisted.Except(layer)]);
+        await this.InsertLayer(layer).ConfigureAwait(false);
+        await this.InsertRemainingLayers([.. unpersisted.Except(layer)]).ConfigureAwait(false);
     }
 
     private List<int> TakeNextLayer(HashSet<int> unpersisted) =>

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Values;
 
@@ -55,6 +56,7 @@ public class SmokeTest
     // DefaultProviderLookup.KeysFor(...) -> IEnumerable<T>.ToHashSet() -------
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void DefaultProviderLookup_KeysFor_MatchesTheGivenRecordsRegisteredKey()
     {
         // Arrange
@@ -66,6 +68,6 @@ public class SmokeTest
         // Assert - ToHashSet's polyfill produced a real set, correctly populated with every registered key,
         // for ProviderLookups.KeysFor to then filter down to the one matching Account
         _ = Assert.Single(keys);
-        Assert.Contains(Lookup.LookupKey.Get(typeof(Account)), keys);
+        Assert.Contains(Lookup.LookupKey.Get<Account>(), keys);
     }
 }

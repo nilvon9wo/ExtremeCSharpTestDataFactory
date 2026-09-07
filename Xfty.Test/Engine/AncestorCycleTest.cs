@@ -1,5 +1,7 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -16,7 +18,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Engine;
 public class AncestorCycleTest
 {
     private static IProviderLookup SelfReferringLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get(typeof(Contact))] = new SelfReferringContactProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Contact>()] = new SelfReferringContactProvider() });
 
     [Fact]
     public async Task SupplyBundle_WithOneLevelOfSelfReference_StopsTheChainOnItsOwn()
@@ -28,7 +30,7 @@ public class AncestorCycleTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Sanity Check
         Assert.NotNull(bundle.GetBundle<Contact>(x => x.ReportsToId)); // the manager Contact was generated
@@ -47,7 +49,7 @@ public class AncestorCycleTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
 
         // Assert - a deeper same-key chain must throw
         Assert.Contains("cycle", thrown.Message);
@@ -65,7 +67,7 @@ public class AncestorCycleTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Bundle levelTwo = bundle.GetBundle<Contact>(x => x.ReportsToId)!.GetBundle<Contact>(x => x.ReportsToId)!;

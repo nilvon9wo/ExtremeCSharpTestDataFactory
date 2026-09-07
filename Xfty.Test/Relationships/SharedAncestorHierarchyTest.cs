@@ -1,5 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -28,6 +32,7 @@ public class SharedAncestorHierarchyTest
     // Flat --------------------------------------------------------------------
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task SupplyList_WhenChildrenShareAConfiguredAncestor_TheyAllGetTheSameOne()
     {
         // Arrange
@@ -35,7 +40,7 @@ public class SharedAncestorHierarchyTest
         _ = SharedAncestor.Put(name, new Account { Name = "HQ" });
 
         // Act
-        List<Contact> contacts = await SupplyContactsUnder(name, 5);
+        List<Contact> contacts = await SupplyContactsUnder(name, 5).ConfigureAwait(true);
 
         // Assert - one shared HQ, not one per Contact
         HashSet<string?> accountIds = [.. contacts.Select(contact => contact.AccountId)];
@@ -49,21 +54,21 @@ public class SharedAncestorHierarchyTest
     public async Task Supply_WhenASharedAncestorIsDeep_ResolvesItAutomatically()
     {
         // Arrange
-        ILookupKey level1Key = FlavouredLookupKey.Get(typeof(Account), "hierarchy-level1");
-        _ = SharedAncestor.Put("hierarchy-root", new Account { Name = "Root" }).FromVariant(LookupKey.Get(typeof(Account)));
+        ILookupKey level1Key = FlavouredLookupKey.Get<Account>("hierarchy-level1");
+        _ = SharedAncestor.Put("hierarchy-root", new Account { Name = "Root" }).FromVariant(LookupKey.Get<Account>());
         _ = SharedAncestor.Put("hierarchy-level1", new Account { Name = "Level 1" }).FromVariant(level1Key);
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [level1Key] = ChildOfSharedProvider.Of<Account>(nameof(Account.Id), nameof(Account.ParentId), nameof(Account.Name), "hierarchy-root"),
-            [LookupKey.Get(typeof(Contact))] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), "hierarchy-level1"),
+            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), "hierarchy-level1"),
         });
 
         // Act
         Contact leaf = (Contact)await new RecordProvider(typeof(Contact), lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert - the nested shared ancestor was wired
         Assert.Equal(SharedAncestor.GetId("hierarchy-root"), ((Account)FirstResolvedAccount("hierarchy-level1")).ParentId);
@@ -78,8 +83,8 @@ public class SharedAncestorHierarchyTest
         _ = SharedAncestor.Put(name, new Account { Name = "Singleton Root" });
 
         // Act - two independent calls that should land on the same shared root
-        Contact fromFirstCall = await SupplyOneContactUnder(name);
-        Contact fromSecondCall = await SupplyOneContactUnder(name);
+        Contact fromFirstCall = await SupplyOneContactUnder(name).ConfigureAwait(true);
+        Contact fromSecondCall = await SupplyOneContactUnder(name).ConfigureAwait(true);
 
         // Assert
         Assert.Equal(fromFirstCall.AccountId, fromSecondCall.AccountId); // both calls share the one root
@@ -95,7 +100,7 @@ public class SharedAncestorHierarchyTest
         _ = SharedAncestor.Put(name, new Account { Name = "HQ" });
 
         // Act
-        _ = await SharedAncestor.Get(name).ResolveNow(ContactsUnder(name), InsertMode.Mock);
+        _ = await SharedAncestor.Get(name).ResolveNow(ContactsUnder(name), InsertMode.Mock).ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(SharedAncestor.GetId(name));
@@ -107,10 +112,10 @@ public class SharedAncestorHierarchyTest
         // Arrange - resolve up front in Mock, then reference it from a Never call
         const string name = "hierarchy-resolvenow-pins-mode";
         _ = SharedAncestor.Put(name, new Account { Name = "HQ" });
-        _ = await SharedAncestor.Get(name).ResolveNow(ContactsUnder(name), InsertMode.Mock);
+        _ = await SharedAncestor.Get(name).ResolveNow(ContactsUnder(name), InsertMode.Mock).ConfigureAwait(true);
 
         // Act
-        List<Contact> contacts = await SupplyContactsUnderWithMode(name, 1, InsertMode.Never);
+        List<Contact> contacts = await SupplyContactsUnderWithMode(name, 1, InsertMode.Never).ConfigureAwait(true);
 
         // Assert - the mock Id is still available, and shared with the Never-mode leaf
         Assert.NotNull(SharedAncestor.GetId(name));
@@ -123,14 +128,14 @@ public class SharedAncestorHierarchyTest
         // Arrange - resolve the shared record, then hand its Id straight to a template
         const string name = "hierarchy-getid-feeds-template";
         _ = SharedAncestor.Put(name, new Account { Name = "HQ" });
-        _ = await SharedAncestor.Get(name).ResolveNow(ContactsUnder(name), InsertMode.Mock);
+        _ = await SharedAncestor.Get(name).ResolveNow(ContactsUnder(name), InsertMode.Mock).ConfigureAwait(true);
         Contact template = new() { LastName = "Direct", AccountId = (string)SharedAncestor.GetId(name) };
 
         // Act
         Contact leaf = (Contact)await new RecordProvider(template, ContactsUnder(name))
             .SetInclusivity(InsertInclusivity.None)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal(SharedAncestor.GetId(name), leaf.AccountId);
@@ -147,7 +152,7 @@ public class SharedAncestorHierarchyTest
         _ = SharedAncestor.PutIfAbsent(name, new Account { Name = "Second" });
 
         // Act
-        _ = await SupplyOneContactUnder(name);
+        _ = await SupplyOneContactUnder(name).ConfigureAwait(true);
 
         // Assert - the second PutIfAbsent was ignored
         Assert.Equal("First", ((Account)FirstResolvedAccount(name)).Name);
@@ -166,7 +171,7 @@ public class SharedAncestorHierarchyTest
         Contact leaf = (Contact)await new RecordProvider(typeof(Contact), lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert - the Provider worked out of the box
         Assert.Equal("Packaged HQ", ((Account)FirstResolvedAccount(name)).Name);
@@ -185,7 +190,7 @@ public class SharedAncestorHierarchyTest
         _ = await new RecordProvider(typeof(Contact), lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert - PutIfAbsent left the test registration alone
         Assert.Equal("Test Override HQ", ((Account)FirstResolvedAccount(name)).Name);
@@ -205,7 +210,7 @@ public class SharedAncestorHierarchyTest
         Contact leaf = (Contact)await new RecordProvider(typeof(Contact), ContactsUnder(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert - a disabled shared ancestor is never wired
         Assert.Null(leaf.AccountId);
@@ -240,8 +245,8 @@ public class SharedAncestorHierarchyTest
     public async Task Supply_WhenSharedAncestorsFormACycle_Throws()
     {
         // Arrange - 'a' needs 'b', 'b' needs 'a'
-        ILookupKey keyA = FlavouredLookupKey.Get(typeof(Account), "hierarchy-cycle-a");
-        ILookupKey keyB = FlavouredLookupKey.Get(typeof(Account), "hierarchy-cycle-b");
+        ILookupKey keyA = FlavouredLookupKey.Get<Account>("hierarchy-cycle-a");
+        ILookupKey keyB = FlavouredLookupKey.Get<Account>("hierarchy-cycle-b");
         _ = SharedAncestor.Put("hierarchy-cycle-a", new Account()).FromVariant(keyA);
         _ = SharedAncestor.Put("hierarchy-cycle-b", new Account()).FromVariant(keyB);
         RecordProvider provider = new RecordProvider(typeof(Contact), CycleLookup(keyA, keyB, "hierarchy-cycle-a", "hierarchy-cycle-b"))
@@ -249,7 +254,7 @@ public class SharedAncestorHierarchyTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
 
         // Assert - a shared-ancestor cycle must throw
         Assert.Contains("cycle", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -263,8 +268,8 @@ public class SharedAncestorHierarchyTest
     public async Task Supply_WhenOneSideOfACycleIsPreRegistered_BreaksTheCycle()
     {
         // Arrange - hand one side a real record so the cycle resolves
-        ILookupKey keyA = FlavouredLookupKey.Get(typeof(Account), "hierarchy-broken-cycle-a");
-        ILookupKey keyB = FlavouredLookupKey.Get(typeof(Account), "hierarchy-broken-cycle-b");
+        ILookupKey keyA = FlavouredLookupKey.Get<Account>("hierarchy-broken-cycle-a");
+        ILookupKey keyB = FlavouredLookupKey.Get<Account>("hierarchy-broken-cycle-b");
         _ = SharedAncestor.Put("hierarchy-broken-cycle-a", new Account()).FromVariant(keyA);
         _ = SharedAncestor.Put("hierarchy-broken-cycle-b", new Account()).FromVariant(keyB);
         Account premadeB = new() { Name = "Pre-made B", Id = IdMocker.GenerateId() };
@@ -275,7 +280,7 @@ public class SharedAncestorHierarchyTest
             typeof(Contact), CycleLookup(keyA, keyB, "hierarchy-broken-cycle-a", "hierarchy-broken-cycle-b"))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert - the chain resolved because the cycle was broken
         Assert.NotNull(leaf.AccountId);
@@ -294,7 +299,7 @@ public class SharedAncestorHierarchyTest
         _ = SharedAncestor.Put(name, new Account { Name = "HQ" });
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => SupplyContactsUnderWithMode(name, 2, InsertMode.Deferred));
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => SupplyContactsUnderWithMode(name, 2, InsertMode.Deferred)).ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -315,7 +320,7 @@ public class SharedAncestorHierarchyTest
             .Put<Account>(x => x.Description, CopyFromSiblingExpression.From<Account>(x => x.Name));
 
         // Act
-        Contact leaf = await SupplyOneContactUnder(name);
+        Contact leaf = await SupplyOneContactUnder(name).ConfigureAwait(true);
 
         // Assert
         Account sharedHq = (Account)FirstResolvedAccount(name);
@@ -335,7 +340,7 @@ public class SharedAncestorHierarchyTest
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
-        _ = await SupplyOneContactUnder(name);
+        _ = await SupplyOneContactUnder(name).ConfigureAwait(true);
 
         // Assert
         Account sharedHq = (Account)FirstResolvedAccount(name);
@@ -353,9 +358,9 @@ public class SharedAncestorHierarchyTest
         List<PropertyInfo> ownerPath = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)];
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
-            [LookupKey.Get(typeof(User))] = LeafUserProvider.Instance,
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
+            [LookupKey.Get<User>()] = LeafUserProvider.Instance,
         });
 
         // Act
@@ -363,7 +368,7 @@ public class SharedAncestorHierarchyTest
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .PutRequired(ownerPath, SharedAncestor.Get(name))
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Assert - the shared ancestor was wired in through a path value, nothing declared on the Provider
         Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
@@ -380,20 +385,20 @@ public class SharedAncestorHierarchyTest
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), name),
-            [LookupKey.Get(typeof(Case))] = ChildOfSharedProvider.Of<Case>(nameof(Case.Id), nameof(Case.AccountId), null, name),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), name),
+            [LookupKey.Get<Case>()] = ChildOfSharedProvider.Of<Case>(nameof(Case.Id), nameof(Case.AccountId), null, name),
         });
 
         // Act - one supply per record type
         Contact contactRecord = (Contact)await new RecordProvider(typeof(Contact), lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
         Case supportCase = (Case)await new RecordProvider(typeof(Case), lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert - one HQ for both the Contact and the Case
         Assert.Equal(contactRecord.AccountId, supportCase.AccountId);
@@ -412,8 +417,8 @@ public class SharedAncestorHierarchyTest
         ConfigureSpine(root, division, region);
 
         // Act - two independent leaf batches under the shared region
-        List<Contact> eastLeaves = await SupplyContactsUnder(region, 3);
-        List<Contact> westLeaves = await SupplyContactsUnder(region, 2);
+        List<Contact> eastLeaves = await SupplyContactsUnder(region, 3).ConfigureAwait(true);
+        List<Contact> westLeaves = await SupplyContactsUnder(region, 2).ConfigureAwait(true);
 
         // Assert
         Account rootAccount = (Account)FirstResolvedAccount(root);
@@ -441,7 +446,7 @@ public class SharedAncestorHierarchyTest
         Bundle leafBundle = await new RecordProvider(typeof(Contact), ContactsUnder(region))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Assert - the shared record is present at every level of the bundle
         Bundle regionBundle = leafBundle.GetBundle<Contact>(x => x.AccountId)!;
@@ -475,10 +480,10 @@ public class SharedAncestorHierarchyTest
             .SetQuantityPerTemplate(howMany)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(mode)
-            .SupplyList())
+            .SupplyList().ConfigureAwait(false))
             .Cast<Contact>()];
 
-    private static async Task<Contact> SupplyOneContactUnder(string sharedName) => (await SupplyContactsUnder(sharedName, 1))[0];
+    private static async Task<Contact> SupplyOneContactUnder(string sharedName) => (await SupplyContactsUnder(sharedName, 1).ConfigureAwait(false))[0];
 
     private static object FirstResolvedAccount(string sharedName) => SharedAncestor.Get(sharedName).GetResolvedBundle().PrimaryRecords()![0];
 
@@ -487,16 +492,16 @@ public class SharedAncestorHierarchyTest
     private static IProviderLookup ContactsUnder(string sharedName) =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), sharedName),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), sharedName),
         });
 
     private static IProviderLookup ContactsUnderWithDefault(string sharedName, Account theDefault) =>
         ProviderLookups.Of(
             new Dictionary<ILookupKey, IRecordProvider>
             {
-                [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-                [LookupKey.Get(typeof(Contact))] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), sharedName),
+                [LookupKey.Get<Account>()] = new AccountDataProvider(),
+                [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), sharedName),
             },
             new Dictionary<string, object> { [sharedName] = theDefault });
 
@@ -505,7 +510,7 @@ public class SharedAncestorHierarchyTest
         {
             [keyA] = ChildOfSharedProvider.Of<Account>(nameof(Account.Id), nameof(Account.ParentId), nameof(Account.Name), nameB),
             [keyB] = ChildOfSharedProvider.Of<Account>(nameof(Account.Id), nameof(Account.ParentId), nameof(Account.Name), nameA),
-            [LookupKey.Get(typeof(Contact))] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), nameA),
+            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), nameA),
         });
 }
 

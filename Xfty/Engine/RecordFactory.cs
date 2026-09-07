@@ -1,6 +1,6 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
-using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Persistence;
 namespace Net.NowhereAtAll.Xfty.Engine;
 
@@ -23,14 +23,14 @@ public sealed class RecordFactory
     private async Task<Bundle> Build(List<object> testTemplates)
     {
         int quantity = testTemplates.Count;
-        Bundle bundle = await new AncestorGenerator(this.context, quantity, this.template).Generate();
+        Bundle bundle = await new AncestorGenerator(this.context, quantity, this.template).Generate().ConfigureAwait(false);
         List<object> records = PlainValueFiller.CloneAndCompletePlainValues(this.template, testTemplates);
         bundle.PutPrimaries(this.template.PrimaryTargetField, records);
         new LookupWiring(bundle, this.context, this.template).Wire();
         new ContextAwareValuePass(bundle, this.context, this.template).Complete();
         this.RegisterDeferredValues(bundle);
         this.FillUnsetFields(records);
-        await this.Persist(records);
+        await this.Persist(records).ConfigureAwait(false);
         return bundle;
     }
 

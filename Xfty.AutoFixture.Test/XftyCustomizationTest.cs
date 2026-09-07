@@ -1,6 +1,6 @@
 using global::AutoFixture;
-using Net.NowhereAtAll.Xfty.AutoFixture;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -15,8 +15,8 @@ public class XftyCustomizationTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     private static IFixture Fixture() => new Fixture().Customize(new XftyCustomization(Lookup()));

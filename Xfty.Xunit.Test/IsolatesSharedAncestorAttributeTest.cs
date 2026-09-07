@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Persistence;
@@ -17,13 +18,13 @@ namespace Net.NowhereAtAll.Xfty.Xunit.Test;
 [IsolatesSharedAncestor]
 public class IsolatesSharedAncestorAttributeTest
 {
-    private const string SharedName = "isolation-test-shared-name";
+    private const string _sharedName = "isolation-test-shared-name";
 
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
@@ -31,14 +32,14 @@ public class IsolatesSharedAncestorAttributeTest
     {
         // Arrange - a fixed Id makes this a value Put, not a template, so the record itself is the resolved one
         Account first = new() { Name = "First", Id = IdMocker.GenerateId() };
-        _ = SharedAncestor.Put(SharedName, first);
+        _ = SharedAncestor.Put(_sharedName, first);
 
         // Act
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(SharedName))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(_sharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal(first.Id, result.AccountId);
@@ -49,14 +50,14 @@ public class IsolatesSharedAncestorAttributeTest
     {
         // Arrange - same name as FirstTest; would collide with its resolution without isolation
         Account second = new() { Name = "Second", Id = IdMocker.GenerateId() };
-        _ = SharedAncestor.Put(SharedName, second);
+        _ = SharedAncestor.Put(_sharedName, second);
 
         // Act
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(SharedName))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(_sharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert - resolves to THIS test's own record, regardless of run order relative to FirstTest
         Assert.Equal(second.Id, result.AccountId);
@@ -66,13 +67,13 @@ public class IsolatesSharedAncestorAttributeTest
 /// <summary>Proves the attribute works applied directly to one method, not just a whole class.</summary>
 public class IsolatesSharedAncestorAttributeMethodLevelTest
 {
-    private const string SharedName = "isolation-test-method-level-name";
+    private const string _sharedName = "isolation-test-method-level-name";
 
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
@@ -81,14 +82,14 @@ public class IsolatesSharedAncestorAttributeMethodLevelTest
     {
         // Arrange - a fixed Id makes this a value Put, not a template, so the record itself is the resolved one
         Account account = new() { Name = "Method-Level", Id = IdMocker.GenerateId() };
-        _ = SharedAncestor.Put(SharedName, account);
+        _ = SharedAncestor.Put(_sharedName, account);
 
         // Act
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(SharedName))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(_sharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal(account.Id, result.AccountId);

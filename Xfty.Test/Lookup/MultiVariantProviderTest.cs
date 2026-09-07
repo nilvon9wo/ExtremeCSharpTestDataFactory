@@ -1,5 +1,7 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -13,16 +15,16 @@ public class MultiVariantProviderTest
 {
     // Shared keys - in a real project these live in a *LookupKeys constants class
     // that both the Provider Lookup and the pinning relationships reference.
-    private static readonly ILookupKey Enterprise = FlavouredLookupKey.Get(typeof(Account), "enterprise");
-    private static readonly ILookupKey Smb = FlavouredLookupKey.Get(typeof(Account), "smb");
+    private static readonly ILookupKey Enterprise = FlavouredLookupKey.Get<Account>("enterprise");
+    private static readonly ILookupKey Smb = FlavouredLookupKey.Get<Account>("smb");
 
     private static IProviderLookup NewLookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new NamedAccountProvider("SMB"),
+            [LookupKey.Get<Account>()] = new NamedAccountProvider("SMB"),
             [Enterprise] = new NamedAccountProvider("Enterprise"),
             [Smb] = new NamedAccountProvider("SMB"),
-            [LookupKey.Get(typeof(Contact))] = new EnterpriseParentedContactProvider(Enterprise),
+            [LookupKey.Get<Contact>()] = new EnterpriseParentedContactProvider(Enterprise),
         });
 
     // lookup.Get(key) ------------------------------------------------
@@ -34,7 +36,7 @@ public class MultiVariantProviderTest
     public Task Get_ForAnExplicitSmbKey_ReturnsTheSmbProvider() => AssertGetIndustry(Smb, "SMB");
 
     [Fact]
-    public Task Get_ForThePlainTypeKey_ReturnsTheDefaultProvider() => AssertGetIndustry(LookupKey.Get(typeof(Account)), "SMB");
+    public Task Get_ForThePlainTypeKey_ReturnsTheDefaultProvider() => AssertGetIndustry(LookupKey.Get<Account>(), "SMB");
 
     // Variant chosen while generating a related record ---------------
 
@@ -47,7 +49,7 @@ public class MultiVariantProviderTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Assert.Equal("Enterprise", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Industry);
@@ -63,7 +65,7 @@ public class MultiVariantProviderTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Assert.Equal("SMB", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Industry);
@@ -79,7 +81,7 @@ public class MultiVariantProviderTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - the plain-key Provider
         Assert.Equal("SMB", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Industry);
@@ -93,7 +95,7 @@ public class MultiVariantProviderTest
         RecordProvider provider = new RecordProvider(key, NewLookup()).SetInsertMode(InsertMode.Mock);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(false);
 
         // Assert
         Assert.Equal(expectedIndustry, result.Industry);

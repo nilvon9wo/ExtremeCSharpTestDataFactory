@@ -1,6 +1,7 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
-using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Test.Lookup;
@@ -12,7 +13,7 @@ public class DiscriminatorLookupKeyTest
     public void Get_ForARecordMatchingTheDiscriminatorValue_IsInstanceOfIsTrue()
     {
         // Arrange
-        ILookupKey key = DiscriminatorLookupKey.Get<Account>(x => x.Type, "Person");
+        FlavouredLookupKey key = DiscriminatorLookupKey.Get<Account>(x => x.Type, "Person");
 
         // Act
         bool isInstance = key.IsInstanceOf(new Account { Type = "Person" });
@@ -25,7 +26,7 @@ public class DiscriminatorLookupKeyTest
     public void Get_ForARecordWithADifferentDiscriminatorValue_IsInstanceOfIsFalse()
     {
         // Arrange
-        ILookupKey key = DiscriminatorLookupKey.Get<Account>(x => x.Type, "Person");
+        FlavouredLookupKey key = DiscriminatorLookupKey.Get<Account>(x => x.Type, "Person");
 
         // Act
         bool isInstance = key.IsInstanceOf(new Account { Type = "Business" });
@@ -58,7 +59,7 @@ public class DiscriminatorLookupKeyTest
         RecordProvider provider = new(new Account { Type = "PersonAcct" }, lookup);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal("Person Default", result.Name);

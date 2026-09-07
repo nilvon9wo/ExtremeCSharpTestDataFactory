@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Persistence;
 
@@ -21,7 +23,7 @@ public class DeferredInsertBufferTest
         buffer.Add(null);
 
         // Act / Assert - no throw
-        await buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock).ConfigureAwait(true);
     }
 
     [Fact]
@@ -32,7 +34,7 @@ public class DeferredInsertBufferTest
         buffer.Add(new Bundle());
 
         // Act / Assert - no throw
-        await buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock).ConfigureAwait(true);
     }
 
     [Fact]
@@ -48,7 +50,7 @@ public class DeferredInsertBufferTest
         buffer.Add(childBundle);
 
         // Act
-        await buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock).ConfigureAwait(true);
 
         // Assert - the child lookup points at the freshly-mocked parent Id
         Assert.Equal(parent.Id, child.AccountId);
@@ -68,7 +70,7 @@ public class DeferredInsertBufferTest
         buffer.Add(childBundle);
 
         // Act
-        await buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock).ConfigureAwait(true);
 
         // Assert
         Assert.Equal(existing.Id, child.AccountId); // the pre-set lookup is not repointed
@@ -86,7 +88,7 @@ public class DeferredInsertBufferTest
         buffer.Add(bundle);
 
         // Act
-        await buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock).ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(onlyRecord.Id);
@@ -106,13 +108,14 @@ public class DeferredInsertBufferTest
         buffer.Add(bundle);
 
         // Act
-        await buffer.ResolveAll(InsertMode.Mock);
+        await buffer.ResolveAll(InsertMode.Mock).ConfigureAwait(true);
 
         // Assert
         Assert.All(contacts.Cast<Contact>(), contact => Assert.Equal(sharedParent.Id, contact.AccountId));
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void Flatten_ReturnsEveryRecordAndItsParentLink_WithoutResolvingAnything()
     {
         // Arrange

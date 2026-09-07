@@ -1,4 +1,5 @@
-using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test;

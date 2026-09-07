@@ -1,5 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.Children;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Enrichment;
@@ -18,9 +22,9 @@ public class BundleEnricherTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountWithParentProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
-            [LookupKey.Get(typeof(Case))] = new CaseProvider(),
+            [LookupKey.Get<Account>()] = new AccountWithParentProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
+            [LookupKey.Get<Case>()] = new CaseProvider(),
         });
 
     [Fact]
@@ -31,7 +35,7 @@ public class BundleEnricherTest
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SetQuantityPerTemplate(2)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Act
         List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
@@ -51,7 +55,7 @@ public class BundleEnricherTest
             .SetInclusivity(InsertInclusivity.Required)
             .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)])
             .AllowAncestorCycles()
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.AllParents();
 
         // Act
@@ -71,7 +75,7 @@ public class BundleEnricherTest
             .SetInclusivity(InsertInclusivity.Required)
             .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)])
             .AllowAncestorCycles()
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.AllParents().ParentDepth(1);
 
         // Act
@@ -90,7 +94,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Act
         List<object> enriched = bundle.InjectAllChildren(Field.Of<Account>(x => x.Id));
@@ -101,6 +105,7 @@ public class BundleEnricherTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task InjectAll_ForAGeneratedAncestorField_GraftsTheInverseChildren()
     {
         // Arrange - two Contacts, each generates its own Account
@@ -108,7 +113,7 @@ public class BundleEnricherTest
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SetQuantityPerTemplate(2)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Act
         List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.AccountId));
@@ -125,7 +130,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         DateTime forced = new(2020, 1, 1, 0, 0, 0);
         InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(x => x.Birthdate), forced);
 
@@ -143,7 +148,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Nothing()
             .InjectValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)], 9999m);
 
@@ -161,7 +166,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Everything().ExcludeParent([Field.Of<Contact>(x => x.AccountId)]);
 
         // Act
@@ -178,7 +183,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.None)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
@@ -195,7 +200,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Act
         _ = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
@@ -211,7 +216,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.AllParents().ParentDepth(9);
 
         // Act
@@ -223,13 +228,14 @@ public class BundleEnricherTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task InjectAll_ForThePrimary_AlsoPutsTheAncestorsInverseChildOntoIt()
     {
         // Arrange - one Contact; InjectAll should give it contact.Account and contact.Account.Contacts
         Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Act
         List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
@@ -247,7 +253,7 @@ public class BundleEnricherTest
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Act - Everything() covers ancestors at every position, including inside a subquery
         List<object> enriched = bundle.InjectAll(Field.Of<Account>(x => x.Id));
@@ -264,7 +270,7 @@ public class BundleEnricherTest
             .SetInsertMode(InsertMode.Mock)
             .With(ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
                 .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)))
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.AllChildren().ChildDepth(2).AllowDeeperGraph();
 
         // Act
@@ -281,7 +287,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.AllChildren().ChildDepth(2);
 
         // Act
@@ -299,7 +305,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Nothing()
             .InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Birthdate), new DateTime(2021, 6, 1));
 
@@ -319,7 +325,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
             Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), new IncrementingStringExpression("note"));
 
@@ -366,7 +372,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject), "x");
 
         // Act
@@ -384,7 +390,7 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
             [Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)], "x");
 
@@ -404,7 +410,7 @@ public class BundleEnricherTest
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SetQuantityPerTemplate(2)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Act
         List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), InjectConfig.AllParents());

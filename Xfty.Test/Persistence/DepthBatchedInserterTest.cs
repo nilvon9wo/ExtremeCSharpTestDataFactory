@@ -29,7 +29,7 @@ public class DepthBatchedInserterTest
         List<object> records = [new Account { Name = "A" }, new Account { Name = "B" }, new Account { Name = "C" }];
 
         // Act
-        await DepthBatchedInserter.ResolveAll(records, null, InsertMode.Mock);
+        await DepthBatchedInserter.ResolveAll(records, null, InsertMode.Mock).ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(((Account)records[2]).Id);
@@ -44,7 +44,7 @@ public class DepthBatchedInserterTest
         List<object> records = [child, parent];
 
         // Act
-        await DepthBatchedInserter.ResolveAll(records, [Link(0, 1, Field.Of<Contact>(x => x.AccountId))], InsertMode.Mock);
+        await DepthBatchedInserter.ResolveAll(records, [Link(0, 1, Field.Of<Contact>(x => x.AccountId))], InsertMode.Mock).ConfigureAwait(true);
 
         // Assert
         Assert.Equal(parent.Id, ((Contact)records[0]).AccountId);
@@ -63,7 +63,7 @@ public class DepthBatchedInserterTest
         await DepthBatchedInserter.ResolveAll(
             records,
             [Link(0, 1, Field.Of<Case>(x => x.AccountId)), Link(0, 2, Field.Of<Case>(x => x.ContactId))],
-            InsertMode.Mock);
+            InsertMode.Mock).ConfigureAwait(true);
 
         // Assert - both parents at layer 0, the Case alone at layer 1
         Assert.Equal(account.Id, ((Case)records[0]).AccountId);
@@ -83,7 +83,7 @@ public class DepthBatchedInserterTest
         await DepthBatchedInserter.ResolveAll(
             records,
             [Link(1, 0, Field.Of<Contact>(x => x.AccountId)), Link(2, 1, Field.Of<Contact>(x => x.ReportsToId))],
-            InsertMode.Mock);
+            InsertMode.Mock).ConfigureAwait(true);
 
         // Assert
         Assert.Equal(gen1.Id, gen2.AccountId);
@@ -103,7 +103,7 @@ public class DepthBatchedInserterTest
         await DepthBatchedInserter.ResolveAll(
             records,
             [Link(1, 0, Field.Of<Contact>(x => x.AccountId)), Link(2, 0, Field.Of<Contact>(x => x.AccountId))],
-            InsertMode.Mock);
+            InsertMode.Mock).ConfigureAwait(true);
 
         // Assert
         Assert.Equal(parent.Id, first.AccountId);
@@ -127,7 +127,7 @@ public class DepthBatchedInserterTest
         List<object> records = [new Account { Name = "A" }];
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DepthBatchedInserter.InsertAll(records, null));
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DepthBatchedInserter.InsertAll(records, null)).ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -138,7 +138,7 @@ public class DepthBatchedInserterTest
     private static async Task AssertCyclic(List<object> records, List<DepthBatchedInserterParentLink> parentLinks)
     {
         // Act
-        CyclicGraphException thrown = await Assert.ThrowsAsync<CyclicGraphException>(() => DepthBatchedInserter.ResolveAll(records, parentLinks, InsertMode.Mock));
+        CyclicGraphException thrown = await Assert.ThrowsAsync<CyclicGraphException>(() => DepthBatchedInserter.ResolveAll(records, parentLinks, InsertMode.Mock)).ConfigureAwait(false);
 
         // Assert - a cyclic graph must be rejected
         Assert.Contains("cycle", thrown.Message);

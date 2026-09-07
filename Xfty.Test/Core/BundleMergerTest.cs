@@ -1,4 +1,5 @@
-using Net.NowhereAtAll.Xfty.Core;
+using System.Diagnostics.CodeAnalysis;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
@@ -24,6 +25,7 @@ public class BundleMergerTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void Combine_WhenABundleHasNoPrimaries_SkipsItAndKeepsTheRest()
     {
         // Arrange
@@ -53,6 +55,7 @@ public class BundleMergerTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void Combine_WhenAParentFieldIsInOneBundleOnly_CarriesThatSubBundleThrough()
     {
         // Arrange

@@ -1,4 +1,6 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
@@ -19,7 +21,7 @@ public class RecordProviderOfTTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = await provider.Supply();
+        Contact result = await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal("Alice", result.FirstName);
@@ -34,7 +36,7 @@ public class RecordProviderOfTTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        List<Contact> result = await provider.SupplyList();
+        List<Contact> result = await provider.SupplyList().ConfigureAwait(true);
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -49,7 +51,7 @@ public class RecordProviderOfTTest
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(bundle.GetList<Contact>(x => x.Id));
@@ -68,7 +70,7 @@ public class RecordProviderOfTTest
         // Act
         Contact result = await provider
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal("Alice", result.FirstName);

@@ -1,4 +1,4 @@
-using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 
 namespace Net.NowhereAtAll.Xfty.Persistence;
 
@@ -34,7 +34,7 @@ public static class DeferredInserter
     /// </summary>
     public static async Task Flush(IPersistenceGateway? gateway = null)
     {
-        await _buffer.InsertAll(gateway);
+        await _buffer.InsertAll(gateway).ConfigureAwait(false);
         _buffer = new DeferredInsertBuffer();
     }
 

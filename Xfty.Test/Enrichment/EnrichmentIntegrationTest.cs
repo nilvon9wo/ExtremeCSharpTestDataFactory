@@ -1,4 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Enrichment;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -17,18 +20,19 @@ public class EnrichmentIntegrationTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task InjectAll_ForAGeneratedAncestor_PopulatesTheNavigationPropertyOnNewInstances()
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required);
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Act - InjectAll targets the bundle's primary field, not the ancestor key (which addresses the ancestor sub-bundle itself)
         List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
@@ -42,13 +46,14 @@ public class EnrichmentIntegrationTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task InjectAll_ForAGeneratedChildCollection_PopulatesTheCollectionNavigationProperty()
     {
         // Arrange - downward generation: an Account with three Contact children
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3);
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Act
         List<object> enriched = bundle.InjectAll(Field.Of<Account>(x => x.Id));
@@ -67,7 +72,7 @@ public class EnrichmentIntegrationTest
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.None);
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
@@ -84,7 +89,7 @@ public class EnrichmentIntegrationTest
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetQuantityPerTemplate(2);
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(x => x.Department), "Sales");
 
         // Act

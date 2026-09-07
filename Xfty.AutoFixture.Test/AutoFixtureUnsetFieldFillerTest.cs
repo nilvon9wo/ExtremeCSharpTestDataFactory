@@ -1,7 +1,6 @@
 using global::AutoFixture;
-using global::AutoFixture.Kernel;
-using Net.NowhereAtAll.Xfty.AutoFixture;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -13,8 +12,8 @@ public class AutoFixtureUnsetFieldFillerTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
@@ -27,7 +26,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert - AccountDataProvider's own Master Template never touches these
         _ = Assert.NotNull(result.NumberOfEmployees);
@@ -45,7 +44,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert - AccountDataProvider's own declared defaults, untouched by AutoFixture
         Assert.StartsWith(AccountDataProvider.DefaultNamePrefix, result.Name);
@@ -64,7 +63,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert - excluded field stays null; a sibling unset field still gets filled
         Assert.Null(result.Site);
@@ -85,7 +84,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Null(result.Contacts);
@@ -98,14 +97,14 @@ public class AutoFixtureUnsetFieldFillerTest
     {
         // Arrange - the documented alternative to relying on this filler's own catch
         IFixture fixture = new Fixture();
-        _ = fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().Single());
+        _ = fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().First());
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Exception? thrown = await Record.ExceptionAsync(provider.Supply);
+        Exception? thrown = await Record.ExceptionAsync(provider.Supply).ConfigureAwait(true);
 
         // Assert
         Assert.Null(thrown);
@@ -122,7 +121,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Exception? thrown = await Record.ExceptionAsync(provider.Supply);
+        Exception? thrown = await Record.ExceptionAsync(provider.Supply).ConfigureAwait(true);
 
         // Assert
         Assert.Null(thrown);
@@ -140,7 +139,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
         // Act
-        Contact result = (Contact)await provider.Supply();
+        Contact result = (Contact)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.AccountId); // XFTY's own relationship resolution

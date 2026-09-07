@@ -28,7 +28,7 @@ public static class DiscriminatorLookupKey
     public static FlavouredLookupKey Get<TRecord>(Expression<Func<TRecord, object?>> discriminatorField, object? value)
     {
         PropertyInfo field = Field.Of(discriminatorField);
-        FlavouredLookupKey key = FlavouredLookupKey.Get(typeof(TRecord), $"{field.Name}={value}");
+        FlavouredLookupKey key = FlavouredLookupKey.Get<TRecord>($"{field.Name}={value}");
         if (ConfiguredHashKeys.Add(key.HashKey))
         {
             _ = key.Matching(FieldPredicateFactory.EqualTo(field, value));

@@ -1,4 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.Children;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -27,9 +31,9 @@ public class ChildProviderTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
-            [LookupKey.Get(typeof(Case))] = new CaseProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
+            [LookupKey.Get<Case>()] = new CaseProvider(),
         });
 
     // Shortcuts -----------------------------------------------------
@@ -43,7 +47,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         string accountId = ((Account)bundle.PrimaryRecords()![0]).Id!;
@@ -57,6 +61,7 @@ public class ChildProviderTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task WithChild_GeneratesExactlyOneChild()
     {
         // Arrange
@@ -65,7 +70,7 @@ public class ChildProviderTest
             .WithChild(Field.Of<Contact>(x => x.AccountId));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         _ = Assert.Single(bundle.GetChildList<Contact>(x => x.AccountId));
@@ -97,7 +102,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buying" }).SetQuantity(2));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         List<object> children = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -118,7 +123,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(2));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         List<Contact> childContacts = [.. bundle.GetChildList<Contact>(x => x.AccountId).Cast<Contact>()];
@@ -141,7 +146,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(1));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         string parentZero = ((Account)bundle.PrimaryRecords()![0]).Id!;
@@ -168,7 +173,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Case>(x => x.AccountId), 3);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Assert.Equal(2, bundle.GetChildList<Contact>(x => x.AccountId).Count);
@@ -188,7 +193,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Case>(x => x.AccountId).SetQuantity(2));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         string rootAccountId = ((Account)bundle.PrimaryRecords()![0]).Id!;
@@ -221,7 +226,7 @@ public class ChildProviderTest
                     .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         List<object> contacts = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -243,14 +248,14 @@ public class ChildProviderTest
                     .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2)));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - the whole structural graph exists, including grandchildren, before any flush
         List<object> contacts = bundle.GetChildList<Contact>(x => x.AccountId);
         Assert.Equal(2, contacts.Count);
         List<object> cases = bundle.GetChildBundle<Contact>(x => x.AccountId)!.GetChildList<Case>(x => x.ContactId);
         Assert.Equal(4, cases.Count);
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush());
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush()).ConfigureAwait(true);
         Assert.Contains("persistence gateway", thrown.Message);
         DeferredInserter.ResetForTesting(); // the failed Flush() deliberately left the registry non-empty
     }
@@ -281,7 +286,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - the children got mock Ids too, exactly like the parent (no override given)
         List<object> children = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -300,7 +305,7 @@ public class ChildProviderTest
         // Act - the child's Now override is honoured (not silently downgraded to the parent's Never); Now with no
         // gateway configured throws rather than silently skipping the insert (see PersistenceGatewayTest for the
         // configured-gateway case, where Now genuinely persists)
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.SupplyBundle);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.SupplyBundle).ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -321,7 +326,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         List<Contact> children = [.. bundle.GetChildList<Contact>(x => x.AccountId).Cast<Contact>()];
@@ -342,7 +347,7 @@ public class ChildProviderTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         List<object> children = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -364,7 +369,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Case>(x => x.AccountId, new Case { Origin = "Phone" }).SetQuantity(1));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Bundle merged = bundle.GetChildBundle<Case>(x => x.AccountId)!;
@@ -382,7 +387,7 @@ public class ChildProviderTest
             .With(ChildProvider.For<Contact>(x => x.AccountId).SetInsertMode(childMode));
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(false);
 
         // Assert - a mock/real mix must throw
         Assert.Contains("mix mock", thrown.Message);

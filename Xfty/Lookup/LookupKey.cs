@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Net.NowhereAtAll.Xfty.Core;
 namespace Net.NowhereAtAll.Xfty.Lookup;
 
@@ -11,7 +12,7 @@ namespace Net.NowhereAtAll.Xfty.Lookup;
 /// </summary>
 public sealed class LookupKey : ILookupKey
 {
-    private static readonly Dictionary<Type, LookupKey> InstanceByType = [];
+    private static readonly ConcurrentDictionary<Type, LookupKey> InstanceByType = [];
 
     private LookupKey(Type recordType) => this.RecordType = recordType;
 

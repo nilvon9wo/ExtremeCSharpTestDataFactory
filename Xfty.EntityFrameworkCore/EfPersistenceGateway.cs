@@ -24,7 +24,7 @@ public sealed class EfPersistenceGateway(DbContext dbContext) : IPersistenceGate
     public async Task Insert(List<object> records, PropertyInfo idField)
     {
         records.ForEach(record => this.AddOne(record, idField));
-        _ = await dbContext.SaveChangesAsync();
+        _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
     }
 
     private void AddOne(object record, PropertyInfo idField)

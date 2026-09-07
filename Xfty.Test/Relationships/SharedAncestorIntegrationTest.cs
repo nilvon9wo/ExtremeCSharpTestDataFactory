@@ -1,4 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
@@ -20,11 +23,12 @@ public class SharedAncestorIntegrationTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task SupplyList_WithASharedAncestor_PointsEveryChildAtTheSameGeneratedParent()
     {
         // Arrange - two Contacts sharing one Account
@@ -37,7 +41,7 @@ public class SharedAncestorIntegrationTest
             .SetQuantityPerTemplate(2);
 
         // Act
-        List<object> results = await provider.SupplyList();
+        List<object> results = await provider.SupplyList().ConfigureAwait(true);
 
         // Assert - both contacts point at the very same generated Account Id
         List<string?> accountIds = [.. results.Cast<Contact>().Select(contact => contact.AccountId).Distinct()];
@@ -53,7 +57,7 @@ public class SharedAncestorIntegrationTest
         _ = SharedAncestor.PutAsTemplate(sharedName, new Account { Name = "Resolved Up Front" });
 
         // Act
-        _ = await SharedAncestor.Get(sharedName).ResolveNow(Lookup(), InsertMode.Mock);
+        _ = await SharedAncestor.Get(sharedName).ResolveNow(Lookup(), InsertMode.Mock).ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(SharedAncestor.GetId(sharedName));
@@ -81,8 +85,8 @@ public class SharedAncestorIntegrationTest
         IProviderLookup lookup = ProviderLookups.Of(
             new Dictionary<ILookupKey, IRecordProvider>
             {
-                [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-                [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+                [LookupKey.Get<Account>()] = new AccountDataProvider(),
+                [LookupKey.Get<Contact>()] = new ContactDataProvider(),
             },
             new Dictionary<string, object> { [sharedName] = new Account { Name = "Lookup-Default HQ" } });
         RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
@@ -91,7 +95,7 @@ public class SharedAncestorIntegrationTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName));
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.NotNull(result.AccountId);
@@ -112,7 +116,7 @@ public class SharedAncestorIntegrationTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - the shared Account resolved with a mock Id; the Contact primary stays un-Id'd
         Contact contact = (Contact)bundle.PrimaryRecords()![0];

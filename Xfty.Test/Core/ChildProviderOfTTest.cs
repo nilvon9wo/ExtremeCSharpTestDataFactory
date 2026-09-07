@@ -1,6 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.Children;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
-using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
@@ -11,11 +14,12 @@ public class ChildProviderOfTTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task ObjectInitializer_RoutesEachValueByRuntimeType()
     {
         // Arrange - mirrors RecordProvider<TRecord>'s own indexer syntax
@@ -27,7 +31,7 @@ public class ChildProviderOfTTest
             });
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Contact child = Assert.IsType<Contact>(Assert.Single(bundle.GetChildList<Contact>(x => x.AccountId)));
@@ -57,7 +61,7 @@ public class ChildProviderOfTTest
             .With(new ChildProvider<Contact>(x => x.AccountId).SetQuantity(2));
 
         // Act
-        Account result = await provider.Supply();
+        Account result = await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.Id);

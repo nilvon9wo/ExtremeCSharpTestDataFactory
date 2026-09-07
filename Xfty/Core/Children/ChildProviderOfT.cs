@@ -1,11 +1,11 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.Children;
 
 /// <summary>
 /// The ergonomic, strongly-typed way to build a <see cref="ChildProvider"/> -

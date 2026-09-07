@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Persistence;
@@ -32,8 +33,8 @@ public class SharedAncestorLeaksWithoutIsolationTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
@@ -52,7 +53,7 @@ public class SharedAncestorLeaksWithoutIsolationTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(sharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert - Test B's own, freshly-registered record is silently discarded because of Test A's
         // unrelated Disable() call: the FK resolves to null instead of fromLogicalTestB's Id, and asking

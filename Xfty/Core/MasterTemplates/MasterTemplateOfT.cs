@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using Net.NowhereAtAll.Xfty.Relationships;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 
 /// <summary>
 /// The ergonomic, strongly-typed way to build a <see cref="MasterTemplate"/> for

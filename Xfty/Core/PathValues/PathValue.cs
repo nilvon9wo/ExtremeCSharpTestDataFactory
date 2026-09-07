@@ -2,7 +2,7 @@ using System.Reflection;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.PathValues;
 
 /// <summary>
 /// One Put(List&lt;PropertyInfo&gt; path, value) on a Provider - a value
@@ -17,9 +17,9 @@ public sealed class PathValue
 {
     public List<PropertyInfo> Path { get; }
 
-    public PathTargetValue Value { get; }
+    public IPathTargetValue Value { get; }
 
-    private PathValue(List<PropertyInfo> path, PathTargetValue value)
+    private PathValue(List<PropertyInfo> path, IPathTargetValue value)
     {
         AssertPath(path);
         this.Path = path;
@@ -29,31 +29,31 @@ public sealed class PathValue
     public static PathValue OfExpression(List<PropertyInfo> path, IValueExpression expression)
     {
         AssertUsablePath(path);
-        return new PathValue(path, PathTargetValue.OfExpression(expression));
+        return new PathValue(path, new ValueExpressionPathTarget(expression));
     }
 
     public static PathValue OfContextAware(List<PropertyInfo> path, IContextAwareExpression contextAware)
     {
         AssertUsablePath(path);
-        return new PathValue(path, PathTargetValue.OfContextAware(contextAware));
+        return new PathValue(path, new ContextAwarePathTarget(contextAware));
     }
 
     public static PathValue OfLiteral(List<PropertyInfo> path, object? literal)
     {
         AssertUsablePath(path);
-        return new PathValue(path, PathTargetValue.OfLiteral(literal));
+        return new PathValue(path, new LiteralPathTarget(literal));
     }
 
     public static PathValue OfRequiredRelationship(List<PropertyInfo> path, IDefaultRelationship relationship)
     {
         AssertUsablePath(path);
-        return new PathValue(path, PathTargetValue.OfRequiredRelationship(relationship));
+        return new PathValue(path, new RequiredRelationPathTarget(relationship));
     }
 
     public static PathValue OfOptionalRelationship(List<PropertyInfo> path, IDefaultRelationship relationship)
     {
         AssertUsablePath(path);
-        return new PathValue(path, PathTargetValue.OfOptionalRelationship(relationship));
+        return new PathValue(path, new OptionalRelationPathTarget(relationship));
     }
 
     /// <summary>The path of relationship fields that must be forced generated to reach the target (path minus the target).</summary>
@@ -65,16 +65,21 @@ public sealed class PathValue
     public bool IsAtTarget() => this.Path.Count == 1;
 
     /// <summary>True when the value is itself a relationship.</summary>
-    public bool IsRelationshipKind() => this.Value.IsRelationship;
+    public bool IsRelationshipKind() => this.Value.IsRelationship();
 
     /// <summary>True when the value is a shared ancestor.</summary>
-    public bool IsSharedRelationshipValue() => this.Value.IsSharedRelationship;
+    public bool IsSharedRelationshipValue() => this.Value.IsSharedRelationship();
 
     /// <summary>The same value, one relationship deeper (head dropped). Only valid when not IsAtTarget().</summary>
     public PathValue Tail() => new([.. this.Path.Skip(1)], this.Value);
 
     /// <summary>Land the value on template (call only when IsAtTarget()).</summary>
-    public void ApplyTo(MasterTemplate template) => this.Value.ApplyTo(template, this.Path[0]);
+    public void ApplyTo(MasterTemplate template)
+    {
+        PropertyInfo targetField = this.Path[0];
+        _ = template.Remove(targetField);
+        this.Value.ApplyTo(template, targetField);
+    }
 
     private static void AssertPath(List<PropertyInfo>? path)
     {

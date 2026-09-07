@@ -1,6 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
-using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
 
@@ -20,7 +23,7 @@ public class ExGeneratingRecordsTest
     {
         // from docs/use/generating-records.md "One record"
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.NotNull(result);
         Assert.Null(result.Id); // not inserted by default
@@ -30,9 +33,9 @@ public class ExGeneratingRecordsTest
     public async Task ShorthandConstructors_FromDocs_AllWork()
     {
         // from docs/use/generating-records.md "Shorthand constructors"
-        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, Lookup).Supply();
-        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], Lookup).SupplyList();
-        object fromKey = await new RecordProvider(LookupKey.Get(typeof(Contact)), Lookup).Supply();
+        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, Lookup).Supply().ConfigureAwait(true);
+        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], Lookup).SupplyList().ConfigureAwait(true);
+        object fromKey = await new RecordProvider(LookupKey.Get<Contact>(), Lookup).Supply().ConfigureAwait(true);
 
         Assert.Equal("Alice", fromTemplate.FirstName);
         Assert.Equal(2, fromList.Count);
@@ -46,7 +49,7 @@ public class ExGeneratingRecordsTest
         DefaultProviderLookup providerLookup = new();
 
         Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.NotNull(contact);
     }
@@ -59,7 +62,7 @@ public class ExGeneratingRecordsTest
 
         Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
             .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.Equal("Alice", contact.FirstName);
         Assert.Equal("Smith", contact.LastName);
@@ -71,9 +74,9 @@ public class ExGeneratingRecordsTest
         // from docs/use/getting-started.md "Shorthand Constructors"
         DefaultProviderLookup providerLookup = new();
 
-        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup).Supply();
-        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], providerLookup).SupplyList();
-        object fromKey = await new RecordProvider(LookupKey.Get(typeof(Contact)), providerLookup).Supply();
+        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup).Supply().ConfigureAwait(true);
+        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], providerLookup).SupplyList().ConfigureAwait(true);
+        object fromKey = await new RecordProvider(LookupKey.Get<Contact>(), providerLookup).Supply().ConfigureAwait(true);
 
         Assert.Equal("Alice", fromTemplate.FirstName);
         Assert.Equal(2, fromList.Count);
@@ -81,18 +84,19 @@ public class ExGeneratingRecordsTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task GettingStarted_UnderstandingBundles()
     {
         // from docs/use/getting-started.md "Understanding Bundles" - a Case pulling in an Account
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Case))] = new CaseWithAccountProvider(),
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
+            [LookupKey.Get<Case>()] = new CaseWithAccountProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
         });
         Bundle bundle = await new RecordProvider(typeof(Case), lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         List<object> accounts = bundle.GetList<Case>(x => x.AccountId)!;
         Bundle? accountBundle = bundle.GetBundle<Case>(x => x.AccountId);

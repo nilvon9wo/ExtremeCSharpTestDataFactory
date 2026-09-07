@@ -1,4 +1,4 @@
-using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Persistence;
 
@@ -65,7 +65,7 @@ public class DeferredInserterTest
         int beforeFlush = DeferredInserter.PendingCount();
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush());
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush()).ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);

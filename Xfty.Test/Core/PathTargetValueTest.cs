@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.PathValues;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
@@ -12,14 +13,14 @@ public class PathTargetValueTest
     public void OfLiteral_IsNotARelationshipAndAppliesTheLiteral()
     {
         // Arrange
-        PathTargetValue value = PathTargetValue.OfLiteral("Acme");
+        LiteralPathTarget value = new("Acme");
         MasterTemplate template = new(Field.Of<Account>(x => x.Id));
 
         // Act
         value.ApplyTo(template, Field.Of<Account>(x => x.Name));
 
         // Assert
-        Assert.False(value.IsRelationship);
+        Assert.False(value.IsRelationship());
         Assert.True(template.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Name)));
     }
 
@@ -27,7 +28,7 @@ public class PathTargetValueTest
     public void OfExpression_AppliesTheExpression()
     {
         // Arrange
-        PathTargetValue value = PathTargetValue.OfExpression(new LiteralExpression("X"));
+        LiteralPathTarget value = new(new LiteralExpression("X"));
         MasterTemplate template = new(Field.Of<Account>(x => x.Id));
 
         // Act
@@ -41,21 +42,21 @@ public class PathTargetValueTest
     public void OfRequiredRelationship_IsARelationship()
     {
         // Arrange
-        PathTargetValue value = PathTargetValue.OfRequiredRelationship(new DefaultRelationship(new Account()));
+        RequiredRelationPathTarget value = new(new DefaultRelationship(new Account()));
 
         // Act
-        bool isRelationship = value.IsRelationship;
+        bool isRelationship = value.IsRelationship();
 
         // Assert
         Assert.True(isRelationship);
-        Assert.False(value.IsSharedRelationship);
+        Assert.False(value.IsSharedRelationship());
     }
 
     [Fact]
     public void OfOptionalRelationship_AppliesAsAnOptionalRelationship()
     {
         // Arrange
-        PathTargetValue value = PathTargetValue.OfOptionalRelationship(new DefaultRelationship(new Account()));
+        OptionalRelationPathTarget value = new(new DefaultRelationship(new Account()));
         MasterTemplate template = new(Field.Of<Contact>(x => x.Id));
 
         // Act
@@ -69,7 +70,7 @@ public class PathTargetValueTest
     public void OfContextAware_AppliesAsAContextAwareExpression()
     {
         // Arrange
-        PathTargetValue value = PathTargetValue.OfContextAware(CopyFromSiblingExpression.From<Account>(x => x.Name));
+        ContextAwarePathTarget value = new(CopyFromSiblingExpression.From<Account>(x => x.Name));
         MasterTemplate template = new(Field.Of<Account>(x => x.Id));
 
         // Act

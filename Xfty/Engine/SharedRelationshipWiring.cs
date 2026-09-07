@@ -1,6 +1,6 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
-using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Relationships;
 namespace Net.NowhereAtAll.Xfty.Engine;
 
@@ -12,7 +12,7 @@ public sealed class SharedRelationshipWiring(GenerationContext context, ISharedR
 
     public async Task Wire(Bundle bundle, PropertyInfo field, int quantity)
     {
-        object? record = await this.shared.ResolveSharedRecord(this.context);
+        object? record = await this.shared.ResolveSharedRecord(this.context).ConfigureAwait(false);
         this.AssertSavedConsistently();
         List<object> children = Repeat(record!, quantity);
         _ = bundle.Put(field, children);

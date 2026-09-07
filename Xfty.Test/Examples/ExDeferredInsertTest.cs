@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Persistence;
 
@@ -19,14 +20,14 @@ public class ExDeferredInsertTest
         Bundle accounts = await new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Deferred)
             .SetQuantityPerTemplate(3)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         Bundle contacts = await new RecordProvider(typeof(Contact), Lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Deferred)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush());
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush()).ConfigureAwait(true);
 
         Assert.NotEmpty(accounts.PrimaryRecords()!);
         Assert.NotEmpty(contacts.PrimaryRecords()!);
@@ -41,10 +42,10 @@ public class ExDeferredInsertTest
         Bundle bundle = await new RecordProvider(typeof(Contact), Lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Deferred)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         DeferredInsertBuffer graph = DeferredInsertBuffer.Flatten(bundle);
-        await graph.ResolveAll(InsertMode.Mock);
+        await graph.ResolveAll(InsertMode.Mock).ConfigureAwait(true);
 
         Assert.All(graph.Records(), record => Assert.NotNull(record.GetType().GetProperty("Id")!.GetValue(record)));
 

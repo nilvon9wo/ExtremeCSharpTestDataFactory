@@ -1,5 +1,6 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;

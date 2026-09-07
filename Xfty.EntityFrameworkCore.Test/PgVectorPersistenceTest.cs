@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Net.NowhereAtAll.Xfty.Core;
-using Pgvector.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
 namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
@@ -68,7 +67,7 @@ public sealed class PgVectorPersistenceTest : IAsyncLifetime
             .SetPersistenceGateway(new EfPersistenceGateway(this.dbContext!));
 
         // Act
-        DocumentEmbedding result = (DocumentEmbedding)await provider.Supply();
+        DocumentEmbedding result = (DocumentEmbedding)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.Id);

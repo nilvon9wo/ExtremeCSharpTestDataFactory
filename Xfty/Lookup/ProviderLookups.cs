@@ -1,5 +1,4 @@
-using Net.NowhereAtAll.Xfty.Core;
-using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 namespace Net.NowhereAtAll.Xfty.Lookup;
 
 /// <summary>

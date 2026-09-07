@@ -19,7 +19,7 @@ public class ExValueExpressionsTest
         List<object> results = await new RecordProvider(typeof(Contact), Lookup)
             .Put<Contact>(x => x.FirstName, new IncrementingStringExpression("Test Contact"))
             .SetQuantityPerTemplate(3)
-            .SupplyList();
+            .SupplyList().ConfigureAwait(true);
 
         Assert.Equal(["Test Contact 1", "Test Contact 2", "Test Contact 3"], results.Cast<Contact>().Select(c => c.FirstName));
     }
@@ -31,12 +31,12 @@ public class ExValueExpressionsTest
         Account withImplicitLiterals = (Account)await new RecordProvider(typeof(Account), Lookup)
             .Put<Account>(x => x.Type, "Customer")
             .Put<Account>(x => x.NumberOfEmployees, 500)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Account withExplicitLiterals = (Account)await new RecordProvider(typeof(Account), Lookup)
             .Put<Account>(x => x.Type, new LiteralExpression("Customer"))
             .Put<Account>(x => x.NumberOfEmployees, new LiteralExpression(500))
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.Equal(withExplicitLiterals.Type, withImplicitLiterals.Type);
         Assert.Equal(withExplicitLiterals.NumberOfEmployees, withImplicitLiterals.NumberOfEmployees);

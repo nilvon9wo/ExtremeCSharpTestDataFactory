@@ -64,7 +64,7 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
             .SetPersistenceGateway(new EfPersistenceGateway(this.dbContext!));
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.Id);
@@ -85,7 +85,7 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
             .DepthBatched();
 
         // Act
-        Contact result = (Contact)await provider.Supply();
+        Contact result = (Contact)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Contact rereadContact = this.dbContext!.Contacts.AsNoTracking().First(c => c.Id == result.Id);

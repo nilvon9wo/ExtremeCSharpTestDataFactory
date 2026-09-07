@@ -26,7 +26,7 @@ public static class PersistenceGatewayExtensions
     private static async Task InsertRemainingGroups(IPersistenceGateway gateway, List<IGrouping<Type, object>> groups)
     {
         IGrouping<Type, object> group = groups[0];
-        await gateway.Insert([.. group], group.Key.GetProperty("Id")!);
-        await InsertGroups(gateway, groups.Skip(1).ToList());
+        await gateway.Insert([.. group], group.Key.GetProperty("Id")!).ConfigureAwait(false);
+        await InsertGroups(gateway, groups.Skip(1).ToList()).ConfigureAwait(false);
     }
 }

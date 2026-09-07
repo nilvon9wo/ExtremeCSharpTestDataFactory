@@ -18,7 +18,7 @@ public class ExOverrideTemplatesTest
         // from docs/use/override-templates.md "The simplest case"
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
             .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.Equal("Alice", result.FirstName);
         Assert.Equal("Smith", result.LastName);
@@ -26,7 +26,7 @@ public class ExOverrideTemplatesTest
 
         // the shorthand constructor form
         Contact shorthand = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, Lookup)
-            .Supply();
+            .Supply().ConfigureAwait(true);
         Assert.Equal("Alice", shorthand.FirstName);
     }
 
@@ -37,7 +37,7 @@ public class ExOverrideTemplatesTest
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
             .Put<Contact>(x => x.FirstName, new LiteralExpression("Generated"))
             .SetOverrideTemplate(new Contact { FirstName = "Alice" })
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.Equal("Alice", result.FirstName); // not "Generated"
     }
@@ -48,7 +48,7 @@ public class ExOverrideTemplatesTest
         // from docs/use/override-templates.md "Removing values"
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
             .RemoveFromMasterTemplate<Contact>(x => x.Email)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.Null(result.Email);
     }

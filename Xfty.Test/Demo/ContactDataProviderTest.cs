@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 
 namespace Net.NowhereAtAll.Xfty.Test.Demo;
@@ -29,7 +30,7 @@ public class ContactDataProviderTest
         RecordProvider provider = ContactProvider(InsertInclusivity.None, InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         AssertContactGenerated(bundle);
@@ -44,7 +45,7 @@ public class ContactDataProviderTest
         RecordProvider provider = ContactProvider(InsertInclusivity.All, InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         AssertContactGenerated(bundle);
@@ -62,7 +63,7 @@ public class ContactDataProviderTest
         RecordProvider provider = ContactProvider(InsertInclusivity.All, InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         AssertContactGenerated(bundle);
@@ -96,7 +97,7 @@ public class ContactDataProviderTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        List<object> contacts = await provider.SupplyList();
+        List<object> contacts = await provider.SupplyList().ConfigureAwait(true);
 
         // Assert
         HashSet<object?> emails = [.. contacts.Cast<Contact>().Select(contact => contact.Email)];

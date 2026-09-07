@@ -19,7 +19,7 @@ public class ExAdvMatchingValuesTest
         Account result = (Account)await new RecordProvider(typeof(Account), Lookup)
             .Put<Account>(x => x.ShippingCountry, "Germany")
             .Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCountry))
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.Equal("Germany", result.BillingCity);
     }

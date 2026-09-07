@@ -1,11 +1,14 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.Children;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 /// <summary>
 /// The ergonomic, strongly-typed way to start and run a <see cref="RecordProvider"/>
@@ -51,9 +54,9 @@ public sealed class RecordProvider<TRecord>(IProviderLookup providerLookup)
 
     // Terminal (Supply) ---------------------------------------------------
 
-    public async Task<TRecord> Supply() => (TRecord)await this.inner.Supply();
+    public async Task<TRecord> Supply() => (TRecord)await this.inner.Supply().ConfigureAwait(false);
 
-    public async Task<List<TRecord>> SupplyList() => [.. (await this.inner.SupplyList()).Cast<TRecord>()];
+    public async Task<List<TRecord>> SupplyList() => [.. (await this.inner.SupplyList().ConfigureAwait(false)).Cast<TRecord>()];
 
     public Task<Bundle> SupplyBundle() => this.inner.SupplyBundle();
 

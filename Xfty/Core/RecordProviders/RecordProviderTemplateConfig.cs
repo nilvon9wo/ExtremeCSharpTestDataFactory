@@ -1,8 +1,8 @@
 using System.Reflection;
+using Net.NowhereAtAll.Xfty.Core.PathValues;
 using Net.NowhereAtAll.Xfty.Relationships;
-using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 /// <summary>
 /// The field/relationship configuration one <see cref="RecordProvider"/> call

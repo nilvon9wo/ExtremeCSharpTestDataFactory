@@ -77,7 +77,7 @@ new RecordProvider(new Contact { FirstName = "Alice" }, lookup);
 new RecordProvider([new Contact(), new Contact()], lookup);
 
 // from a lookup key - derives the record type from the key and pins that variant
-new RecordProvider(LookupKey.Get(typeof(Contact)), lookup);
+new RecordProvider(LookupKey.Get<Contact>(), lookup);
 ```
 
 They are exactly equivalent to the `(Type, lookup)` constructor followed by

@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Persistence;
 using NSubstitute;
@@ -13,7 +14,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Persistence;
 /// (a real database behind the same interface) lives in
 /// Xfty.EntityFrameworkCore.Test.
 /// </summary>
-public class PersistenceGatewayTest
+public class PersistenceGatewayTest : IDisposable
 {
     private static readonly DefaultProviderLookup Lookup = new();
 
@@ -34,7 +35,7 @@ public class PersistenceGatewayTest
             .SetPersistenceGateway(gateway);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.Id);
@@ -49,7 +50,7 @@ public class PersistenceGatewayTest
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup).SetInsertMode(InsertMode.Now);
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply).ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -73,7 +74,7 @@ public class PersistenceGatewayTest
             .SetPersistenceGateway(gateway);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - both the Contact and its required Account were inserted through the gateway
         Contact contact = (Contact)bundle.PrimaryRecords()![0];
@@ -103,7 +104,7 @@ public class PersistenceGatewayTest
             .SetPersistenceGateway(gateway);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - the Account is genuinely inserted; the Contact primary is left for the caller
         Contact contact = (Contact)bundle.PrimaryRecords()![0];
@@ -125,7 +126,7 @@ public class PersistenceGatewayTest
             .ExcludePrimaryIds();
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply).ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -142,7 +143,7 @@ public class PersistenceGatewayTest
             .ExcludePrimaryIds();
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - the Account gets a mock Id; the Contact primary is left for the caller
         Contact contact = (Contact)bundle.PrimaryRecords()![0];
@@ -163,7 +164,7 @@ public class PersistenceGatewayTest
             .IncludePrimaryIds();
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.Id);
@@ -179,7 +180,7 @@ public class PersistenceGatewayTest
             .ExcludePrimaryIds();
 
         // Act
-        Exception? thrown = await Record.ExceptionAsync(provider.Supply);
+        Exception? thrown = await Record.ExceptionAsync(provider.Supply).ConfigureAwait(true);
 
         // Assert
         Assert.Null(thrown);
@@ -188,6 +189,9 @@ public class PersistenceGatewayTest
     [Fact]
     public async Task Flush_AfterDeferredWithExcludePrimaryIds_InsertsEverythingExceptTheExcludedPrimary()
     {
+        // Sanity Check - DeferredInserter should be empty at the start of this test.
+        Assert.Equal(0, DeferredInserter.PendingCount());
+
         // Arrange - the capability RelatedOnly/MockRelatedOnly could never express: a whole 10-level-deep
         // ancestor tree (Account here stands in for one) built efficiently under Deferred, flushed for
         // real, while the primary that relates to it stays un-Id'd the entire time
@@ -207,8 +211,8 @@ public class PersistenceGatewayTest
             .ExcludePrimaryIds();
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
-        await DeferredInserter.Flush(gateway);
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+        await DeferredInserter.Flush(gateway).ConfigureAwait(true);
 
         // Assert - the Account is genuinely inserted (proving DEFERRED's own efficient batching engaged
         // at all); the Contact primary this call itself produced is never given an Id, even after flush
@@ -242,7 +246,7 @@ public class PersistenceGatewayTest
             .DepthBatched();
 
         // Act
-        Contact result = (Contact)await provider.Supply();
+        Contact result = (Contact)await provider.Supply().ConfigureAwait(true);
 
         // Assert - the Account layer landed before the Contact layer, and the FK is real
         Assert.Equal([typeof(Account), typeof(Contact)], insertedLayers);
@@ -265,15 +269,18 @@ public class PersistenceGatewayTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Deferred)
             .SetQuantityPerTemplate(3)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
         int beforeFlush = DeferredInserter.PendingCount();
 
         // Act
-        await DeferredInserter.Flush(gateway);
+        await DeferredInserter.Flush(gateway).ConfigureAwait(true);
 
         // Assert
         Assert.True(beforeFlush >= 3);
         Assert.All(bundle.PrimaryRecords()!.Cast<Account>(), account => Assert.NotNull(account.Id));
         Assert.Equal(0, DeferredInserter.PendingCount());
     }
+
+    public void Dispose()
+        => DeferredInserter.ResetForTesting();
 }

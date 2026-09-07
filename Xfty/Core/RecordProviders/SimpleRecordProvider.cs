@@ -1,7 +1,9 @@
 using System.Reflection;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Engine;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 /// <summary>
 /// Base for a Provider that is nothing more than a Master Template - by far

@@ -1,6 +1,7 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Lookup;
-using Net.NowhereAtAll.Xfty.Persistence;
 
 namespace Net.NowhereAtAll.Xfty.VectorDatabases.Test;
 
@@ -24,7 +25,7 @@ public class VectorDatabasesReadmeExampleTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(DocumentChunk))] = new DocumentChunkProvider(),
+            [LookupKey.Get<DocumentChunk>()] = new DocumentChunkProvider(),
         });
 
     [Fact]
@@ -36,7 +37,7 @@ public class VectorDatabasesReadmeExampleTest
         // Act
         DocumentChunk result = (DocumentChunk)await new RecordProvider(typeof(DocumentChunk), lookup)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.Embedding);

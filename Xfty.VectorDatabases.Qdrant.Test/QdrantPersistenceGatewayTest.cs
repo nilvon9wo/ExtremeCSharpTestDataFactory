@@ -57,7 +57,7 @@ public sealed class QdrantPersistenceGatewayTest : IAsyncLifetime
             .SetPersistenceGateway(new QdrantPersistenceGateway(this.client!));
 
         // Act
-        DocumentChunk result = (DocumentChunk)await provider.Supply();
+        DocumentChunk result = (DocumentChunk)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         _ = Assert.NotNull(result.Id);

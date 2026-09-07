@@ -1,5 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
-using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 namespace Net.NowhereAtAll.Xfty.Relationships;
 
 /// <summary>
