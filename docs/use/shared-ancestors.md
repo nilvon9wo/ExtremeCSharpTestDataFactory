@@ -176,8 +176,8 @@ The quick form: pass them alongside the Provider map.
 ProviderLookups.Of(
     new Dictionary<ILookupKey, IRecordProvider>
     {
-        [LookupKey.Get(typeof(Account))] = new MyAccountProvider(),
-        [LookupKey.Get(typeof(Contact))] = new MyContactProvider(),   // references Get("acme-hq")
+        [LookupKey.Get<Account>()] = new MyAccountProvider(),
+        [LookupKey.Get<Contact>()] = new MyContactProvider(),   // references Get("acme-hq")
     },
     new Dictionary<string, object> { ["acme-hq"] = new Account { Name = "ACME HQ" } });
 ```

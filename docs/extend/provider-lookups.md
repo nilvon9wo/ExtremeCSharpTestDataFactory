@@ -21,8 +21,8 @@ public sealed class MyProjectLookup : IProviderLookup
 {
     private static readonly Dictionary<ILookupKey, Type> Providers = new()
     {
-        [LookupKey.Get(typeof(Account))] = typeof(MyAccountProvider),
-        [LookupKey.Get(typeof(Contact))] = typeof(MyContactProvider),
+        [LookupKey.Get<Account>()] = typeof(MyAccountProvider),
+        [LookupKey.Get<Contact>()] = typeof(MyContactProvider),
     };
 
     private readonly Dictionary<ILookupKey, IRecordProvider> cache = [];

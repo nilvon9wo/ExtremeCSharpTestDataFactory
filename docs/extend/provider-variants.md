@@ -49,7 +49,7 @@ Use those classes directly if you prefer.)
 
 <!-- sketch -->
 ```csharp
-FlavouredLookupKey.Get(typeof(Account), "strategic")
+FlavouredLookupKey.Get<Account>("strategic")
     .Matching(PredicateFactory.AnyOf([
         FieldPredicateFactory.GreaterThan<Account>(x => x.AnnualRevenue, 1_000_000m),
         FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 5000),
@@ -87,7 +87,7 @@ constants class:
 public static class MyProjectLookupKeys
 {
     public static readonly ILookupKey EnterpriseAccount =
-        FlavouredLookupKey.Get(typeof(Account), "enterprise")
+        FlavouredLookupKey.Get<Account>("enterprise")
             .Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 1000));
 }
 ```
@@ -96,7 +96,7 @@ public static class MyProjectLookupKeys
 ```csharp
 private static readonly Dictionary<ILookupKey, Type> Providers = new()
 {
-    [LookupKey.Get(typeof(Account))]          = typeof(BusinessAccountProvider),
+    [LookupKey.Get<Account>()]          = typeof(BusinessAccountProvider),
     [MyProjectLookupKeys.EnterpriseAccount]   = typeof(EnterpriseAccountProvider),
 };
 ```
