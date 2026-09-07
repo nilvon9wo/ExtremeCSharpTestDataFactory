@@ -1,6 +1,8 @@
 using System.Reflection;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.Children;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 /// <summary>
 /// The child collections one <see cref="RecordProvider"/> call generates -
@@ -29,8 +31,8 @@ internal sealed class RecordProviderChildConfig
             return;
         }
 
-        await GenerateOneCollection(bundle, childProviders[0], structural, state);
-        await GenerateRemainingCollections(bundle, childProviders.Skip(1).ToList(), structural, state);
+        await GenerateOneCollection(bundle, childProviders[0], structural, state).ConfigureAwait(false);
+        await GenerateRemainingCollections(bundle, childProviders.Skip(1).ToList(), structural, state).ConfigureAwait(false);
     }
 
     private static async Task GenerateOneCollection(Bundle bundle, ChildProvider childProvider, bool structural, RecordProviderExecutionState state)
@@ -38,7 +40,7 @@ internal sealed class RecordProviderChildConfig
         PropertyInfo primaryField = state.FactoryOutlet.PrimaryTargetField;
         List<(object Template, int ParentRow)> childRows = ChildRowsFor(bundle, primaryField, childProvider, structural);
         RecordProvider childInstance = BuildChildInstance(childProvider, structural, childRows, state);
-        Bundle childBundle = await childInstance.SupplyBundle();
+        Bundle childBundle = await childInstance.SupplyBundle().ConfigureAwait(false);
         _ = bundle.PutChild(childProvider.RelationshipField, childBundle, [.. childRows.Select(row => row.ParentRow)]);
     }
 

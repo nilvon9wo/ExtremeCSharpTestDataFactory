@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Predicates;
@@ -21,13 +23,13 @@ public class LookupKeyTest
     // Flavoured keys are interned flyweights whose .Matching(...) predicates
     // mutate the shared instance - build each exactly once, here.
     private static readonly FlavouredLookupKey EnterpriseFlavour =
-        FlavouredLookupKey.Get(typeof(Account), "enterprise").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 500));
+        FlavouredLookupKey.Get<Account>("enterprise").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 500));
 
     private static readonly FlavouredLookupKey NamedFlavour =
-        FlavouredLookupKey.Get(typeof(Account), "named-runner").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
+        FlavouredLookupKey.Get<Account>("named-runner").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
 
     private static readonly FlavouredLookupKey BigAccount =
-        FlavouredLookupKey.Get(typeof(Account), "big").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 100));
+        FlavouredLookupKey.Get<Account>("big").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 100));
 
     // LookupKey ---------------------------------------------------------------
 
@@ -35,7 +37,7 @@ public class LookupKeyTest
     public void HashKey_ForAPlainKey_IsTheRecordTypeName()
     {
         // Arrange
-        LookupKey key = LookupKey.Get(typeof(Account));
+        LookupKey key = LookupKey.Get<Account>();
 
         // Act
         string hashKey = key.HashKey;
@@ -48,7 +50,7 @@ public class LookupKeyTest
     public void RecordType_ForAPlainKey_IsTheTypeItWasBuiltFor()
     {
         // Arrange
-        LookupKey key = LookupKey.Get(typeof(Account));
+        LookupKey key = LookupKey.Get<Account>();
 
         // Act
         Type type = key.RecordType;
@@ -61,7 +63,7 @@ public class LookupKeyTest
     public void Specificity_ForAPlainKey_IsZero()
     {
         // Arrange
-        LookupKey key = LookupKey.Get(typeof(Account));
+        LookupKey key = LookupKey.Get<Account>();
 
         // Act
         int specificity = key.Specificity;
@@ -85,7 +87,7 @@ public class LookupKeyTest
         // Arrange - nothing to arrange, the flyweight is under test
 
         // Act
-        LookupKey fromType = LookupKey.Get(typeof(Account));
+        LookupKey fromType = LookupKey.Get<Account>();
 
         // Assert - Get(type) and Get(record) intern the same key
         Assert.Equal(fromType, LookupKey.Get(new Account()));
@@ -100,7 +102,7 @@ public class LookupKeyTest
         LookupKey fromTypeParameter = LookupKey.Get<Account>();
 
         // Assert
-        Assert.Same(LookupKey.Get(typeof(Account)), fromTypeParameter);
+        Assert.Same(LookupKey.Get<Account>(), fromTypeParameter);
     }
 
     [Fact]
@@ -151,7 +153,7 @@ public class LookupKeyTest
     public void HashKey_ForAFlavouredKey_IsTypeAndFlavour()
     {
         // Arrange
-        FlavouredLookupKey key = FlavouredLookupKey.Get(typeof(Account), "named");
+        FlavouredLookupKey key = FlavouredLookupKey.Get<Account>("named");
 
         // Act
         string hashKey = key.HashKey;
@@ -165,8 +167,8 @@ public class LookupKeyTest
     public void Specificity_ForAFlavouredKey_GrowsWithEachPredicateAndBeatsAPlainKey()
     {
         // Arrange
-        FlavouredLookupKey onePredicate = FlavouredLookupKey.Get(typeof(Account), "hashkey-a").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
-        FlavouredLookupKey twoPredicates = FlavouredLookupKey.Get(typeof(Account), "hashkey-b")
+        FlavouredLookupKey onePredicate = FlavouredLookupKey.Get<Account>("hashkey-a").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
+        FlavouredLookupKey twoPredicates = FlavouredLookupKey.Get<Account>("hashkey-b")
             .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))
             .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Industry));
 
@@ -175,14 +177,14 @@ public class LookupKeyTest
 
         // Assert
         Assert.True(twoPredicates.Specificity > oneSpecificity); // more predicates = more specific
-        Assert.True(oneSpecificity > LookupKey.Get(typeof(Account)).Specificity); // more specific than a plain key
+        Assert.True(oneSpecificity > LookupKey.Get<Account>().Specificity); // more specific than a plain key
     }
 
     [Fact]
     public void IsInstanceOf_WhenTheFlavourHasNoPredicates_ReturnsFalse()
     {
         // Arrange
-        FlavouredLookupKey key = FlavouredLookupKey.Get(typeof(Account), "no-discriminator");
+        FlavouredLookupKey key = FlavouredLookupKey.Get<Account>("no-discriminator");
 
         // Act
         bool matches = key.IsInstanceOf(new Account());
@@ -199,17 +201,17 @@ public class LookupKeyTest
         // Arrange
         Dictionary<ILookupKey, string> byKey = new()
         {
-            [LookupKey.Get(typeof(Account))] = "plain",
-            [FlavouredLookupKey.Get(typeof(Account), "hashkey-map")] = "flavoured",
+            [LookupKey.Get<Account>()] = "plain",
+            [FlavouredLookupKey.Get<Account>("hashkey-map")] = "flavoured",
         };
 
         // Act
-        string plain = byKey[LookupKey.Get(typeof(Account))];
+        string plain = byKey[LookupKey.Get<Account>()];
 
         // Assert
         Assert.Equal("plain", plain);
         // a freshly-built flavoured key with the same hash still matches
-        Assert.Equal("flavoured", byKey[FlavouredLookupKey.Get(typeof(Account), "hashkey-map")]);
+        Assert.Equal("flavoured", byKey[FlavouredLookupKey.Get<Account>("hashkey-map")]);
     }
 
     // ProviderLookups -------------------------------------------------------
@@ -218,10 +220,10 @@ public class LookupKeyTest
     public void Get_ForARegisteredKey_ReturnsTheProviderAndCachesTheInstance()
     {
         // Arrange
-        IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type> { [LookupKey.Get(typeof(Account))] = typeof(AccountDataProvider) });
+        IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type> { [LookupKey.Get<Account>()] = typeof(AccountDataProvider) });
 
         // Act
-        IRecordProvider first = lookup.Get(LookupKey.Get(typeof(Account)));
+        IRecordProvider first = lookup.Get(LookupKey.Get<Account>());
 
         // Assert
         _ = Assert.IsType<AccountDataProvider>(first);
@@ -233,7 +235,7 @@ public class LookupKeyTest
     {
         // Arrange
         IRecordProvider provider = new AccountDataProvider();
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get(typeof(Account))] = provider });
+        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Account>()] = provider });
 
         // Act
         IRecordProvider resolved = lookup.Get<Account>();
@@ -247,7 +249,7 @@ public class LookupKeyTest
     {
         // Arrange
         IRecordProvider provider = new AccountDataProvider();
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get(typeof(Account))] = provider });
+        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Account>()] = provider });
 
         // Act
         IRecordProvider resolved = lookup.Get(typeof(Account));
@@ -263,7 +265,7 @@ public class LookupKeyTest
         IProviderLookup lookup = ProviderLookups.OfTypes([]);
 
         // Act
-        LookupException thrown = Assert.Throws<LookupException>(() => lookup.Get(FlavouredLookupKey.Get(typeof(Account), "unregistered")));
+        LookupException thrown = Assert.Throws<LookupException>(() => lookup.Get(FlavouredLookupKey.Get<Account>("unregistered")));
 
         // Assert
         Assert.Contains("Account", thrown.Message);
@@ -322,10 +324,11 @@ public class LookupKeyTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void KeysFor_SkipsKeysRegisteredForOtherRecordTypes()
     {
         // Arrange
-        HashSet<ILookupKey> registered = [LookupKey.Get(typeof(Account)), LookupKey.Get(typeof(Contact))];
+        HashSet<ILookupKey> registered = [LookupKey.Get<Account>(), LookupKey.Get<Contact>()];
 
         // Act
         ISet<ILookupKey> matches = ProviderLookups.KeysFor(registered, new Account());
@@ -349,7 +352,7 @@ public class LookupKeyTest
         // Arrange
         IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
         {
-            [LookupKey.Get(typeof(Account))] = typeof(AccountDataProvider),
+            [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
             [BigAccount] = typeof(AccountDataProvider),
         });
 
@@ -366,7 +369,7 @@ public class LookupKeyTest
         // Arrange
         IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
         {
-            [LookupKey.Get(typeof(Account))] = typeof(AccountDataProvider),
+            [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
             [BigAccount] = typeof(AccountDataProvider),
         });
 
@@ -374,7 +377,7 @@ public class LookupKeyTest
         ILookupKey resolved = ProviderLookups.Resolve(lookup, new Account { NumberOfEmployees = 1 });
 
         // Assert
-        Assert.Equal(LookupKey.Get(typeof(Account)).HashKey, resolved.HashKey);
+        Assert.Equal(LookupKey.Get<Account>().HashKey, resolved.HashKey);
     }
 
     [Fact]
@@ -383,8 +386,8 @@ public class LookupKeyTest
         // Arrange
         IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
         {
-            [FlavouredLookupKey.Get(typeof(Account), "ambiguous-a").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] = typeof(AccountDataProvider),
-            [FlavouredLookupKey.Get(typeof(Account), "ambiguous-b").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] = typeof(AccountDataProvider),
+            [FlavouredLookupKey.Get<Account>("ambiguous-a").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] = typeof(AccountDataProvider),
+            [FlavouredLookupKey.Get<Account>("ambiguous-b").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] = typeof(AccountDataProvider),
         });
 
         // Act
@@ -399,7 +402,7 @@ public class LookupKeyTest
     private static void AssertPlainKeyIsInstanceOf(object? record, bool expected)
     {
         // Arrange
-        LookupKey key = LookupKey.Get(typeof(Account));
+        LookupKey key = LookupKey.Get<Account>();
 
         // Act
         bool matches = key.IsInstanceOf(record);
@@ -431,7 +434,7 @@ public class LookupKeyTest
         // Arrange
         IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
         {
-            [LookupKey.Get(typeof(Account))] = typeof(AccountDataProvider),
+            [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
             [BigAccount] = typeof(AccountDataProvider),
         });
 

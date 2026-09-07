@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Persistence;
@@ -21,8 +22,8 @@ public class SharedAncestorResetTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     public SharedAncestorResetTest() => SharedAncestor.ResetAllForTesting();
@@ -37,7 +38,7 @@ public class SharedAncestorResetTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Act
         SharedAncestor.ResetAllForTesting();
@@ -63,7 +64,7 @@ public class SharedAncestorResetTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         // Assert - the name resolves normally; "disabled" did not survive the reset
         Assert.NotNull(result.AccountId);
@@ -83,7 +84,7 @@ public class SharedAncestorResetTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(lightweightName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
         Assert.NotNull(lightweightResult.AccountId);
 
         // A shared ancestor with its own sub-graph is NOT auto-resolved under manual mode
@@ -94,7 +95,7 @@ public class SharedAncestorResetTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(heavyName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(heavyProvider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(heavyProvider.Supply).ConfigureAwait(true);
         Assert.Contains("manual resolution only", thrown.Message);
 
         // Act - reset
@@ -109,7 +110,7 @@ public class SharedAncestorResetTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(afterResetName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
         Assert.NotNull(afterResetResult.AccountId);
     }
 }

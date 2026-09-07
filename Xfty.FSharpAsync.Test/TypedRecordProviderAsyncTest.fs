@@ -3,6 +3,7 @@ module Net.NowhereAtAll.Xfty.FSharpAsync.Test.TypedRecordProviderAsyncTest
 open System.Threading.Tasks
 open Xunit
 open Net.NowhereAtAll.Xfty.Core
+open Net.NowhereAtAll.Xfty.Core.RecordProviders
 open Net.NowhereAtAll.Xfty.Demo
 open Net.NowhereAtAll.Xfty.FSharpAsync
 

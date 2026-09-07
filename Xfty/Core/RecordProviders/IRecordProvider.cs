@@ -1,6 +1,7 @@
 using System.Reflection;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 public interface IRecordProvider
 {

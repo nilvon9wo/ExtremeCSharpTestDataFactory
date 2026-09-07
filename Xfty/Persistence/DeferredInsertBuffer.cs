@@ -1,6 +1,7 @@
 using System.Reflection;
 
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Engine;
 namespace Net.NowhereAtAll.Xfty.Persistence;
 
@@ -26,7 +27,7 @@ public sealed class DeferredInsertBuffer
     {
         DeferredInsertBuffer buffer = new();
         buffer.Add(bundle, excludePrimaryIds);
-        await buffer.InsertAll(gateway);
+        await buffer.InsertAll(gateway).ConfigureAwait(false);
     }
 
     /// <summary>The whole graph flattened to its records and parent links, with the up-flow value pass already run.</summary>

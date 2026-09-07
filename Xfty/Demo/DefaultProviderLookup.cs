@@ -1,4 +1,4 @@
-using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Demo;
@@ -15,8 +15,8 @@ public sealed class DefaultProviderLookup : IProviderLookup
 {
     private static readonly Dictionary<ILookupKey, Type> ProviderTypeByKey = new()
     {
-        [LookupKey.Get(typeof(Account))] = typeof(AccountDataProvider),
-        [LookupKey.Get(typeof(Contact))] = typeof(ContactDataProvider),
+        [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
+        [LookupKey.Get<Contact>()] = typeof(ContactDataProvider),
     };
 
     private readonly Dictionary<ILookupKey, IRecordProvider> instanceCache = [];

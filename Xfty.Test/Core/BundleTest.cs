@@ -1,4 +1,5 @@
-using Net.NowhereAtAll.Xfty.Core;
+using System.Diagnostics.CodeAnalysis;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Persistence;
 
@@ -114,6 +115,7 @@ public class BundleTest
     // ChildRecordsOf - one primary's slice of the children -----------
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void ChildRecordsOf_ForOneParentRow_ReturnsOnlyThatRowsChildren()
     {
         // Arrange - 2 parents; row 0 owns children A0 and A1, row 1 owns A2
@@ -192,6 +194,7 @@ public class BundleTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void PrimariesResolvingTo_WhenNoIdsExist_FallsBackToPositionalAlignment()
     {
         // Arrange - no Ids anywhere, so ancestor row N pairs with primary row N

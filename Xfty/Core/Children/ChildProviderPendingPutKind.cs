@@ -1,4 +1,4 @@
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.Children;
 
 public enum ChildProviderPendingPutKind
 {

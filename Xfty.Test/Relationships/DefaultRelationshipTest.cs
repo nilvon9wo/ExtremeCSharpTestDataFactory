@@ -1,5 +1,4 @@
-using System.Reflection;
-using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
@@ -40,7 +39,7 @@ public class DefaultRelationshipTest
     public void ResolveLookupKey_WhenAnExplicitKeyWasGiven_ReturnsItAsIs()
     {
         // Arrange
-        ILookupKey explicitKey = FlavouredLookupKey.Get(typeof(Account), "big");
+        ILookupKey explicitKey = FlavouredLookupKey.Get<Account>("big");
         DefaultRelationship relationship = new(explicitKey, new Account());
 
         // Act

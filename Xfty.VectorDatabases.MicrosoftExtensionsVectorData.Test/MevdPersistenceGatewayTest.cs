@@ -19,50 +19,50 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Te
 [Trait("Category", "Docker")]
 public sealed class MevdPersistenceGatewayTest : IAsyncLifetime
 {
-    private QdrantContainer? container;
-    private QdrantClient? client;
-    private bool dockerAvailable = true;
+    private QdrantContainer? _container;
+    private QdrantClient? _client;
+    private bool _dockerAvailable = true;
 
     public async ValueTask InitializeAsync()
     {
         try
         {
-            this.container = new QdrantBuilder("qdrant/qdrant:v1.18.2").Build();
-            await this.container.StartAsync().ConfigureAwait(false);
+            this._container = new QdrantBuilder("qdrant/qdrant:v1.18.2").Build();
+            await this._container.StartAsync().ConfigureAwait(false);
         }
         catch (Exception)
         {
             // Docker is not reachable from this machine right now - skip this tier rather than fail the build.
-            this.dockerAvailable = false;
+            this._dockerAvailable = false;
             return;
         }
 
-        this.client = new QdrantClient(new Uri(this.container.GetGrpcConnectionString()));
+        this._client = new QdrantClient(new Uri(this._container.GetGrpcConnectionString()));
     }
 
     public async ValueTask DisposeAsync()
     {
-        this.client?.Dispose();
+        this._client?.Dispose();
 
-        if (this.container is not null)
+        if (this._container is not null)
         {
-            await this.container.DisposeAsync().ConfigureAwait(false);
+            await this._container.DisposeAsync().ConfigureAwait(false);
         }
     }
 
     [Fact]
     public async Task Supply_InNowMode_AgainstARealVectorStore_ActuallyInsertsARecord()
     {
-        Assert.SkipUnless(this.dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
+        Assert.SkipUnless(this._dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
 
         // Arrange - a QdrantVectorStore here is just one VectorStore among many the gateway could take.
-        VectorStore vectorStore = new QdrantVectorStore(this.client!, ownsClient: false);
+        VectorStore vectorStore = new QdrantVectorStore(this._client!, ownsClient: false);
         RecordProvider provider = new RecordProvider(typeof(DocumentChunk), new DemoProviderLookup())
             .SetInsertMode(InsertMode.Now)
             .SetPersistenceGateway(new MevdPersistenceGateway(vectorStore));
 
         // Act
-        DocumentChunk result = (DocumentChunk)await provider.Supply();
+        DocumentChunk result = (DocumentChunk)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         _ = Assert.NotNull(result.Id);

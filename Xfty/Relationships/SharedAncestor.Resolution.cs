@@ -1,5 +1,6 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -14,7 +15,7 @@ public sealed partial class SharedAncestor
         if (this.resolvedRecord is null)
         {
             SharedAncestorResolver.ApplyLookupDefaults(lookup);
-            await new SharedAncestorResolver(lookup, insertMode).Resolve([this]);
+            await new SharedAncestorResolver(lookup, insertMode).Resolve([this]).ConfigureAwait(false);
         }
 
         return this;

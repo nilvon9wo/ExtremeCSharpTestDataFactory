@@ -1,6 +1,6 @@
 using global::AutoBogus;
-using Net.NowhereAtAll.Xfty.AutoBogus;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -12,8 +12,8 @@ public class AutoBogusUnsetFieldFillerTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
@@ -26,7 +26,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert - AccountDataProvider's own Master Template never touches these
         _ = Assert.NotNull(result.NumberOfEmployees);
@@ -44,7 +44,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert - AccountDataProvider's own declared defaults, untouched by AutoBogus
         Assert.StartsWith(AccountDataProvider.DefaultNamePrefix, result.Name);
@@ -63,7 +63,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert - excluded field stays null; a sibling unset field still gets filled
         Assert.Null(result.Site);
@@ -84,7 +84,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Null(result.Contacts);
@@ -103,7 +103,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
         // Act
-        Exception? thrown = await Record.ExceptionAsync(provider.Supply);
+        Exception? thrown = await Record.ExceptionAsync(provider.Supply).ConfigureAwait(true);
 
         // Assert
         Assert.Null(thrown);
@@ -121,7 +121,7 @@ public class AutoBogusUnsetFieldFillerTest
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
         // Act
-        Contact result = (Contact)await provider.Supply();
+        Contact result = (Contact)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.AccountId); // XFTY's own relationship resolution

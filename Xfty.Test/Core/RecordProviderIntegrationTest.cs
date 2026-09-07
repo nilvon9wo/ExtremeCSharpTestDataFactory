@@ -1,4 +1,6 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Persistence;
@@ -17,8 +19,8 @@ public class RecordProviderIntegrationTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
@@ -30,7 +32,7 @@ public class RecordProviderIntegrationTest
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
-        object result = await provider.Supply();
+        object result = await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Contact contact = Assert.IsType<Contact>(result);
@@ -48,7 +50,7 @@ public class RecordProviderIntegrationTest
             .SetInclusivity(InsertInclusivity.None);
 
         // Act
-        object result = await provider.Supply();
+        object result = await provider.Supply().ConfigureAwait(true);
 
         // Assert - no ancestor was generated, so there is nothing to wire the lookup to
         Contact contact = Assert.IsType<Contact>(result);
@@ -65,7 +67,7 @@ public class RecordProviderIntegrationTest
             .SetQuantityPerTemplate(3);
 
         // Act
-        List<object> results = await provider.SupplyList();
+        List<object> results = await provider.SupplyList().ConfigureAwait(true);
 
         // Assert
         List<Contact> contacts = [.. results.Cast<Contact>()];
@@ -80,7 +82,7 @@ public class RecordProviderIntegrationTest
         RecordProvider provider = new(new Contact { LastName = "Explicit" }, Lookup());
 
         // Act
-        object result = await provider.Supply();
+        object result = await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Contact contact = Assert.IsType<Contact>(result);
@@ -96,7 +98,7 @@ public class RecordProviderIntegrationTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         List<object> children = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -115,7 +117,7 @@ public class RecordProviderIntegrationTest
             .DepthBatched();
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply).ConfigureAwait(true);
 
         // Assert - the depth-batched path was actually engaged, not silently skipped
         Assert.Contains("persistence gateway", thrown.Message);
@@ -128,10 +130,10 @@ public class RecordProviderIntegrationTest
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Deferred)
             .SetInclusivity(InsertInclusivity.Required);
-        _ = await provider.Supply();
+        _ = await provider.Supply().ConfigureAwait(true);
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush());
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush()).ConfigureAwait(true);
 
         // Assert - the registry actually tried to persist, not silently no-op
         Assert.Contains("persistence gateway", thrown.Message);

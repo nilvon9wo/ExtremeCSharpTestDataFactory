@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 
 namespace Net.NowhereAtAll.Xfty.Test.Demo;
@@ -36,7 +37,7 @@ public class AccountDataProviderTest
         GenerationContext context = new(Lookup, InsertMode.Mock, InsertInclusivity.None);
 
         // Act
-        Bundle bundle = await provider.CreateBundle(context, [new Account()]);
+        Bundle bundle = await provider.CreateBundle(context, [new Account()]).ConfigureAwait(true);
 
         // Assert
         Account generatedAccount = (Account)bundle.GetList<Account>(x => x.Id)![0];
@@ -52,7 +53,7 @@ public class AccountDataProviderTest
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup).SetInsertMode(InsertMode.Mock);
 
         // Act
-        Account generatedAccount = (Account)await provider.Supply();
+        Account generatedAccount = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(generatedAccount.Id);

@@ -1,6 +1,9 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.Children;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
-using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Test.Examples;
@@ -16,9 +19,9 @@ public class ExChildRecordsTest
     private static IProviderLookup LookupWithCase() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
-            [LookupKey.Get(typeof(Case))] = new BlankCaseProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
+            [LookupKey.Get<Case>()] = new BlankCaseProvider(),
         });
 
     [Fact]
@@ -28,7 +31,7 @@ public class ExChildRecordsTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buyer" }).SetQuantity(3))
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         object account = bundle.PrimaryRecords()![0];
         List<object> contacts = bundle.GetChildList<Contact>(x => x.AccountId);
@@ -58,7 +61,7 @@ public class ExChildRecordsTest
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(2))  // additive
             .With(ChildProvider.For<Case>(x => x.AccountId).SetQuantity(2))                                      // another type
             .SetInsertMode(InsertMode.Mock)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         Assert.Equal(5, bundle.GetChildList<Contact>(x => x.AccountId).Count);
         Assert.Equal(2, bundle.GetChildList<Case>(x => x.AccountId).Count);
@@ -73,7 +76,7 @@ public class ExChildRecordsTest
             .With(
                 ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(3)
                     .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2)))
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         List<object> cases = bundle.GetChildBundle<Contact>(x => x.AccountId)!
             .GetChildList<Case>(x => x.ContactId);

@@ -23,20 +23,20 @@ public sealed partial class SharedAncestor
     public async Task<object?> ResolveSharedRecord(GenerationContext context) =>
         Disabled.ContainsKey(this._name)
             ? null
-            : this.resolvedRecord ?? await this.ResolveFresh(context);
+            : this.resolvedRecord ?? await this.ResolveFresh(context).ConfigureAwait(false);
 
     private Task<object?> ResolveFresh(GenerationContext context) =>
         _manualResolution ? this.ResolveUnderManualMode(context) : this.ResolveAllThenReturnOwn(context);
 
     private async Task<object?> ResolveAllThenReturnOwn(GenerationContext context)
     {
-        await SharedAncestorResolver.ResolveAllConfigured(context.ProviderLookup, context.InsertMode);
-        return (await this.ResolveNow(context.ProviderLookup, context.InsertMode)).resolvedRecord;
+        await SharedAncestorResolver.ResolveAllConfigured(context.ProviderLookup, context.InsertMode).ConfigureAwait(false);
+        return (await this.ResolveNow(context.ProviderLookup, context.InsertMode).ConfigureAwait(false)).resolvedRecord;
     }
 
     private async Task<object?> ResolveUnderManualMode(GenerationContext context) =>
         this.Source().IsLightweight(context.ProviderLookup)
-            ? (await this.ResolveNow(context.ProviderLookup, context.InsertMode)).resolvedRecord
+            ? (await this.ResolveNow(context.ProviderLookup, context.InsertMode).ConfigureAwait(false)).resolvedRecord
             : throw this.NoAutoResolutionException();
 
     private XftyConfigurationException NoAutoResolutionException() =>

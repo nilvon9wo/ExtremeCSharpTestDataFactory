@@ -1,5 +1,6 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -19,8 +20,8 @@ public class UnsetFieldFillerTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
     [Fact]
@@ -31,7 +32,7 @@ public class UnsetFieldFillerTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert - AccountDataProvider's Master Template never puts NumberOfEmployees
         Assert.Null(result.NumberOfEmployees);
@@ -47,7 +48,7 @@ public class UnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        _ = await provider.Supply();
+        _ = await provider.Supply().ConfigureAwait(true);
 
         // Assert
         List<string> fieldNames = [.. filler.FieldNamesSeen];
@@ -68,7 +69,7 @@ public class UnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal(42, result.NumberOfEmployees);
@@ -85,7 +86,7 @@ public class UnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        _ = await provider.Supply();
+        _ = await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Contains(typeof(Contact), filler.RecordTypesSeen);
@@ -103,7 +104,7 @@ public class UnsetFieldFillerTest
             .SetUnsetFieldFiller(filler);
 
         // Act
-        _ = await provider.Supply();
+        _ = await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.DoesNotContain(nameof(Contact.AccountId), filler.FieldNamesSeen);

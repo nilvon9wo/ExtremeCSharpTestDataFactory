@@ -1,6 +1,7 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
-using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
@@ -38,7 +39,7 @@ public class ContextAwareExpressionTest
             .Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCity));
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal("Berlin", result.BillingCity);
@@ -54,7 +55,7 @@ public class ContextAwareExpressionTest
             .Put<Account>(x => x.BillingStreet, CopyFromSiblingExpression.From<Account>(x => x.BillingCity));
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal("Munich", result.BillingStreet);
@@ -70,7 +71,7 @@ public class ContextAwareExpressionTest
             .SetOverrideTemplate(new Account { BillingCity = "Explicit" });
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert - the override template still wins
         Assert.Equal("Explicit", result.BillingCity);
@@ -86,7 +87,7 @@ public class ContextAwareExpressionTest
             .Put<Account>(x => x.AccountNumber, "seed");
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
 
         // Assert
         Assert.Contains("Site", thrown.Message);
@@ -103,7 +104,7 @@ public class ContextAwareExpressionTest
             .Put<Account>(x => x.Site, CopyFromSiblingExpression.From<Account>(x => x.Description));
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
 
         // Assert
         Assert.Contains("has not been generated yet", thrown.Message);
@@ -121,7 +122,7 @@ public class ContextAwareExpressionTest
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
-        Contact result = (Contact)await provider.Supply();
+        Contact result = (Contact)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal("Wired Parent", result.Department);
@@ -137,7 +138,7 @@ public class ContextAwareExpressionTest
             .SetInclusivity(InsertInclusivity.None);
 
         // Act
-        Contact result = (Contact)await provider.Supply();
+        Contact result = (Contact)await provider.Supply().ConfigureAwait(true);
 
         // Assert - no ancestor generated -> null
         Assert.Null(result.Department);
@@ -153,7 +154,7 @@ public class ContextAwareExpressionTest
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
-        List<object> results = await provider.SupplyList();
+        List<object> results = await provider.SupplyList().ConfigureAwait(true);
 
         // Assert
         HashSet<object?> departments = [.. results.Cast<Contact>().Select(contact => contact.Department)];
@@ -166,9 +167,9 @@ public class ContextAwareExpressionTest
         // Arrange - Contact -> Account -> Owner(User); copy the generated Owner's LastName onto the Contact
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Contact))] = new ContactDataProvider(),
-            [LookupKey.Get(typeof(Account))] = new AccountWithOwnerProvider(),
-            [LookupKey.Get(typeof(User))] = new LeafUserProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
+            [LookupKey.Get<Account>()] = new AccountWithOwnerProvider(),
+            [LookupKey.Get<User>()] = new LeafUserProvider(),
         });
         RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
             .Put<Contact>(x => x.Department, new CopyFromAncestorExpression([
@@ -178,7 +179,7 @@ public class ContextAwareExpressionTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = (Contact)await provider.Supply();
+        Contact result = (Contact)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.Department); // the Account Owner's LastName was copied two hops up
@@ -195,7 +196,7 @@ public class ContextAwareExpressionTest
             .Put<Contact>(x => x.Department, new IsMinorFlag(Field.Of<Contact>(x => x.Birthdate)));
 
         // Act
-        Contact result = (Contact)await provider.Supply();
+        Contact result = (Contact)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal("MINOR", result.Department);
@@ -210,7 +211,7 @@ public class ContextAwareExpressionTest
             .SetQuantityPerTemplate(3);
 
         // Act
-        List<object> accounts = await provider.SupplyList();
+        List<object> accounts = await provider.SupplyList().ConfigureAwait(true);
 
         // Assert
         HashSet<object?> labels = [.. accounts.Cast<Account>().Select(account => account.Description)];

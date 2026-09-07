@@ -1,6 +1,7 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
-using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
 namespace Net.NowhereAtAll.Xfty.Engine;
@@ -16,7 +17,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
     {
         Bundle bundle = new();
         HashSet<PropertyInfo> forcedHeads = this.ExplicitlyRequestedRelationshipHeads();
-        await this.AddRemainingAncestors(bundle, this.RelationshipFields(), forcedHeads);
+        await this.AddRemainingAncestors(bundle, this.RelationshipFields(), forcedHeads).ConfigureAwait(false);
         return bundle;
     }
 
@@ -27,8 +28,8 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
             return;
         }
 
-        await this.AddAncestor(bundle, fields[0], forcedHeads.Contains(fields[0]));
-        await this.AddRemainingAncestors(bundle, fields.Skip(1).ToList(), forcedHeads);
+        await this.AddAncestor(bundle, fields[0], forcedHeads.Contains(fields[0])).ConfigureAwait(false);
+        await this.AddRemainingAncestors(bundle, fields.Skip(1).ToList(), forcedHeads).ConfigureAwait(false);
     }
 
     private List<PropertyInfo> RelationshipFields()
@@ -111,7 +112,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         GenerationContext childContext = this.ForcedChildContext(this.context.ForRelated(field), isForced)
             .EnteringProviderFor(childKey.HashKey);
         List<object> templates = ClonedTemplatesFor(relationship, this.quantity);
-        Bundle generated = await provider.CreateBundle(childContext, templates);
+        Bundle generated = await provider.CreateBundle(childContext, templates).ConfigureAwait(false);
         List<object>? primaries = generated.GetList(provider.PrimaryTargetField);
         _ = bundle.Put(field, generated);
         _ = bundle.Put(field, primaries!);

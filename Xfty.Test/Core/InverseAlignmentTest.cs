@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Persistence;
@@ -8,6 +9,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 public class InverseAlignmentTest
 {
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void ChildrenPerParent_WhenParentsHaveIds_MatchesOnTheForeignKey()
     {
         // Arrange
@@ -54,6 +56,7 @@ public class InverseAlignmentTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void ChildrenPerParent_WhenThereAreFewerChildrenThanParents_PositionFallbackGivesEmpty()
     {
         // Arrange

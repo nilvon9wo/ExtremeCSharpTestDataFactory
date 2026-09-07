@@ -1,6 +1,8 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
-using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
 
@@ -15,9 +17,9 @@ public class ExPerCallRelationshipsTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Contact))] = new ContactRequiringAccountProvider(),
-            [LookupKey.Get(typeof(Account))] = new AccountWithOptionalOwnerAndParentProvider(),
-            [LookupKey.Get(typeof(User))] = new LeafUserProvider(),
+            [LookupKey.Get<Contact>()] = new ContactRequiringAccountProvider(),
+            [LookupKey.Get<Account>()] = new AccountWithOptionalOwnerAndParentProvider(),
+            [LookupKey.Get<User>()] = new LeafUserProvider(),
         });
 
     [Fact]
@@ -28,7 +30,7 @@ public class ExPerCallRelationshipsTest
             .IncludeOptional<Account>(x => x.OwnerId)       // generate this optional one too
             .ExcludeRelationship<Account>(x => x.ParentId)  // do not generate this one, even though it is required
             .SetInsertMode(InsertMode.Mock)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.NotNull(result.OwnerId);
         Assert.Null(result.ParentId);
@@ -41,7 +43,7 @@ public class ExPerCallRelationshipsTest
         Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
             .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)])
             .SetInclusivity(InsertInclusivity.Required)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         Bundle accountBundle = bundle.GetBundle<Contact>(x => x.AccountId)!;
         Assert.NotNull(accountBundle.GetList<Account>(x => x.OwnerId));

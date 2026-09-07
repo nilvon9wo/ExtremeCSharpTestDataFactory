@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 
 namespace Net.NowhereAtAll.Xfty.Relationships;
 

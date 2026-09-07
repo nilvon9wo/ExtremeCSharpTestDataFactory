@@ -1,4 +1,6 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -24,7 +26,7 @@ public class BogusReadmeExampleTest
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Contact))] = new ContactWithFakeDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactWithFakeDataProvider(),
         });
 
     [Fact]
@@ -34,7 +36,7 @@ public class BogusReadmeExampleTest
         IProviderLookup lookup = Lookup();
 
         // Act
-        Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup).Supply();
+        Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup).Supply().ConfigureAwait(true);
 
         // Assert
         Assert.False(string.IsNullOrWhiteSpace(result.FirstName));

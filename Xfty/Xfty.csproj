@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Net.NowhereAtAll.Xfty</RootNamespace>
     <AssemblyName>Net.NowhereAtAll.Xfty</AssemblyName>
+    <BuildInParallel>false</BuildInParallel>
   </PropertyGroup>
 
   <ItemGroup>

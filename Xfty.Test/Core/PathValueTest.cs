@@ -1,5 +1,7 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -19,28 +21,28 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// </summary>
 public class PathValueTest
 {
-    private const string SharedAcctName = "path-value-test-shared-acct";
+    private const string _sharedAcctName = "path-value-test-shared-acct";
 
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactWithOptionalManagerProvider(),
-            [LookupKey.Get(typeof(User))] = new LeafUserProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactWithOptionalManagerProvider(),
+            [LookupKey.Get<User>()] = new LeafUserProvider(),
         });
 
     private static IProviderLookup DeepAccountLookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountWithOptionalParentProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactWithOptionalManagerProvider(),
+            [LookupKey.Get<Account>()] = new AccountWithOptionalParentProvider(),
+            [LookupKey.Get<Contact>()] = new ContactWithOptionalManagerProvider(),
         });
 
     private static IProviderLookup SharedParentLookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactUnderSharedAccountProvider(),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactUnderSharedAccountProvider(),
         });
 
     // A value landing on the generated ancestor ------------------------
@@ -55,7 +57,7 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace");
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - the path literal overrode the Account Provider default
         Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
@@ -74,7 +76,7 @@ public class PathValueTest
                 new IncrementingStringExpression("Path Account"));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         List<object> accounts = bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()!;
@@ -95,7 +97,7 @@ public class PathValueTest
                 CopyFromSiblingExpression.From<Account>(x => x.Name));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
@@ -114,7 +116,7 @@ public class PathValueTest
                 new DefaultRelationship(new User()));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
@@ -134,7 +136,7 @@ public class PathValueTest
                 "DeepValue");
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Bundle accountBundle = bundle.GetBundle<Contact>(x => x.AccountId)!;
@@ -153,7 +155,7 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace");
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Account generatedAccount = (Account)bundle.GetBundle<Contact>(x => x.AccountId)!.PrimaryRecords()![0];
@@ -166,13 +168,13 @@ public class PathValueTest
         // Arrange - Contact -> Account (path) -> Account.OwnerId := User (path value) -> that User's
         // own required Manager (distinct Provider) -> that Manager's required skip-level Manager.
         // Every level generates at the default (None) inclusivity because each step is named.
-        ILookupKey mgrKey = FlavouredLookupKey.Get(typeof(User), "mgr");
-        ILookupKey skipKey = FlavouredLookupKey.Get(typeof(User), "skip");
+        ILookupKey mgrKey = FlavouredLookupKey.Get<User>("mgr");
+        ILookupKey skipKey = FlavouredLookupKey.Get<User>("skip");
         IProviderLookup deepLookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountDataProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactWithOptionalManagerProvider(),
-            [LookupKey.Get(typeof(User))] = new ChainedUserProvider(mgrKey),
+            [LookupKey.Get<Account>()] = new AccountDataProvider(),
+            [LookupKey.Get<Contact>()] = new ContactWithOptionalManagerProvider(),
+            [LookupKey.Get<User>()] = new ChainedUserProvider(mgrKey),
             [mgrKey] = new ChainedUserProvider(skipKey),
             [skipKey] = new LeafUserProvider(),
         });
@@ -183,7 +185,7 @@ public class PathValueTest
                 new DefaultRelationship(new User()));
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - every level of the chain generated
         Bundle accountBundle = bundle.GetBundle<Contact>(x => x.AccountId)!;
@@ -211,7 +213,7 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.ReportsToId), Field.Of<Contact>(x => x.Department)], "Exec");
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Contact manager = (Contact)bundle.GetBundle<Contact>(x => x.ReportsToId)!.PrimaryRecords()![0];
@@ -228,7 +230,7 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.FirstName), Field.Of<Account>(x => x.Industry)], "x");
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
 
         // Assert - a non-relationship path field is a loud error, not a silent no-op
         Assert.Contains("relationship", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -238,13 +240,13 @@ public class PathValueTest
     public async Task Put_WhenThePathTargetsASharedAncestor_Throws()
     {
         // Arrange
-        _ = SharedAncestor.Put(SharedAcctName, new Account { Name = "Shared HQ" });
+        _ = SharedAncestor.Put(_sharedAcctName, new Account { Name = "Shared HQ" });
         RecordProvider provider = new RecordProvider(typeof(Contact), SharedParentLookup())
             .SetInclusivity(InsertInclusivity.Required)
             .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace");
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
 
         // Assert - a path value into a shared ancestor is a loud error, not a dropped value
         Assert.Contains("shared ancestor", thrown.Message, StringComparison.OrdinalIgnoreCase);

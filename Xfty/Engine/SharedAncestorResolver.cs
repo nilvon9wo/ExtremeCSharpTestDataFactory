@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Relationships;
@@ -70,7 +71,7 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
         List<SharedAncestor> configured = SharedAncestor.ConfiguredUnresolved();
         if (configured.Count > 0)
         {
-            await new SharedAncestorResolver(lookup, callMode).Resolve(configured);
+            await new SharedAncestorResolver(lookup, callMode).Resolve(configured).ConfigureAwait(false);
         }
     }
 
@@ -92,7 +93,7 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
         try
         {
             List<SharedAncestor> toResolve = [.. this.InDependencyOrder(ancestors).Where(ancestor => !ancestor.IsResolved)];
-            await this.ResolveRemaining(toResolve);
+            await this.ResolveRemaining(toResolve).ConfigureAwait(false);
         }
         finally
         {
@@ -110,8 +111,8 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
             return;
         }
 
-        await this.ResolveOne(ancestors[0]);
-        await this.ResolveRemaining(ancestors.Skip(1).ToList());
+        await this.ResolveOne(ancestors[0]).ConfigureAwait(false);
+        await this.ResolveRemaining(ancestors.Skip(1).ToList()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -124,15 +125,15 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
     {
         if (HoldsGate.Value)
         {
-            await action();
+            await action().ConfigureAwait(false);
             return;
         }
 
-        await ResolutionGate.WaitAsync();
+        await ResolutionGate.WaitAsync().ConfigureAwait(false);
         HoldsGate.Value = true;
         try
         {
-            await action();
+            await action().ConfigureAwait(false);
         }
         finally
         {
@@ -198,7 +199,7 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
 
         try
         {
-            await this.BuildAndPersist(ancestor);
+            await this.BuildAndPersist(ancestor).ConfigureAwait(false);
         }
         finally
         {
@@ -209,11 +210,11 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
     private async Task BuildAndPersist(SharedAncestor ancestor)
     {
         SharedAncestorProvider source = ancestor.Source();
-        Bundle graph = await source.BuildInMemory(this.lookup);
+        Bundle graph = await source.BuildInMemory(this.lookup).ConfigureAwait(false);
 
         DeferredInsertBuffer buffer = new();
         buffer.Add(graph);
-        await buffer.ResolveAll(this.mode);
+        await buffer.ResolveAll(this.mode).ConfigureAwait(false);
 
         object record = graph.GetList(source.PrimaryField(this.lookup))![0];
         ancestor.AcceptResolved(record, graph, this.mode == InsertMode.Now);

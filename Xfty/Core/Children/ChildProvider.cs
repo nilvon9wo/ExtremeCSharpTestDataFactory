@@ -4,7 +4,7 @@ using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.Children;
 
 /// <summary>
 /// Configures one **child collection** hung off a <see cref="RecordProvider"/>
@@ -20,14 +20,14 @@ namespace Net.NowhereAtAll.Xfty.Core;
 /// </summary>
 public sealed class ChildProvider
 {
-    private readonly object template;
-    private readonly List<ChildProviderPendingPut> pendingPuts = [];
-    private readonly List<ChildProvider> grandchildProviders = [];
+    private readonly object Template;
+    private readonly List<ChildProviderPendingPut> PendingPuts = [];
+    private readonly List<ChildProvider> GrandchildProviders = [];
 
-    private int quantity = 1;
-    private InsertMode? insertModeOverride;
-    private InsertInclusivity? inclusivityOverride;
-    private ILookupKey? variantKey;
+    private int _quantity = 1;
+    private InsertMode? _insertModeOverride;
+    private InsertInclusivity? _inclusivityOverride;
+    private ILookupKey? _variantKey;
 
     public ChildProvider(PropertyInfo relationshipField) : this(relationshipField, null)
     {
@@ -42,7 +42,7 @@ public sealed class ChildProvider
             throw new XftyConfigurationException($"Template is a {template.GetType()} but {relationshipField.Name} is on {this.ChildType}.");
         }
 
-        this.template = template ?? Activator.CreateInstance(this.ChildType)!;
+        this.Template = template ?? Activator.CreateInstance(this.ChildType)!;
     }
 
     /// <summary>ChildProvider(field), naming field by lambda instead of Field.Of&lt;TChild&gt;(...).</summary>
@@ -62,7 +62,7 @@ public sealed class ChildProvider
     /// <summary>Children generated per primary. Default 1.</summary>
     public ChildProvider SetQuantity(int quantity)
     {
-        this.quantity = quantity >= 1 ? quantity : throw new XftyConfigurationException($"SetQuantity({quantity}): at least 1.");
+        this._quantity = quantity >= 1 ? quantity : throw new XftyConfigurationException($"SetQuantity({quantity}): at least 1.");
         return this;
     }
 
@@ -117,35 +117,35 @@ public sealed class ChildProvider
 
     private ChildProvider AddPendingPut(ChildProviderPendingPut pendingPut)
     {
-        this.pendingPuts.Add(pendingPut);
+        this.PendingPuts.Add(pendingPut);
         return this;
     }
 
     /// <summary>Insert mode for the children. Default: the parent Provider's. Cannot mix mock Ids with real DML.</summary>
     public ChildProvider SetInsertMode(InsertMode insertMode)
     {
-        this.insertModeOverride = insertMode;
+        this._insertModeOverride = insertMode;
         return this;
     }
 
     /// <summary>Inclusivity for the children's *own* other relationships. Default: the parent Provider's.</summary>
     public ChildProvider SetInclusivity(InsertInclusivity inclusivity)
     {
-        this.inclusivityOverride = inclusivity;
+        this._inclusivityOverride = inclusivity;
         return this;
     }
 
     /// <summary>Pin the child Provider variant (otherwise derived from the template's type).</summary>
     public ChildProvider WithVariant(ILookupKey variantKey)
     {
-        this.variantKey = variantKey;
+        this._variantKey = variantKey;
         return this;
     }
 
     /// <summary>Nest a further child collection under these children - grandchildren, and so on.</summary>
     public ChildProvider With(ChildProvider? grandchildProvider)
     {
-        this.grandchildProviders.Add(grandchildProvider ?? throw new XftyConfigurationException("With(...) needs a ChildProvider."));
+        this.GrandchildProviders.Add(grandchildProvider ?? throw new XftyConfigurationException("With(...) needs a ChildProvider."));
         return this;
     }
 
@@ -153,21 +153,21 @@ public sealed class ChildProvider
 
     public InsertMode EffectiveInsertMode(InsertMode parentMode)
     {
-        InsertMode mode = this.insertModeOverride ?? parentMode;
+        InsertMode mode = this._insertModeOverride ?? parentMode;
         AssertModesCompatible(parentMode, mode);
         return mode;
     }
 
     public InsertInclusivity EffectiveInclusivity(InsertInclusivity parentInclusivity) =>
-        this.inclusivityOverride ?? parentInclusivity;
+        this._inclusivityOverride ?? parentInclusivity;
 
     /// <summary>Build the quantity child templates for one primary, back-reference set.</summary>
     public List<object> TemplatesForParent(object? parentId) =>
-        [.. Enumerable.Range(0, this.quantity).Select(_ => this.CloneWithBackReference(parentId))];
+        [.. Enumerable.Range(0, this._quantity).Select(_ => this.CloneWithBackReference(parentId))];
 
     private object CloneWithBackReference(object? parentId)
     {
-        object childTemplate = RecordCloneFactory.DeepClone(this.template);
+        object childTemplate = RecordCloneFactory.DeepClone(this.Template);
         this.RelationshipField.SetValue(childTemplate, parentId);
         return childTemplate;
     }
@@ -175,11 +175,11 @@ public sealed class ChildProvider
     /// <summary>A fresh Provider for these children, with this child provider's puts/variant/nested children applied.</summary>
     public RecordProvider NewProvider(IProviderLookup lookup)
     {
-        RecordProvider provider = this.variantKey is null
+        RecordProvider provider = this._variantKey is null
             ? new RecordProvider(this.ChildType, lookup)
-            : new RecordProvider(this.variantKey, lookup);
-        this.pendingPuts.ForEach(pendingPut => pendingPut.ApplyTo(provider));
-        this.grandchildProviders.ForEach(grandchild => provider.With(grandchild));
+            : new RecordProvider(this._variantKey, lookup);
+        this.PendingPuts.ForEach(pendingPut => pendingPut.ApplyTo(provider));
+        this.GrandchildProviders.ForEach(grandchild => provider.With(grandchild));
         return provider;
     }
 

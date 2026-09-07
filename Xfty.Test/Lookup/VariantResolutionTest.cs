@@ -13,15 +13,15 @@ namespace Net.NowhereAtAll.Xfty.Test.Lookup;
 public class VariantResolutionTest
 {
     private static readonly ILookupKey Big =
-        FlavouredLookupKey.Get(typeof(Account), "reconcile-big").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 1000));
+        FlavouredLookupKey.Get<Account>("reconcile-big").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 1000));
 
     private static readonly ILookupKey Small =
-        FlavouredLookupKey.Get(typeof(Account), "reconcile-small").Matching(FieldPredicateFactory.LessThan<Account>(x => x.NumberOfEmployees, 10));
+        FlavouredLookupKey.Get<Account>("reconcile-small").Matching(FieldPredicateFactory.LessThan<Account>(x => x.NumberOfEmployees, 10));
 
     private static IProviderLookup Lookup() =>
         ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
         {
-            [LookupKey.Get(typeof(Account))] = typeof(AccountDataProvider),
+            [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
             [Big] = typeof(AccountDataProvider),
             [Small] = typeof(AccountDataProvider),
         });
@@ -68,7 +68,7 @@ public class VariantResolutionTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        LookupException thrown = await Assert.ThrowsAsync<LookupException>(provider.Supply);
+        LookupException thrown = await Assert.ThrowsAsync<LookupException>(provider.Supply).ConfigureAwait(true);
 
         // Assert - WithVariant contradicting the template must throw
         Assert.Contains("contradicts", thrown.Message);
@@ -84,7 +84,7 @@ public class VariantResolutionTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Account result = (Account)await provider.Supply();
+        Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.Equal(5000, result.NumberOfEmployees);

@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Demo;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
@@ -29,7 +30,7 @@ public class RecordProviderScenarioTest
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         AssertContactGenerated(bundle);
@@ -48,7 +49,7 @@ public class RecordProviderScenarioTest
             .SetInclusivity(InsertInclusivity.All);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         AssertContactGenerated(bundle);
@@ -67,7 +68,7 @@ public class RecordProviderScenarioTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         AssertContactGenerated(result);
@@ -81,7 +82,7 @@ public class RecordProviderScenarioTest
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup()).SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.Contains(ContactDataProvider.DefaultFirstNamePrefix, result.FirstName);

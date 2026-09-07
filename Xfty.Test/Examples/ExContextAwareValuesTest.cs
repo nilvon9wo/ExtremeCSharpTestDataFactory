@@ -1,4 +1,7 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -23,7 +26,7 @@ public class ExContextAwareValuesTest
         Account result = (Account)await new RecordProvider(typeof(Account), Lookup)
             .Put<Account>(x => x.ShippingCity, "Berlin")
             .Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCity))
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.Equal("Berlin", result.BillingCity);
     }
@@ -36,7 +39,7 @@ public class ExContextAwareValuesTest
             .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account { Site = "HQ" }))
             .Put<Contact>(x => x.Department, CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Site))
             .SetInclusivity(InsertInclusivity.Required)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.Equal("HQ", result.Department);
     }
@@ -47,16 +50,16 @@ public class ExContextAwareValuesTest
         // from docs/use/context-aware-values.md "Copy a field from a generated ancestor" (several hops)
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Case))] = new CaseUnderAccountProvider(),
-            [LookupKey.Get(typeof(Account))] = new AccountWithOwnerProvider(),
-            [LookupKey.Get(typeof(User))] = new LeafUserProvider(),
+            [LookupKey.Get<Case>()] = new CaseUnderAccountProvider(),
+            [LookupKey.Get<Account>()] = new AccountWithOwnerProvider(),
+            [LookupKey.Get<User>()] = new LeafUserProvider(),
         });
         Case result = (Case)await new RecordProvider(typeof(Case), lookup)
             .Put<Case>(x => x.Subject, new CopyFromAncestorExpression([
                 Field.Of<Case>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId), Field.Of<User>(x => x.LastName),
             ]))
             .SetInclusivity(InsertInclusivity.Required)
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.NotNull(result.Subject);
     }
@@ -68,7 +71,7 @@ public class ExContextAwareValuesTest
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
             .Put<Contact>(x => x.Birthdate, new DateTime(2010, 1, 1))
             .Put<Contact>(x => x.Department, new IsMinorFlag())
-            .Supply();
+            .Supply().ConfigureAwait(true);
 
         Assert.Equal("MINOR", result.Department);
     }
@@ -83,7 +86,7 @@ public class ExContextAwareValuesTest
             .Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCity))
             .Put<Account>(x => x.ShippingCity, CopyFromSiblingExpression.From<Account>(x => x.Site));
 
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
         Assert.Contains("ShippingCity", thrown.Message);
     }
 
@@ -132,17 +135,17 @@ public class ExContextAwareValuesTest
         // from docs/use/context-aware-values.md - "it only works under Deferred (or .DepthBatched())"
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [LookupKey.Get(typeof(Account))] = new AccountReadingChildDepartmentProvider(),
-            [LookupKey.Get(typeof(Contact))] = new ContactUnderAccountProvider(),
+            [LookupKey.Get<Account>()] = new AccountReadingChildDepartmentProvider(),
+            [LookupKey.Get<Contact>()] = new ContactUnderAccountProvider(),
         });
         RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Deferred)
             .Put<Contact>(x => x.Department, "Field Ops");
 
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
         DeferredInsertBuffer graph = DeferredInsertBuffer.Flatten(bundle);
-        Account account = (Account)graph.Records().OfType<Account>().Single();
+        Account account = (Account)graph.Records().OfType<Account>().First();
 
         Assert.Equal("Field Ops", account.Site);
 
@@ -187,7 +190,7 @@ file sealed class BlankAccountProviderLookup : IProviderLookup
 
     public IRecordProvider Get(ILookupKey lookupKey) => new BlankAccountProvider();
 
-    public ISet<ILookupKey> KeysFor(object? record) => new HashSet<ILookupKey> { LookupKey.Get(typeof(Account)) };
+    public ISet<ILookupKey> KeysFor(object? record) => new HashSet<ILookupKey> { LookupKey.Get<Account>() };
 }
 
 file sealed class BlankAccountProvider()

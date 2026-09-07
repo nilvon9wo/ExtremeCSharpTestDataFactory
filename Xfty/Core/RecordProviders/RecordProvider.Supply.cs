@@ -1,3 +1,5 @@
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Persistence;
 
@@ -9,11 +11,11 @@ public sealed partial class RecordProvider
     public async Task<Bundle> SupplyBundle()
     {
         this.WarnIfMixingCustomTemplateWithOverrides();
-        await SharedAncestorResolver.ResolveAllConfigured(this.providerLookup, this.insertMode);
+        await SharedAncestorResolver.ResolveAllConfigured(this.providerLookup, this.insertMode).ConfigureAwait(false);
         GenerationContext context = this.BuildContext();
         List<object> templates = this.TemplatesToFill();
-        Bundle bundle = await this.Generate(context, templates);
-        await this.SupplyChildrenAndPersist(bundle);
+        Bundle bundle = await this.Generate(context, templates).ConfigureAwait(false);
+        await this.SupplyChildrenAndPersist(bundle).ConfigureAwait(false);
         return bundle;
     }
 
@@ -23,10 +25,10 @@ public sealed partial class RecordProvider
         // Children join the same deferred graph when batched - generated structurally now, FK wired when the
         // buffer flushes. A structural child of a deferred parent also stays structural, but persists nothing here.
         // Otherwise (Now/Mock), primaries already have Ids after Generate(); wire the back-reference concretely.
-        await this.childConfig.GenerateAll(bundle, batched || this.forceStructuralChildGeneration, this.ExecutionState());
+        await this.childConfig.GenerateAll(bundle, batched || this.forceStructuralChildGeneration, this.ExecutionState()).ConfigureAwait(false);
         if (batched)
         {
-            await this.Persist(bundle);
+            await this.Persist(bundle).ConfigureAwait(false);
         }
     }
 
@@ -34,9 +36,9 @@ public sealed partial class RecordProvider
         new(this.providerLookup, this.ResolveFactoryOutlet(), this.insertMode, this.inclusivity, this.persistenceGateway);
 
     public async Task<List<object>> SupplyList() =>
-        (await this.SupplyBundle()).GetList(this.ResolveFactoryOutlet().PrimaryTargetField)!;
+        (await this.SupplyBundle().ConfigureAwait(false)).GetList(this.ResolveFactoryOutlet().PrimaryTargetField)!;
 
-    public async Task<object> Supply() => (await this.SupplyList())[0];
+    public async Task<object> Supply() => (await this.SupplyList().ConfigureAwait(false))[0];
 
     private Task<Bundle> Generate(GenerationContext context, List<object> templates) =>
         this.templateConfig.HasCustomTemplate

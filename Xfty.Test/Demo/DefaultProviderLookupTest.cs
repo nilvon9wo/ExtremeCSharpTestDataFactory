@@ -1,4 +1,5 @@
-using Net.NowhereAtAll.Xfty.Core;
+using System.Diagnostics.CodeAnalysis;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -48,6 +49,7 @@ public class DefaultProviderLookupTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public void KeysFor_ForAContactRecord_ReturnsOnlyTheContactKey()
     {
         // Arrange

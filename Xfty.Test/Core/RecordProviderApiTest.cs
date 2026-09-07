@@ -1,4 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
@@ -93,10 +96,10 @@ public class RecordProviderApiTest
     public async Task Constructor_FromALookupKey_PinsTheVariantAndDerivesTheType()
     {
         // Arrange
-        RecordProvider provider = new RecordProvider(LookupKey.Get(typeof(Contact)), Lookup).SetInsertMode(InsertMode.Mock);
+        RecordProvider provider = new RecordProvider(LookupKey.Get<Contact>(), Lookup).SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.NotNull(result.Id);
@@ -110,7 +113,7 @@ public class RecordProviderApiTest
         RecordProvider provider = new RecordProvider(new Contact { FirstName = "Zoe" }, Lookup).SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.Equal("Zoe", result.FirstName);
@@ -126,7 +129,7 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        List<object> results = await provider.SupplyList();
+        List<object> results = await provider.SupplyList().ConfigureAwait(true);
 
         // Assert
         Assert.Equal(2, results.Count);
@@ -185,7 +188,7 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        List<object> results = await provider.SupplyList();
+        List<object> results = await provider.SupplyList().ConfigureAwait(true);
 
         // Assert
         Assert.Equal(2, results.Count);
@@ -198,11 +201,11 @@ public class RecordProviderApiTest
     {
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
-            .WithVariant(LookupKey.Get(typeof(Contact)))
+            .WithVariant(LookupKey.Get<Contact>())
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.NotNull(result.Id);
@@ -230,7 +233,7 @@ public class RecordProviderApiTest
 
         // Act
         RecordProviderConflictException thrown = Assert.Throws<RecordProviderConflictException>(
-            () => provider.WithVariant(LookupKey.Get(typeof(Account))));
+            () => provider.WithVariant(LookupKey.Get<Account>()));
 
         // Assert
         Assert.Contains("Account", thrown.Message);
@@ -245,7 +248,7 @@ public class RecordProviderApiTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => provider.WithVariant(LookupKey.Get(typeof(Contact))));
+            () => provider.WithVariant(LookupKey.Get<Contact>()));
 
         // Assert
         Assert.Contains("WithVariant", thrown.Message);
@@ -260,7 +263,7 @@ public class RecordProviderApiTest
         RecordProvider provider = ContactProvider().Put<Contact>(x => x.FirstName, (object)new LiteralExpression("RoutedStrategy"));
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.Equal("RoutedStrategy", result.FirstName);
@@ -275,7 +278,7 @@ public class RecordProviderApiTest
             .Put<Contact>(x => x.Department, (object)CopyFromSiblingExpression.From<Contact>(x => x.FirstName));
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert - a context-aware expression passed as object still routes correctly
         Assert.Equal("Source", result.Department);
@@ -303,7 +306,7 @@ public class RecordProviderApiTest
         RecordProvider provider = ContactProvider().Put<Contact>(x => x.FirstName, new LiteralExpression("DeliberateName"));
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.Equal("DeliberateName", result.FirstName);
@@ -316,7 +319,7 @@ public class RecordProviderApiTest
         RecordProvider provider = ContactProvider().Put<Contact>(x => x.FirstName, "LiteralFirstName");
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.Equal("LiteralFirstName", result.FirstName);
@@ -331,7 +334,7 @@ public class RecordProviderApiTest
             .SetOverrideTemplate(new Contact { FirstName = "FromOverride" });
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.Equal("FromOverride", result.FirstName);
@@ -341,10 +344,10 @@ public class RecordProviderApiTest
     public async Task Put_OnOneProvider_DoesNotLeakIntoALaterSeparateProvider()
     {
         // Arrange - customise one Provider, then build a pristine one on the same lookup
-        _ = await ContactProvider().Put<Contact>(x => x.FirstName, new LiteralExpression("Customized")).Supply();
+        _ = await ContactProvider().Put<Contact>(x => x.FirstName, new LiteralExpression("Customized")).Supply().ConfigureAwait(true);
 
         // Act
-        Contact pristine = Assert.IsType<Contact>(await ContactProvider().Supply());
+        Contact pristine = Assert.IsType<Contact>(await ContactProvider().Supply().ConfigureAwait(true));
 
         // Assert
         Assert.StartsWith(ContactDataProvider.DefaultFirstNamePrefix, pristine.FirstName);
@@ -361,7 +364,7 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Never);
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.Null(result.Email); // Email is no longer generated once removed
@@ -381,13 +384,14 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - an optional relationship is skipped for Required
         Assert.Null(bundle.GetList<Contact>(x => x.ReportsToId));
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task PutOptional_AtAllInclusivity_TheOptionalRelationshipIsGenerated()
     {
         // Arrange
@@ -398,13 +402,14 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - an optional relationship is generated for All
         _ = Assert.Single(bundle.GetList<Contact>(x => x.ReportsToId)!);
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task IncludeOptional_AtRequiredInclusivity_PromotesJustThatOptionalRelationship()
     {
         // Arrange
@@ -415,7 +420,7 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         _ = Assert.Single(bundle.GetList<Contact>(x => x.ReportsToId)!); // the included optional relationship is generated
@@ -423,6 +428,7 @@ public class RecordProviderApiTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task IncludeOptional_OnAnAlreadyRequiredRelationship_IsANoOp()
     {
         // Arrange
@@ -432,7 +438,7 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert - the required Account is generated, exactly once
         _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!);
@@ -448,7 +454,7 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
 
         // Assert
         Assert.Contains("is not a relationship", thrown.Message);
@@ -464,7 +470,7 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        Bundle bundle = await provider.SupplyBundle();
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Assert.Null(bundle.GetList<Contact>(x => x.AccountId)); // the excluded relationship is not generated
@@ -472,6 +478,7 @@ public class RecordProviderApiTest
     }
 
     [Fact]
+    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "<Pending>")]
     public async Task ExcludeRelationship_IsInstanceLocal()
     {
         // Arrange - a separate Provider on the same lookup, no exclusion
@@ -482,10 +489,10 @@ public class RecordProviderApiTest
         Bundle normal = await new RecordProvider(typeof(Contact), Lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .SupplyBundle();
+            .SupplyBundle().ConfigureAwait(true);
 
         // Act
-        Bundle excluded = await provider.SupplyBundle();
+        Bundle excluded = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
         Assert.Null(excluded.GetList<Contact>(x => x.AccountId));
@@ -515,7 +522,7 @@ public class RecordProviderApiTest
         RecordProvider provider = ContactProvider();
 
         // Act
-        Contact result = Assert.IsType<Contact>(await provider.Supply());
+        Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
 
         // Assert
         Assert.NotNull(result.Id);
@@ -532,7 +539,7 @@ public class RecordProviderApiTest
             .SetQuantityPerTemplate(2);
 
         // Act
-        List<object> results = await provider.SupplyList();
+        List<object> results = await provider.SupplyList().ConfigureAwait(true);
 
         // Assert - two templates x quantity 2
         Assert.Equal(4, results.Count);

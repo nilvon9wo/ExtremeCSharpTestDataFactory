@@ -36,8 +36,8 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
 
     private static async Task InsertRemainingGroups(MevdPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField)
     {
-        await gateway.InsertGroup([.. groups[0]], idField);
-        await InsertGroups(gateway, groups.Skip(1).ToList(), idField);
+        await gateway.InsertGroup([.. groups[0]], idField).ConfigureAwait(false);
+        await InsertGroups(gateway, groups.Skip(1).ToList(), idField).ConfigureAwait(false);
     }
 
     private async Task InsertGroup(List<object> records, PropertyInfo idField)
@@ -51,9 +51,9 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
         VectorStoreCollection<object, Dictionary<string, object?>> collection =
             vectorStore.GetDynamicCollection(recordType.Name, definition);
 
-        await collection.EnsureCollectionExistsAsync();
+        await collection.EnsureCollectionExistsAsync().ConfigureAwait(false);
         List<Dictionary<string, object?>> rows = [.. records.Select(record => ToRow(record, recordType))];
-        await collection.UpsertAsync(rows);
+        await collection.UpsertAsync(rows).ConfigureAwait(false);
     }
 
     private static void FillIdIfMissing(object record, PropertyInfo idField)

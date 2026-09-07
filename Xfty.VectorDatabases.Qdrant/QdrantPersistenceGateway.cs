@@ -34,8 +34,8 @@ public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistence
 
     private static async Task InsertRemainingGroups(QdrantPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField)
     {
-        await gateway.InsertGroup([.. groups[0]], idField);
-        await InsertGroups(gateway, groups.Skip(1).ToList(), idField);
+        await gateway.InsertGroup([.. groups[0]], idField).ConfigureAwait(false);
+        await InsertGroups(gateway, groups.Skip(1).ToList(), idField).ConfigureAwait(false);
     }
 
     private async Task InsertGroup(List<object> records, PropertyInfo idField)
@@ -47,18 +47,18 @@ public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistence
         PropertyInfo vectorField = QdrantRecordReflection.FindVectorField(recordType);
         int dimensions = ((float[])vectorField.GetValue(records[0])!).Length;
 
-        await this.EnsureCollectionExists(recordType.Name, dimensions);
+        await this.EnsureCollectionExists(recordType.Name, dimensions).ConfigureAwait(false);
         List<PointStruct> points = [.. records.Select(record => ToPoint(record, idField, vectorField))];
-        _ = await client.UpsertAsync(recordType.Name, points);
+        _ = await client.UpsertAsync(recordType.Name, points).ConfigureAwait(false);
     }
 
     private async Task EnsureCollectionExists(string collectionName, int dimensions)
     {
-        bool exists = await client.CollectionExistsAsync(collectionName);
+        bool exists = await client.CollectionExistsAsync(collectionName).ConfigureAwait(false);
         if (!exists)
         {
             VectorParams vectorParams = new() { Size = (ulong)dimensions, Distance = Distance.Cosine };
-            await client.CreateCollectionAsync(collectionName, vectorParams);
+            await client.CreateCollectionAsync(collectionName, vectorParams).ConfigureAwait(false);
         }
     }
 
