@@ -13,6 +13,7 @@ jobs:
     permissions:
       contents: read
       id-token: write # required so NuGet/login can request a GitHub OIDC token
+
     steps:
       - uses: actions/checkout@v7
 
@@ -33,8 +34,72 @@ jobs:
       - name: Test (excluding the informational performance suite)
         run: dotnet test Xfty.ci-cross-platform.slnf -c Release --no-build --filter "Category!=Performance"
 
-      - name: Determine package version
-        run: echo "PACKAGE_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Verify package versions
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+
+          if (-not $tag.StartsWith("v")) {
+              Write-Error "Release tag '$tag' does not start with 'v'."
+              exit 1
+          }
+
+          $expectedVersion = $tag.Substring(1)
+
+          Write-Host "Release tag:      $tag"
+          Write-Host "Expected version: $expectedVersion"
+          Write-Host ""
+
+          $publishableProjects = @(
+              "Xfty/Xfty.csproj",
+              "Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj",
+              "Xfty.Bogus/Xfty.Bogus.csproj",
+              "Xfty.VectorDatabases/Xfty.VectorDatabases.csproj",
+              "Xfty.Xunit/Xfty.Xunit.csproj",
+              "Xfty.AutoFixture/Xfty.AutoFixture.csproj",
+              "Xfty.AutoBogus/Xfty.AutoBogus.csproj",
+              "Xfty.FSharpAsync/Xfty.FSharpAsync.fsproj",
+              "Xfty.VectorDatabases.Qdrant/Xfty.VectorDatabases.Qdrant.csproj",
+              "Xfty.VectorDatabases.MicrosoftExtensionsVectorData/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.csproj"
+          )
+
+          $previewProjects = @(
+              "Xfty.VectorDatabases.Qdrant/Xfty.VectorDatabases.Qdrant.csproj",
+              "Xfty.VectorDatabases.MicrosoftExtensionsVectorData/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.csproj"
+          )
+
+          $failed = $false
+
+          foreach ($project in $publishableProjects) {
+              [xml]$projectXml = Get-Content $project
+              $version = $projectXml.Project.PropertyGroup.Version | Select-Object -First 1
+
+              if ([string]::IsNullOrWhiteSpace($version)) {
+                  Write-Error "$project does not define <Version>."
+                  $failed = $true
+                  continue
+              }
+
+              if ($previewProjects -contains $project) {
+                  Write-Host "PREVIEW  $project -> $version"
+                  continue
+              }
+
+              if ($version -ne $expectedVersion) {
+                  Write-Error "$project has version '$version', but release tag '$tag' requires '$expectedVersion'."
+                  $failed = $true
+              }
+              else {
+                  Write-Host "MATCH    $project -> $version"
+              }
+          }
+
+          if ($failed) {
+              Write-Error "Package version validation failed. No packages will be created or published."
+              exit 1
+          }
+
+          "PACKAGE_VERSION=$expectedVersion" >> $env:GITHUB_ENV
 
       - name: Pack every publishable package
         run: |
@@ -51,8 +116,57 @@ jobs:
             Xfty.VectorDatabases.Qdrant/Xfty.VectorDatabases.Qdrant.csproj \
             Xfty.VectorDatabases.MicrosoftExtensionsVectorData/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.csproj \
           ; do
-            dotnet pack "$proj" -c Release --no-build -o ./packages -p:PackageVersion="$PACKAGE_VERSION"
+            dotnet pack "$proj" -c Release --no-build -o ./packages
           done
+
+      - name: Verify generated package versions
+        shell: pwsh
+        run: |
+          $expectedVersion = $env:PACKAGE_VERSION
+          $previewProjects = @(
+              "Xfty.VectorDatabases.Qdrant",
+              "Xfty.VectorDatabases.MicrosoftExtensionsVectorData"
+          )
+
+          $packages = Get-ChildItem "./packages/*.nupkg"
+
+          if ($packages.Count -eq 0) {
+              Write-Error "No NuGet packages were generated."
+              exit 1
+          }
+
+          $failed = $false
+
+          foreach ($package in $packages) {
+              $packageName = $package.BaseName
+
+              $isPreviewPackage = $false
+
+              foreach ($previewProject in $previewProjects) {
+                  if ($packageName.StartsWith("$previewProject.")) {
+                      $isPreviewPackage = $true
+                      break
+                  }
+              }
+
+              if ($isPreviewPackage) {
+                  Write-Host "PREVIEW PACKAGE  $($package.Name)"
+                  continue
+              }
+
+              if (-not $packageName.EndsWith(".$expectedVersion")) {
+                  Write-Error "Generated package '$($package.Name)' does not contain expected version '$expectedVersion'."
+                  $failed = $true
+              }
+              else {
+                  Write-Host "VERSION MATCH     $($package.Name)"
+              }
+          }
+
+          if ($failed) {
+              Write-Error "Generated package version validation failed. Nothing will be published."
+              exit 1
+          }
 
       - name: NuGet login (OIDC -> short-lived API key, no stored secret)
         uses: NuGet/login@v1
@@ -65,4 +179,3 @@ jobs:
           dotnet nuget push "./packages/*.nupkg"
           --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
           --source https://api.nuget.org/v3/index.json
-          --skip-duplicate
