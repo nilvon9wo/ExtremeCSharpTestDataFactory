@@ -726,3 +726,40 @@ out of doing this carefully:
 Not done at that point: `scripts/verify-doc-examples.py`'s C# equivalent and
 an `examples/`-style runnable-doc-test suite to check it against - both still
 open as of this writing (see [coverage-standards](coverage-standards.md)).
+
+---
+
+## 2026-09-10: `SimpleRecordProvider<TRecord>` removed - it was an invented base class
+
+Brian caught an `abstract class SimpleRecordProvider<TRecord>` that had crept
+into `Xfty/Core/RecordProviders/` and told me, in no uncertain terms, to get
+rid of it and make every Provider that used it compose a template instead of
+inheriting.
+
+He's right. Apex has no such base. Its own example tests each declare a
+`private abstract class BaseProvider implements XFTY_DummySobjectProviderIntf`
+*locally, inside one test file* when they want to share the three-line
+delegation across a handful of fixture Providers - that's a test-file
+convenience, not a library type, and the C# port already keeps those
+file-local (`MultiVariantProviderTest`, `RecordFactoryTest`). Promoting the
+idea to a shipped `Xfty.Core` base class was a structural invention with no
+original to point at - the same mistake as the earlier `FieldPredicateBase`
+(see 2026-09-05).
+
+**What changed:**
+- `SimpleRecordProvider<TRecord>` deleted.
+- Every Provider that extended it - `BlankCaseProvider`, `CaseWithAccountProvider`,
+  the various `LeafUserProvider` / `AccountWithOwnerProvider` fixtures across
+  `Xfty.Test`, and the demo Providers in the `Bogus` / `VectorDatabases*` /
+  `EntityFrameworkCore` test projects - now implements `IRecordProvider`
+  directly: a `private MasterTemplate _template { get; }`, `PrimaryTargetField`
+  and `MasterTemplate` returning it, and `CreateBundle` delegating to
+  `RecordFactory.CreateBundle`. This is exactly the shape the bundled
+  `ContactDataProvider` / `AccountDataProvider` already had, so it's a
+  consistency win, not a new pattern.
+- The Provider layer now has no inheritance at all - every Provider is a leaf
+  class implementing the interface.
+
+`dotnet build`: 0 warnings / 0 errors. Full suite green (`Xfty.Test` 582,
+plus the add-on test projects). `verify-doc-examples.py` / `verify-doc-links.py`
+still pass - no doc example ever referenced the base class.

@@ -1,7 +1,10 @@
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Bogus.Test;
@@ -12,13 +15,20 @@ namespace Net.NowhereAtAll.Xfty.Bogus.Test;
 /// Bogus expression, not just the expression in isolation (see
 /// FakeFullNameExpressionTest and its siblings for that).
 /// </summary>
-file sealed class ContactWithFakeDataProvider() : SimpleRecordProvider<Contact>(
-    new MasterTemplate<Contact>(x => x.Id)
+file sealed class ContactWithFakeDataProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<Contact>(x => x.Id)
     {
         [x => x.FirstName] = new FakeFullNameExpression(),
         [x => x.Email] = new FakeEmailAddressExpression(),
-    })
-{
+    };
+
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 
 public class BogusReadmeExampleTest

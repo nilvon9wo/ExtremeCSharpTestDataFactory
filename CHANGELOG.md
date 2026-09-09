@@ -107,6 +107,18 @@ because those entries describe a change made in *this* repository.
   Net.Nowhereatall...` in a consumer's own code - there is no compatibility
   shim; update the casing on upgrade.
 
+### Removed
+
+- **`SimpleRecordProvider<TRecord>` is gone.** It was an invented base class
+  with no analog in the Apex original - a Provider that is "nothing but a
+  Master Template" now implements `IRecordProvider` directly, holding its
+  template as a field and delegating `CreateBundle` to
+  `RecordFactory.CreateBundle` (the same composition idiom the bundled
+  `ContactDataProvider`/`AccountDataProvider` already used). Every Provider
+  that extended it - across the test suites and the add-on package README
+  examples - was converted to that form; there is no inheritance left in the
+  Provider layer.
+
 ### Fixed
 
 - **`SharedAncestor` could crash under real concurrent access** —
@@ -334,10 +346,10 @@ workload** - hence beta.
   `SharedAncestorProvider`, `FieldPredicateFactory`, and the `CopyFrom*`
   value expressions - so a field is named without a bare `PropertyInfo` or
   `nameof(...)` at the call site.
-- **`MasterTemplate<TRecord>`** and **`SimpleRecordProvider<TRecord>`** -
-  ergonomic, strongly-typed wrappers (collection-initializer syntax for a
-  template; a Provider that is nothing but a template needs no boilerplate)
-  over the untyped engine underneath.
+- **`MasterTemplate<TRecord>`** - an ergonomic, strongly-typed wrapper
+  (collection-initializer syntax for a template) over the untyped engine
+  underneath. (An earlier `SimpleRecordProvider<TRecord>` base class was
+  removed before release - see [Unreleased] - Removed.)
 - `scripts/verify-doc-examples.py` / `verify-doc-links.py`, wired into CI -
   every documented C# example is exercised by a real test, and every
   relative doc link resolves.

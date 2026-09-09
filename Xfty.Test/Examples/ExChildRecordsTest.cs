@@ -1,9 +1,11 @@
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.Children;
 using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Test.Examples;
@@ -86,5 +88,14 @@ public class ExChildRecordsTest
     }
 }
 
-file sealed class BlankCaseProvider()
-    : SimpleRecordProvider<Case>(new MasterTemplate<Case>(x => x.Id));
+file sealed class BlankCaseProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<Case>(x => x.Id);
+
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
+}

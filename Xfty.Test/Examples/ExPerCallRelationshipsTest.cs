@@ -1,8 +1,10 @@
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
 
@@ -50,16 +52,41 @@ public class ExPerCallRelationshipsTest
     }
 }
 
-file sealed class ContactRequiringAccountProvider()
-    : SimpleRecordProvider<Contact>(
-        new MasterTemplate<Contact>(x => x.Id)
-            .PutRequired(x => x.AccountId, new DefaultRelationship(new Account())));
+file sealed class ContactRequiringAccountProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<Contact>(x => x.Id)
+        .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
 
-file sealed class AccountWithOptionalOwnerAndParentProvider()
-    : SimpleRecordProvider<Account>(
-        new MasterTemplate<Account>(x => x.Id)
-            .PutOptional(x => x.OwnerId, new DefaultRelationship(new User()))
-            .PutOptional(x => x.ParentId, new DefaultRelationship(new Account())));
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
 
-file sealed class LeafUserProvider()
-    : SimpleRecordProvider<User>(new MasterTemplate<User>(x => x.Id));
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
+}
+
+file sealed class AccountWithOptionalOwnerAndParentProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<Account>(x => x.Id)
+        .PutOptional(x => x.OwnerId, new DefaultRelationship(new User()))
+        .PutOptional(x => x.ParentId, new DefaultRelationship(new Account()));
+
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
+}
+
+file sealed class LeafUserProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<User>(x => x.Id);
+
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
+}

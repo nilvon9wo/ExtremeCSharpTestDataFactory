@@ -1,6 +1,9 @@
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
+using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.VectorDatabases.Test;
@@ -12,12 +15,19 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.Test;
 /// constant, not just the expression in isolation (see
 /// RandomVectorExpressionTest for that).
 /// </summary>
-file sealed class DocumentChunkProvider() : SimpleRecordProvider<DocumentChunk>(
-    new MasterTemplate<DocumentChunk>(x => x.Id)
+file sealed class DocumentChunkProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<DocumentChunk>(x => x.Id)
     {
         [x => x.Embedding] = new RandomVectorExpression(KnownEmbeddingDimensions.OpenAiTextEmbedding3Small),
-    })
-{
+    };
+
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 
 public class VectorDatabasesReadmeExampleTest

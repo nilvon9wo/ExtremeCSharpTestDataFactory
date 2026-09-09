@@ -1,7 +1,10 @@
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
@@ -220,16 +223,32 @@ public class ContextAwareExpressionTest
 }
 
 /// <summary>An Account whose Owner is generated, so multi-hop tests have a second level.</summary>
-file sealed class AccountWithOwnerProvider()
-    : SimpleRecordProvider<Account>(
-        new MasterTemplate<Account>(x => x.Id)
-            .Put(x => x.Name, new IncrementingStringExpression("Acct"))
-            .PutRequired(x => x.OwnerId, new DefaultRelationship(new User())));
+file sealed class AccountWithOwnerProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<Account>(x => x.Id)
+        .Put(x => x.Name, new IncrementingStringExpression("Acct"))
+        .PutRequired(x => x.OwnerId, new DefaultRelationship(new User()));
 
-file sealed class LeafUserProvider()
-    : SimpleRecordProvider<User>(
-        new MasterTemplate<User>(x => x.Id)
-            .Put(x => x.LastName, new IncrementingStringExpression("User")));
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
+}
+
+file sealed class LeafUserProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<User>(x => x.Id)
+        .Put(x => x.LastName, new IncrementingStringExpression("User"));
+
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
+}
 
 /// <summary>Derives a MINOR / ADULT flag from a Birthdate sibling - the kind of logic XFTY leaves to consumers.</summary>
 file sealed class IsMinorFlag(System.Reflection.PropertyInfo birthdateField) : IContextAwareExpression
