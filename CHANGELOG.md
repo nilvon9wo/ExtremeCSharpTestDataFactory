@@ -12,6 +12,15 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+## [1.0.0-beta.10] – 2026-09-10
+
+> **Theme: namespace consistency and verified docs.** `RecordProvider` and
+> `MasterTemplate` now sit in the namespace that matches their folder; the
+> last `Id`-named-key assumption is gone from the public API; and the
+> add-on-package and Provider-authoring guides are now checked against the
+> test suite the same way every other guide already was. No generation
+> behaviour changes.
+
 ### Changed
 
 - **`RecordProvider` and its partials moved to
@@ -34,6 +43,28 @@ because those entries describe a change made in *this* repository.
   argument** — they resolved each record's key by a property literally named
   `Id`, the assumption the rest of this release removes. Pass the key field:
   `IdMocker.AddIds(records, Field.Of<T>(x => x.TheKey))`.
+
+### Documentation
+
+- `extend/providers.md`'s worked example now matches the current
+  `MasterTemplate<TRecord>` idiom the bundled Providers actually use, and
+  `CreateBundle` correctly returns `Task<Bundle>`; new guidance on non-`Id` /
+  non-string primary keys.
+- `use/generating-records.md` gained a "What record types work" section —
+  class / `record` / positional / `struct`.
+- `use/autofixture.md`, `use/autobogus.md`, and `extend/mock-id-generators.md`
+  are now checked by `scripts/verify-doc-examples.py` (they had no `Runnable:`
+  line before); the doc-verification corpus grew from 204 calls / 26 pages to
+  248 / 29.
+
+### Internal
+
+- The typed wrappers `RecordProvider<TRecord>` and `ChildProvider<TChild>` are
+  each split into concern-scoped partial files mirroring their non-generic
+  twin's layout, with the repeated fluent-forwarder body factored into one
+  `Forwarding(...)` helper. Public surface unchanged; new
+  `RecordProviderOfTForwardingTest` / `ChildProviderOfTForwardingTest` prove
+  every forwarder delegates correctly.
 
 ## [1.0.0-beta.9] – 2026-09-10
 
