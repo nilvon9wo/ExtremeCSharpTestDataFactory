@@ -23,12 +23,9 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 /// opts out) is to run different test classes in parallel - a real,
 /// previously-uncaught crash risk, not a theoretical one; see
 /// reference/known-issues.md. <see cref="SharedAncestorResolver"/> resolves
-/// every registered ancestor before the first Supply*() call. Split across
-/// several files by concern: this file is identity and the flyweight
-/// registry; SharedAncestor.Registration.cs is Put*(...); SharedAncestor.
-/// Control.cs is Disable/ManualResolutionOnly/ResolveNow(names)/...;
-/// SharedAncestor.Resolution.cs is instance resolution; SharedAncestor.
-/// Relationship.cs is the IDefaultRelationship/ISharedRelationship surface.
+/// every registered ancestor before the first Supply*() call. This file is
+/// identity and the flyweight registry; the other partials are named for the
+/// surface they carry.
 /// </summary>
 public sealed partial class SharedAncestor : ISharedRelationship
 {

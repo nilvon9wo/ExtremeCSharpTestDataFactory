@@ -18,8 +18,7 @@ namespace Net.NowhereAtAll.Xfty.Core.Children;
 ///
 /// Converts implicitly to the plain <see cref="ChildProvider"/> everything
 /// else (<see cref="RecordProvider.With(ChildProvider)"/> included) already
-/// works with. The forwarders are split across files by the same concern as
-/// <see cref="RecordProvider{TRecord}"/>'s partials: FieldConfig, Setters.
+/// works with.
 /// </summary>
 public sealed partial class ChildProvider<TChild>
 {
@@ -42,16 +41,4 @@ public sealed partial class ChildProvider<TChild>
     public PropertyInfo RelationshipField => this._inner.RelationshipField;
 
     public Type ChildType => this._inner.ChildType;
-
-    /// <summary>
-    /// Runs one configuration call against <see cref="_inner"/> and returns this
-    /// wrapper - never the <see cref="ChildProvider"/> the inner call hands back -
-    /// so the fluent chain stays typed as <see cref="ChildProvider{TChild}"/>.
-    /// Every fluent forwarder in the other partials is one of these.
-    /// </summary>
-    private ChildProvider<TChild> Forwarding(Func<ChildProvider> innerCall)
-    {
-        _ = innerCall();
-        return this;
-    }
 }

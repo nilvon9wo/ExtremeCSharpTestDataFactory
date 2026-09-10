@@ -3,48 +3,90 @@ using Net.NowhereAtAll.Xfty.Persistence;
 
 namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
-/// <summary>RecordProvider&lt;TRecord&gt; - the per-call configuration setters (everything except field and child config). Each forwards to the identically-named <see cref="RecordProvider"/> method, which carries the documentation.</summary>
+/// <summary>RecordProvider&lt;TRecord&gt; - per-call configuration setters.</summary>
 public sealed partial class RecordProvider<TRecord>
 {
-    public RecordProvider<TRecord> SetQuantityPerTemplate(int quantityPerListedTemplate) =>
-        this.Forwarding(() => this._inner.SetQuantityPerTemplate(quantityPerListedTemplate));
+    public RecordProvider<TRecord> SetQuantityPerTemplate(int quantityPerListedTemplate)
+    {
+        _ = this._inner.SetQuantityPerTemplate(quantityPerListedTemplate);
+        return this;
+    }
 
-    public RecordProvider<TRecord> SetOverrideTemplateList(List<object> overrideTemplateList) =>
-        this.Forwarding(() => this._inner.SetOverrideTemplateList(overrideTemplateList));
+    public RecordProvider<TRecord> SetOverrideTemplateList(List<object> overrideTemplateList)
+    {
+        _ = this._inner.SetOverrideTemplateList(overrideTemplateList);
+        return this;
+    }
 
-    public RecordProvider<TRecord> SetOverrideTemplate(object overrideTemplate) =>
-        this.Forwarding(() => this._inner.SetOverrideTemplate(overrideTemplate));
+    public RecordProvider<TRecord> SetOverrideTemplate(object overrideTemplate)
+    {
+        _ = this._inner.SetOverrideTemplate(overrideTemplate);
+        return this;
+    }
 
-    public RecordProvider<TRecord> WithVariant(ILookupKey variantKey) =>
-        this.Forwarding(() => this._inner.WithVariant(variantKey));
+    public RecordProvider<TRecord> WithVariant(ILookupKey variantKey)
+    {
+        _ = this._inner.WithVariant(variantKey);
+        return this;
+    }
 
-    public RecordProvider<TRecord> SetInsertMode(InsertMode insertMode) =>
-        this.Forwarding(() => this._inner.SetInsertMode(insertMode));
+    public RecordProvider<TRecord> SetInsertMode(InsertMode insertMode)
+    {
+        _ = this._inner.SetInsertMode(insertMode);
+        return this;
+    }
 
-    public RecordProvider<TRecord> SetMockIdGenerator(IMockIdGenerator mockIdGenerator) =>
-        this.Forwarding(() => this._inner.SetMockIdGenerator(mockIdGenerator));
+    public RecordProvider<TRecord> SetMockIdGenerator(IMockIdGenerator mockIdGenerator)
+    {
+        _ = this._inner.SetMockIdGenerator(mockIdGenerator);
+        return this;
+    }
 
-    public RecordProvider<TRecord> SetInclusivity(InsertInclusivity inclusivity) =>
-        this.Forwarding(() => this._inner.SetInclusivity(inclusivity));
+    public RecordProvider<TRecord> SetInclusivity(InsertInclusivity inclusivity)
+    {
+        _ = this._inner.SetInclusivity(inclusivity);
+        return this;
+    }
 
-    public RecordProvider<TRecord> SetPersistenceGateway(IPersistenceGateway gateway) =>
-        this.Forwarding(() => this._inner.SetPersistenceGateway(gateway));
+    public RecordProvider<TRecord> SetPersistenceGateway(IPersistenceGateway gateway)
+    {
+        _ = this._inner.SetPersistenceGateway(gateway);
+        return this;
+    }
 
-    public RecordProvider<TRecord> SetUnsetFieldFiller(IUnsetFieldFiller filler) =>
-        this.Forwarding(() => this._inner.SetUnsetFieldFiller(filler));
+    public RecordProvider<TRecord> SetUnsetFieldFiller(IUnsetFieldFiller filler)
+    {
+        _ = this._inner.SetUnsetFieldFiller(filler);
+        return this;
+    }
 
-    public RecordProvider<TRecord> AllowAncestorCycles() =>
-        this.Forwarding(this._inner.AllowAncestorCycles);
+    public RecordProvider<TRecord> AllowAncestorCycles()
+    {
+        _ = this._inner.AllowAncestorCycles();
+        return this;
+    }
 
-    public RecordProvider<TRecord> ExcludePrimaryIds() =>
-        this.Forwarding(this._inner.ExcludePrimaryIds);
+    public RecordProvider<TRecord> ExcludePrimaryIds()
+    {
+        _ = this._inner.ExcludePrimaryIds();
+        return this;
+    }
 
-    public RecordProvider<TRecord> IncludePrimaryIds() =>
-        this.Forwarding(this._inner.IncludePrimaryIds);
+    public RecordProvider<TRecord> IncludePrimaryIds()
+    {
+        _ = this._inner.IncludePrimaryIds();
+        return this;
+    }
 
-    public RecordProvider<TRecord> DepthBatched() =>
-        this.Forwarding(this._inner.DepthBatched);
+    public RecordProvider<TRecord> DepthBatched()
+    {
+        _ = this._inner.DepthBatched();
+        return this;
+    }
 
-    public RecordProvider<TRecord> ForceStructuralChildGeneration() =>
-        this.Forwarding(this._inner.ForceStructuralChildGeneration);
+    public RecordProvider<TRecord> ForceStructuralChildGeneration()
+    {
+        _ = this._inner.ForceStructuralChildGeneration();
+        return this;
+    }
 }

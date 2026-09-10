@@ -20,33 +20,63 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// </summary>
 public sealed partial class RecordProvider<TRecord>
 {
-    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IValueExpression valueTemplate) =>
-        this.Forwarding(() => this._inner.Put(Field.Of(field), valueTemplate));
+    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IValueExpression valueTemplate)
+    {
+        _ = this._inner.Put(Field.Of(field), valueTemplate);
+        return this;
+    }
 
-    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IContextAwareExpression contextAwareExpression) =>
-        this.Forwarding(() => this._inner.Put(Field.Of(field), contextAwareExpression));
+    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IContextAwareExpression contextAwareExpression)
+    {
+        _ = this._inner.Put(Field.Of(field), contextAwareExpression);
+        return this;
+    }
 
-    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IDeferredExpression deferredValue) =>
-        this.Forwarding(() => this._inner.Put(Field.Of(field), deferredValue));
+    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IDeferredExpression deferredValue)
+    {
+        _ = this._inner.Put(Field.Of(field), deferredValue);
+        return this;
+    }
 
-    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, object? value) =>
-        this.Forwarding(() => this._inner.Put(Field.Of(field), value));
+    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, object? value)
+    {
+        _ = this._inner.Put(Field.Of(field), value);
+        return this;
+    }
 
-    public RecordProvider<TRecord> PutRequired(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
-        this.Forwarding(() => this._inner.PutRequired(Field.Of(field), relationshipTemplate));
+    public RecordProvider<TRecord> PutRequired(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate)
+    {
+        _ = this._inner.PutRequired(Field.Of(field), relationshipTemplate);
+        return this;
+    }
 
-    public RecordProvider<TRecord> PutOptional(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
-        this.Forwarding(() => this._inner.PutOptional(Field.Of(field), relationshipTemplate));
+    public RecordProvider<TRecord> PutOptional(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate)
+    {
+        _ = this._inner.PutOptional(Field.Of(field), relationshipTemplate);
+        return this;
+    }
 
-    public RecordProvider<TRecord> RemoveFromMasterTemplate(Expression<Func<TRecord, object?>> field) =>
-        this.Forwarding(() => this._inner.RemoveFromMasterTemplate(Field.Of(field)));
+    public RecordProvider<TRecord> RemoveFromMasterTemplate(Expression<Func<TRecord, object?>> field)
+    {
+        _ = this._inner.RemoveFromMasterTemplate(Field.Of(field));
+        return this;
+    }
 
-    public RecordProvider<TRecord> IncludeOptional(Expression<Func<TRecord, object?>> field) =>
-        this.Forwarding(() => this._inner.IncludeOptional(Field.Of(field)));
+    public RecordProvider<TRecord> IncludeOptional(Expression<Func<TRecord, object?>> field)
+    {
+        _ = this._inner.IncludeOptional(Field.Of(field));
+        return this;
+    }
 
-    public RecordProvider<TRecord> ExcludeRelationship(Expression<Func<TRecord, object?>> field) =>
-        this.Forwarding(() => this._inner.ExcludeRelationship(Field.Of(field)));
+    public RecordProvider<TRecord> ExcludeRelationship(Expression<Func<TRecord, object?>> field)
+    {
+        _ = this._inner.ExcludeRelationship(Field.Of(field));
+        return this;
+    }
 
-    public RecordProvider<TRecord> ExcludeRelationshipIfPresent(Expression<Func<TRecord, object?>> field) =>
-        this.Forwarding(() => this._inner.ExcludeRelationshipIfPresent(Field.Of(field)));
+    public RecordProvider<TRecord> ExcludeRelationshipIfPresent(Expression<Func<TRecord, object?>> field)
+    {
+        _ = this._inner.ExcludeRelationshipIfPresent(Field.Of(field));
+        return this;
+    }
 }
