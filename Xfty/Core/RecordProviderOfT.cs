@@ -8,7 +8,7 @@ using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
+namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>
 /// The ergonomic, strongly-typed way to start and run a <see cref="RecordProvider"/>

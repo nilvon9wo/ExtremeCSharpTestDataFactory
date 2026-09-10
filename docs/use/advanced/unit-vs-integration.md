@@ -15,7 +15,7 @@ private static readonly DefaultProviderLookup Lookup = new();
 A unit test:
 
 ```csharp
-Contact generatedContact = (Contact)await new RecordProvider(typeof(Contact), Lookup)
+Contact generatedContact = await new RecordProvider<Contact>(Lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetInclusivity(InsertInclusivity.Required)
     .Supply();

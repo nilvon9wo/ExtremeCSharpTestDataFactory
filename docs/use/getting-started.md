@@ -29,13 +29,15 @@ The simplest way to use XFTY is to request an object from a Provider.
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Demo;
 
-DefaultProviderLookup providerLookup = new();
+DefaultProviderLookup lookup = new();
 
-Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
+Contact contact = await new RecordProvider<Contact>(lookup)
     .Supply();
 ```
 
-This creates a single `Contact`.
+This creates a single `Contact`. The generic `RecordProvider<Contact>` returns
+a typed record — no cast. (`new RecordProvider(typeof(Contact), lookup)`
+is the non-generic equivalent; `Supply()` there returns `object`.)
 
 By default:
 
@@ -74,9 +76,9 @@ A Provider only knows *what* type of object you want.
 A Provider Lookup knows *which Provider* should be used to generate it.
 
 ```csharp
-DefaultProviderLookup providerLookup = new();
+DefaultProviderLookup lookup = new();
 
-RecordProvider provider = new(typeof(Contact), providerLookup);
+RecordProvider<Contact> provider = new(lookup);
 ```
 
 Separating Providers from Provider Lookups lets an application register
@@ -96,7 +98,7 @@ Instead of constructing an entire record, provide an Override Template
 containing only the values relevant to your test.
 
 ```csharp
-Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
+Contact contact = await new RecordProvider<Contact>(lookup)
     .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
     .Supply();
 ```
@@ -118,13 +120,13 @@ Three constructor overloads save a call for the most common starting points:
 
 ```csharp
 // from a template - derives the record type (and any Provider variant) from it
-new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup);
+new RecordProvider(new Contact { FirstName = "Alice" }, lookup);
 
 // from a list of templates - derives the record type from the first
-new RecordProvider([new Contact(), new Contact()], providerLookup);
+new RecordProvider([new Contact(), new Contact()], lookup);
 
 // from a lookup key - derives the record type from the key and pins that variant
-new RecordProvider(LookupKey.Get<Contact>(), providerLookup);
+new RecordProvider(LookupKey.Get<Contact>(), lookup);
 ```
 
 They are exactly equivalent to the `(Type, lookup)` constructor followed
@@ -140,7 +142,7 @@ There are two ways to create multiple records.
 The simplest is to specify a quantity.
 
 ```csharp
-List<object> contacts = await new RecordProvider(typeof(Contact), providerLookup)
+List<Contact> contacts = await new RecordProvider<Contact>(lookup)
     .SetQuantityPerTemplate(5)
     .SupplyList();
 ```
@@ -150,7 +152,7 @@ This generates five Contacts using the same template.
 If each generated record should differ, use an Override Template List instead.
 
 ```csharp
-List<object> contacts = await new RecordProvider(typeof(Contact), providerLookup)
+List<Contact> contacts = await new RecordProvider<Contact>(lookup)
     .SetOverrideTemplateList([
         new Contact { FirstName = "Alice" },
         new Contact { FirstName = "Bob" },
@@ -168,7 +170,7 @@ template is generated the requested number of times.
 Relationship generation is controlled independently from persistence.
 
 ```csharp
-Bundle bundle = await new RecordProvider(typeof(Contact), providerLookup)
+Bundle bundle = await new RecordProvider<Contact>(lookup)
     .SetInsertMode(InsertMode.Mock)
     .SetInclusivity(InsertInclusivity.Required)
     .SupplyBundle();

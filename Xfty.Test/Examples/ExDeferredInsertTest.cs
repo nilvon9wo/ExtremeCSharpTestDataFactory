@@ -17,12 +17,12 @@ public class ExDeferredInsertTest
     public async Task GenerateOverManyCalls_RegisterInsteadOfInserting()
     {
         // from docs/use/deferred-insert.md "Deferred - generate over many calls, register instead of inserting"
-        Bundle accounts = await new RecordProvider(typeof(Account), Lookup)
+        Bundle accounts = await new RecordProvider<Account>(Lookup)
             .SetInsertMode(InsertMode.Deferred)
             .SetQuantityPerTemplate(3)
             .SupplyBundle().ConfigureAwait(true);
 
-        Bundle contacts = await new RecordProvider(typeof(Contact), Lookup)
+        Bundle contacts = await new RecordProvider<Contact>(Lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Deferred)
             .SupplyBundle().ConfigureAwait(true);
@@ -39,7 +39,7 @@ public class ExDeferredInsertTest
     public async Task InspectingTheResolvedGraphWithoutPersisting()
     {
         // from docs/use/deferred-insert.md "Inspecting the resolved graph without persisting"
-        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup)
+        Bundle bundle = await new RecordProvider<Contact>(Lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Deferred)
             .SupplyBundle().ConfigureAwait(true);

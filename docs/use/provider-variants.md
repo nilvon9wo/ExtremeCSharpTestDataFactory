@@ -28,7 +28,7 @@ MyProjectLookupKeys.VipAccount   // an ILookupKey
 
 <!-- sketch -->
 ```csharp
-await new RecordProvider(typeof(Account), lookup)
+await new RecordProvider<Account>(lookup)
     .WithVariant(MyProjectLookupKeys.VipAccount)
     .Supply();
 ```

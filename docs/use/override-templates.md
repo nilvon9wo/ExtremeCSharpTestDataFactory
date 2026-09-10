@@ -9,7 +9,7 @@ properties you set are overridden; everything else is still generated.
 ## The simplest case
 
 ```csharp
-Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup)
+Contact result = await new RecordProvider<Contact>(lookup)
     .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
     .Supply();
 ```
@@ -42,8 +42,9 @@ Master Template  →  Put(...)  →  Override Template
 If more than one customization touches a field, **the override template wins.**
 
 ```csharp
-.Put<Contact>(x => x.FirstName, new LiteralExpression("Generated"))
-.SetOverrideTemplate(new Contact { FirstName = "Alice" })
+new RecordProvider<Contact>(lookup)
+    .Put(x => x.FirstName, new LiteralExpression("Generated"))
+    .SetOverrideTemplate(new Contact { FirstName = "Alice" });
 // -> "Alice", not "Generated"
 ```
 

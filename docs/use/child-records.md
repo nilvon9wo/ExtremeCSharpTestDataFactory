@@ -5,7 +5,7 @@ XFTY generates **upward** by default: ask for a `Contact` and it generates the
 that hang **below** a Provider's primaries.
 
 ```csharp
-Bundle bundle = await new RecordProvider(typeof(Account), lookup)
+Bundle bundle = await new RecordProvider<Account>(lookup)
     .SetInsertMode(InsertMode.Mock)
     .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buyer" }).SetQuantity(3))
     .SupplyBundle();
@@ -55,7 +55,7 @@ ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buyer" 
 | `.WithChild(field)` | shortcut for one child |
 
 ```csharp
-new RecordProvider(typeof(Account), lookup)
+new RecordProvider<Account>(lookup)
     .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "A" }).SetQuantity(3))
     .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(2))  // additive
     .With(ChildProvider.For<Case>(x => x.AccountId).SetQuantity(2))                                          // another type
@@ -88,7 +88,7 @@ A/P0  A/P0  A/P1  A/P1   B/P0  B/P1
 ### Working example
 
 ```csharp
-await new RecordProvider(typeof(Account), lookup)
+await new RecordProvider<Account>(lookup)
     .SetOverrideTemplateList([new Account(), new Account()])
     .SetQuantityPerTemplate(4)                                                          // 8 Account primaries
     .SetInsertMode(InsertMode.Mock)
@@ -105,7 +105,7 @@ await new RecordProvider(typeof(Account), lookup)
 `ChildProvider` nests:
 
 ```csharp
-await new RecordProvider(typeof(Account), lookup)
+await new RecordProvider<Account>(lookup)
     .SetInsertMode(InsertMode.Mock)
     .With(
         ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(3)

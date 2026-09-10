@@ -16,7 +16,7 @@ public class ExOverrideTemplatesTest
     public async Task TheSimplestCase()
     {
         // from docs/use/override-templates.md "The simplest case"
-        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
+        Contact result = await new RecordProvider<Contact>(Lookup)
             .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
             .Supply().ConfigureAwait(true);
 
@@ -34,8 +34,8 @@ public class ExOverrideTemplatesTest
     public async Task Precedence_TheOverrideTemplateWins()
     {
         // from docs/use/override-templates.md "Precedence"
-        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
-            .Put<Contact>(x => x.FirstName, new LiteralExpression("Generated"))
+        Contact result = await new RecordProvider<Contact>(Lookup)
+            .Put(x => x.FirstName, new LiteralExpression("Generated"))
             .SetOverrideTemplate(new Contact { FirstName = "Alice" })
             .Supply().ConfigureAwait(true);
 
@@ -46,8 +46,8 @@ public class ExOverrideTemplatesTest
     public async Task RemovingValues()
     {
         // from docs/use/override-templates.md "Removing values"
-        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
-            .RemoveFromMasterTemplate<Contact>(x => x.Email)
+        Contact result = await new RecordProvider<Contact>(Lookup)
+            .RemoveFromMasterTemplate(x => x.Email)
             .Supply().ConfigureAwait(true);
 
         Assert.Null(result.Email);

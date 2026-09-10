@@ -10,12 +10,12 @@ record.
 ## `Deferred` — generate over many calls, register instead of inserting
 
 ```csharp
-Bundle accounts = await new RecordProvider(typeof(Account), lookup)
+Bundle accounts = await new RecordProvider<Account>(lookup)
     .SetInsertMode(InsertMode.Deferred)
     .SetQuantityPerTemplate(3)
     .SupplyBundle();
 
-Bundle contacts = await new RecordProvider(typeof(Contact), lookup)
+Bundle contacts = await new RecordProvider<Contact>(lookup)
     .SetInclusivity(InsertInclusivity.Required)
     .SetInsertMode(InsertMode.Deferred)
     .SupplyBundle();
@@ -62,7 +62,7 @@ By default `Now` would run one insert per Provider. `.DepthBatched()` collapses
 that to one pass per dependency depth:
 
 ```csharp
-await new RecordProvider(typeof(Case), lookup)
+await new RecordProvider<Case>(lookup)
     .SetInclusivity(InsertInclusivity.Required)
     .SetInsertMode(InsertMode.Now)
     .DepthBatched()

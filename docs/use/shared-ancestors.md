@@ -66,7 +66,7 @@ new MasterTemplate(Field.Of<Contact>(x => x.Id))
 
 <!-- sketch -->
 ```csharp
-List<object> contacts = await new RecordProvider(typeof(Contact), lookup)
+List<Contact> contacts = await new RecordProvider<Contact>(lookup)
     .SetQuantityPerTemplate(50)
     .SetInclusivity(InsertInclusivity.Required)
     .SetInsertMode(InsertMode.Mock)

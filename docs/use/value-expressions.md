@@ -9,8 +9,8 @@ Provider produces.
 ## `Put(...)` an expression
 
 ```csharp
-await new RecordProvider(typeof(Contact), lookup)
-    .Put<Contact>(x => x.FirstName, new IncrementingStringExpression("Test Contact"))
+await new RecordProvider<Contact>(lookup)
+    .Put(x => x.FirstName, new IncrementingStringExpression("Test Contact"))
     .SupplyBundle();
 // -> "Test Contact 1", "Test Contact 2", "Test Contact 3", ...
 ```
@@ -23,18 +23,19 @@ await new RecordProvider(typeof(Contact), lookup)
 expression or a relationship is wrapped in `LiteralExpression` automatically.
 
 ```csharp
-.Put<Account>(x => x.Type, "Customer")
-.Put<Account>(x => x.NumberOfEmployees, 500)
+.Put(x => x.Type, "Customer")
+.Put(x => x.NumberOfEmployees, 500)
 ```
 
 is exactly
 
 ```csharp
-.Put<Account>(x => x.Type, new LiteralExpression("Customer"))
-.Put<Account>(x => x.NumberOfEmployees, new LiteralExpression(500))
+.Put(x => x.Type, new LiteralExpression("Customer"))
+.Put(x => x.NumberOfEmployees, new LiteralExpression(500))
 ```
 
-This works both on a Provider's Master Template and on `RecordProvider` itself.
+This works the same on `RecordProvider<Account>`, on a bare
+`MasterTemplate<Account>`, and on a relationship's own template.
 
 ---
 
@@ -65,7 +66,7 @@ The value is whatever the field forms accept — **not just an exact value**:
 
 <!-- sketch -->
 ```csharp
-await new RecordProvider(typeof(Contact), lookup)
+await new RecordProvider<Contact>(lookup)
     .SetInclusivity(InsertInclusivity.Required)
 
     // an exact value
