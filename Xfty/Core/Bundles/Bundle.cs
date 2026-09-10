@@ -132,11 +132,11 @@ public sealed class Bundle
     {
         bool known = this._childEntriesByRelationshipField.TryGetValue(
             childRelationshipField,
-            out List<BundleChildEntry>? entries
+            out List<BundleChildEntry>? existing
         );
+        List<BundleChildEntry> entries = existing ?? [];
         if (!known)
         {
-            entries = [];
             this._childEntriesByRelationshipField[childRelationshipField] = entries;
         }
 
