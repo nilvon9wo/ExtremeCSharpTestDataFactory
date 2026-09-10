@@ -118,7 +118,7 @@ public sealed class Bundle
     }
 
     /// <summary>Record that each primary row's byField entries are still to be resolved up from descendants.</summary>
-    public void DeferValues(Dictionary<PropertyInfo, IDeferredExpression> byField) =>
+    public void DeferValues(IEnumerable<KeyValuePair<PropertyInfo, IDeferredExpression>> byField) =>
         this._deferredValueQueue.AddForEachRow(this.PrimaryRecords()!.Count, byField);
 
     public List<BundleDeferredEntry> DeferredValues() =>

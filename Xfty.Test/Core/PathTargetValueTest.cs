@@ -67,7 +67,8 @@ public class PathTargetValueTest
         value.ApplyTo(template, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
-        Assert.True(template.OptionalRelationshipByField.ContainsKey(Field.Of<Contact>(x => x.AccountId)));
+        RelationshipConfig config = template.RelationshipByField[Field.Of<Contact>(x => x.AccountId)];
+        Assert.False(config.IsRequired);
     }
 
     [Fact]

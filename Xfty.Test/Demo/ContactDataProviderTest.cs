@@ -87,9 +87,9 @@ public class ContactDataProviderTest
         // Act
         MasterTemplate template = provider.MasterTemplate;
 
-        // Assert
-        // Contact requires an Account
-        Assert.True(template.RequiredRelationshipByField.ContainsKey(Field.Of<Contact>(x => x.AccountId)));
+        // Assert - Contact requires an Account
+        RelationshipConfig account = template.RelationshipByField[Field.Of<Contact>(x => x.AccountId)];
+        Assert.True(account.IsRequired);
     }
 
     [Fact]

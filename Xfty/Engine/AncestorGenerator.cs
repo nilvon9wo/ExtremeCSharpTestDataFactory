@@ -51,13 +51,10 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
 
     private HashSet<PropertyInfo> RequiredAndMaybeOptionalFields()
     {
-        HashSet<PropertyInfo> fields = [.. this._template.RequiredRelationshipByField.Keys];
-        if (this._context.Inclusivity == InsertInclusivity.All)
-        {
-            fields.UnionWith(this._template.OptionalRelationshipByField.Keys);
-        }
-
-        return fields;
+        bool includeOptional = this._context.Inclusivity == InsertInclusivity.All;
+        return [.. this._template.RelationshipByField
+            .Where(pair => pair.Value.IsRequired || includeOptional)
+            .Select(pair => pair.Key)];
     }
 
     private HashSet<PropertyInfo> ExplicitlyRequestedRelationshipHeads()
@@ -73,8 +70,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
     }
 
     private bool IsRelationshipHere(PropertyInfo field) =>
-        this._template.RequiredRelationshipByField.ContainsKey(field)
-        || this._template.OptionalRelationshipByField.ContainsKey(field);
+        this._template.RelationshipByField.ContainsKey(field);
 
     private Task AddAncestor(Bundle bundle, PropertyInfo field, bool isForced)
     {
@@ -159,7 +155,5 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         RecordCloneFactory.DeepClones(relationship.OverrideTemplate!, quantity);
 
     private IDefaultRelationship? RelationshipOn(PropertyInfo field) =>
-        this._template.RequiredRelationshipByField.TryGetValue(field, out IDefaultRelationship? required)
-            ? required
-            : this._template.OptionalRelationshipByField.GetValueOrDefault(field);
+        this._template.RelationshipByField.GetValueOrDefault(field)?.Relationship;
 }

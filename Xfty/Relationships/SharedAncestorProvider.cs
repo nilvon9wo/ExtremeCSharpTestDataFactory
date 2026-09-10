@@ -223,8 +223,7 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
         }
 
         MasterTemplate baseTemplate = this.BaseProvider(lookup).MasterTemplate;
-        return baseTemplate.RequiredRelationshipByField.Count == 0
-            && baseTemplate.OptionalRelationshipByField.Count == 0;
+        return baseTemplate.RelationshipByField.Count == 0;
     }
 
     /// <summary>The lookup key this ancestor resolves under.</summary>

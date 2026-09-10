@@ -10,7 +10,7 @@ public sealed class LookupWiring(Bundle bundle, GenerationContext context, Maste
 {
     private readonly Bundle _bundle = bundle;
     private readonly GenerationContext _context = context;
-    private readonly Dictionary<PropertyInfo, IDefaultRelationship> _relationships = MergeRelationships(template);
+    private readonly Dictionary<PropertyInfo, IDefaultRelationship> _relationships = AllRelationships(template);
 
     /// <summary>
     /// Wires whatever ancestors are actually present in the bundle. There is no
@@ -63,10 +63,6 @@ public sealed class LookupWiring(Bundle bundle, GenerationContext context, Maste
             : parents![row];
     }
 
-    private static Dictionary<PropertyInfo, IDefaultRelationship> MergeRelationships(MasterTemplate template)
-    {
-        Dictionary<PropertyInfo, IDefaultRelationship> merged = new(template.RequiredRelationshipByField);
-        template.OptionalRelationshipByField.ToList().ForEach(pair => merged[pair.Key] = pair.Value);
-        return merged;
-    }
+    private static Dictionary<PropertyInfo, IDefaultRelationship> AllRelationships(MasterTemplate template) =>
+        template.RelationshipByField.ToDictionary(pair => pair.Key, pair => pair.Value.Relationship);
 }

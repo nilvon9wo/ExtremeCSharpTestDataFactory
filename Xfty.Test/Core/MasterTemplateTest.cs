@@ -26,8 +26,7 @@ public class MasterTemplateTest
         // Assert
         Assert.Equal(Field.Of<Account>(x => x.Id), template.PrimaryTargetField);
         Assert.Empty(template.DefaultByField);
-        Assert.Empty(template.RequiredRelationshipByField);
-        Assert.Empty(template.OptionalRelationshipByField);
+        Assert.Empty(template.RelationshipByField);
     }
 
     // Put(field, valueExpression) --------------------------------
@@ -64,8 +63,6 @@ public class MasterTemplateTest
         Assert.Equal(contextAware, template.ContextAwareByField[Field.Of<Contact>(x => x.LastName)]);
         // not in the plain-value map
         Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.LastName)));
-        // still in the ordered value fields
-        Assert.Contains(Field.Of<Contact>(x => x.LastName), template.OrderedValueFields());
     }
 
     [Fact]
@@ -132,7 +129,7 @@ public class MasterTemplateTest
     // PutRequired / PutOptional --------------------------------
 
     [Fact]
-    public void PutRequired_RoutesTheRelationshipToTheRequiredMap()
+    public void PutRequired_StoresTheRelationshipAsRequired()
     {
         // Arrange
         DefaultRelationship required = new(new Account());
@@ -142,12 +139,14 @@ public class MasterTemplateTest
             .PutRequired<Contact>(x => x.AccountId, required);
 
         // Assert
-        Assert.Same(required, template.RequiredRelationshipByField[Field.Of<Contact>(x => x.AccountId)]);
+        RelationshipConfig config = template.RelationshipByField[Field.Of<Contact>(x => x.AccountId)];
+        Assert.Same(required, config.Relationship);
+        Assert.True(config.IsRequired);
         Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.AccountId)));
     }
 
     [Fact]
-    public void PutOptional_RoutesTheRelationshipToTheOptionalMap()
+    public void PutOptional_StoresTheRelationshipAsOptional()
     {
         // Arrange
         DefaultRelationship optional = new(new Contact());
@@ -157,13 +156,31 @@ public class MasterTemplateTest
             .PutOptional<Contact>(x => x.ReportsToId, optional);
 
         // Assert
-        Assert.Same(optional, template.OptionalRelationshipByField[Field.Of<Contact>(x => x.ReportsToId)]);
+        RelationshipConfig config = template.RelationshipByField[Field.Of<Contact>(x => x.ReportsToId)];
+        Assert.Same(optional, config.Relationship);
+        Assert.False(config.IsRequired);
+    }
+
+    [Fact]
+    public void PutRequired_AfterPutOptional_ReplacesTheEntryRatherThanLeavingBoth()
+    {
+        // Arrange
+        DefaultRelationship relationship = new(new Account());
+        MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+            .PutOptional<Contact>(x => x.AccountId, relationship);
+
+        // Act
+        _ = template.PutRequired<Contact>(x => x.AccountId, relationship);
+
+        // Assert - one entry, now required
+        _ = Assert.Single(template.RelationshipByField);
+        Assert.True(template.RelationshipByField[Field.Of<Contact>(x => x.AccountId)].IsRequired);
     }
 
     // Remove(field) -------------------------------------------
 
     [Fact]
-    public void Remove_ClearsTheFieldFromEveryMapAndFromTheOrderedFields()
+    public void Remove_ClearsTheFieldFromEveryMap()
     {
         // Arrange
         MasterTemplate template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
@@ -176,14 +193,14 @@ public class MasterTemplateTest
 
         // Assert
         Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.LastName)));
-        Assert.False(template.RequiredRelationshipByField.ContainsKey(Field.Of<Contact>(x => x.AccountId)));
-        Assert.DoesNotContain(Field.Of<Contact>(x => x.LastName), template.OrderedValueFields());
+        Assert.False(template.RelationshipByField.ContainsKey(Field.Of<Contact>(x => x.AccountId)));
+        Assert.DoesNotContain(Field.Of<Contact>(x => x.LastName), template.DefaultByField.Keys);
     }
 
-    // OrderedValueFields() -----------------------------------
+    // Value-field order -----------------------------------
 
     [Fact]
-    public void OrderedValueFields_FollowsPutOrder()
+    public void ValueFields_FollowPutOrder()
     {
         // Arrange
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
@@ -192,7 +209,7 @@ public class MasterTemplateTest
             .Put<Account>(x => x.Type, new LiteralExpression("t"));
 
         // Act
-        List<System.Reflection.PropertyInfo> ordered = template.OrderedValueFields();
+        IReadOnlyList<System.Reflection.PropertyInfo> ordered = template.DefaultByField.Keys;
 
         // Assert
         Assert.Equal(
@@ -201,7 +218,7 @@ public class MasterTemplateTest
     }
 
     [Fact]
-    public void OrderedValueFields_AfterRemoveThenRePut_KeepsTheFieldInItsOriginalPlace()
+    public void ValueField_RePutInPlace_KeepsItsOriginalPosition()
     {
         // Arrange
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
@@ -214,7 +231,27 @@ public class MasterTemplateTest
         _ = template.Put<Account>(x => x.Name, new LiteralExpression("n2"));
 
         // Assert
-        Assert.Equal([Field.Of<Account>(x => x.Name), Field.Of<Account>(x => x.Type)], template.OrderedValueFields());
+        Assert.Equal(
+            [Field.Of<Account>(x => x.Name), Field.Of<Account>(x => x.Type)],
+            template.DefaultByField.Keys);
+    }
+
+    [Fact]
+    public void ValueField_RemovedThenRePut_LandsAtTheEnd()
+    {
+        // Arrange
+        MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
+            .Put<Account>(x => x.Name, new LiteralExpression("n"))
+            .Put<Account>(x => x.Industry, new LiteralExpression("i"));
+        _ = template.Remove(Field.Of<Account>(x => x.Name));
+
+        // Act
+        _ = template.Put<Account>(x => x.Name, new LiteralExpression("n2"));
+
+        // Assert - the position it held before Remove is forgotten
+        Assert.Equal(
+            [Field.Of<Account>(x => x.Industry), Field.Of<Account>(x => x.Name)],
+            template.DefaultByField.Keys);
     }
 
     // Copy() -------------------------------------------------

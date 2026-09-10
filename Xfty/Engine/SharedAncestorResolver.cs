@@ -193,8 +193,8 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
     private List<SharedAncestor> NestedOf(SharedAncestor ancestor)
     {
         MasterTemplate template = ancestor.Source().MasterTemplate(this._lookup);
-        return [.. template.RequiredRelationshipByField.Values
-            .Concat(template.OptionalRelationshipByField.Values)
+        return [.. template.RelationshipByField.Values
+            .Select(config => config.Relationship)
             .OfType<SharedAncestor>()];
     }
 

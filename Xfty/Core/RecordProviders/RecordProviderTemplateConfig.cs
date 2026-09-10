@@ -82,12 +82,8 @@ internal sealed class RecordProviderTemplateConfig(Func<MasterTemplate> resolveB
         }
     }
 
-    private bool IsRelationshipOnTemplate(PropertyInfo field)
-    {
-        MasterTemplate current = this.ResolveTemplate();
-        return current.RequiredRelationshipByField.ContainsKey(field)
-            || current.OptionalRelationshipByField.ContainsKey(field);
-    }
+    private bool IsRelationshipOnTemplate(PropertyInfo field) =>
+        this.ResolveTemplate().RelationshipByField.ContainsKey(field);
 
     public void AddPathValue(PathValue pathValue) => this.PathValues.Add(pathValue);
 

@@ -145,8 +145,8 @@ Decision order for a class that is getting large:
 
 1. **Is there a real collaborator to extract** — something with its own name,
    its own contract, its own tests? Extract it. (`MasterTemplate.Copy` became a
-   copy constructor plus `ValueFieldOrder`; `RecordProvider`'s execution
-   pipeline became `RecordProviderPlan` + `RecordProviderExecution`.)
+   copy constructor; `RecordProvider`'s execution pipeline became
+   `RecordProviderPlan` + `RecordProviderExecution`.)
 2. **Is the surface irreducible** — a fluent builder, a forwarding wrapper, a
    visitor, or a set of overloads that must stay consistent with a sibling
    type's? Keep it in one file, or split into concern-partials **whose file and

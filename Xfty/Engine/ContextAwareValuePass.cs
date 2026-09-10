@@ -32,8 +32,9 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
     private void CompleteRow(object record, int row)
     {
         GenerationContext rowContext = this._context.ForRecord(record, this._bundle, row);
-        HashSet<PropertyInfo> pendingContextAwareValues = [.. this._template.ContextAwareByField.Keys];
-        this._template.OrderedValueFields()
+        List<PropertyInfo> contextAwareFields = [.. this._template.ContextAwareByField.Keys];
+        HashSet<PropertyInfo> pendingContextAwareValues = [.. contextAwareFields];
+        contextAwareFields
             .ForEach(field => this.CompleteFieldAndUnmark(record, rowContext, field, pendingContextAwareValues));
     }
 
@@ -50,16 +51,12 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
 
     private void CompleteField(object record, GenerationContext scoped, PropertyInfo field)
     {
-        bool hasExpression = this._template.ContextAwareByField.TryGetValue(
-            field,
-            out IContextAwareExpression? expression
-        );
-        bool nothingToFill = !hasExpression || !FieldState.IsUnset(field, record);
-        if (nothingToFill)
+        if (!FieldState.IsUnset(field, record))
         {
             return;
         }
 
-        field.SetValue(record, expression!.Get(scoped));
+        IContextAwareExpression expression = this._template.ContextAwareByField[field];
+        field.SetValue(record, expression.Get(scoped));
     }
 }
