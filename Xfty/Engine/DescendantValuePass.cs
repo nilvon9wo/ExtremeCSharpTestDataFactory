@@ -18,7 +18,7 @@ public sealed class DescendantValuePass(List<object> records, List<DepthBatchedI
     private void Fill(PendingDeferredValue value)
     {
         object target = this.records[value.RecordIndex];
-        if (value.Field.GetValue(target) is not null)
+        if (!FieldState.IsUnset(value.Field, target))
         {
             return;
         }

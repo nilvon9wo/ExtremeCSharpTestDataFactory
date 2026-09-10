@@ -5,9 +5,12 @@ namespace Net.NowhereAtAll.Xfty.Core;
 
 /// <summary>
 /// The inverse of the 1:1 parent alignment: for each parent record, the child
-/// records whose foreign key points at it. Matched on the Id when the parents
-/// carry one, otherwise position for position (the NEVER / pre-flush case).
-/// Behind <see cref="Bundle.PrimariesResolvingTo"/>.
+/// records whose foreign key points at it. Matched on the parent's primary
+/// key when the parents carry a value for it, otherwise position for position
+/// (the NEVER / pre-flush case). The parent's key field comes from the
+/// Provider (<paramref name="parentPrimaryField"/>); it falls back to a
+/// property literally named "Id" only when a caller cannot supply one. Behind
+/// <see cref="Bundle.PrimariesResolvingTo"/>.
 /// </summary>
 public static class InverseAlignment
 {
@@ -16,16 +19,19 @@ public static class InverseAlignment
     public static List<List<object>> ChildrenPerParent(
         List<object> parents,
         List<object> children,
-        PropertyInfo relationshipField) =>
-        [.. parents.Select((parent, parentRow) => MatchesFor(parent, children, relationshipField, parentRow))];
+        PropertyInfo relationshipField,
+        PropertyInfo? parentPrimaryField = null) =>
+        [.. parents.Select((parent, parentRow) =>
+            MatchesFor(parent, children, relationshipField, parentRow, parentPrimaryField ?? IdFieldOf(parent)))];
 
-    private static List<object> MatchesFor(object parent, List<object> children, PropertyInfo relationshipField, int parentRow) =>
-        IdOf(parent) is { } parentId
+    private static List<object> MatchesFor(
+        object parent, List<object> children, PropertyInfo relationshipField, int parentRow, PropertyInfo? parentPrimaryField) =>
+        parentPrimaryField?.GetValue(parent) is { } parentId
             ? ForeignKeyMatch(children, relationshipField, parentId)
             : PositionMatch(children, parentRow);
 
-    private static object? IdOf(object? record) =>
-        record?.GetType().GetProperty(IdFieldName)?.GetValue(record);
+    private static PropertyInfo? IdFieldOf(object? record) =>
+        record?.GetType().GetProperty(IdFieldName);
 
     private static List<object> ForeignKeyMatch(List<object> children, PropertyInfo relationshipField, object parentId) =>
         [.. children.Where(child => child is not null && Equals(relationshipField.GetValue(child), parentId))];

@@ -11,7 +11,7 @@ You are here to **work on XFTY itself** — the engine, its tests, packaging.
 | [coverage-standards](coverage-standards.md) | "A consumer must never have to debug the framework"; line floor vs branch goal. |
 | [packaging](packaging.md) | Project layout — `Xfty/` vs `Xfty.Test/` — and NuGet packaging status. |
 | [ci](ci.md) | What the GitHub Actions workflow runs. |
-| [porting-history](porting-history.md) | The session-by-session log of decisions made while porting XFTY from Apex to C# — history, not current-state documentation. |
+| [porting-history](porting-history.md) | The session-by-session log of design decisions — history, not current-state docs. XFTY began as a port of the Apex original; it no longer is. |
 
 For what is built / in progress / proposed, see [../roadmap/](../roadmap/).
 

@@ -14,6 +14,109 @@ because those entries describe a change made in *this* repository.
 
 _Nothing yet._
 
+## [1.0.0-beta.9] – 2026-09-10
+
+> **Theme: XFTY stops assuming your records look like Salesforce's.** A
+> non-nullable value-type field now receives its configured value; a primary
+> key needn't be a `string` or be named `Id`; `struct` / `record struct` /
+> positional records generate; and the placeholder Id under `InsertMode.Mock`
+> is a pluggable `IMockIdGenerator` per record type and per Provider variant.
+> The Apex→C# translation phase is over — `docs/contribute/porting-history.md`
+> ("Development History") records the shift.
+
+### Added
+
+- **Pluggable mock-Id generation — `IMockIdGenerator`.** Under
+  `InsertMode.Mock`, the placeholder identifier's shape is now an
+  `IMockIdGenerator`. `DefaultMockIdGenerator` renders one process-wide
+  sequence as the key field's own type: `"mock-N"` for a `string`, `N` for
+  `int`/`long`, a fresh `Guid` for `Guid`; any other Id type throws
+  `XftyConfigurationException` naming the type. So `InsertMode.Mock` now
+  works for a non-string primary key out of the box, and a project with its
+  own Id shape ("A" + counter + timestamp, …) supplies its own generator —
+  per record type on the Master Template (`WithMockIdGenerator`), or per call
+  on the provider (`RecordProvider.SetMockIdGenerator`, which overrides the
+  template's for that call's primary records only; ancestors keep their own).
+  Honoured in the depth-batched / deferred insert path too, per record type,
+  and picked per *resolved Provider variant* — a discriminated flavour of one
+  type can carry its own generator. `IMockIdGenerator` / `MockIdContext` /
+  `DefaultMockIdGenerator` in `Xfty/Persistence/`; `MockIdGeneratorTest`,
+  `DeepMixedKeyHierarchyTest` (a ten-deep ancestor chain, no two keys named or
+  typed alike), `FlavouredMockIdHierarchyTest` (one POCO, eight variants,
+  eight generations); docs at `docs/extend/mock-id-generators.md`.
+
+### Fixed
+
+- **The persistence path assumed the primary-key property was named `Id`.**
+  `IdMocker`'s mixed-type overload, `DepthBatchedInserter`,
+  `PersistenceGatewayExtensions.InsertMixed`, `InverseAlignment`,
+  `LookupWiring`'s relationship fallback, `RecordProviderChildConfig`, and
+  `SharedAncestor` (`GetId`, the resolved single-record bundle) all reached
+  for a property literally called `Id`. A project whose keys are named after
+  the table (`LedgerId` on `Ledger`) now works: the key field comes from the
+  Provider's `PrimaryTargetField`, carried on every `Bundle` and threaded
+  through the depth-batched inserter as an id-field-by-type map. The `"Id"`
+  reflection remains only as a last-resort fallback for a hand-built caller
+  that supplies neither. `NonIdPrimaryKeyTest`, `DeepMixedKeyHierarchyTest`.
+- **`InsertMode.Mock` overwrote a primary key the template had already set.**
+  `RecordFactory`'s Mock pass now fills only an unset key (matching the
+  depth-batched path, which already did) — `new Order { OrderRef = "known-1" }`
+  keeps `"known-1"`.
+- **`SharedAncestor.Put(name, record)` regenerated a fully-formed record with
+  a non-`Id`-named key** instead of using it as-is: `Put` still checks an
+  `Id`-named property (no lookup at registration time), but the resolver now
+  makes the value-vs-generate call from the Provider's real key field, so
+  `PutAsTemplate(name, recordWithKeySet)` is honoured as a fixed value.
+- **`Xfty.VectorDatabases.Qdrant` / `.MicrosoftExtensionsVectorData`
+  (preview)** threw an opaque `InvalidOperationException` when a record had
+  no `float[]` property, and silently picked one when it had several — now a
+  clear `NotSupportedException` either way.
+- **A non-nullable value-type field never received its configured value.**
+  Every value pass gated filling on `field.GetValue(record) is not null`,
+  which is always true for a boxed `0` / `false` / empty `Guid` /
+  `default(DateTime)` / a zero enum — so a configured plain default, a
+  context-aware value, and a wired foreign key were all silently skipped for
+  an `int` / `bool` / `Guid` / `enum` / `DateTime` field. This was never
+  `struct`-specific — it bit any such field on a class or `record` too. Fixed
+  with `Engine/FieldState.IsUnset`, which compares the current value against
+  what a freshly-built instance would hold (`null` for a reference type or
+  `Nullable<T>`, the type default for a non-nullable value type); it now backs
+  `PlainValueFiller`, `ContextAwareValuePass`, `DescendantValuePass`, and
+  `LookupWiring`. The residual (unchanged, and symmetric with reference types,
+  where it always existed): an *override template* can't force a field to its
+  empty value — `0` / `false` / `default` for a value type, `null` for a
+  reference type — when the Provider defaults it, because that's
+  indistinguishable from "unset" through reflection. The tracked
+  `provider[x => x.Field] = value` form, or
+  `RemoveFromMasterTemplate(x => x.Field)`, does it. `NonNullableValueFieldTest`
+  and `ForcingAnEmptyFieldValueTest` cover both sides.
+- **Positional records now generate.** A positional `record class`
+  (`record Contact(string Id, string Name)`) has no parameterless
+  constructor, so `Activator.CreateInstance` threw `MissingMethodException`
+  the moment XFTY tried to build a blank template or clone one. New
+  `Internal/BlankInstances.Of` uses the public parameterless constructor when
+  there is one (running field initializers, as before) and an uninitialized
+  instance otherwise — every field is set by reflection immediately after
+  either way. `RuntimeHelpers.GetUninitializedObject` on net8.0+,
+  `FormatterServices.GetUninitializedObject` on netstandard2.0 (exercised by
+  the net472 `Xfty.NetStandardCompat.Test`). Applied everywhere a record type
+  is instantiated: `RecordCloneFactory`, `RecordProvider`,
+  `SharedAncestorProvider`, `ChildProvider`. XFTY makes no assumption about
+  how a consumer constructs its own database records. `ValueTypeRecordSupportTest`
+  covers `record struct`, `readonly record struct`, positional `record class`,
+  and positional `record struct`.
+
+### Changed
+
+- **`docs/reference/known-issues.md` rewritten** as a plain "what you tried /
+  what you got / what to do instead" list — no implementation detail, no
+  defect backlog. Fixed-bug history and the open doc-verification item moved
+  to `docs/contribute/porting-history.md`; the "Apex features with no .NET
+  equivalent" list demoted to a short footnote. The variant-inference wording
+  was also wrong and is corrected: XFTY *does* match an override template to
+  a registered `FlavouredLookupKey`/`DiscriminatorLookupKey` automatically —
+  only Apex's zero-registration schema detection is gone.
+
 ## [1.0.0-beta.8] – 2026-09-10
 
 > **Changelog catch-up.** `1.0.0-beta.2` through `1.0.0-beta.7` were tagged and

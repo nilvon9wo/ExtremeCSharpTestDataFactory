@@ -20,10 +20,17 @@ public sealed partial class SharedAncestor
 
     public bool IsResolvedRecordPersisted => this._resolvedRecordIsPersisted;
 
-    public async Task<object?> ResolveSharedRecord(GenerationContext context) =>
-        Disabled.ContainsKey(this._name)
-            ? null
-            : this.resolvedRecord ?? await this.ResolveFresh(context).ConfigureAwait(false);
+    public async Task<object?> ResolveSharedRecord(GenerationContext context)
+    {
+        if (Disabled.ContainsKey(this._name))
+        {
+            return null;
+        }
+
+        object? record = this.resolvedRecord ?? await this.ResolveFresh(context).ConfigureAwait(false);
+        this.LearnPrimaryFieldFrom(context.ProviderLookup);
+        return record;
+    }
 
     private Task<object?> ResolveFresh(GenerationContext context) =>
         _manualResolution ? this.ResolveUnderManualMode(context) : this.ResolveAllThenReturnOwn(context);

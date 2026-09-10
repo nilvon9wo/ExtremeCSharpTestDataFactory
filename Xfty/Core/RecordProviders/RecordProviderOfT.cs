@@ -280,6 +280,12 @@ public sealed class RecordProvider<TRecord>(IProviderLookup providerLookup)
         return this;
     }
 
+    public RecordProvider<TRecord> SetMockIdGenerator(IMockIdGenerator mockIdGenerator)
+    {
+        _ = this.inner.SetMockIdGenerator(mockIdGenerator);
+        return this;
+    }
+
     public RecordProvider<TRecord> SetInclusivity(InsertInclusivity inclusivity)
     {
         _ = this.inner.SetInclusivity(inclusivity);

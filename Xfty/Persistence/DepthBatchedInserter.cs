@@ -1,4 +1,8 @@
+using System.Reflection;
+
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Engine;
+
 namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
@@ -8,7 +12,12 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 ///
 /// InsertAll/ResolveAll are all-or-none. Records are addressed by their
 /// index in the list: two records can be equal by value, so an index is the
-/// only stable handle on one.
+/// only stable handle on one. Each record type's primary-key field and
+/// mock-Id generator come in as <c>idFieldByType</c> / <c>mockIdGeneratorByType</c>
+/// (from the bundle each record was generated in) - nothing here assumes the
+/// key is called "Id" or that its mock value is a string; the "Id" reflection
+/// and <see cref="DefaultMockIdGenerator"/> are only fallbacks for a
+/// hand-built caller that supplies no map.
 /// </summary>
 public sealed class DepthBatchedInserter
 {
@@ -17,21 +26,36 @@ public sealed class DepthBatchedInserter
     private readonly InsertMode mode;
     private readonly IPersistenceGateway? gateway;
     private readonly HashSet<int> excludedIndices;
+    private readonly IReadOnlyDictionary<Type, PropertyInfo> idFieldByType;
+    private readonly IReadOnlyDictionary<Type, IMockIdGenerator> mockIdGeneratorByType;
 
     private DepthBatchedInserter(
-        List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode, IPersistenceGateway? gateway, HashSet<int>? excludedIndices)
+        List<object> records,
+        List<DepthBatchedInserterParentLink>? links,
+        InsertMode mode,
+        IPersistenceGateway? gateway,
+        HashSet<int>? excludedIndices,
+        IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType,
+        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType)
     {
         this.records = records;
         this.mode = mode;
         this.gateway = gateway;
         this.excludedIndices = excludedIndices ?? [];
+        this.idFieldByType = idFieldByType ?? new Dictionary<Type, PropertyInfo>();
+        this.mockIdGeneratorByType = mockIdGeneratorByType ?? new Dictionary<Type, IMockIdGenerator>();
         this.linksByChild = GroupLinksByChild(records.Count, links);
     }
 
     /// <summary>Depth-batched real insert, via gateway.</summary>
     public static Task InsertAll(
-        List<object> records, List<DepthBatchedInserterParentLink>? links, IPersistenceGateway? gateway = null, HashSet<int>? excludedIndices = null) =>
-        ResolveAll(records, links, InsertMode.Now, gateway, excludedIndices);
+        List<object> records,
+        List<DepthBatchedInserterParentLink>? links,
+        IPersistenceGateway? gateway = null,
+        HashSet<int>? excludedIndices = null,
+        IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType = null,
+        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType = null) =>
+        ResolveAll(records, links, InsertMode.Now, gateway, excludedIndices, idFieldByType, mockIdGeneratorByType);
 
     /// <summary>
     /// Depth-batched resolution honouring the mode: Now inserts each depth
@@ -43,13 +67,19 @@ public sealed class DepthBatchedInserter
     /// anything waiting on them, exactly as if they genuinely landed.
     /// </summary>
     public static Task ResolveAll(
-        List<object> records, List<DepthBatchedInserterParentLink>? links, InsertMode mode,
-        IPersistenceGateway? gateway = null, HashSet<int>? excludedIndices = null)
+        List<object> records,
+        List<DepthBatchedInserterParentLink>? links,
+        InsertMode mode,
+        IPersistenceGateway? gateway = null,
+        HashSet<int>? excludedIndices = null,
+        IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType = null,
+        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType = null)
     {
         bool nothingToDo = records.Count == 0 || mode == InsertMode.Never;
         return nothingToDo
             ? Task.CompletedTask
-            : new DepthBatchedInserter(records, links, mode, gateway, excludedIndices).InsertLayerByLayer();
+            : new DepthBatchedInserter(records, links, mode, gateway, excludedIndices, idFieldByType, mockIdGeneratorByType)
+                .InsertLayerByLayer();
     }
 
     private Task InsertLayerByLayer() =>
@@ -79,35 +109,47 @@ public sealed class DepthBatchedInserter
         List<object> layer = [.. indexes
             .Where(index => !this.excludedIndices.Contains(index))
             .Select(index => this.records[index])
-            .Where(record => IdOf(record) is null)];
+            .Where(this.NeedsAnId)];
         return layer.Count == 0
             ? Task.CompletedTask
             : this.mode switch
             {
-                InsertMode.Mock => MockIds(layer),
+                InsertMode.Mock => this.MockIds(layer),
                 InsertMode.Now => this.InsertNow(layer),
                 _ => Task.CompletedTask,
             };
     }
 
-    private static Task MockIds(List<object> layer)
+    private Task MockIds(List<object> layer)
     {
-        _ = IdMocker.AddIds(layer);
+        layer.ForEach(record => IdMocker.AddId(record, this.IdFieldFor(record)!, this.MockIdGeneratorFor(record)));
         return Task.CompletedTask;
     }
+
+    private IMockIdGenerator MockIdGeneratorFor(object record) =>
+        this.mockIdGeneratorByType.TryGetValue(record.GetType(), out IMockIdGenerator? generator)
+            ? generator
+            : DefaultMockIdGenerator.Instance;
 
     private Task InsertNow(List<object> layer) =>
         this.gateway is null
             ? throw new NotSupportedException(
                 "InsertMode.Now needs a persistence gateway - pass one to ResolveAll(...)/InsertAll(...), or "
                 + "RecordProvider.SetPersistenceGateway(...) - use Mock or Never when none is configured.")
-            : this.gateway.InsertMixed(layer);
+            : this.gateway.InsertMixed(layer, this.idFieldByType);
 
     private void PointAtParents(int child) =>
-        this.linksByChild[child].ForEach(link => link.Field.SetValue(this.records[child], IdOf(this.records[link.ParentIndex])));
+        this.linksByChild[child].ForEach(link => link.Field.SetValue(this.records[child], this.IdOf(this.records[link.ParentIndex])));
 
-    private static object? IdOf(object record) =>
-        record.GetType().GetProperty("Id")?.GetValue(record);
+    private object? IdOf(object record) => this.IdFieldFor(record)?.GetValue(record);
+
+    private bool NeedsAnId(object record) =>
+        this.IdFieldFor(record) is { } idField && FieldState.IsUnset(idField, record);
+
+    private PropertyInfo? IdFieldFor(object record) =>
+        this.idFieldByType.TryGetValue(record.GetType(), out PropertyInfo? idField)
+            ? idField
+            : record.GetType().GetProperty("Id");
 
     private static List<int> FailIfEmpty(List<int> layer) =>
         layer.Count > 0

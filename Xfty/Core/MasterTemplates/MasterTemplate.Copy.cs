@@ -24,6 +24,11 @@ public sealed partial class MasterTemplate
         CopyInto(theCopy.DeferredExpressionByField, this.DeferredExpressionByField);
         theCopy.valueFieldOrder.Clear();
         theCopy.valueFieldOrder.AddRange(this.valueFieldOrder);
+        if (this.MockIdGenerator is not null)
+        {
+            _ = theCopy.WithMockIdGenerator(this.MockIdGenerator);
+        }
+
         return theCopy;
     }
 

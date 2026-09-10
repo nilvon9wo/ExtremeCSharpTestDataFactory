@@ -5,14 +5,30 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 /// <summary>SharedAncestor - registering a shared record (Put*).</summary>
 public sealed partial class SharedAncestor
 {
-    /// <summary>Register record. Disambiguates by Id: with one, a fixed value; without, an override template.</summary>
+    /// <summary>
+    /// Register record, disambiguating a fixed already-saved value from an
+    /// override template. Because there is no Provider in scope yet to ask
+    /// for the real key field, it checks a property named <c>Id</c>; a keyed
+    /// record whose key is named otherwise still resolves correctly if you
+    /// register it with <see cref="PutAsTemplate"/> (the resolver then
+    /// notices the key is set and uses the record as-is), but for a fixed
+    /// value that must be treated as pre-saved *before* resolution - a
+    /// cycle break, or reading <see cref="GetId"/> straight away - call
+    /// <see cref="PutAsValue"/> explicitly.
+    /// </summary>
     public static SharedAncestorProvider Put(string name, object? record) =>
         IdOf(record) is not null ? PutAsValue(name, record!) : PutAsTemplate(name, record);
 
     /// <summary>Register an override template; the shared record is generated from it in the pre-phase.</summary>
     public static SharedAncestorProvider PutAsTemplate(string name, object? template) => Get(name).Provider().WithTemplate(template);
 
-    /// <summary>Register a record the test built itself; used as-is.</summary>
+    /// <summary>
+    /// Register a record the test built itself; used exactly as-is, no
+    /// generation. Its "already persisted?" flag is a best guess from an
+    /// <c>Id</c>-named property until the ancestor is first referenced in a
+    /// Supply*() call, at which point the Provider's real key field corrects
+    /// it (<see cref="Resolution"/>).
+    /// </summary>
     public static SharedAncestorProvider PutAsValue(string name, object record)
     {
         SharedAncestor ancestor = Get(name);

@@ -1,12 +1,23 @@
-# Porting History
+# Development History
 
-A running development log of the decisions made while porting XFTY from Apex
-to C# — design calls, corrections, and things that turned out differently
-than planned once real code and real test runs were in front of them. This
-is history, not current-state documentation — see [architecture](architecture.md)
-for what the engine actually looks like today. Several entries below describe
-an earlier design that was later reworked or reversed; read a topic to its
-end before treating an early entry in it as still true.
+XFTY **began** as a port of the Apex
+[ExtremeApexTestDataFactory](https://github.com/nilvon9wo/ExtremeApexTestDataFactory).
+That is why the early entries below read as porting decisions and why "Apex
+did X" is a recurring reference point in them.
+
+**It is no longer a port.** Once the translation to C# was finished, XFTY
+became its own project. Later decisions are made for .NET consumers on their
+own merits — a constraint that only ever existed because Salesforce imposed
+it (string-only Ids, always-mutable reference types, schema-describe
+validation) is not something a C# consumer inherits, and new abstractions
+with no Apex counterpart are fair game when they serve .NET usage.
+
+A running log of the decisions behind the code — design calls, corrections,
+and things that turned out differently than planned once real test runs were
+in front of them. History, not current-state documentation — see
+[architecture](architecture.md) for what the engine looks like today. Several
+entries describe an earlier design later reworked or reversed; read a topic
+to its end before treating an early entry in it as still true.
 
 Referenced directly from a few places in the code — `BundleEnricher`,
 `PerformanceTest`, `DepthBatchedInserterTest` — where the rationale recorded
@@ -763,3 +774,294 @@ original to point at - the same mistake as the earlier `FieldPredicateBase`
 `dotnet build`: 0 warnings / 0 errors. Full suite green (`Xfty.Test` 582,
 plus the add-on test projects). `verify-doc-examples.py` / `verify-doc-links.py`
 still pass - no doc example ever referenced the base class.
+
+---
+
+## 2026-09-10: value types, positional records, value-type fields, pluggable mock Ids, and the "Id" name assumption
+
+Brian raised a design thought: XFTY is built for classes and record classes,
+and `struct` was never really considered - but since the keyword `record` has
+nothing to do with database records (it's Pascal's, a linguistic
+coincidence), does the work already done for otherwise-immutable records give
+`struct` support for free?
+
+Traced the engine, wrote `ValueTypeRecordSupportTest` to replace reasoning
+with a test run, and found two real gaps - one wider than expected:
+
+1. **A non-nullable value-type field never received its configured value.**
+   Every value pass gated filling on `field.GetValue(record) is not null`,
+   which is always true for a boxed `0` / `false` / empty `Guid` /
+   `default(DateTime)` / a zero enum. So a configured plain default, a
+   context-aware value, and a wired FK were all silently skipped for an
+   `int` / `bool` / `Guid` / `enum` / `DateTime` field. **Never
+   struct-specific** - it bit any such field on a class or `record` too;
+   `struct` just made it pervasive. Caught because the first test asserted a
+   `double` field's Provider default and got `0`.
+2. **Positional records didn't generate at all.** A positional `record class`
+   (`record Contact(string Id, string Name)`) has no parameterless
+   constructor, so `Activator.CreateInstance` threw `MissingMethodException`
+   the moment XFTY tried to build a blank template or clone one.
+
+Brian's call was unambiguous: **fix both.** "We shouldn't assume anything
+about how consumers are creating their database records" - a consumer may be
+handed a positional record or a value type by a third-party library and can't
+reshape it, and XFTY's job is to facilitate testing whatever design exists,
+not to drive design. The Apex original's own constraints (SObjects are always
+mutable reference types with string Ids) are Salesforce's, not .NET's, and a
+C# consumer shouldn't inherit them.
+
+**What changed:**
+
+- **`Engine/FieldState.IsUnset`** - one helper, comparing the current value
+  against what a freshly-built instance holds (`null` for a reference type or
+  `Nullable<T>`, the type default for a non-nullable value type). Replaces the
+  `is not null` check in `PlainValueFiller`, `ContextAwareValuePass`,
+  `DescendantValuePass`, and `LookupWiring`. `NonNullableValueFieldTest`
+  covers the int/bool/Guid/enum/DateTime families, the record-class and
+  record-struct angles, override-template presets, a context-aware value, and
+  a wired FK.
+- **`Internal/BlankInstances.Of`** - the public parameterless constructor
+  when there is one (running field initializers, as before), an uninitialized
+  instance otherwise (`RuntimeHelpers.GetUninitializedObject` on net8.0+,
+  `FormatterServices.GetUninitializedObject` on netstandard2.0 - the net472
+  `Xfty.NetStandardCompat.Test` exercises that branch). Used everywhere a
+  record type is instantiated: `RecordCloneFactory`, `RecordProvider`,
+  `SharedAncestorProvider`, `ChildProvider`. `ValueTypeRecordSupportTest`
+  covers `record struct`, `readonly record struct`, positional `record
+  class`, and positional `record struct`.
+
+**The residual, unchanged and symmetric:** an *override template* can't force
+a field to its empty value (`Quantity = 0`, or `Notes = null`) and beat a
+Provider default - "set to empty" reads the same as "never set". This always
+applied to reference types too; the fix just made value types behave the same
+way. Any other value works; the tracked `provider[x => x.Field] = value` or
+`RemoveFromMasterTemplate(x => x.Field)` pins the empty value when a test
+needs it. `ForcingAnEmptyFieldValueTest` covers both. Documented in
+`known-issues.md`.
+
+**Still not done, deliberately:** `InsertMode.Now` against a `struct` primary
+(the EF Core gateway tracks class entities), and deep multi-level `Inject(...)`
+over a `struct` graph (each graft copies the value). Both are genuine edges of
+a shape `record struct` isn't meant for - small value-like data, not
+aggregate roots - not a use case to re-architect the engine around.
+
+Same conversation: **`known-issues.md` rewritten** to be lean and
+user-facing - current limitations only, no defect backlog, no fixed-bug
+history, and the Apex-heritage "no C# analog" list demoted to a short
+footnote (few readers arrive wanting to imitate Salesforce). The fixed-bug
+narratives and the open doc-verification item moved here (below).
+
+### Then: pluggable mock Ids, and the "Id" property-name assumption
+
+Brian, on the mock-Id path: *"InsertMode.Mock should support absolutely any
+id type imaginable"* (built-in support within reason), *"replaceable when
+some project has their own id conventions"*, set on the Master Template with
+a per-call `RecordProvider` override *"similar to configuring field values,
+relationships, etc."*
+
+- **`IMockIdGenerator`** + `MockIdContext` + `DefaultMockIdGenerator`
+  (string/int/long/Guid, loud throw otherwise). `MasterTemplate.WithMockIdGenerator`
+  carries through `Copy()`; `RecordProvider.SetMockIdGenerator` routes through
+  `RecordProviderTemplateConfig` so it lands on this call's template copy
+  only - ancestors resolve their own. `RecordFactory.MockIds` picks
+  `template.MockIdGenerator ?? DefaultMockIdGenerator.Instance`.
+
+Then Brian caught `IdMocker.AddIds`'s `record.GetType().GetProperty("Id")!`:
+*"we shouldn't assume the id field will be called `Id` ... this is exactly
+why RecordProvider has `PrimaryTargetField`"* - and asked for a sweep of
+other hard-coded assumptions, *"not just in regards to Id mocking"*.
+
+- **The `"Id"` property-name assumption, removed from the engine.** Every
+  `Bundle` already carries `PrimaryTargetField`; that is now the source
+  everywhere a primary key is read: `RecordProviderChildConfig` (had it in
+  scope already), `LookupWiring`'s no-`RelatedField` fallback (parent
+  bundle's `PrimaryTargetField`), `InverseAlignment` (new optional
+  `parentPrimaryField` param, supplied by `Bundle.PrimariesResolvingTo` and
+  `BundleEnricher`), the depth-batched insert path (`DeferredInsertBuffer`
+  records an id-field-by-type map from each bundle; `DepthBatchedInserter`
+  and `PersistenceGatewayExtensions.InsertMixed` take it), and `SharedAncestor`
+  (`GetId`, the resolved single-record bundle - stashes the field at
+  resolution from the bundle, or `SharedAncestorProvider.PrimaryField(lookup)`).
+  `"Id"` reflection survives only as a last-resort fallback for a hand-built
+  caller supplying no map. `NonIdPrimaryKeyTest`.
+### Then: the defects that sweep turned up, fixed
+
+- **`InsertMode.Mock` clobbered a preset primary key.** `RecordFactory`'s
+  Mock pass set the key unconditionally; the depth-batched path already
+  filtered on "unset". Aligned - `RecordFactory.MockIds` now fills only
+  `FieldState.IsUnset` keys.
+- **Custom `IMockIdGenerator` reached the depth-batched / deferred path.**
+  `Bundle` now carries `MockIdGenerator` (set by `RecordFactory` from the
+  template); `DeferredInsertBuffer` collects a generator-by-type map next to
+  the id-field-by-type one; `DepthBatchedInserter.MockIds` uses it.
+- **`SharedAncestor` value-vs-generate moved off the `Id` heuristic where a
+  lookup exists.** `Put(name, record)` still checks an `Id`-named property
+  (nothing else is available at registration), but `SharedAncestorResolver`
+  now decides from `source.PrimaryField(lookup)` - so
+  `PutAsTemplate(name, recordWithKeySet)` is used as-is, no sub-graph, no
+  re-insert. First cut over-reached (routed `Put` itself through
+  `PutAsTemplate`) and broke cycle-breaking + immediate `GetId` for 225
+  tests via a static-registry leak - reverted `Put`, kept the resolver-side
+  decision.
+- **Vector-DB `FindVectorField`** (both preview packages): opaque
+  `InvalidOperationException` for zero / silent pick for many `float[]`
+  properties → one clear `NotSupportedException`.
+- **Still reported, not fixed:** enrichment's `<Name>Id` → `<Name>` /
+  `List<TChild>` conventions (a plain FK carries no relationship-name
+  metadata). In `known-issues.md`.
+
+`DeepMixedKeyHierarchyTest` is the torture case Brian asked for: ten levels
+of required ancestors, keys named `OrderRef` / `LineNo` / `ShipmentKey` /
+`CartonId` / `PalletNumber` / `DepotId` / `ManifestId` / `TicketNo` / `Slug`
+/ `Uuid`, typed `string`/`long`/`int`/`Guid`, and the string keys carrying a
+type prefix, a `SHIP|<unix>|<seq>`, a `MAN-<yyyyMMdd>-<seq>`, a zero-padded
+`rgn_000001`, and one built from a value read off the record itself - all
+mocked in shape, every FK wired from its parent's real key.
+`FlavouredMockIdHierarchyTest` is the follow-up Brian asked for: one POCO,
+eight Provider *variants* of it keyed by a discriminator field, an
+eight-generation ancestor chain where each generation resolves to a
+different variant, and the mock-Id generator picked per resolved Provider
+(some `DefaultMockIdGenerator`, some variant-specific) - proving the
+generator follows the variant, not the type.
+
+### WSL is the SAC workaround, and it caught a real contamination bug
+
+Brian pointed out the repo has a second test environment: the `Ubuntu` WSL
+distro, where SAC (a Windows-only policy) can't block anything. `wsl -d
+Ubuntu -e bash -lc "cd /mnt/e/... && dotnet test --solution
+Xfty.ci-cross-platform.slnf"` runs the whole cross-platform suite. (The
+Linux `dotnet test` CLI wants `--project`/`--solution`, not a bare
+directory.) Every suite that had been SAC-blocked passes there - **and so
+does `Xfty.FSharpAsync.Test`**, so its Windows MTP "FileNotFoundException"
+was environmental too, not a real failure.
+
+WSL also runs test classes in a *different order* than Windows, which
+surfaced a contamination bug the Windows ordering had been hiding: the two
+new test classes that register a `SharedAncestor` of a `file`-local type
+(`DeepMixedKeyHierarchyTest`, `NonIdPrimaryKeyTest`) leaked it into the
+process-static registry, and every later test's shared-ancestor pre-phase
+then choked resolving a type its own lookup didn't know. The suite's
+existing shared-ancestor tests dodge this only by using `Account`/`Contact`,
+which every lookup has. Fix: both classes now reset the registry in their
+constructor *and* `Dispose` - the same pattern `SharedAncestorResetTest`
+already uses. (There is also a pre-existing latent leak - some test leaves
+an `Account` shared ancestor unresolved - harmless with `DefaultProviderLookup`,
+poison with a custom one; the constructor reset guards against it too.)
+
+`dotnet test` (WSL, full cross-platform `.slnf`): **683 green**, every
+project. `Xfty.Test` alone: 627 (582 baseline + 45 new). Windows: same 627
+for `Xfty.Test`, plus `Xfty.NetStandardCompat.Test` (net472, Windows-only)
+4 green; the SAC-blocked suites are green on WSL. `verify-doc-examples.py` /
+`verify-doc-links.py` pass; `check-apex-style.py` clean.
+
+---
+
+## Fixed defects (moved from known-issues.md)
+
+Kept for contributor context - these are resolved and of no interest to
+someone evaluating XFTY. The two most recent (the value-type-field and
+positional-record fixes) are written up in the dated entry above.
+
+- **`RelatedOnly`'s user-facing docs described the opposite of what it
+  actually does - the code was correct, three doc pages were wrong.**
+  `docs/use/insert-modes.md`, `getting-started.md`, and
+  `reference/api-cheatsheet.md` all described `RelatedOnly` as pure,
+  offline Mock-Id generation needing no persistence at all.
+  `docs/contribute/architecture.md` had the correct behavior the whole
+  time: `GenerationContext.ForRelated()` upgrades `RelatedOnly` to `Now`
+  for ancestor generation specifically, by design - confirmed directly
+  ("The code is correct... The use case for RelatedOnly is when the
+  developer needs/wants uninserted records which relates to existing
+  already persisted records"). A primary generated under `RelatedOnly`
+  relates to a **real, persisted (or persistable) ancestor** - a mocked
+  Id would be a dangling reference to nothing once the caller actually
+  inserts the primary itself. Confirmed with a throwaway probe against
+  the real engine before touching anything: `Supply()` on a `RelatedOnly`
+  Contact with a required Account and no gateway configured throws
+  `NotSupportedException`, identical to `Now`. All three doc pages
+  corrected; two permanent regression tests added to
+  `PersistenceGatewayTest` (the ancestor is genuinely inserted through
+  the gateway while the primary stays un-Id'd; the same call throws
+  without one) since nothing end-to-end had exercised this path before -
+  the one existing `RelatedOnly` test used a Provider with no ancestors
+  at all, so it never touched this code.
+
+  **Superseded the same day:** `RelatedOnly`/`MockRelatedOnly` no longer
+  exist as `InsertMode` values - the behavior above is unchanged, but it's
+  reached via `.ExcludePrimaryIds()`/`.IncludePrimaryIds()` (an orthogonal
+  setting on `RecordProvider`, not a mode) plus whichever `InsertMode`
+  fits, e.g. `Now` + `.ExcludePrimaryIds()`. See
+  [use/insert-modes.md](../use/insert-modes.md#excluding-the-primary---excludeprimaryids).
+  Kept this entry for the "why the code is right, not a bug" reasoning,
+  which still holds - only the API shape changed.
+- `DeferredInsertBuffer.Collect(bundle)` called `bundle.PrimaryRecords()`
+  directly with no null-guard, unlike Apex's null-safe
+  `primaryRecordsOf(bundle)` helper — `Add(null)` / `InsertGraph(null)` /
+  `Flatten(null)` would `NullReferenceException` instead of tolerating `null`
+  like Apex does. Fixed with a matching `PrimaryRecordsOf(Bundle?)` helper.
+- `RecordProvider.AssertNoRecordTypeConflict`'s exception message did not
+  name the offending type.
+- A missing null-guard on the shared-ancestor path meant a couple of tests'
+  own lookups (missing a `User` provider) failed silently and left an
+  unresolved shared ancestor behind, contaminating unrelated later tests —
+  see the static-state entry in
+  [reference/salesforce-considerations](../reference/salesforce-considerations.md);
+  fixed by completing those lookups.
+- **`SharedAncestor.ManualResolutionOnly()` was previously untestable in this
+  port's own suite** — it has no unsetter of its own, so one test calling it
+  would permanently disable the shared-ancestor pre-phase for every test
+  running afterward in the same process. `SharedAncestor.ResetAllForTesting()`
+  fixes this (it clears the manual-resolution flag along with the registry),
+  proven end to end in `SharedAncestorResetTest` - `ManualResolutionOnly()`
+  is genuinely exercised there now, not skipped.
+- **`SharedAncestor`'s registry could crash under real concurrent access -
+  not a theoretical risk, an actually-reproduced one.** `ByName` was a plain
+  `Dictionary`, `Disabled` a plain `HashSet`, and `SharedAncestorResolver`'s
+  own `_running`/`InProgress` fields were unsynchronized; this port's own
+  test suite never hit it only because it explicitly disables xUnit's
+  *default* collection parallelism. Building `Xfty.Xunit.Test` without
+  that same opt-out surfaced it immediately: `InvalidOperationException`
+  from `Dictionary`'s internal state, corrupted by two threads racing to
+  mutate it. Fixed - `ByName`/`Disabled` are now `ConcurrentDictionary`s,
+  `_manualResolution` is `volatile`, and the actual resolve-and-mutate work
+  is serialized through a lock in `SharedAncestorResolver` (every path that
+  can trigger resolution funnels through it, so one lock there covers the
+  whole subsystem). `SharedAncestorConcurrencyTest` reproduces the original
+  crash reliably against the pre-fix code (confirmed by literally reverting
+  the fix and re-running it) and passes reliably against the fix - 200
+  concurrent attempts, repeated runs, no corruption. Any real consuming
+  project that leaves xUnit's default parallelization on - which is most
+  xUnit projects, since disabling it is the opt-out - was exposed to this;
+  it no longer is.
+
+---
+
+## Open contributor item: doc-example verification for the add-on packages
+
+Moved from `known-issues.md` - a maintainer task, not something a consumer
+needs to weigh.
+
+`scripts/verify-doc-examples.py` only ever scanned `Xfty.Test/` for backing
+tests, even after add-on packages (`Xfty.AutoFixture`, `Xfty.AutoBogus`,
+`Xfty.Bogus`, …) got their own `Xfty.*.Test` projects and their own
+`docs/use/*.md` pages — those pages' code blocks were never actually checked
+against anything, silently, because none of them carry a `Runnable:` marker.
+The scanning gap itself is fixed: `TEST_DIRS` now discovers every `*.Test`
+project, not just the core one.
+
+**Still open:** turning that check *on* for `docs/use/autofixture.md` and
+`docs/use/autobogus.md` (adding their `Runnable:` line) currently fails —
+their examples are genuinely backed by real tests
+(`XftyCustomizationTest`/`AutoFixtureUnsetFieldFillerTest`,
+`XftyAutoBogusTest`/`AutoBogusUnsetFieldFillerTest`), but small, real drift
+has crept in between the doc prose and the test code since they were last
+hand-verified: the docs' placeholder variable is `lookup`, the tests call a
+`Lookup()` helper method instead, and the docs' `CreateMany<Contact>(3)`
+example has no `Contact` counterpart in either test file (only `Account` is
+covered). None of this means the *behavior* is wrong — both pages'
+philosophy and API shape were traced by hand against the real source while
+writing each package's own nuget.org README — but closing it properly means
+either renaming to a shared `lookup` local at the relevant call sites (this
+port's own established convention — see any core `docs/use` page's Runnable
+tests) or adding the missing `Contact` coverage, not just adding the marker
+and letting it fail.

@@ -33,7 +33,7 @@ public sealed class LookupWiring(Bundle bundle, GenerationContext context, Maste
 
     private void WireField(object record, int row, PropertyInfo field)
     {
-        if (field.GetValue(record) is not null)
+        if (!FieldState.IsUnset(field, record))
         {
             return;
         }
@@ -48,8 +48,8 @@ public sealed class LookupWiring(Bundle bundle, GenerationContext context, Maste
     private void PointToParent(object record, PropertyInfo field, object parent)
     {
         IDefaultRelationship relationship = this.relationships[field];
-        object? value = ReadValue(parent, relationship.RelatedField);
-        field.SetValue(record, value);
+        PropertyInfo? parentSourceField = relationship.RelatedField ?? this.bundle.GetBundle(field)?.PrimaryTargetField;
+        field.SetValue(record, parentSourceField?.GetValue(parent));
     }
 
     private object? ParentAt(PropertyInfo field, int row)
@@ -60,11 +60,6 @@ public sealed class LookupWiring(Bundle bundle, GenerationContext context, Maste
             ? null
             : parents![row];
     }
-
-    private static object? ReadValue(object parent, PropertyInfo? sourceField) =>
-        sourceField is not null
-            ? sourceField.GetValue(parent)
-            : parent.GetType().GetProperty("Id")?.GetValue(parent);
 
     private static Dictionary<PropertyInfo, IDefaultRelationship> MergeRelationships(MasterTemplate template)
     {

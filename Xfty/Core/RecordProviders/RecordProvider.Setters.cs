@@ -59,6 +59,19 @@ public sealed partial class RecordProvider
         return this;
     }
 
+    /// <summary>
+    /// Override the placeholder-Id generator for this call's own primary
+    /// records under <see cref="InsertMode.Mock"/>, in place of the one the
+    /// Provider's Master Template declares (<c>WithMockIdGenerator</c>) or
+    /// the built-in <see cref="Persistence.DefaultMockIdGenerator"/>.
+    /// Generated ancestors keep their own.
+    /// </summary>
+    public RecordProvider SetMockIdGenerator(IMockIdGenerator mockIdGenerator)
+    {
+        this.templateConfig.SetMockIdGenerator(mockIdGenerator);
+        return this;
+    }
+
     public RecordProvider SetInclusivity(InsertInclusivity inclusivity)
     {
         this.inclusivity = inclusivity;

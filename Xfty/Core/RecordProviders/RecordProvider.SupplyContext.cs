@@ -30,7 +30,7 @@ public sealed partial class RecordProvider
     }
 
     private List<object> SuppliedOrBlankTemplates() =>
-        this.HasOverrideTemplates() ? this.overrideTemplateList! : [Activator.CreateInstance(this.recordType)!];
+        this.HasOverrideTemplates() ? this.overrideTemplateList! : [BlankInstances.Of(this.recordType)];
 
     private bool HasOverrideTemplates() => this.overrideTemplateList is { Count: > 0 };
 

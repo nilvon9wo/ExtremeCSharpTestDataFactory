@@ -22,6 +22,8 @@ public sealed class DeferredInsertBuffer
     private readonly List<object> pendingRecords = [];
     private readonly List<PendingDeferredValue> pendingDeferredValues = [];
     private readonly HashSet<int> excludedIndices = [];
+    private readonly Dictionary<Type, PropertyInfo> idFieldByType = [];
+    private readonly Dictionary<Type, IMockIdGenerator> mockIdGeneratorByType = [];
 
     public static async Task InsertGraph(Bundle? bundle, IPersistenceGateway? gateway = null, bool excludePrimaryIds = false)
     {
@@ -65,17 +67,22 @@ public sealed class DeferredInsertBuffer
     /// <summary>Each record's lookup to another record in Records(), by index.</summary>
     public List<DepthBatchedInserterParentLink> ParentLinks() => this.pendingLinks;
 
+    /// <summary>Each buffered record type's primary-key field, taken from the bundle it came from - so nothing here assumes the key is called "Id".</summary>
+    public IReadOnlyDictionary<Type, PropertyInfo> IdFieldByType() => this.idFieldByType;
+
     public Task InsertAll(IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
-        return DepthBatchedInserter.InsertAll(this.pendingRecords, this.pendingLinks, gateway, this.excludedIndices);
+        return DepthBatchedInserter.InsertAll(
+            this.pendingRecords, this.pendingLinks, gateway, this.excludedIndices, this.idFieldByType, this.mockIdGeneratorByType);
     }
 
     /// <summary>Depth-batched resolution of every buffered bundle honouring mode (Now/Mock/Never).</summary>
     public Task ResolveAll(InsertMode mode, IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
-        return DepthBatchedInserter.ResolveAll(this.pendingRecords, this.pendingLinks, mode, gateway, this.excludedIndices);
+        return DepthBatchedInserter.ResolveAll(
+            this.pendingRecords, this.pendingLinks, mode, gateway, this.excludedIndices, this.idFieldByType, this.mockIdGeneratorByType);
     }
 
     private void ResolveUpFlowValues() =>
@@ -89,11 +96,27 @@ public sealed class DeferredInsertBuffer
             return [];
         }
 
+        this.RememberIdField(bundle!);
         List<IndexedRecord> theseRecords = this.Append(primaries);
         this.CaptureDeferredValues(bundle!, theseRecords);
         this.LinkToParents(bundle!, theseRecords);
         this.LinkToChildCollections(bundle!, theseRecords);
         return theseRecords;
+    }
+
+    /// <summary>Record this bundle's primary-key field and mock-Id generator against its record type, so the depth-batched pass never has to guess either.</summary>
+    private void RememberIdField(Bundle bundle)
+    {
+        if (bundle.PrimaryTargetField is not { DeclaringType: { } recordType } idField)
+        {
+            return;
+        }
+
+        this.idFieldByType[recordType] = idField;
+        if (bundle.MockIdGenerator is { } generator)
+        {
+            this.mockIdGeneratorByType[recordType] = generator;
+        }
     }
 
     /// <summary>An up-flow strategy on this bundle becomes a pending value keyed by the record's flat index.</summary>
@@ -153,7 +176,7 @@ public sealed class DeferredInsertBuffer
 
     private void LinkChild(IndexedRecord child, IndexedRecord parent, PropertyInfo field)
     {
-        if (field.GetValue(child.Record) is not null)
+        if (!FieldState.IsUnset(field, child.Record))
         {
             return;
         }

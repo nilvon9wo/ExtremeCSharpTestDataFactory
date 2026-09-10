@@ -37,7 +37,7 @@ matrix (every feature → its page → the test that proves its examples).
 
 - [Providers](extend/providers.md) — support a new record type
 - [Provider Lookups](extend/provider-lookups.md) — your project's registry
-- [Provider Variants](extend/provider-variants.md) — flavour keys (record-type variants have no C# analog, see [reference/known-issues.md](reference/known-issues.md))
+- [Provider Variants](extend/provider-variants.md) — flavour keys; XFTY matches an override template to a registered variant automatically (only Apex's zero-setup schema detection is gone, see [reference/known-issues.md](reference/known-issues.md))
 - [Custom Value Expressions](extend/custom-value-expressions.md)
 - [Shared Ancestors in a Master Template](extend/shared-ancestors-in-templates.md)
 - [The Bundled Providers](extend/bundled-providers.md) — copy-and-adjust
@@ -56,7 +56,7 @@ matrix (every feature → its page → the test that proves its examples).
 - [Migration](reference/migration.md) — every breaking change in this release
 - [Salesforce Considerations](reference/salesforce-considerations.md) — what carries over from the Apex original, and what doesn't
 - [Volume & Limits](reference/volume-and-limits.md) — where generation gets expensive, and how the port measures it
-- [Known Issues](reference/known-issues.md) — the open triage list, including the capability gaps versus the Apex original
+- [Known Issues](reference/known-issues.md) — the short list of what XFTY can't do, each as "what you tried / what you got / what to do instead"
 - [API Cheat-Sheet](reference/api-cheatsheet.md) — every public class and method, one line each
 - [Comparison](reference/comparison.md) — an honest feature comparison against AutoFixture, Bogus, AutoBogus, and NBuilder
 

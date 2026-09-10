@@ -19,7 +19,7 @@ public static class PlainValueFiller
     private static void FillPlainValue(MasterTemplate template, object record, PropertyInfo field)
     {
         bool nothingToFill = !template.DefaultByField.TryGetValue(field, out IValueExpression? strategy)
-            || field.GetValue(record) is not null;
+            || !FieldState.IsUnset(field, record);
         if (nothingToFill)
         {
             return;

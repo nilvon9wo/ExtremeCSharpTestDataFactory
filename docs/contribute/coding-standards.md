@@ -86,8 +86,8 @@ from the Apex original, and this port's own testing conventions.
   [reference/salesforce-considerations](../reference/salesforce-considerations.md).
   This is the single most important behavioral difference to keep in mind
   while writing tests, and it has caused real cross-test-contamination bugs
-  during this port's development (see
-  [reference/known-issues](../reference/known-issues.md)).
+  during this port's development (see the fixed-defects list in
+  [porting-history](porting-history.md)).
 
 ---
 

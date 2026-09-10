@@ -42,7 +42,7 @@ public sealed class ChildProvider
             throw new XftyConfigurationException($"Template is a {template.GetType()} but {relationshipField.Name} is on {this.ChildType}.");
         }
 
-        this.Template = template ?? Activator.CreateInstance(this.ChildType)!;
+        this.Template = template ?? BlankInstances.Of(this.ChildType);
     }
 
     /// <summary>ChildProvider(field), naming field by lambda instead of Field.Of&lt;TChild&gt;(...).</summary>

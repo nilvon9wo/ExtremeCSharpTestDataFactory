@@ -36,7 +36,7 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 | Feature | Why |
 |---------|-----|
 | Seeding a long-lived, shared environment | A different job from generating/inserting data for one test run - deliberately out of scope. [sandbox-seeding.md](sandbox-seeding.md). |
-| Record-type schema auto-detection | Inferring a variant from an override template's own discriminator-shaped metadata needs schema description this port has no equivalent of. `DiscriminatorLookupKey` covers the actual use case (matching by a named field's value). |
+| Record-type schema auto-detection | XFTY *does* match an override template to a registered variant automatically (a `FlavouredLookupKey`/`DiscriminatorLookupKey` with a condition on the record). What's gone is Apex's zero-registration version, which read Salesforce's *schema* to know the variants without you declaring them — there's no schema to read here. |
 | Test-user helpers (an admin-equivalent user, role/profile lookups) | No role/profile-style schema for such a lookup to resolve against. |
 | CPU-time/row-count budget tracking | No fixed per-run resource quota exists to track against — see [reference/volume-and-limits](../reference/volume-and-limits.md) for what replaces it. |
 | Namespace / package distribution | Salesforce-specific distribution concept — [namespace-appexchange.md](namespace-appexchange.md). |

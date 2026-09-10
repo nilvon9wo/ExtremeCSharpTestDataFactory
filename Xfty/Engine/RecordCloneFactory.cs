@@ -10,7 +10,7 @@ public static class RecordCloneFactory
 {
     public static object DeepClone(object record)
     {
-        object clone = Activator.CreateInstance(record.GetType())!;
+        object clone = BlankInstances.Of(record.GetType());
         record.GetType().GetProperties().ToList().ForEach(property => CopyProperty(property, record, clone));
         return clone;
     }

@@ -49,6 +49,14 @@ Assert.NotNull(result.Id);
 Realistic-looking Ids, no persistence layer touched. **Never treat a `Mock`
 record as if it were saved** — those Ids do not point at anything real.
 
+The Id's shape is an `IMockIdGenerator` — `"mock-N"` for a string key, `N`
+for an integer, a `Guid` for a Guid; swap it per record type
+(`MasterTemplate.WithMockIdGenerator`) or per call
+(`RecordProvider.SetMockIdGenerator`) for a project-specific format. See
+[../extend/mock-id-generators](../extend/mock-id-generators.md). A key the
+template already set is kept, not overwritten. The key property is whatever
+the Provider's `PrimaryTargetField` names — it needn't be called `Id`.
+
 ---
 
 ## `Now`
