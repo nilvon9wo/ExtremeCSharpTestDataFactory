@@ -49,6 +49,17 @@ If more than one customization touches a field, **the override template wins.**
 
 An override value also wins over a [context-aware expression](context-aware-values.md).
 
+### The one exception: an "empty" value
+
+An override template can't set a field to its **empty** value — `null` for a
+string / object / `Nullable<T>`, `0` / `false` / `default` for a number,
+`bool`, `Guid`, `DateTime`, or enum — when the Master Template has a default
+for it. "Set to empty" is indistinguishable from "not set", so the default
+still fills it. To force the empty value, use `Put(...)` /
+`provider[x => x.Field] = value` (which *is* tracked), or remove the default
+for that call — see [Removing values](#removing-values) below. Any *non-empty*
+override value works normally.
+
 ---
 
 ## Override template vs `Put(...)`

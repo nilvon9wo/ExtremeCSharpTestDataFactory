@@ -25,7 +25,7 @@ public sealed class RecordFactory
         int quantity = testTemplates.Count;
         Bundle bundle = await new AncestorGenerator(this.context, quantity, this.template).Generate().ConfigureAwait(false);
         List<object> records = PlainValueFiller.CloneAndCompletePlainValues(this.template, testTemplates);
-        bundle.PutPrimaries(this.template.PrimaryTargetField, records);
+        bundle.PutPrimaries(this.template.PrimaryTargetField, records, this.template.MockIdGenerator);
         new LookupWiring(bundle, this.context, this.template).Wire();
         new ContextAwareValuePass(bundle, this.context, this.template).Complete();
         this.RegisterDeferredValues(bundle);
@@ -90,14 +90,17 @@ public sealed class RecordFactory
             ? Task.CompletedTask
             : this.context.InsertMode switch
             {
-                InsertMode.Mock => MockIds(records, this.template.PrimaryTargetField),
+                InsertMode.Mock => this.MockIds(records),
                 InsertMode.Now => this.InsertNow(records),
                 _ => Task.CompletedTask,
             };
 
-    private static Task MockIds(List<object> records, PropertyInfo primaryTargetField)
+    private Task MockIds(List<object> records)
     {
-        _ = IdMocker.AddIds(records, primaryTargetField);
+        IMockIdGenerator generator = this.template.MockIdGenerator ?? DefaultMockIdGenerator.Instance;
+        PropertyInfo idField = this.template.PrimaryTargetField;
+        List<object> needingIds = [.. records.Where(record => FieldState.IsUnset(idField, record))];
+        _ = IdMocker.AddIds(needingIds, idField, generator);
         return Task.CompletedTask;
     }
 

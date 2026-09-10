@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
 
@@ -40,6 +41,8 @@ public sealed partial class SharedAncestor : ISharedRelationship
     private SharedAncestorProvider? source;
     private object? resolvedRecord;
     private Bundle? resolvedBundle;
+    private PropertyInfo? resolvedPrimaryField;
+    private Persistence.IMockIdGenerator? resolvedMockIdGenerator;
     private bool _resolvedRecordIsPersisted { get; set; }
 
     private SharedAncestor(string name) => this._name = name;
@@ -63,8 +66,12 @@ public sealed partial class SharedAncestor : ISharedRelationship
     {
         AssertNotDisabled(name);
         SharedAncestor ancestor = Get(name);
-        return ancestor.resolvedRecord is null ? throw NotYetResolved(name) : IdOf(ancestor.resolvedRecord)!;
+        return ancestor.resolvedRecord is null ? throw NotYetResolved(name) : ancestor.PrimaryKeyValue()!;
     }
+
+    /// <summary>The resolved record's primary-key value, read through the field the Provider declares (see <see cref="resolvedPrimaryField"/>).</summary>
+    private object? PrimaryKeyValue() =>
+        (this.resolvedPrimaryField ?? this.resolvedRecord?.GetType().GetProperty("Id"))?.GetValue(this.resolvedRecord);
 
     private static void AssertNotDisabled(string name)
     {
@@ -79,6 +86,10 @@ public sealed partial class SharedAncestor : ISharedRelationship
             $"Shared ancestor \"{name}\" is not resolved yet. Reference it in a Supply*() call first, or call "
             + $"SharedAncestor.Get(\"{name}\").ResolveNow(lookup, mode).");
 
+    // Registration-time only: Put(name, record) has no Provider/lookup yet to ask for the real key field,
+    // so it disambiguates "already-saved value" from "override template" by a property literally named "Id".
+    // A record whose key is named otherwise: use PutAsValue(...) / PutAsTemplate(...) explicitly. Once a
+    // lookup is in play (ResolveNow), the real key field takes over - see SharedAncestor.Resolution.
     private static object? IdOf(object? record) => record?.GetType().GetProperty("Id")?.GetValue(record);
 
     /// <summary>

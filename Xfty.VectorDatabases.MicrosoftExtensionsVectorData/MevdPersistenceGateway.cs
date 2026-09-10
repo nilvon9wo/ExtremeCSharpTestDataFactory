@@ -79,8 +79,15 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
                 $"This PoC can only auto-generate a Guid or string id for a field left unset - "
                 + $"'{underlyingType.Name}' needs to be set by the Provider template itself. See README.md.");
 
-    private static PropertyInfo FindVectorField(Type recordType) =>
-        recordType.GetProperties().First(property => property.PropertyType == typeof(float[]));
+    private static PropertyInfo FindVectorField(Type recordType)
+    {
+        List<PropertyInfo> candidates = [.. recordType.GetProperties().Where(property => property.PropertyType == typeof(float[]))];
+        return candidates.Count == 1
+            ? candidates[0]
+            : throw new NotSupportedException(
+                $"{recordType.Name} must have exactly one 'float[]' property for this PoC to treat as the vector; "
+                + $"found {candidates.Count}. A differently-typed or ambiguous embedding isn't supported - see README.md.");
+    }
 
     private static VectorStoreCollectionDefinition BuildDefinition(
         Type recordType, PropertyInfo idField, PropertyInfo vectorField, object sampleRecord)

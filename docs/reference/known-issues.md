@@ -1,164 +1,130 @@
 # Known Issues
 
-Defects, rough edges, and capability gaps versus the Apex original. This page
-is for **things that are wrong or missing**, not for undecided design — for
-plan status see [../roadmap/README.md](../roadmap/README.md).
+The short list of things XFTY can't do, or does in a way that might catch you
+out. Each one: what you tried, what you got, what to do instead.
+
+Fixed bugs and design history are in [CHANGELOG.md](../../CHANGELOG.md) and
+[contribute/porting-history.md](../contribute/porting-history.md), not here.
 
 ---
 
-## Capability gaps — deliberately not ported, documented rather than faked
+## An override template can't force a field to its "empty" value
 
-These are genuine Apex/Salesforce features with **no C# equivalent**, dropped
-rather than approximated:
+**You wrote:** an override template — `new Invoice { Total = 0 }`, or
+`new Invoice { Notes = null }` — and your Provider has a default for that
+field (`Total => 100`, `Notes => "n/a"`).
 
-- **Record-Type-style schema auto-detection has no analog.** Automatically
-  inferring a variant from an override template's own discriminator-shaped
-  metadata (rather than a field value you name explicitly) needs schema
-  description this port has no equivalent of. `DiscriminatorLookupKey` covers
-  the actual use case (matching a Provider by a named field's value) over the
-  same `FlavouredLookupKey` mechanism as every other variant — see
-  [extend/provider-variants](../extend/provider-variants.md).
-- **Seeding a long-lived, shared environment is entirely out of scope.**
-  Generating and inserting data for the duration of one test run is what this
-  library does; leaving a graph behind in a persistent environment for manual
-  or downstream use is a different job, deliberately not built here — see
+**You got:** the Provider default. `Total` is `100`, `Notes` is `"n/a"`.
+
+**Why:** XFTY can't tell "I set this to the empty value on purpose" from "I
+never touched it". The empty value is `0` / `false` / `default` for a number,
+`bool`, `DateTime`, `Guid`, or enum, and `null` for a string, an object, or a
+`Nullable<T>` — and in every one of those cases it's what a blank record
+already has, so the default fills it. Any *other* value in a template
+(`Total = 5`, `Notes = "see attached"`) is kept fine.
+
+**Do this instead**, one of:
+
+- Set it the tracked way on the call: `provider[x => x.Total] = 0`,
+  `provider[x => x.Notes] = null` (or `provider.Put(x => x.Total, 0)`). That
+  *does* win over a Provider default.
+- Drop the Provider's default for this call:
+  `provider.RemoveFromMasterTemplate(x => x.Total)` — then the field keeps
+  whatever the template gave it (including the empty value).
+- If it comes up a lot, a Provider author can simply not default that field.
+
+## A `struct` record only goes so far
+
+`record struct` and `readonly record struct` types generate fine for a plain
+unit test (`Mock` or `Never` mode). But:
+
+- **`InsertMode.Now` won't save a `struct`** — the EF Core gateway needs a
+  class it can track.
+- **A `struct` (or class) with only `{ get; }` properties can't be filled** —
+  XFTY needs an `init` or a `set` to write each field.
+- **`bundle.Inject(...)` over a graph of structs isn't safe** — every step
+  copies the value, so a change made to a nested record later won't show up
+  in the parent that holds it. Plain generation (no `Inject`) is fine.
+
+## `bundle.Inject(...)` guesses relationship property names
+
+When `Inject(...)` reshapes a graph so you can read `contact.Account.Name`
+straight off the record, it works out that `Contact.AccountId` pairs with a
+`Contact.Account` property **by name**: `SomethingId` → `Something`, and a
+child list → whichever property is a `List<>` of the child's type.
+
+**If your names don't follow that** — `Contact.AccountFk` with no
+`Contact.Account`, or two `List<Case>` properties — `Inject(...)` throws an
+error naming the field it couldn't place. There's no attribute or setting to
+tell it the right property.
+
+(Your **primary key** is never guessed like this. It's whatever your Provider
+declares — `LedgerId`, `Reference`, anything.)
+
+## `ChildProvider` can't check you hung a child on the right field
+
+`provider.With(ChildProvider.For<Case>(x => x.SomeField))` — if `SomeField`
+isn't actually a relationship back to the parent, XFTY doesn't stop you at
+setup. You find out at generation time, when the child comes back with a
+wrong or `null` link. There's no schema to validate against up front.
+
+## A hand-built shared ancestor is checked for an `Id` field
+
+`SharedAncestor.Put("hq", myAccount)` needs to know: is `myAccount` a real
+record to use as-is, or a template to generate from? It runs before your
+Provider is in scope, so it checks one thing — is a property named `Id` set?
+
+**If your key is named something else** (`AccountId`), a pre-built record
+would be mistaken for a template. **Do this instead:** say which you mean —
+`SharedAncestor.PutAsValue("hq", myAccount)` for a fixed record, or
+`SharedAncestor.PutAsTemplate("hq", myAccount)` to generate from it. (With
+`PutAsTemplate`, XFTY notices later that the real key is filled and uses the
+record as-is anyway.)
+
+## Shared ancestors and deferred inserts don't reset between test methods
+
+`SharedAncestor` and `DeferredInserter` remember things for the whole test
+run — .NET doesn't wipe static state between test methods the way Salesforce
+did. A shared ancestor one test registers can bleed into the next.
+
+**Do this instead**, one of:
+
+- put `[IsolatesSharedAncestor]` on the test class (from the `Xfty.Xunit`
+  package) — automatic;
+- call `SharedAncestor.ResetAllForTesting()` in your test base class or
+  fixture;
+- or give every test a unique shared-ancestor name
+  (`"hq-" + nameof(ThisTestMethod)`).
+
+Full detail in
+[salesforce-considerations](salesforce-considerations.md).
+
+## The vector-database packages expect exactly one `float[]`
+
+`Xfty.VectorDatabases.Qdrant` and `.MicrosoftExtensionsVectorData` (both
+preview) treat the record's one `float[]` property as the embedding. A record
+with two `float[]` fields, or an embedding typed `ReadOnlyMemory<float>`,
+throws.
+
+---
+
+## Coming from the Apex original?
+
+A few Apex/Salesforce features have no .NET equivalent. Only relevant if
+you're porting from the Apex library —
+[salesforce-considerations](salesforce-considerations.md) has the detail.
+
+- **Detecting a Provider variant with zero setup.** In Apex, RecordType
+  detection read Salesforce's schema for free. Here you register the
+  variants — a `FlavouredLookupKey` / `DiscriminatorLookupKey` with a
+  condition on the record — and XFTY *does* then match your override
+  template against them automatically (`new Account { Type = "Big" }` finds
+  the "Big" variant). `Xfty.EntityFrameworkCore` can even derive the keys
+  from a `DbContext`'s discriminator column. What's gone is only the
+  "figure it out from metadata with no registration at all" part.
+- **Org / environment seeding** — XFTY generates for one test run —
   [use/org-seeding](../use/org-seeding.md).
-- **No test-user helpers.** A bundled Provider exposing a ready-made
-  admin-equivalent test user, resolved against live role/profile-style
-  schema, has no meaning without that schema. See
-  [use/test-user-helpers](../use/test-user-helpers.md).
-- **No CPU-time/row-count budget tracking.** This port measures wall-clock
-  time and allocation instead (see [volume-and-limits](volume-and-limits.md))
-  - there's no fixed per-run resource quota to track against in the first
-    place.
-- **`RecordInjector`'s `Blob`/compound-field/polymorphic-relationship
-  machinery is not needed, not dropped.** This port's reflection-based
-  injector sets any property directly, including relationship and read-only
-  fields, so there is nothing to special-case. See
-  [use/record-injector](../use/record-injector.md).
-- **`ChildProvider` cannot validate that a relationship field actually
-  belongs to the parent type it's hung off**, the way Apex validated via
-  schema describe. A misconfigured field surfaces as a wrong or `null` value
-  at generation time instead of failing fast at configuration time. See
-  [use/child-records](../use/child-records.md).
-
----
-
-## Real, confirmed risk in a shared xUnit process
-
-- **`SharedAncestor`'s registry and `DeferredInserter`'s buffer are `static`
-  and do not reset between test methods automatically**, unlike Apex, where
-  every static resets per test method on its own. Three ways to handle it -
-  `[IsolatesSharedAncestor]` (separate `Xfty.Xunit` package, resets
-  automatically via xUnit's own per-test hook), `SharedAncestor.ResetAllForTesting()`
-  (the same reset, wired by hand into your own base test class/fixture), or
-  unique names per test (no reset at all) - see
-  [use/shared-ancestors.md](../use/shared-ancestors.md) for all three. None
-  is automatic the way Apex's reset is; this port's own test suite
-  deliberately uses the unique-names approach throughout (see
-  [reference/salesforce-considerations](salesforce-considerations.md)) so
-  every approach stays genuinely exercised somewhere, not just documented.
-
----
-
-## Doc-verification gap
-
-`scripts/verify-doc-examples.py` only ever scanned `Xfty.Test/` for backing
-tests, even after add-on packages (`Xfty.AutoFixture`, `Xfty.AutoBogus`,
-`Xfty.Bogus`, …) got their own `Xfty.*.Test` projects and their own
-`docs/use/*.md` pages — those pages' code blocks were never actually checked
-against anything, silently, because none of them carry a `Runnable:` marker.
-Fixed the scanning gap itself: `TEST_DIRS` now discovers every `*.Test`
-project, not just the core one.
-
-**Still open:** turning that check *on* for `docs/use/autofixture.md` and
-`docs/use/autobogus.md` (adding their `Runnable:` line) currently fails —
-their examples are genuinely backed by real tests
-(`XftyCustomizationTest`/`AutoFixtureUnsetFieldFillerTest`,
-`XftyAutoBogusTest`/`AutoBogusUnsetFieldFillerTest`), but small, real drift
-has crept in between the doc prose and the test code since they were last
-hand-verified: the docs' placeholder variable is `lookup`, the tests call a
-`Lookup()` helper method instead, and the docs' `CreateMany<Contact>(3)`
-example has no `Contact` counterpart in either test file (only `Account` is
-covered). None of this means the *behavior* is wrong — both pages'
-philosophy and API shape were traced by hand against the real source while
-writing each package's own nuget.org README — but closing it properly means
-either renaming to a shared `lookup` local at the relevant call sites (this
-port's own established convention — see any core `docs/use` page's Runnable
-tests) or adding the missing `Contact` coverage, not just adding the marker
-and letting it fail. Tracked here rather than done as a drive-by while
-fixing something unrelated.
-
----
-
-## Fixed (kept for context)
-
-- **`RelatedOnly`'s user-facing docs described the opposite of what it
-  actually does - the code was correct, three doc pages were wrong.**
-  `docs/use/insert-modes.md`, `getting-started.md`, and
-  `reference/api-cheatsheet.md` all described `RelatedOnly` as pure,
-  offline Mock-Id generation needing no persistence at all.
-  `docs/contribute/architecture.md` had the correct behavior the whole
-  time: `GenerationContext.ForRelated()` upgrades `RelatedOnly` to `Now`
-  for ancestor generation specifically, by design - confirmed directly
-  ("The code is correct... The use case for RelatedOnly is when the
-  developer needs/wants uninserted records which relates to existing
-  already persisted records"). A primary generated under `RelatedOnly`
-  relates to a **real, persisted (or persistable) ancestor** - a mocked
-  Id would be a dangling reference to nothing once the caller actually
-  inserts the primary itself. Confirmed with a throwaway probe against
-  the real engine before touching anything: `Supply()` on a `RelatedOnly`
-  Contact with a required Account and no gateway configured throws
-  `NotSupportedException`, identical to `Now`. All three doc pages
-  corrected; two permanent regression tests added to
-  `PersistenceGatewayTest` (the ancestor is genuinely inserted through
-  the gateway while the primary stays un-Id'd; the same call throws
-  without one) since nothing end-to-end had exercised this path before -
-  the one existing `RelatedOnly` test used a Provider with no ancestors
-  at all, so it never touched this code.
-
-  **Superseded the same day:** `RelatedOnly`/`MockRelatedOnly` no longer
-  exist as `InsertMode` values - the behavior above is unchanged, but it's
-  reached via `.ExcludePrimaryIds()`/`.IncludePrimaryIds()` (an orthogonal
-  setting on `RecordProvider`, not a mode) plus whichever `InsertMode`
-  fits, e.g. `Now` + `.ExcludePrimaryIds()`. See
-  [use/insert-modes.md](../use/insert-modes.md#excluding-the-primary---excludeprimaryids).
-  Kept this entry for the "why the code is right, not a bug" reasoning,
-  which still holds - only the API shape changed.
-- `DeferredInsertBuffer.Collect(bundle)` called `bundle.PrimaryRecords()`
-  directly with no null-guard, unlike Apex's null-safe
-  `primaryRecordsOf(bundle)` helper — `Add(null)` / `InsertGraph(null)` /
-  `Flatten(null)` would `NullReferenceException` instead of tolerating `null`
-  like Apex does. Fixed with a matching `PrimaryRecordsOf(Bundle?)` helper.
-- `RecordProvider.AssertNoRecordTypeConflict`'s exception message did not
-  name the offending type.
-- A missing null-guard on the shared-ancestor path meant a couple of tests'
-  own lookups (missing a `User` provider) failed silently and left an
-  unresolved shared ancestor behind, contaminating unrelated later tests —
-  see "Real, confirmed risk" above; fixed by completing those lookups.
-- **`SharedAncestor.ManualResolutionOnly()` was previously untestable in this
-  port's own suite** — it has no unsetter of its own, so one test calling it
-  would permanently disable the shared-ancestor pre-phase for every test
-  running afterward in the same process. `SharedAncestor.ResetAllForTesting()`
-  fixes this (it clears the manual-resolution flag along with the registry),
-  proven end to end in `SharedAncestorResetTest` - `ManualResolutionOnly()`
-  is genuinely exercised there now, not skipped.
-- **`SharedAncestor`'s registry could crash under real concurrent access -
-  not a theoretical risk, an actually-reproduced one.** `ByName` was a plain
-  `Dictionary`, `Disabled` a plain `HashSet`, and `SharedAncestorResolver`'s
-  own `_running`/`InProgress` fields were unsynchronized; this port's own
-  test suite never hit it only because it explicitly disables xUnit's
-  *default* collection parallelism. Building `Xfty.Xunit.Test` without
-  that same opt-out surfaced it immediately: `InvalidOperationException`
-  from `Dictionary`'s internal state, corrupted by two threads racing to
-  mutate it. Fixed - `ByName`/`Disabled` are now `ConcurrentDictionary`s,
-  `_manualResolution` is `volatile`, and the actual resolve-and-mutate work
-  is serialized through a lock in `SharedAncestorResolver` (every path that
-  can trigger resolution funnels through it, so one lock there covers the
-  whole subsystem). `SharedAncestorConcurrencyTest` reproduces the original
-  crash reliably against the pre-fix code (confirmed by literally reverting
-  the fix and re-running it) and passes reliably against the fix - 200
-  concurrent attempts, repeated runs, no corruption. Any real consuming
-  project that leaves xUnit's default parallelization on - which is most
-  xUnit projects, since disabling it is the opt-out - was exposed to this;
-  it no longer is.
+- **Bundled test-user helpers** — no role/profile schema to resolve against.
+- **CPU / row-count budgets** — no fixed per-run quota to track.
+- **`RecordInjector` Blob / compound-field / polymorphic machinery** —
+  reflection sets any property, so nothing needs special-casing.

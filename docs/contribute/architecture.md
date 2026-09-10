@@ -265,10 +265,18 @@ shared objects, avoiding accidental sharing between generated records.
 
 # Mock Id Generation
 
-`IdMocker` generates a simple unique string Id without any persistence step —
-this port's replacement for Apex's realistic-Salesforce-Id-shaped mock, since
-nothing downstream here parses the Id's format the way Salesforce's key
-prefixes do.
+Under `InsertMode.Mock`, `IdMocker` assigns each record a placeholder
+identifier with no persistence step. The value's shape is an
+`IMockIdGenerator`: `DefaultMockIdGenerator` renders one process-wide
+incrementing sequence as the key field's own type (`"mock-N"` for a string,
+`N` for int/long, a fresh `Guid` for Guid; anything else throws, pointing at
+`WithMockIdGenerator`). A project overrides it per record type on the Master
+Template (`WithMockIdGenerator`) or per call (`RecordProvider.SetMockIdGenerator`).
+
+The key field itself is never assumed to be named `Id` — it is the Provider's
+`PrimaryTargetField`, carried on every `Bundle` and threaded through the
+depth-batched insert path. `IMockIdGenerator` and `MockIdContext` live in
+`Xfty/Persistence/`; see [extend/mock-id-generators](../extend/mock-id-generators.md).
 
 ---
 

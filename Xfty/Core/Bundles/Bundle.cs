@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Enrichment;
+using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Core.Bundles;
@@ -18,6 +19,9 @@ public sealed class Bundle
 
     /// <summary>The field this bundle's primary records are keyed under. Null on a bundle built by hand.</summary>
     public PropertyInfo? PrimaryTargetField { get; private set; }
+
+    /// <summary>The Provider's placeholder-Id generator for these primaries, so the depth-batched insert honours it too. Null: <see cref="DefaultMockIdGenerator"/>.</summary>
+    public IMockIdGenerator? MockIdGenerator { get; private set; }
 
     public Bundle Put(PropertyInfo field, List<object> records)
     {
@@ -61,10 +65,11 @@ public sealed class Bundle
     public object? GetValue(List<PropertyInfo> path) =>
         this.GetValue(path, 0);
 
-    /// <summary>Record the primary records and the field they belong to.</summary>
-    public void PutPrimaries(PropertyInfo primaryTargetField, List<object> records)
+    /// <summary>Record the primary records, the field they belong to, and (optionally) the Provider's mock-Id generator for them.</summary>
+    public void PutPrimaries(PropertyInfo primaryTargetField, List<object> records, IMockIdGenerator? mockIdGenerator = null)
     {
         this.PrimaryTargetField = primaryTargetField;
+        this.MockIdGenerator = mockIdGenerator;
         _ = this.Put(primaryTargetField, records);
     }
 
@@ -92,7 +97,8 @@ public sealed class Bundle
             || ancestorRowIndex >= ancestors.Count;
         return cannotResolve
             ? []
-            : InverseAlignment.ChildrenPerParent(ancestors!, this.PrimaryRecords()!, relationshipField)[ancestorRowIndex];
+            : InverseAlignment.ChildrenPerParent(
+                ancestors!, this.PrimaryRecords()!, relationshipField, this.GetBundle(relationshipField)?.PrimaryTargetField)[ancestorRowIndex];
     }
 
     /// <summary>Record that each primary row's byField entries are still to be resolved up from descendants.</summary>

@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -210,13 +212,23 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
     private async Task BuildAndPersist(SharedAncestor ancestor)
     {
         SharedAncestorProvider source = ancestor.Source();
+        PropertyInfo primaryField = source.PrimaryField(this.lookup);
+
+        // A record registered with its key already set means "this one exists, use it" - so decide
+        // value-vs-generate here, where the real key field is known, not by a property literally named "Id".
+        if (source.OverrideTemplate() is { } registered && primaryField.GetValue(registered) is not null)
+        {
+            ancestor.AcceptResolvedValue(registered, primaryField);
+            return;
+        }
+
         Bundle graph = await source.BuildInMemory(this.lookup).ConfigureAwait(false);
 
         DeferredInsertBuffer buffer = new();
         buffer.Add(graph);
         await buffer.ResolveAll(this.mode).ConfigureAwait(false);
 
-        object record = graph.GetList(source.PrimaryField(this.lookup))![0];
+        object record = graph.GetList(primaryField)![0];
         ancestor.AcceptResolved(record, graph, this.mode == InsertMode.Now);
     }
 

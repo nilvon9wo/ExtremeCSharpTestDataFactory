@@ -1,5 +1,6 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
@@ -31,6 +32,15 @@ public sealed partial class MasterTemplate(
     public Dictionary<PropertyInfo, IDefaultRelationship> RequiredRelationshipByField { get; } = requiredRelationshipByField;
 
     public Dictionary<PropertyInfo, IDefaultRelationship> OptionalRelationshipByField { get; } = optionalRelationshipByField;
+
+    /// <summary>
+    /// The placeholder-Id generator for this record type under
+    /// <see cref="InsertMode.Mock"/>. Null - the default - means
+    /// <see cref="DefaultMockIdGenerator"/>. Carried through
+    /// <see cref="Copy"/>; a per-call override lands on the copy via
+    /// <c>RecordProvider.SetMockIdGenerator(...)</c>.
+    /// </summary>
+    public IMockIdGenerator? MockIdGenerator { get; private set; }
 
     // Insertion order of the value fields (plain + context-aware) - a
     // context-aware value may read an earlier one, so the value passes need a
@@ -73,6 +83,13 @@ public sealed partial class MasterTemplate(
     public MasterTemplate PutRequired(PropertyInfo field, IDefaultRelationship relationshipTemplate)
     {
         this.RequiredRelationshipByField[field] = relationshipTemplate;
+        return this;
+    }
+
+    /// <summary>Set the placeholder-Id generator for this record type under <see cref="InsertMode.Mock"/> - see <see cref="MockIdGenerator"/>.</summary>
+    public MasterTemplate WithMockIdGenerator(IMockIdGenerator generator)
+    {
+        this.MockIdGenerator = generator;
         return this;
     }
 

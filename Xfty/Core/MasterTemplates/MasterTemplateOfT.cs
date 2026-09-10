@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Relationships;
 
 namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
@@ -49,6 +50,13 @@ public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> p
     public MasterTemplate<TRecord> PutOptional(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship)
     {
         _ = this.inner.PutOptional(Field.Of(field), relationship);
+        return this;
+    }
+
+    /// <summary>Set this record type's placeholder-Id generator for <see cref="InsertMode.Mock"/>.</summary>
+    public MasterTemplate<TRecord> WithMockIdGenerator(IMockIdGenerator generator)
+    {
+        _ = this.inner.WithMockIdGenerator(generator);
         return this;
     }
 

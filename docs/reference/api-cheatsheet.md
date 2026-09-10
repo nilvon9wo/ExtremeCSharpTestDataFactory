@@ -21,6 +21,7 @@ under `Net.NowhereAtAll.Xfty.*`; field tokens throughout are
 | `.SetOverrideTemplateList(List<object>)` | one record per template |
 | `.SetQuantityPerTemplate(int)` | N copies of each template |
 | `.SetInsertMode(InsertMode)` | [insert modes](../use/insert-modes.md) — `Now` needs `.SetPersistenceGateway(...)`, else throws |
+| `.SetMockIdGenerator(IMockIdGenerator)` | override the placeholder-Id shape under `Mock`, this call's primaries only ([mock-id-generators](../extend/mock-id-generators.md)) |
 | `.SetInclusivity(InsertInclusivity)` | [relationship inclusivity](../use/relationships.md#inclusivity) |
 | `.WithVariant(ILookupKey)` | pick a Provider variant (before any `Put`) |
 | `.Put(field, expression \| literal \| contextAwareExpression \| deferredExpression)` | change generation of one field |
@@ -128,7 +129,8 @@ persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integratio
 | implement `IRecordProvider` | `PrimaryTargetField` · `MasterTemplate` · `CreateBundle(context, templates)` |
 | implement `IProviderLookup` | `Get(Type)` · `Get(ILookupKey)` · `KeysFor(object?)` |
 | `ProviderLookups.Get/KeysFor/Resolve/Of/Of(map, defaults)/OfTypes` | the lookup mechanics; `Of(map, defaults)` also ships shared-ancestor defaults |
-| `new MasterTemplate(primaryTargetField)` | `.Put` · `.PutRequired` · `.PutOptional` · `.Remove` · `.Copy()` |
+| `new MasterTemplate(primaryTargetField)` | `.Put` · `.PutRequired` · `.PutOptional` · `.Remove` · `.WithMockIdGenerator` · `.Copy()` |
+| implement `IMockIdGenerator` (`NextId(MockIdContext)`) | placeholder-Id shape under `Mock`; `DefaultMockIdGenerator` covers string/int/long/Guid |
 | `RecordFactory.CreateBundle(context, masterTemplate, templates)` | the engine entry point |
 
 ## Deferred insert

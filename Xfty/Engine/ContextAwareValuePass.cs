@@ -47,7 +47,7 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
     private void CompleteField(object record, GenerationContext scoped, PropertyInfo field)
     {
         bool nothingToFill = !this.template.ContextAwareByField.TryGetValue(field, out IContextAwareExpression? expression)
-            || field.GetValue(record) is not null;
+            || !FieldState.IsUnset(field, record);
         if (nothingToFill)
         {
             return;

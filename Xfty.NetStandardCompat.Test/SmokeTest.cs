@@ -1,5 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
+using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.NetStandardCompat.Test;
@@ -70,4 +77,49 @@ public class SmokeTest
         _ = Assert.Single(keys);
         Assert.Contains(Lookup.LookupKey.Get<Account>(), keys);
     }
+
+    // BlankInstances.Of -> FormatterServices.GetUninitializedObject (netstandard2.0 branch) --
+
+    [Fact]
+    public async Task Supply_ForARecordTypeWithNoParameterlessConstructor_BuildsAndFillsItViaTheDownlevelUninitializedObjectPath()
+    {
+        // Arrange - Voucher has only a parameterized constructor, so BlankInstances.Of must fall back
+        // to FormatterServices.GetUninitializedObject, the netstandard2.0-only branch #if'd out on net8.0+
+        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<Lookup.ILookupKey, IRecordProvider>
+        {
+            [Lookup.LookupKey.Get<Voucher>()] = new VoucherProvider(),
+        });
+
+        // Act
+        Voucher generated = (Voucher)await new RecordProvider(typeof(Voucher), lookup)
+            .SetInsertMode(InsertMode.Mock)
+            .Supply().ConfigureAwait(true);
+
+        // Assert - the uninitialized instance was populated by the normal reflection value passes
+        Assert.Equal("Gift", generated.Kind);
+        Assert.StartsWith("mock-", generated.Code!);
+    }
+}
+
+file sealed class Voucher
+{
+    // Only a parameterized constructor - so there is no public parameterless one for Activator to use.
+    public Voucher(string kind) => this.Kind = kind;
+
+    public string? Code { get; set; }
+
+    public string? Kind { get; set; }
+}
+
+file sealed class VoucherProvider : IRecordProvider
+{
+    private MasterTemplate template { get; } = new MasterTemplate<Voucher>(x => x.Code)
+        .Put(x => x.Kind, new LiteralExpression("Gift"));
+
+    public PropertyInfo PrimaryTargetField => this.template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this.template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this.template, templateRecords);
 }

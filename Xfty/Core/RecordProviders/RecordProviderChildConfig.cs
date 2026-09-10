@@ -50,7 +50,7 @@ internal sealed class RecordProviderChildConfig
         List<object> primaries = bundle.GetList(primaryField)!;
         return [.. primaries
             .SelectMany((primary, parentRow) => childProvider
-                .TemplatesForParent(structural ? null : IdOf(primary))
+                .TemplatesForParent(structural ? null : primaryField.GetValue(primary))
                 .Select(template => (Template: template, ParentRow: parentRow)))];
     }
 
@@ -73,7 +73,4 @@ internal sealed class RecordProviderChildConfig
             ? childInstance.ExcludeRelationshipIfPresent(childProvider.RelationshipField).ForceStructuralChildGeneration()
             : childInstance;
     }
-
-    private static object? IdOf(object record) =>
-        record.GetType().GetProperty("Id")?.GetValue(record);
 }

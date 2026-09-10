@@ -171,8 +171,11 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
         return RecordFactory.CreateBundle(context, this.MasterTemplate(lookup), [seed]);
     }
 
-    /// <summary>The primary target field (the record's Id field).</summary>
+    /// <summary>The primary target field of the shared record type.</summary>
     public PropertyInfo PrimaryField(IProviderLookup lookup) => this.BaseProvider(lookup).PrimaryTargetField;
+
+    /// <summary>Whether <see cref="PrimaryField"/> can be resolved - it needs a template or a pinned variant to work from (a bare PutAsValue has neither).</summary>
+    public bool CanResolvePrimaryField => this.overrideTemplate is not null || this.explicitKey is not null || this.resolvedKey is not null;
 
     /// <summary>The Master Template the pre-phase scans for nested shared ancestors - with this ancestor's puts applied.</summary>
     public MasterTemplate MasterTemplate(IProviderLookup lookup)
@@ -210,7 +213,7 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     private IRecordProvider BaseProvider(IProviderLookup lookup) => lookup.Get(this.LookupKey(lookup));
 
     private object RecordTemplate(IProviderLookup lookup) =>
-        this.overrideTemplate ?? Activator.CreateInstance(this.LookupKey(lookup).RecordType)!;
+        this.overrideTemplate ?? BlankInstances.Of(this.LookupKey(lookup).RecordType);
 
     private object RequireTemplate() =>
         this.overrideTemplate ?? throw new XftyConfigurationException(

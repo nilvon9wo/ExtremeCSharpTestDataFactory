@@ -186,7 +186,8 @@ public sealed class BundleEnricher
         {
             root.CarryInverse(
                 this.entryField,
-                InverseAlignment.ChildrenPerParent(target.Records!, this.entryBundle.PrimaryRecords()!, this.entryField));
+                InverseAlignment.ChildrenPerParent(
+                    target.Records!, this.entryBundle.PrimaryRecords()!, this.entryField, target.SubBundle?.PrimaryTargetField));
         }
 
         return root;
@@ -201,7 +202,10 @@ public sealed class BundleEnricher
         };
         if (this.selection.WantsInverse(lookupField))
         {
-            up.CarryInverse(lookupField, InverseAlignment.ChildrenPerParent(parents, pos.Records!, lookupField));
+            up.CarryInverse(
+                lookupField,
+                InverseAlignment.ChildrenPerParent(
+                    parents, pos.Records!, lookupField, pos.SubBundle!.GetBundle(lookupField)?.PrimaryTargetField));
         }
 
         return up;

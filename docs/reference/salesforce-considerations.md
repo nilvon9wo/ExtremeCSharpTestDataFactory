@@ -55,7 +55,7 @@ it is **not** automatic the way Apex's is: nothing in .NET gives XFTY a
 hook to call it for you, so a test suite that never wires it up gets no
 reset at all. `SharedAncestorResetTest` in this port's own suite proves it
 works, including finally exercising `ManualResolutionOnly()` safely - see
-[known-issues](known-issues.md).
+[contribute/porting-history](../contribute/porting-history.md).
 
 **Using xUnit? `[IsolatesSharedAncestor]` (separate `Xfty.Xunit` package) is
 the same reset, already wired up.** Apply it to a test class or method and
@@ -78,9 +78,9 @@ methods).
   rather than a short literal like `"hq"`, and call
   `SharedAncestor.Disable(name)` after any test that deliberately leaves an
   ancestor unresolved. This port's own test suite uses the second approach
-  throughout (see [known-issues](known-issues.md) for why: keeping both
-  approaches exercised somewhere), but either is a real, complete answer -
-  pick whichever fits your project's existing test-base-class conventions.
+  throughout - deliberately, to keep both approaches exercised somewhere -
+  but either is a real, complete answer: pick whichever fits your project's
+  existing test-base-class conventions.
 - Do not call `SharedAncestor.ManualResolutionOnly()` in a test suite that
   doesn't use `ResetAllForTesting()` unless you are certain nothing else in
   the same test run depends on the auto-resolution pre-phase — without the
@@ -100,8 +100,9 @@ state) - this port's own suite never hit it only because it disables
 xUnit's *default* collection parallelism, which most real xUnit projects
 leave on. That's fixed now (concurrent collections, a lock serializing the
 actual resolve-and-mutate work) and needs nothing from you - see
-[known-issues](known-issues.md) for the fix and the test that reproduces
-the original crash against the pre-fix code to prove it.
+[contribute/porting-history](../contribute/porting-history.md) for the fix
+and the test that reproduces the original crash against the pre-fix code to
+prove it.
 
 ---
 

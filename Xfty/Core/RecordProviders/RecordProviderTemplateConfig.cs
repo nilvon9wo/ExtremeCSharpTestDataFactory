@@ -1,5 +1,6 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core.PathValues;
+using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Relationships;
 
 namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
@@ -29,6 +30,9 @@ internal sealed class RecordProviderTemplateConfig(Func<MasterTemplate> resolveB
 
     public void PutRequired(PropertyInfo field, IDefaultRelationship relationship) =>
         this.Mutate(() => this.ResolveTemplate().Remove(field).PutRequired(field, relationship));
+
+    public void SetMockIdGenerator(IMockIdGenerator generator) =>
+        this.Mutate(() => this.ResolveTemplate().WithMockIdGenerator(generator));
 
     public void PutOptional(PropertyInfo field, IDefaultRelationship relationship) =>
         this.Mutate(() => this.ResolveTemplate().Remove(field).PutOptional(field, relationship));
