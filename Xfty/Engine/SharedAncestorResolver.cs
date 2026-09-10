@@ -2,6 +2,7 @@ using System.Reflection;
 
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Relationships;

@@ -23,27 +23,33 @@ public sealed class MyContactProvider : IRecordProvider
     public const string DefaultEmailPrefix = "test.contact";
     public const string DefaultAccountDescription = "Account for contact";
 
-    private static readonly PropertyInfo PrimaryField = Field.Of<Contact>(x => x.Id);
+    private MasterTemplate _template { get; } = new MasterTemplate<Contact>(x => x.Id)
+    {
+        [x => x.Email] = new UniqueEmailExpression(DefaultEmailPrefix),
+        [x => x.FirstName] = new IncrementingStringExpression("Contact First Name"),
+        [x => x.LastName] = new IncrementingStringExpression("Contact Last Name"),
+    }.PutRequired(x => x.AccountId, new DefaultRelationship(
+        new Account { Description = DefaultAccountDescription }));
 
-    private static readonly MasterTemplate Template = new MasterTemplate(PrimaryField)
-        .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(
-            new Account { Description = DefaultAccountDescription }))
-        .Put<Contact>(x => x.Email, new UniqueEmailExpression(DefaultEmailPrefix))
-        .Put<Contact>(x => x.FirstName, new IncrementingStringExpression("Contact First Name"))
-        .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Contact Last Name"));
+    public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 
-    public PropertyInfo PrimaryTargetField => PrimaryField;
+    public MasterTemplate MasterTemplate => this._template;
 
-    public MasterTemplate MasterTemplate => Template;
-
-    public Bundle CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, Template, templateRecords);
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 ```
 
-Almost every Provider is this exact pattern. `CreateBundle`'s body is a one-line
-forward — `GenerationContext` bundles the Provider Lookup, insert mode, and
-inclusivity so they travel as one argument; a Provider rarely inspects it.
+Almost every Provider is this exact pattern — see this port's own
+`AccountDataProvider` / `ContactDataProvider` (`Xfty/Demo/`). `CreateBundle`
+returns `Task<Bundle>` and its body is a one-line forward — `GenerationContext`
+bundles the Provider Lookup, insert mode, and inclusivity so they travel as one
+argument; a Provider rarely inspects it.
+
+`new MasterTemplate<Contact>(x => x.Id)` with a `{ [x => x.Field] = expression }`
+initializer is the compact form; the non-generic
+`new MasterTemplate(Field.Of<Contact>(x => x.Id)).Put<Contact>(x => x.Field, …)`
+is equivalent and reads better for a long fluent chain.
 
 ---
 
@@ -74,15 +80,31 @@ builds records by hand.
 ## Primary Target Field
 
 Every Provider declares the field that identifies its primary records inside a
-[Bundle](../use/bundles.md). For nearly every record type this is `Id`:
+[Bundle](../use/bundles.md), the field a relationship points at, and the field
+`InsertMode.Mock` / `Now` fills with an identifier:
 
 <!-- sketch -->
 ```csharp
-private static readonly PropertyInfo PrimaryField = Field.Of<Contact>(x => x.Id);
+public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 ```
 
-A configurable field (rather than a hard-coded `Id`) keeps the engine
-independent of the few object types that identify records differently.
+**Nothing is hard-coded to a property named `Id`.** Declare whatever your
+record actually uses — `LedgerId`, `Reference`, `OrderRef` — and XFTY threads
+*that* field through relationship wiring and the whole persistence path
+(including the depth-batched and deferred inserters):
+
+<!-- sketch -->
+```csharp
+private MasterTemplate _template { get; } = new MasterTemplate<Ledger>(x => x.LedgerId);
+
+public PropertyInfo PrimaryTargetField => Field.Of<Ledger>(x => x.LedgerId);
+```
+
+The key's **type** is equally open. Under `InsertMode.Mock`,
+`DefaultMockIdGenerator` mints a `string`, `int`, `long`, or `Guid` to match
+the field; any other type needs an
+[`IMockIdGenerator`](mock-id-generators.md). A key already set on the override
+template is kept as-is.
 
 ---
 

@@ -1,8 +1,7 @@
-using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Persistence;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 /// <summary>
 /// The primary entry point for the library: configure a record's fields and

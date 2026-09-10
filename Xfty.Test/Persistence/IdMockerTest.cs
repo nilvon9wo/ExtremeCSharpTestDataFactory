@@ -16,16 +16,13 @@ public class IdMockerTest
     public void GenerateId_IsUniqueAcrossManyCalls()
     {
         // Arrange
-        HashSet<string> generated = [];
+        const int callCount = 100;
 
         // Act
-        for (int i = 0; i < 100; i++)
-        {
-            _ = generated.Add(IdMocker.GenerateId());
-        }
+        List<string> generated = [.. Enumerable.Range(0, callCount).Select(_ => IdMocker.GenerateId())];
 
         // Assert - every fabricated Id is distinct
-        Assert.Equal(100, generated.Count);
+        Assert.Equal(callCount, generated.Distinct().Count());
     }
 
     [Fact]
@@ -49,7 +46,7 @@ public class IdMockerTest
         List<object> records = [new Contact { LastName = "A" }, new Contact { LastName = "B" }, new Contact { LastName = "C" }];
 
         // Act
-        _ = IdMocker.AddIds(records);
+        _ = IdMocker.AddIds(records, Field.Of<Contact>(x => x.Id));
 
         // Assert
         HashSet<string?> ids = [.. records.Cast<Contact>().Select(contact => contact.Id)];

@@ -14,15 +14,26 @@ because those entries describe a change made in *this* repository.
 
 ### Changed
 
+- **`RecordProvider` and its partials moved to
+  `Net.NowhereAtAll.Xfty.Core.RecordProviders`; `MasterTemplate` and its
+  partials moved to `Net.NowhereAtAll.Xfty.Core.MasterTemplates`** — each
+  namespace now matches its folder (`Xfty/Core/RecordProviders/`,
+  `Xfty/Core/MasterTemplates/`) and its already-relocated generic twin and
+  siblings. Add `using Net.NowhereAtAll.Xfty.Core.RecordProviders;` where you
+  construct a `RecordProvider`, and `using
+  Net.NowhereAtAll.Xfty.Core.MasterTemplates;` where a Provider declares its
+  `MasterTemplate`. No behaviour change.
 - **The `docs/use/` guides now lead with `new RecordProvider<Contact>(lookup)`**
-  (`Net.NowhereAtAll.Xfty.Core.RecordProviders`) — `Supply()` returns
-  `Contact`, `SupplyList()` returns `List<Contact>`, no `(Contact)` cast. The
-  typed wrapper always existed; the guides had just never adopted it. The
-  non-generic `new RecordProvider(typeof(Contact), lookup)`
-  (`Net.NowhereAtAll.Xfty.Core`) and the shorthand constructors are still
-  shown where they read better. `getting-started.md`'s `using` block and the
-  API cheat-sheet now name both namespaces; the `Ex*Test` doc-mirror tests
-  were updated to match.
+  — `Supply()` returns `Contact`, `SupplyList()` returns `List<Contact>`, no
+  `(Contact)` cast. The typed wrapper always existed; the guides had just
+  never adopted it. The non-generic `new RecordProvider(typeof(Contact),
+  lookup)` and the shorthand constructors are still shown where they read
+  better. `getting-started.md`'s `using` block and the API cheat-sheet name
+  the namespace; the `Ex*Test` doc-mirror tests were updated to match.
+- **Removed the two `IdMocker.AddIds` overloads that had no `PropertyInfo`
+  argument** — they resolved each record's key by a property literally named
+  `Id`, the assumption the rest of this release removes. Pass the key field:
+  `IdMocker.AddIds(records, Field.Of<T>(x => x.TheKey))`.
 
 ## [1.0.0-beta.9] – 2026-09-10
 

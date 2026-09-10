@@ -1,10 +1,9 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core.PathValues;
-using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 /// <summary>RecordProvider - field/relationship configuration, delegated to <see cref="RecordProviderTemplateConfig"/>.</summary>
 public sealed partial class RecordProvider

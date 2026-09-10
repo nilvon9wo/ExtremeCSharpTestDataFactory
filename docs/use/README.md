@@ -77,6 +77,7 @@ Every consumer-facing capability and its page.
 | `RecordInjector` — standalone graft (parents, children, values) | [record-injector](record-injector.md) |
 | insert modes `Never` / `Mock` / `Now` / `Later` / `Deferred`, plus the orthogonal `.ExcludePrimaryIds()` / `.IncludePrimaryIds()` | [insert-modes](insert-modes.md) |
 | `Deferred` registry, `.DepthBatched()` | [deferred-insert](deferred-insert.md) |
+| `SetMockIdGenerator` / `IMockIdGenerator` — non-string or project-shaped keys under `Mock` | [extend/mock-id-generators](../extend/mock-id-generators.md) |
 | `WithVariant` / lookup-key ctor (flavour keys) | [provider-variants](provider-variants.md) |
 
 See [extend/](../extend/README.md) to teach XFTY about a new record type, and

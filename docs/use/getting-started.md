@@ -26,8 +26,8 @@ More advanced topics such as implementing Providers and writing custom value exp
 The simplest way to use XFTY is to request an object from a Provider.
 
 ```csharp
-using Net.NowhereAtAll.Xfty.Core;                 // RecordProvider, InsertMode, Bundle, …
-using Net.NowhereAtAll.Xfty.Core.RecordProviders; // RecordProvider<TRecord>, IRecordProvider
+using Net.NowhereAtAll.Xfty.Core;                 // InsertMode, InsertInclusivity, …
+using Net.NowhereAtAll.Xfty.Core.RecordProviders; // RecordProvider, RecordProvider<TRecord>, IRecordProvider
 using Net.NowhereAtAll.Xfty.Demo;
 
 DefaultProviderLookup lookup = new();
@@ -38,8 +38,8 @@ Contact contact = await new RecordProvider<Contact>(lookup)
 
 This creates a single `Contact`. The generic `RecordProvider<Contact>` returns
 a typed record — no cast. The non-generic `new RecordProvider(typeof(Contact), lookup)`
-(in `Net.NowhereAtAll.Xfty.Core`, no extra `using`) is equivalent but its
-`Supply()` returns `object`.
+is equivalent but its `Supply()` returns `object`. Both live in
+`Net.NowhereAtAll.Xfty.Core.RecordProviders`.
 
 By default:
 

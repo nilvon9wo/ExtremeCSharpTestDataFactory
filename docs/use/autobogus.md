@@ -155,3 +155,5 @@ for the same type would be wasted work.
 See also: [reference/comparison.md](../reference/comparison.md),
 [use/autofixture.md](autofixture.md) (the AutoFixture pairing this mirrors),
 [enrichment.md](enrichment.md) (navigation properties).
+
+Runnable: `XftyAutoBogusTest`, `AutoBogusUnsetFieldFillerTest`

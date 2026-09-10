@@ -1,4 +1,5 @@
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.PathValues;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Relationships;

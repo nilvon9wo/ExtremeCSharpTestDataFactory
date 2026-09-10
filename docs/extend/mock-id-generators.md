@@ -90,3 +90,16 @@ the Master Template's `WithMockIdGenerator` → `DefaultMockIdGenerator`.
   there too). Under `InsertMode.Now` the real backing store assigns the
   identifier: the `EfPersistenceGateway` fills an empty **string** key with a
   GUID before `Add`, and leaves an integer identity column to the database.
+
+---
+
+## Testing
+
+The built-in shapes, a per-type `WithMockIdGenerator`, a per-call
+`SetMockIdGenerator`, the loud throw for an unsupported Id type, and an
+ancestor keeping its own generator while a child call overrides — all driven
+end to end through `RecordProvider` in `Xfty.Test/Persistence/`.
+`FlavouredMockIdHierarchyTest` adds the same POCO taking a different generator
+per Provider variant, down a deep multi-generation chain.
+
+Runnable: `MockIdGeneratorTest`, `FlavouredMockIdHierarchyTest`

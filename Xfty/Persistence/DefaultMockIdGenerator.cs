@@ -20,13 +20,15 @@ public sealed class DefaultMockIdGenerator : IMockIdGenerator
     /// <summary>The shared instance - what XFTY uses when nothing else is configured.</summary>
     public static DefaultMockIdGenerator Instance { get; } = new();
 
+    private const string MockStringPrefix = "mock-";
+
     private static int _sequence;
 
     public object NextId(MockIdContext context) =>
         RenderedId(UnwrappedIdType(context.IdField.PropertyType), NextSequence(), context);
 
     /// <summary>The next <c>"mock-N"</c> string - the shape the old string-only mocker produced, kept for callers that just want one.</summary>
-    internal static string NextMockString() => $"mock-{NextSequence()}";
+    internal static string NextMockString() => $"{MockStringPrefix}{NextSequence()}";
 
     private static int NextSequence() => Interlocked.Increment(ref _sequence);
 
@@ -35,7 +37,7 @@ public sealed class DefaultMockIdGenerator : IMockIdGenerator
     private static object RenderedId(Type idType, int sequence, MockIdContext context) =>
         idType switch
         {
-            _ when idType == typeof(string) => $"mock-{sequence}",
+            _ when idType == typeof(string) => $"{MockStringPrefix}{sequence}",
             _ when idType == typeof(int) => sequence,
             _ when idType == typeof(long) => (long)sequence,
             _ when idType == typeof(Guid) => Guid.NewGuid(),

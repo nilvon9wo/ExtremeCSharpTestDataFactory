@@ -21,6 +21,8 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 /// </summary>
 public sealed class DepthBatchedInserter
 {
+    private const string ConventionalIdFieldName = "Id";
+
     private readonly List<List<DepthBatchedInserterParentLink>> linksByChild;
     private readonly List<object> records;
     private readonly InsertMode mode;
@@ -149,7 +151,7 @@ public sealed class DepthBatchedInserter
     private PropertyInfo? IdFieldFor(object record) =>
         this.idFieldByType.TryGetValue(record.GetType(), out PropertyInfo? idField)
             ? idField
-            : record.GetType().GetProperty("Id");
+            : record.GetType().GetProperty(ConventionalIdFieldName);
 
     private static List<int> FailIfEmpty(List<int> layer) =>
         layer.Count > 0

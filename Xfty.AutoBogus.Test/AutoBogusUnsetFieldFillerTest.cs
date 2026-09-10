@@ -9,7 +9,7 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus.Test;
 /// <summary>Proves AutoBogusUnsetFieldFiller - the AutoBogus-backed IUnsetFieldFiller. See UnsetFieldFillerTest (Xfty.Test) for the core contract it relies on.</summary>
 public class AutoBogusUnsetFieldFillerTest
 {
-    private static IProviderLookup Lookup() =>
+    private static readonly IProviderLookup Lookup =
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
@@ -21,7 +21,7 @@ public class AutoBogusUnsetFieldFillerTest
     {
         // Arrange
         IAutoFaker faker = AutoFaker.Create();
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
@@ -39,7 +39,7 @@ public class AutoBogusUnsetFieldFillerTest
     {
         // Arrange
         IAutoFaker faker = AutoFaker.Create();
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
@@ -58,7 +58,7 @@ public class AutoBogusUnsetFieldFillerTest
         IAutoFaker faker = AutoFaker.Create();
         AutoBogusUnsetFieldFiller filler = new AutoBogusUnsetFieldFiller(faker)
             .Excluding(Field.Of<Account>(x => x.Site));
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(filler);
 
@@ -79,7 +79,7 @@ public class AutoBogusUnsetFieldFillerTest
             .Excluding(Field.Of<Account>(x => x.Contacts))
             .Excluding(Field.Of<Account>(x => x.Parent))
             .Excluding(Field.Of<Account>(x => x.ChildAccounts));
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(filler);
 
@@ -98,7 +98,7 @@ public class AutoBogusUnsetFieldFillerTest
         // Arrange - Account.Parent is Account itself; AutoBogus self-limits
         // recursion depth rather than throwing, unlike AutoFixture's default
         IAutoFaker faker = AutoFaker.Create();
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));
 
@@ -114,8 +114,8 @@ public class AutoBogusUnsetFieldFillerTest
     {
         // Arrange - the two features compose: XFTY resolves the required Account
         // relationship; AutoBogus fills whatever scalar fields are left over.
-        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup());
-        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
+        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup);
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SetUnsetFieldFiller(new AutoBogusUnsetFieldFiller(faker));

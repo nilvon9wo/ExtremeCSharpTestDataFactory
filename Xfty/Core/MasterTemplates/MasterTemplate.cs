@@ -1,10 +1,9 @@
 using System.Reflection;
-using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 
 /// <summary>
 /// The recipe for one Provider's records: default values, context-aware

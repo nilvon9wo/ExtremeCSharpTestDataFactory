@@ -17,6 +17,27 @@ By default: one record, not inserted, no related records, default values filled.
 
 ---
 
+## What record types work
+
+Any type XFTY can construct and then write field-by-field by reflection:
+
+- **`class`** and **`record class`** — the everyday case, including
+  `init`-only properties (reflection writes them anyway) and positional
+  records.
+- **`struct`** / **`record struct`** / **`readonly record struct`** — fine for
+  a `Mock` or `Never` unit test.
+
+Every field is populated *after* construction, so a type needs either a public
+parameterless constructor or, failing that, XFTY falls back to an
+uninitialised instance — a positional `record class Foo(...)` with no other
+constructor still works.
+
+The edges — a `struct` under `InsertMode.Now`, a type with only `{ get; }`
+properties, `bundle.Inject(...)` over nested structs — are in
+[reference/known-issues.md](../reference/known-issues.md).
+
+---
+
 ## Which supply method?
 
 Every Provider produces a [Bundle](bundles.md); the supply methods pull data out

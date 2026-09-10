@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Engine;
@@ -178,14 +179,9 @@ public class RecordFactoryTest
         List<Account> accounts = [.. bundle.GetList<Contact>(x => x.AccountId)!.Cast<Account>()];
         Assert.Equal(3, contacts.Count);
         Assert.Equal(3, accounts.Count);
-        HashSet<string?> accountIds = [];
-        for (int i = 0; i < 3; i++)
-        {
-            _ = accountIds.Add(accounts[i].Id);
-            Assert.Equal(accounts[i].Id, contacts[i].AccountId); // row i wired to its own parent
-        }
-
-        Assert.Equal(3, accountIds.Count); // each Contact gets a distinct Account
+        Assert.All(Enumerable.Range(0, 3), i =>
+            Assert.Equal(accounts[i].Id, contacts[i].AccountId)); // row i wired to its own parent
+        Assert.Equal(3, accounts.Select(account => account.Id).Distinct().Count()); // each Contact gets a distinct Account
     }
 
     // Insert modes ---------------------------------------------

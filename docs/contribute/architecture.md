@@ -59,13 +59,13 @@ Each component has a single responsibility.
 
 | Component | Namespace | Responsibility |
 |-----------|-----------|-----------------|
-| `RecordProvider` | `Core` | Public fluent API used by tests. |
+| `RecordProvider` / `RecordProvider<TRecord>` | `Core.RecordProviders` | Public fluent API used by tests. |
 | `IProviderLookup` | `Lookup` | Resolves which Provider should generate a particular record. |
 | `DefaultProviderLookup` | `Demo` | Copy-me starter implementation (also this port's own self-test lookup). |
 | `ProviderLookups` | `Lookup` | Reusable lookup mechanics, so a project's lookup stays a few one-liners over a `Dictionary`. |
 | `ILookupKey` / `LookupKey` / `FlavouredLookupKey` | `Lookup` | Identifies a Provider variant (record type, optionally + predicate-matched flavour). |
-| `IRecordProvider` | `Core` | Describes how one record type should be generated. |
-| `MasterTemplate` | `Core` | Declarative description of default values and relationships. |
+| `IRecordProvider` | `Core.RecordProviders` | Describes how one record type should be generated. |
+| `MasterTemplate` / `MasterTemplate<TRecord>` | `Core.MasterTemplates` | Declarative description of default values and relationships. |
 | `GenerationContext` | `Core` | The per-run state the engine threads everywhere: Provider Lookup, insert mode, inclusivity, forced-relationship paths, `BatchedInsertPending`, and — during the value pass — the record being built, its ancestor bundle, and the field currently being generated (`ValueFieldPass`). |
 | `RecordFactory` | `Engine` | Thin coordinator — drives the phase classes below. |
 | `AncestorGenerator` | `Engine` | Phase: generate one level of related (ancestor) records. |
@@ -73,10 +73,10 @@ Each component has a single responsibility.
 | `PlainValueFiller` | `Engine` | Phase: fill the plain (`IValueExpression`) values. |
 | `ContextAwareValuePass` | `Engine` | Phase: run the `IContextAwareExpression` values, one field at a time. |
 | `DescendantValuePass` / `DeferredGraph` | `Engine` | Up-flow value pass at the top of a deferred flatten: fill each `IDeferredExpression` (`CopyFromDescendantExpression`) from that record's now-generated children, read through the collected parent links. |
-| `ValueFieldPass` | `Core` | The narrowest scope — one context-aware field + the set of sibling context-aware fields not yet generated (drives `context.SiblingValue`'s loud guard). |
+| `ValueFieldPass` | `Engine` | The narrowest scope — one context-aware field + the set of sibling context-aware fields not yet generated (drives `context.SiblingValue`'s loud guard). |
 | `RelationshipForcer` | `Engine` | Applies `IncludeOptional(...)` / `Put(path,...)` relationship-prefix paths to a per-call copy of the Master Template. |
-| `PathValue` / `PathValueApplier` | `Core` / `Engine` | A `Put(List<PropertyInfo>, value)` override targeted at a generated ancestor; the applier lands the at-target ones on the level's template. |
-| `ChildProvider` | `Core` | Config for one downward child collection (`With(...)` / `WithChildren(...)`); builds the child Provider + templates, recursively for grandchildren. |
+| `PathValue` / `PathValueApplier` | `Core.PathValues` / `Engine` | A `Put(List<PropertyInfo>, value)` override targeted at a generated ancestor; the applier lands the at-target ones on the level's template. |
+| `ChildProvider` | `Core.Children` | Config for one downward child collection (`With(...)` / `WithChildren(...)`); builds the child Provider + templates, recursively for grandchildren. |
 | `SharedRelationshipWiring` | `Engine` | Wires a `SharedAncestor` (one resolved record, every child pointed at it). |
 | `SharedAncestorResolver` | `Engine` | The pre-phase for shared ancestors: collect (dependency-ordered, nested, cycle guards) → generate `Never` → depth-batched resolve per sub-graph. Runs for every configured `SharedAncestor`; talks only to `SharedAncestorProvider`. |
 | `SharedAncestorProvider` | `Relationships` | The single recipe for one shared ancestor's record — key ± override template plus the same per-record API a generated parent takes. |
@@ -84,7 +84,7 @@ Each component has a single responsibility.
 | `IndexedRecord` | `Persistence` | An `(index, record)` pair — records are identified by position, since two generated records can be equal by value. |
 | `DepthBatchedInserter` | `Persistence` | Kahn-style layered resolution: one pass per dependency depth. |
 | `DeferredInserter` / `DeferredInsertBuffer` | `Persistence` | The `Deferred` registry and its bundle-walk; `Flush(gateway)` runs `DepthBatchedInserter` over the union through the given `IPersistenceGateway`. |
-| `Bundle` | `Core` | Represents the generated graph. |
+| `Bundle` | `Core.Bundles` | Represents the generated graph. |
 | `IValueExpression` / `IContextAwareExpression` / `IDeferredExpression` | `Values` | Expression interfaces for generating field values (plain / context-aware / up-flow). |
 | `IDefaultRelationship` / `DefaultRelationship` / `ISharedRelationship` / `SharedAncestor` | `Relationships` | Interfaces + implementations for generating related records. |
 | `IRecordPredicate` + `Field{EqualTo,GreaterThan,LessThan,InSet}Predicate` / `ValueComparison` / `{AllOf,AnyOf,Negation}Predicate` / `FieldPredicateFactory` + `PredicateFactory` (facades) | `Predicates` | Conditions a flavoured key matches a record against — one small class per operator, no branching. |
