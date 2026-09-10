@@ -514,12 +514,19 @@ public class SharedAncestorHierarchyTest
         });
 }
 
-file sealed class LeafUserProvider()
-    : SimpleRecordProvider<User>(
-        new MasterTemplate<User>(x => x.Id)
-            .Put(x => x.LastName, new IncrementingStringExpression("User")))
+file sealed class LeafUserProvider : IRecordProvider
 {
     public static readonly LeafUserProvider Instance = new();
+
+    private MasterTemplate _template { get; } = new MasterTemplate<User>(x => x.Id)
+        .Put(x => x.LastName, new IncrementingStringExpression("User"));
+
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
 }
 
 /// <summary>A Provider with one required lookup to a named shared ancestor, plus an optional label field its generation needs.</summary>

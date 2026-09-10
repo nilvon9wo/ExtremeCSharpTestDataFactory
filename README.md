@@ -109,8 +109,9 @@ The result is test code that is:
 
 ## Provider Architecture
 
-- Extensible Provider architecture — implement `IRecordProvider` directly, or
-  use `SimpleRecordProvider<T>` when a Provider is nothing but a template
+- Extensible Provider architecture — a Provider implements `IRecordProvider`
+  directly, holding its `MasterTemplate` as a field and delegating
+  `CreateBundle` to `RecordFactory` (composition, no base class to inherit)
 - Multi-variant Providers (`FlavouredLookupKey`, `DiscriminatorLookupKey`) —
   resolve a different Provider for the same type by an arbitrary predicate or
   field value

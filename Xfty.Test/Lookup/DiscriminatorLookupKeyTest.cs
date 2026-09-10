@@ -1,7 +1,10 @@
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Test.Lookup;
@@ -66,9 +69,17 @@ public class DiscriminatorLookupKeyTest
     }
 }
 
-file sealed class PersonAccountProvider()
-    : SimpleRecordProvider<Account>(
-        new MasterTemplate<Account>(x => x.Id)
-        {
-            [x => x.Name] = "Person Default",
-        });
+file sealed class PersonAccountProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<Account>(x => x.Id)
+    {
+        [x => x.Name] = "Person Default",
+    };
+
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
+}

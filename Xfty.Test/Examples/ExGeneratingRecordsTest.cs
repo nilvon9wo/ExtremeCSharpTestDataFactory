@@ -1,9 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Relationships;
 
@@ -106,7 +108,15 @@ public class ExGeneratingRecordsTest
     }
 }
 
-file sealed class CaseWithAccountProvider()
-    : SimpleRecordProvider<Case>(
-        new MasterTemplate<Case>(x => x.Id)
-            .PutRequired(x => x.AccountId, new DefaultRelationship(new Account())));
+file sealed class CaseWithAccountProvider : IRecordProvider
+{
+    private MasterTemplate _template { get; } = new MasterTemplate<Case>(x => x.Id)
+        .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
+
+    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
+
+    public MasterTemplate MasterTemplate => this._template;
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this._template, templateRecords);
+}
