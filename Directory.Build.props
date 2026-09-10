@@ -25,4 +25,28 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <!--
+    Single source of truth for the version of every mainline (non-preview)
+    publishable package - `Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`,
+    `Xfty.VectorDatabases`, `Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`,
+    `Xfty.FSharpAsync`. They no longer carry their own <Version>; they inherit
+    this one, so they stay in lockstep automatically.
+
+    `0.0.0-dev` is only the LOCAL-build fallback (a `dotnet pack` on a dev
+    machine produces `*.0.0.0-dev.nupkg`, obviously not a release). The real
+    release version is NOT set here and is NOT bumped per release: the
+    `publish.yml` workflow reads the newest `## [x.y.z]` heading from
+    CHANGELOG.md and stamps it in (`-p:Version=` / an in-runner edit of this
+    file) at pack time. Cutting a release = adding that CHANGELOG heading in
+    your PR; merging to master publishes it. See docs/contribute/packaging.md.
+
+    The two PREVIEW packages (`Xfty.VectorDatabases.Qdrant`,
+    `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`) deliberately keep
+    their own <Version> (`0.x-preview.*`) in their own .csproj - that value
+    overrides this one because the project sets it after this import.
+  -->
+  <PropertyGroup>
+    <Version>0.0.0-dev</Version>
+  </PropertyGroup>
+
 </Project>

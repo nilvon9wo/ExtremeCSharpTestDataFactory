@@ -1,107 +1,143 @@
+# Cutting a release = adding a `## [x.y.z] - <date>` heading to CHANGELOG.md in
+# your PR (move the `## [Unreleased]` notes down under it). Merging that PR to
+# master runs this workflow, which:
+#
+#   1. reads the newest `## [x.y.z]` heading from CHANGELOG.md
+#   2. if a `vx.y.z` tag already exists -> exits, nothing to do
+#   3. otherwise stamps x.y.z into every mainline package (via Directory.Build.props),
+#      builds + tests, packs all ten publishable packages, and pushes them to
+#      nuget.org with --skip-duplicate
+#   4. tags the commit `vx.y.z` and opens a GitHub Release with that CHANGELOG
+#      section as the notes
+#
+# Merges that DON'T add a new CHANGELOG heading are no-ops here (step 2). The
+# version lives in exactly one place - the CHANGELOG heading - and is never
+# hand-edited into a .csproj. See docs/contribute/packaging.md.
+
 name: Publish to NuGet
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [master]
+    # A release is always cut by editing CHANGELOG.md (adding the `## [x.y.z]`
+    # heading), so nothing else needs to wake this workflow. Recovery runs go
+    # through workflow_dispatch below.
+    paths: ["CHANGELOG.md"]
   workflow_dispatch:
+    inputs:
+      republish_version:
+        description: >-
+          Re-pack and re-push this exact version (e.g. 1.0.0-beta.8), bypassing
+          the "tag already exists" guard - for recovering a release whose
+          nuget.org push half-failed. No new tag or GitHub Release is made.
+          Leave blank for a normal run.
+        required: false
+        default: ""
+
+permissions:
+  contents: read
 
 jobs:
-  publish:
+  release:
     name: Pack + push
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     permissions:
-      contents: read
-      id-token: write # required so NuGet/login can request a GitHub OIDC token
+      contents: write # push the vX.Y.Z tag + create the GitHub Release
+      id-token: write # NuGet/login exchanges a GitHub OIDC token for a short-lived API key
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # all tags (the release guard) + full history (the release-notes slice)
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
+      - name: Resolve target version from CHANGELOG
+        id: resolve
+        shell: pwsh
+        run: |
+          $forced = "${{ github.event.inputs.republish_version }}".Trim()
+
+          if ($forced) {
+              $version = $forced
+              Write-Host "workflow_dispatch: forced republish of $version"
+          }
+          else {
+              $version = $null
+              foreach ($line in Get-Content CHANGELOG.md) {
+                  if ($line -match '^\s*##\s*\[([^\]]+)\]') {
+                      $candidate = $Matches[1].Trim()
+                      if ($candidate -ne 'Unreleased') { $version = $candidate; break }
+                  }
+              }
+              if (-not $version) {
+                  Write-Error "No '## [x.y.z]' section found in CHANGELOG.md."
+                  exit 1
+              }
+          }
+
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
+              Write-Error "Resolved version '$version' is not valid SemVer."
+              exit 1
+          }
+
+          $tag = "v$version"
+          $tagExists = [bool](git tag --list $tag)
+          $shouldRelease = [bool]$forced -or -not $tagExists
+          $isPrerelease = $version.Contains('-')
+
+          Write-Host "version          : $version"
+          Write-Host "tag              : $tag"
+          Write-Host "tag already exists: $tagExists"
+          Write-Host "forced republish : $([bool]$forced)"
+          Write-Host "=> will release  : $shouldRelease"
+
+          "version=$version"                                      >> $env:GITHUB_OUTPUT
+          "tag=$tag"                                              >> $env:GITHUB_OUTPUT
+          "is_prerelease=$($isPrerelease.ToString().ToLower())"   >> $env:GITHUB_OUTPUT
+          "should_release=$($shouldRelease.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          "is_forced=$(([bool]$forced).ToString().ToLower())"     >> $env:GITHUB_OUTPUT
+
+      - name: Nothing to release
+        if: steps.resolve.outputs.should_release != 'true'
+        run: echo "::notice::CHANGELOG top version ${{ steps.resolve.outputs.version }} is already tagged - no packages published."
+
+      - name: Stamp the version into Directory.Build.props
+        if: steps.resolve.outputs.should_release == 'true'
+        shell: pwsh
+        run: |
+          $v = "${{ steps.resolve.outputs.version }}"
+          $path = "Directory.Build.props"
+          $content = Get-Content $path -Raw
+          $updated = $content -replace '<Version>0\.0\.0-dev</Version>', "<Version>$v</Version>"
+          if ($updated -eq $content) {
+              Write-Error "Could not find '<Version>0.0.0-dev</Version>' in $path to stamp."
+              exit 1
+          }
+          Set-Content -Path $path -Value $updated -NoNewline
+          Select-String -Path $path -Pattern '<Version>'
+
       # Xfty.ci-cross-platform.slnf is Xfty.slnx minus Xfty.NetStandardCompat.Test,
       # which targets net472 and can't run on this Linux runner - see ci.yml's
       # windows-net472 job, which already covers it on every push/PR to master.
       - name: Restore
+        if: steps.resolve.outputs.should_release == 'true'
         run: dotnet restore Xfty.ci-cross-platform.slnf
 
       - name: Build (Release)
+        if: steps.resolve.outputs.should_release == 'true'
         run: dotnet build Xfty.ci-cross-platform.slnf -c Release --no-restore
 
       - name: Test (excluding the informational performance suite)
+        if: steps.resolve.outputs.should_release == 'true'
         run: dotnet test Xfty.ci-cross-platform.slnf -c Release --no-build --filter "Category!=Performance"
 
-      - name: Verify package versions
-        shell: pwsh
-        run: |
-          $tag = $env:GITHUB_REF_NAME
-
-          if (-not $tag.StartsWith("v")) {
-              Write-Error "Release tag '$tag' does not start with 'v'."
-              exit 1
-          }
-
-          $expectedVersion = $tag.Substring(1)
-
-          Write-Host "Release tag:      $tag"
-          Write-Host "Expected version: $expectedVersion"
-          Write-Host ""
-
-          $publishableProjects = @(
-              "Xfty/Xfty.csproj",
-              "Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj",
-              "Xfty.Bogus/Xfty.Bogus.csproj",
-              "Xfty.VectorDatabases/Xfty.VectorDatabases.csproj",
-              "Xfty.Xunit/Xfty.Xunit.csproj",
-              "Xfty.AutoFixture/Xfty.AutoFixture.csproj",
-              "Xfty.AutoBogus/Xfty.AutoBogus.csproj",
-              "Xfty.FSharpAsync/Xfty.FSharpAsync.fsproj",
-              "Xfty.VectorDatabases.Qdrant/Xfty.VectorDatabases.Qdrant.csproj",
-              "Xfty.VectorDatabases.MicrosoftExtensionsVectorData/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.csproj"
-          )
-
-          $previewProjects = @(
-              "Xfty.VectorDatabases.Qdrant/Xfty.VectorDatabases.Qdrant.csproj",
-              "Xfty.VectorDatabases.MicrosoftExtensionsVectorData/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.csproj"
-          )
-
-          $failed = $false
-
-          foreach ($project in $publishableProjects) {
-              [xml]$projectXml = Get-Content $project
-              $version = $projectXml.Project.PropertyGroup.Version | Select-Object -First 1
-
-              if ([string]::IsNullOrWhiteSpace($version)) {
-                  Write-Error "$project does not define <Version>."
-                  $failed = $true
-                  continue
-              }
-
-              if ($previewProjects -contains $project) {
-                  Write-Host "PREVIEW  $project -> $version"
-                  continue
-              }
-
-              if ($version -ne $expectedVersion) {
-                  Write-Error "$project has version '$version', but release tag '$tag' requires '$expectedVersion'."
-                  $failed = $true
-              }
-              else {
-                  Write-Host "MATCH    $project -> $version"
-              }
-          }
-
-          if ($failed) {
-              Write-Error "Package version validation failed. No packages will be created or published."
-              exit 1
-          }
-
-          "PACKAGE_VERSION=$expectedVersion" >> $env:GITHUB_ENV
-
       - name: Pack every publishable package
+        if: steps.resolve.outputs.should_release == 'true'
         run: |
           mkdir -p ./packages
           for proj in \
@@ -119,63 +155,91 @@ jobs:
             dotnet pack "$proj" -c Release --no-build -o ./packages
           done
 
-      - name: Verify generated package versions
+      - name: Verify packed versions
+        if: steps.resolve.outputs.should_release == 'true'
         shell: pwsh
         run: |
-          $expectedVersion = $env:PACKAGE_VERSION
-          $previewProjects = @(
-              "Xfty.VectorDatabases.Qdrant",
-              "Xfty.VectorDatabases.MicrosoftExtensionsVectorData"
+          $version = "${{ steps.resolve.outputs.version }}"
+
+          # The eight mainline packages must all have packed at the resolved version.
+          $mainline = @(
+              "Xfty", "Xfty.EntityFrameworkCore", "Xfty.Bogus", "Xfty.VectorDatabases",
+              "Xfty.Xunit", "Xfty.AutoFixture", "Xfty.AutoBogus", "Xfty.FSharpAsync"
           )
-
-          $packages = Get-ChildItem "./packages/*.nupkg"
-
-          if ($packages.Count -eq 0) {
-              Write-Error "No NuGet packages were generated."
-              exit 1
-          }
-
           $failed = $false
-
-          foreach ($package in $packages) {
-              $packageName = $package.BaseName
-
-              $isPreviewPackage = $false
-
-              foreach ($previewProject in $previewProjects) {
-                  if ($packageName.StartsWith("$previewProject.")) {
-                      $isPreviewPackage = $true
-                      break
-                  }
-              }
-
-              if ($isPreviewPackage) {
-                  Write-Host "PREVIEW PACKAGE  $($package.Name)"
-                  continue
-              }
-
-              if (-not $packageName.EndsWith(".$expectedVersion")) {
-                  Write-Error "Generated package '$($package.Name)' does not contain expected version '$expectedVersion'."
-                  $failed = $true
+          foreach ($id in $mainline) {
+              if (Test-Path "./packages/$id.$version.nupkg") {
+                  Write-Host "OK       $id -> $version"
               }
               else {
-                  Write-Host "VERSION MATCH     $($package.Name)"
+                  Write-Error "Missing ./packages/$id.$version.nupkg - $id did not pack at $version."
+                  $failed = $true
               }
           }
 
-          if ($failed) {
-              Write-Error "Generated package version validation failed. Nothing will be published."
-              exit 1
+          # The two preview packages carry their own 0.x-preview version - just confirm they packed.
+          foreach ($id in @("Xfty.VectorDatabases.Qdrant", "Xfty.VectorDatabases.MicrosoftExtensionsVectorData")) {
+              $pkg = Get-ChildItem "./packages/$id.*.nupkg" -Exclude "*.symbols.nupkg" | Select-Object -First 1
+              if ($pkg) { Write-Host "OK       $($pkg.Name) (preview)" }
+              else { Write-Error "Preview package $id did not pack."; $failed = $true }
           }
 
+          if ($failed) { exit 1 }
+
       - name: NuGet login (OIDC -> short-lived API key, no stored secret)
+        if: steps.resolve.outputs.should_release == 'true'
         uses: NuGet/login@v1
         id: login
         with:
           user: ${{ vars.NUGET_USERNAME }} # nuget.org profile name, not email - see docs/contribute/packaging.md
 
       - name: Push to nuget.org
+        if: steps.resolve.outputs.should_release == 'true'
         run: >
           dotnet nuget push "./packages/*.nupkg"
           --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
           --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Tag the release commit
+        if: steps.resolve.outputs.should_release == 'true' && steps.resolve.outputs.is_forced != 'true'
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "$TAG"
+          git push origin "$TAG"
+
+      # Best-effort: the packages and tag are already out by this point, so a
+      # hiccup here shouldn't red the run. It leaves a warning annotation, and
+      # `gh release create <tag> --notes-file ...` can be run by hand after.
+      - name: GitHub Release
+        if: steps.resolve.outputs.should_release == 'true' && steps.resolve.outputs.is_forced != 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+          PRERELEASE: ${{ steps.resolve.outputs.is_prerelease }}
+        shell: pwsh
+        run: |
+          # Slice out this version's own CHANGELOG section for the release notes.
+          $lines = Get-Content CHANGELOG.md
+          $out = New-Object System.Collections.Generic.List[string]
+          $inSection = $false
+          foreach ($line in $lines) {
+              if ($line -match '^\s*##\s*\[([^\]]+)\]') {
+                  if ($inSection) { break }
+                  if ($Matches[1].Trim() -eq $env:VERSION) { $inSection = $true }
+                  continue
+              }
+              if ($inSection) { $out.Add($line) }
+          }
+          $notes = ($out -join "`n").Trim()
+          if (-not $notes) { $notes = "See CHANGELOG.md." }
+          Set-Content -Path release-notes.md -Value $notes
+
+          $ghArgs = @("release", "create", $env:TAG, "--title", $env:TAG, "--notes-file", "release-notes.md", "--verify-tag")
+          if ($env:PRERELEASE -eq 'true') { $ghArgs += "--prerelease" }
+          gh @ghArgs

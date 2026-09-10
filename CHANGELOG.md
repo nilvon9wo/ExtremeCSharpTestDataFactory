@@ -12,6 +12,18 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [1.0.0-beta.8] – 2026-09-10
+
+> **Changelog catch-up.** `1.0.0-beta.2` through `1.0.0-beta.7` were tagged and
+> published without their own changelog sections. The entries below therefore
+> cover everything since `1.0.0-beta.1`, not just this release — most of it
+> already shipped in those intermediate betas. Removing `SimpleRecordProvider`
+> is the one change genuinely new in `beta.8`. Per-release sections (and
+> automated publishing — a release now happens when a `## [x.y.z]` heading
+> like this one lands on `master`) resume here.
+
 ### Added
 
 - **Core `Xfty` now multi-targets `netstandard2.0;net8.0;net10.0`**, not just

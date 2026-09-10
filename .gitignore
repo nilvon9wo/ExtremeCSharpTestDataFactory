@@ -36,6 +36,13 @@ obj/
 *.user
 .vs/
 
+# locally-built NuGet packages (publish.yml uses ./packages on the CI runner;
+# docs/contribute/packaging.md suggests ./local-packages for a local feed)
+/packages/
+/local-packages/
+*.nupkg
+*.snupkg
+
 # Rider - safety-backup copies it creates before a bulk refactor across
 # project files (e.g. Replace in Path); meant to be transient, not always
 # cleaned up automatically

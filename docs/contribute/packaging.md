@@ -92,26 +92,67 @@ dotnet nuget add source ./local-packages -n xfty-local
 
 ## Publishing to nuget.org
 
-Already set up and in active use — currently at `1.0.0-beta.5` for the
-eight non-preview packages and `0.1.0-preview.3` for the two vector-database
-preview ones, across several releases so far (see
-[CHANGELOG.md](../../CHANGELOG.md) for what shipped in each). Cutting a new
-one needs the package owner's own
-nuget.org account — nothing about it can be scripted or done on someone
-else's behalf. Once a version is live, it's automatically searchable from
-Visual Studio's NuGet Package Manager (VS searches nuget.org by default) — no
-separate listing step. `Xfty.EntityFrameworkCore` depends on the `Xfty`
-package id/version, so `Xfty` has to land first; `Xfty.Bogus`,
-`Xfty.VectorDatabases`, `Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`,
-`Xfty.FSharpAsync`, and the two vector-database preview packages all depend
-only on `Xfty` too, so the same order works for all ten.
+Already set up and in active use — see [CHANGELOG.md](../../CHANGELOG.md) for
+what shipped in each release. Once a version is live, it's automatically
+searchable from Visual Studio's NuGet Package Manager (VS searches nuget.org
+by default) — no separate listing step.
+
+### Versioning: one number, lockstep, from the CHANGELOG
+
+The **eight mainline packages** (`Xfty`, `Xfty.EntityFrameworkCore`,
+`Xfty.Bogus`, `Xfty.VectorDatabases`, `Xfty.Xunit`, `Xfty.AutoFixture`,
+`Xfty.AutoBogus`, `Xfty.FSharpAsync`) share one version and always release
+together, even when a given package had no code change that cycle. This is
+the standard pattern for a package family from one repo (EF Core, the
+`Microsoft.Extensions.*` set, Roslyn's `Microsoft.CodeAnalysis.*`, xUnit) —
+nuget.org has no policy against it, and it spares consumers a
+which-version-works-with-which compatibility matrix. The add-ons all depend
+on a specific `Xfty` version anyway.
+
+None of those eight carries a `<Version>` in its `.csproj` anymore — they
+inherit `<Version>` from [`Directory.Build.props`](../../Directory.Build.props),
+which holds only the `0.0.0-dev` local-build fallback. **The real release
+version lives in exactly one place: the newest `## [x.y.z]` heading in
+`CHANGELOG.md`.** `publish.yml` reads it and stamps it in at pack time. There
+is no version number to hand-edit into a project file.
+
+The **two preview packages** (`Xfty.VectorDatabases.Qdrant`,
+`Xfty.VectorDatabases.MicrosoftExtensionsVectorData`) are the deliberate
+exception: they keep their own `<Version>` (`0.x-preview.*`) in their own
+`.csproj`, bumped by hand when their code actually changes. They still ride
+along on every release run, but `--skip-duplicate` makes an unchanged preview
+version a no-op.
+
+### Cutting a release — add a CHANGELOG heading, merge to master
+
+1. In your PR, rename `## [Unreleased]` to `## [x.y.z] – <date>` and start a
+   fresh empty `## [Unreleased]` above it (move the notes down under the new
+   heading).
+2. Merge to `master`.
+
+That's it. On the push to `master`, `publish.yml`:
+
+- reads `x.y.z` from that heading; if a `vx.y.z` tag already exists it stops
+  here (so ordinary merges that don't cut a release are no-ops)
+- stamps `x.y.z` into `Directory.Build.props`, builds + tests, packs all ten
+  packages, and `dotnet nuget push --skip-duplicate`
+- tags the commit `vx.y.z` and opens a GitHub Release with that CHANGELOG
+  section as the notes
+
+`Xfty.EntityFrameworkCore` and everything else depend on the `Xfty` package
+id/version; because every mainline package packs at the same version in the
+same run, the cross-dependencies resolve to that version automatically.
+
+**Recovering a half-failed push:** run the workflow manually from the Actions
+tab (`workflow_dispatch`) with `republish_version` set to the version — it
+re-packs and re-pushes with `--skip-duplicate`, skipping the tag/Release
+steps.
 
 ### CI: Trusted Publishing — no stored secret at all
 
-[`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) — push
-a `v*` tag, or run it manually from the Actions tab — builds, tests, packs
-every publishable package including the two preview ones, and pushes all of
-them with `--skip-duplicate`. It uses nuget.org's
+[`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) builds,
+tests, packs every publishable package including the two preview ones, and
+pushes all of them with `--skip-duplicate`. It uses nuget.org's
 [Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing):
 the workflow requests a GitHub OIDC token (`permissions: id-token: write`),
 `NuGet/login@v1` exchanges it for a NuGet API key that lives for one hour and
