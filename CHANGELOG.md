@@ -14,17 +14,14 @@ because those entries describe a change made in *this* repository.
 
 ### Changed
 
-- **`RecordProvider<TRecord>` moved from `Net.NowhereAtAll.Xfty.Core.RecordProviders`
-  to `Net.NowhereAtAll.Xfty.Core`**, next to the non-generic `RecordProvider`
-  (`ChildProvider<TChild>` stays put). The typed wrapper — which gives a
-  cast-free `Supply()` — was in a namespace the "generate a record" docs
-  don't import, so it went unused. It's now reachable from the same
-  `using Net.NowhereAtAll.Xfty.Core;` everything else needs.
 - **The `docs/use/` guides now lead with `new RecordProvider<Contact>(lookup)`**
-  — `Supply()` returns `Contact`, `SupplyList()` returns `List<Contact>`, no
-  `(Contact)` cast. The non-generic `new RecordProvider(typeof(Contact), lookup)`
-  and the shorthand constructors (`new RecordProvider(template, lookup)` etc.)
-  are still documented where they read better. The `Ex*Test` doc-mirror tests
+  (`Net.NowhereAtAll.Xfty.Core.RecordProviders`) — `Supply()` returns
+  `Contact`, `SupplyList()` returns `List<Contact>`, no `(Contact)` cast. The
+  typed wrapper always existed; the guides had just never adopted it. The
+  non-generic `new RecordProvider(typeof(Contact), lookup)`
+  (`Net.NowhereAtAll.Xfty.Core`) and the shorthand constructors are still
+  shown where they read better. `getting-started.md`'s `using` block and the
+  API cheat-sheet now name both namespaces; the `Ex*Test` doc-mirror tests
   were updated to match.
 
 ## [1.0.0-beta.9] – 2026-09-10
