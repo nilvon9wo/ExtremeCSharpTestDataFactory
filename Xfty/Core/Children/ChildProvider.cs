@@ -36,21 +36,23 @@ public sealed class ChildProvider
 
     public ChildProvider(PropertyInfo relationshipField, object? template)
     {
-        this.RelationshipField = relationshipField ?? throw new XftyConfigurationException("ChildProvider needs the child relationship field.");
+        this.RelationshipField = relationshipField ?? throw new XftyConfigurationException(
+            "ChildProvider needs the child relationship field."
+        );
         this.ChildType = this.RelationshipField.DeclaringType!;
         if (template is not null && template.GetType() != this.ChildType)
         {
-            throw new XftyConfigurationException($"Template is a {template.GetType()} but {relationshipField.Name} is on {this.ChildType}.");
+            throw new XftyConfigurationException(
+                $"Template is a {template.GetType()} but {relationshipField.Name} is on {this.ChildType}."
+            );
         }
 
         this._template = template ?? BlankInstances.Of(this.ChildType);
     }
 
-    /// <summary>ChildProvider(field), naming field by lambda instead of Field.Of&lt;TChild&gt;(...).</summary>
     public static ChildProvider For<TChild>(Expression<Func<TChild, object?>> relationshipField) =>
         new(Field.Of(relationshipField));
 
-    /// <summary>ChildProvider(field, template), naming field by lambda instead of Field.Of&lt;TChild&gt;(...).</summary>
     public static ChildProvider For<TChild>(Expression<Func<TChild, object?>> relationshipField, TChild template) =>
         new(Field.Of(relationshipField), template);
 
@@ -63,7 +65,9 @@ public sealed class ChildProvider
     /// <summary>Children generated per primary. Default 1.</summary>
     public ChildProvider SetQuantity(int quantity)
     {
-        this._quantity = quantity >= 1 ? quantity : throw new XftyConfigurationException($"SetQuantity({quantity}): at least 1.");
+        this._quantity = quantity >= 1 ? quantity : throw new XftyConfigurationException(
+            $"SetQuantity({quantity}): at least 1."
+        );
         return this;
     }
 
@@ -96,24 +100,28 @@ public sealed class ChildProvider
     public ChildProvider PutOptional(PropertyInfo field, IDefaultRelationship relationship) =>
         this.AddPendingPut(ChildProviderPendingPut.OfOptionalRelationship(field, relationship));
 
-    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public ChildProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression valueExpression) =>
         this.Put(Field.Of(field), valueExpression);
 
-    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
-    public ChildProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IContextAwareExpression contextAwareExpression) =>
+    public ChildProvider Put<TRecord>(
+        Expression<Func<TRecord, object?>> field,
+        IContextAwareExpression contextAwareExpression
+    ) =>
         this.Put(Field.Of(field), contextAwareExpression);
 
-    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public ChildProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, object? literal) =>
         this.Put(Field.Of(field), literal);
 
-    /// <summary>PutRequired(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
-    public ChildProvider PutRequired<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship) =>
+    public ChildProvider PutRequired<TRecord>(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationship
+    ) =>
         this.PutRequired(Field.Of(field), relationship);
 
-    /// <summary>PutOptional(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
-    public ChildProvider PutOptional<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship) =>
+    public ChildProvider PutOptional<TRecord>(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationship
+    ) =>
         this.PutOptional(Field.Of(field), relationship);
 
     private ChildProvider AddPendingPut(ChildProviderPendingPut pendingPut)
@@ -122,7 +130,9 @@ public sealed class ChildProvider
         return this;
     }
 
-    /// <summary>Insert mode for the children. Default: the parent Provider's. Cannot mix mock Ids with real DML.</summary>
+    /// <summary>
+    /// Insert mode for the children. Default: the parent Provider's. Cannot mix mock Ids with real DML.
+    /// </summary>
     public ChildProvider SetInsertMode(InsertMode insertMode)
     {
         this._insertModeOverride = insertMode;
@@ -146,7 +156,10 @@ public sealed class ChildProvider
     /// <summary>Nest a further child collection under these children - grandchildren, and so on.</summary>
     public ChildProvider With(ChildProvider? grandchildProvider)
     {
-        this._grandchildProviders.Add(grandchildProvider ?? throw new XftyConfigurationException("With(...) needs a ChildProvider."));
+        this._grandchildProviders.Add(
+            grandchildProvider
+            ?? throw new XftyConfigurationException("With(...) needs a ChildProvider.")
+        );
         return this;
     }
 
@@ -173,7 +186,9 @@ public sealed class ChildProvider
         return childTemplate;
     }
 
-    /// <summary>A fresh Provider for these children, with this child provider's puts/variant/nested children applied.</summary>
+    /// <summary>
+    /// A fresh Provider for these children, with this child provider's puts/variant/nested children applied.
+    /// </summary>
     public RecordProvider NewProvider(IProviderLookup lookup)
     {
         RecordProvider provider = this._variantKey is null
@@ -186,11 +201,14 @@ public sealed class ChildProvider
 
     private static void AssertModesCompatible(InsertMode parentMode, InsertMode childMode)
     {
-        bool mixesMockWithReal = (parentMode, childMode) is (InsertMode.Mock, InsertMode.Now) or (InsertMode.Now, InsertMode.Mock);
+        bool mixesMockWithReal =
+            (parentMode, childMode) is (InsertMode.Mock, InsertMode.Now) or (InsertMode.Now, InsertMode.Mock);
         if (mixesMockWithReal)
         {
             throw new XftyConfigurationException(
-                $"A child collection cannot mix mock Ids with real DML - parent is {parentMode}, child is {childMode}.");
+                "A child collection cannot mix mock Ids with real DML - "
+                + $"parent is {parentMode}, child is {childMode}."
+            );
         }
     }
 }

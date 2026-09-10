@@ -117,7 +117,8 @@ public class RecordProviderIntegrationTest
             .DepthBatched();
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert - the depth-batched path was actually engaged, not silently skipped
         Assert.Contains("persistence gateway", thrown.Message);
@@ -126,14 +127,16 @@ public class RecordProviderIntegrationTest
     [Fact]
     public async Task DeferredInserter_Flush_AfterADeferredSupply_AttemptsRealPersistence()
     {
-        // Arrange - DEFERRED mode builds the graph like Never and registers it; Flush() is where real persistence would happen
+        // Arrange - DEFERRED mode builds the graph like Never and registers it; Flush() is where real persistence
+        // would happen
         RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
             .SetInsertMode(InsertMode.Deferred)
             .SetInclusivity(InsertInclusivity.Required);
         _ = await provider.Supply().ConfigureAwait(true);
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush()).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush())
+            .ConfigureAwait(true);
 
         // Assert - the registry actually tried to persist, not silently no-op
         Assert.Contains("persistence gateway", thrown.Message);

@@ -57,7 +57,6 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
         return this;
     }
 
-    /// <summary>CopyingRelatedField(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public SharedAncestorProvider CopyingRelatedField<TRecord>(Expression<Func<TRecord, object?>> relatedField) =>
         this.CopyingRelatedField(Field.Of(relatedField));
 
@@ -69,9 +68,17 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
         return this;
     }
 
-    public SharedAncestorProvider Put(PropertyInfo field, IValueExpression expression) => this.AddValue(field, expression);
+    public SharedAncestorProvider Put(PropertyInfo field, IValueExpression expression) =>
+        this.AddValue(
+            field,
+            expression
+        );
 
-    public SharedAncestorProvider Put(PropertyInfo field, IContextAwareExpression expression) => this.AddValue(field, expression);
+    public SharedAncestorProvider Put(PropertyInfo field, IContextAwareExpression expression) =>
+        this.AddValue(
+            field,
+            expression
+        );
 
     public SharedAncestorProvider Put(PropertyInfo field, object? literal) => this.AddValue(field, literal);
 
@@ -89,7 +96,8 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
         return this;
     }
 
-    public SharedAncestorProvider IncludeOptional(PropertyInfo relationshipField) => this.IncludeOptional([relationshipField]);
+    public SharedAncestorProvider IncludeOptional(PropertyInfo relationshipField) =>
+        this.IncludeOptional([relationshipField]);
 
     public SharedAncestorProvider IncludeOptional(List<PropertyInfo> relationshipPath)
     {
@@ -98,7 +106,6 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
         return this;
     }
 
-    /// <summary>IncludeOptional(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public SharedAncestorProvider IncludeOptional<TRecord>(Expression<Func<TRecord, object?>> relationshipField) =>
         this.IncludeOptional(Field.Of(relationshipField));
 
@@ -119,24 +126,28 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
 
     // Lambda overloads (single field) - naming field by lambda instead of Field.Of<TRecord>(...) --------
 
-    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public SharedAncestorProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression expression) =>
         this.Put(Field.Of(field), expression);
 
-    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
-    public SharedAncestorProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IContextAwareExpression expression) =>
+    public SharedAncestorProvider Put<TRecord>(
+        Expression<Func<TRecord, object?>> field,
+        IContextAwareExpression expression
+    ) =>
         this.Put(Field.Of(field), expression);
 
-    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public SharedAncestorProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, object? literal) =>
         this.Put(Field.Of(field), literal);
 
-    /// <summary>PutRequired(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
-    public SharedAncestorProvider PutRequired<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship) =>
+    public SharedAncestorProvider PutRequired<TRecord>(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationship
+    ) =>
         this.PutRequired(Field.Of(field), relationship);
 
-    /// <summary>PutOptional(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
-    public SharedAncestorProvider PutOptional<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship) =>
+    public SharedAncestorProvider PutOptional<TRecord>(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationship
+    ) =>
         this.PutOptional(Field.Of(field), relationship);
 
     private SharedAncestorProvider AddValue(PropertyInfo field, object? value)
@@ -161,7 +172,9 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     /// <summary>The override template, if one was given - for IDefaultRelationship.</summary>
     public object? OverrideTemplate() => this._overrideTemplate;
 
-    /// <summary>This ancestor's whole graph, generated with no persistence, ready for the depth-batched insert.</summary>
+    /// <summary>
+    /// This ancestor's whole graph, generated with no persistence, ready for the depth-batched insert.
+    /// </summary>
     public Task<Bundle> BuildInMemory(IProviderLookup lookup)
     {
         InsertInclusivity effectiveInclusivity = this._inclusivity ?? InsertInclusivity.Required;
@@ -175,10 +188,16 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     /// <summary>The primary target field of the shared record type.</summary>
     public PropertyInfo PrimaryField(IProviderLookup lookup) => this.BaseProvider(lookup).PrimaryTargetField;
 
-    /// <summary>Whether <see cref="PrimaryField"/> can be resolved - it needs a template or a pinned variant to work from (a bare PutAsValue has neither).</summary>
-    public bool CanResolvePrimaryField => this._overrideTemplate is not null || this._explicitKey is not null || this._resolvedKey is not null;
+    /// <summary>
+    /// Whether <see cref="PrimaryField"/> can be resolved - it needs a template or a pinned variant to work from (a
+    /// bare PutAsValue has neither).
+    /// </summary>
+    public bool CanResolvePrimaryField =>
+        this._overrideTemplate is not null || this._explicitKey is not null || this._resolvedKey is not null;
 
-    /// <summary>The Master Template the pre-phase scans for nested shared ancestors - with this ancestor's puts applied.</summary>
+    /// <summary>
+    /// The Master Template the pre-phase scans for nested shared ancestors - with this ancestor's puts applied.
+    /// </summary>
     public MasterTemplate MasterTemplate(IProviderLookup lookup)
     {
         MasterTemplate template = this.BaseProvider(lookup).MasterTemplate.Copy();
@@ -191,7 +210,9 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     /// <summary>True when the shared record is a single row with no sub-graph of its own.</summary>
     public bool IsLightweight(IProviderLookup lookup)
     {
-        if (this._requiredRelationships.Count > 0 || this._optionalRelationships.Count > 0 || this._forcedRelationshipPaths.Count > 0)
+        if (this._requiredRelationships.Count > 0
+            || this._optionalRelationships.Count > 0
+            || this._forcedRelationshipPaths.Count > 0)
         {
             return false;
         }
@@ -202,7 +223,8 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
         }
 
         MasterTemplate baseTemplate = this.BaseProvider(lookup).MasterTemplate;
-        return baseTemplate.RequiredRelationshipByField.Count == 0 && baseTemplate.OptionalRelationshipByField.Count == 0;
+        return baseTemplate.RequiredRelationshipByField.Count == 0
+            && baseTemplate.OptionalRelationshipByField.Count == 0;
     }
 
     /// <summary>The lookup key this ancestor resolves under.</summary>
@@ -218,5 +240,7 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
 
     private object RequireTemplate() =>
         this._overrideTemplate ?? throw new XftyConfigurationException(
-            $"Shared ancestor \"{this._owner.SharedName}\" needs SharedAncestor.PutAsTemplate(...) or Put(name, key) before it can resolve.");
+            $"Shared ancestor \"{this._owner.SharedName}\" needs "
+            + "SharedAncestor.PutAsTemplate(...) or Put(name, key) before it can resolve."
+        );
 }

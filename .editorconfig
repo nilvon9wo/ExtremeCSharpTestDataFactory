@@ -331,16 +331,3 @@ csharp_wrap_before_invocation_rpar = true
 csharp_wrap_before_declaration_rpar = true
 resharper_wrap_before_invocation_rpar = true
 resharper_wrap_before_declaration_rpar = true
-#### Test projects ####
-#
-# Two rules that are real for a shipped library type but ceremony for an
-# xUnit fixture, relaxed only here - everything else holds tests to the same
-# bar as production:
-#   CA1859 - "use concrete types for performance"; a test deliberately
-#            exercises code through its interface, and is not on a hot path.
-#   CA1816 - GC.SuppressFinalize in Dispose(); an xUnit fixture has no
-#            finalizer and its Dispose() only resets static test state.
-
-[{**/*.Test/**,*.Test/**}.cs]
-dotnet_diagnostic.CA1859.severity = suggestion
-dotnet_diagnostic.CA1816.severity = suggestion

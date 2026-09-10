@@ -30,7 +30,9 @@ public sealed partial class ChildProvider<TChild>
     public ChildProvider(Expression<Func<TChild, object?>> relationshipField, TChild template) =>
         this._inner = new ChildProvider(Field.Of(relationshipField), template);
 
-    /// <summary>Object-initializer field configuration, mirroring <see cref="RecordProvider{TRecord}"/>'s own indexer.</summary>
+    /// <summary>
+    /// Object-initializer field configuration, mirroring <see cref="RecordProvider{TRecord}"/>'s own indexer.
+    /// </summary>
     public object? this[Expression<Func<TChild, object?>> field]
     {
         set => _ = this._inner.Put(Field.Of(field), value);

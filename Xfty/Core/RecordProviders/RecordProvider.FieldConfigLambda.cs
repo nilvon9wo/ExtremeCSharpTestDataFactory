@@ -4,13 +4,15 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
-/// <summary>RecordProvider - `Put&lt;TRecord&gt;(x => x.Field, value)`, naming a field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
 public sealed partial class RecordProvider
 {
     public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression valueTemplate) =>
         this.Put(Field.Of(field), valueTemplate);
 
-    public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IContextAwareExpression contextAwareExpression) =>
+    public RecordProvider Put<TRecord>(
+        Expression<Func<TRecord, object?>> field,
+        IContextAwareExpression contextAwareExpression
+    ) =>
         this.Put(Field.Of(field), contextAwareExpression);
 
     public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IDeferredExpression deferredValue) =>
@@ -19,10 +21,16 @@ public sealed partial class RecordProvider
     public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, object? value) =>
         this.Put(Field.Of(field), value);
 
-    public RecordProvider PutRequired<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
+    public RecordProvider PutRequired<TRecord>(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationshipTemplate
+    ) =>
         this.PutRequired(Field.Of(field), relationshipTemplate);
 
-    public RecordProvider PutOptional<TRecord>(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
+    public RecordProvider PutOptional<TRecord>(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationshipTemplate
+    ) =>
         this.PutOptional(Field.Of(field), relationshipTemplate);
 
     public RecordProvider RemoveFromMasterTemplate<TRecord>(Expression<Func<TRecord, object?>> field) =>

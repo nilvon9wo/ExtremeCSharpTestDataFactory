@@ -29,12 +29,21 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
     public Task Insert(List<object> records, PropertyInfo idField) =>
         InsertGroups(this, [.. records.GroupBy(record => record.GetType())], idField);
 
-    private static Task InsertGroups(MevdPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField) =>
+    private static Task InsertGroups(
+        MevdPersistenceGateway gateway,
+        List<IGrouping<Type,
+        object>> groups,
+        PropertyInfo idField
+    ) =>
         groups.Count == 0
             ? Task.CompletedTask
             : InsertRemainingGroups(gateway, groups, idField);
 
-    private static async Task InsertRemainingGroups(MevdPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField)
+    private static async Task InsertRemainingGroups(
+        MevdPersistenceGateway gateway,
+        List<IGrouping<Type, object>> groups,
+        PropertyInfo idField
+    )
     {
         await gateway.InsertGroup([.. groups[0]], idField).ConfigureAwait(false);
         await InsertGroups(gateway, [.. groups.Skip(1)], idField).ConfigureAwait(false);
@@ -81,12 +90,15 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
 
     private static PropertyInfo FindVectorField(Type recordType)
     {
-        List<PropertyInfo> candidates = [.. recordType.GetProperties().Where(property => property.PropertyType == typeof(float[]))];
+        List<PropertyInfo> candidates =
+            [.. recordType.GetProperties().Where(property => property.PropertyType == typeof(float[]))];
         return candidates.Count == 1
             ? candidates[0]
             : throw new NotSupportedException(
-                $"{recordType.Name} must have exactly one 'float[]' property for this PoC to treat as the vector; "
-                + $"found {candidates.Count}. A differently-typed or ambiguous embedding isn't supported - see README.md.");
+                $"{recordType.Name} must have exactly one 'float[]' property for "
+                + $"this PoC to treat as the vector; found {candidates.Count}. A "
+                + "differently-typed or ambiguous embedding isn't supported - see README.md."
+            );
     }
 
     private static VectorStoreCollectionDefinition BuildDefinition(

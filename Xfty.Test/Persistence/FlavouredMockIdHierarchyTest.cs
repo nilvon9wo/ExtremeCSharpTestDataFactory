@@ -28,7 +28,7 @@ public class FlavouredMockIdHierarchyTest
         {
             [LookupKey.Get<Node>()] = new RootNodeProvider(),                    // plain key - default Id gen
             [KindKey("alpha")] = new AlphaNodeProvider(),                        // custom: "ALPHA-N"
-            [KindKey("beta")] = new BetaNodeProvider(),                          // discriminated, but still default Id gen
+            [KindKey("beta")] = new BetaNodeProvider(),                          // discriminated; default Id gen
             [KindKey("gamma")] = new GammaNodeProvider(),                        // custom: reads Region off the record
             [KindKey("delta")] = new DeltaNodeProvider(),                        // default Id gen
             [KindKey("epsilon")] = new EpsilonNodeProvider(),                    // custom: datestamped
@@ -36,7 +36,8 @@ public class FlavouredMockIdHierarchyTest
             [KindKey("terminal")] = new TerminalNodeProvider(),                  // custom: "end-N", chain stops here
         });
 
-    private static ILookupKey KindKey(string kind) => DiscriminatorLookupKey.Get<Node>(x => x.Kind, kind);
+    private static FlavouredLookupKey KindKey(string kind) =>
+        DiscriminatorLookupKey.Get<Node>(x => x.Kind, kind);
 
     [Fact]
     public async Task SupplyBundle_ForAnEightGenerationChainOfOneType_GivesEachGenerationItsOwnVariantsIdShape()
@@ -180,7 +181,8 @@ file sealed class RootNodeProvider : NodeProviderBase
 
 file sealed class AlphaNodeProvider : NodeProviderBase
 {
-    public AlphaNodeProvider() => this.Template = Chain("alpha", "beta").WithMockIdGenerator(new PrefixCounterIdGenerator("ALPHA-"));
+    public AlphaNodeProvider() =>
+        this.Template = Chain("alpha", "beta").WithMockIdGenerator(new PrefixCounterIdGenerator("ALPHA-"));
 }
 
 file sealed class BetaNodeProvider : NodeProviderBase
@@ -203,12 +205,14 @@ file sealed class DeltaNodeProvider : NodeProviderBase
 
 file sealed class EpsilonNodeProvider : NodeProviderBase
 {
-    public EpsilonNodeProvider() => this.Template = Chain("epsilon", "zeta").WithMockIdGenerator(new DatestampedIdGenerator("EPS"));
+    public EpsilonNodeProvider() =>
+        this.Template = Chain("epsilon", "zeta").WithMockIdGenerator(new DatestampedIdGenerator("EPS"));
 }
 
 file sealed class ZetaNodeProvider : NodeProviderBase
 {
-    public ZetaNodeProvider() => this.Template = Chain("zeta", "terminal").WithMockIdGenerator(new ZeroPaddedIdGenerator());
+    public ZetaNodeProvider() =>
+        this.Template = Chain("zeta", "terminal").WithMockIdGenerator(new ZeroPaddedIdGenerator());
 }
 
 file sealed class TerminalNodeProvider : NodeProviderBase

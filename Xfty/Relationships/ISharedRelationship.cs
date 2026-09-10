@@ -18,7 +18,9 @@ public interface ISharedRelationship : IDefaultRelationship
     /// <summary>The one shared record - generated (and cached) on first call, reused after.</summary>
     Task<object?> ResolveSharedRecord(GenerationContext context);
 
-    /// <summary>A single-record sub-bundle exposing the shared record. Never null once the record is resolved.</summary>
+    /// <summary>
+    /// A single-record sub-bundle exposing the shared record. Never null once the record is resolved.
+    /// </summary>
     Bundle GetResolvedBundle();
 
     /// <summary>Whether the shared record has a real (inserted) Id - a NOW child needs this to be true.</summary>

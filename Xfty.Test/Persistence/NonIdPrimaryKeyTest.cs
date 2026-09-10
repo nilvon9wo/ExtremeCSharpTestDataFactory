@@ -26,7 +26,11 @@ public class NonIdPrimaryKeyTest : IDisposable
     // end each test with a clean process-static registry (the same pattern as SharedAncestorResetTest).
     public NonIdPrimaryKeyTest() => SharedAncestor.ResetAllForTesting();
 
-    public void Dispose() => SharedAncestor.ResetAllForTesting();
+    public void Dispose()
+    {
+        SharedAncestor.ResetAllForTesting();
+        GC.SuppressFinalize(this);
+    }
 
     // RecordFactory / InsertMode.Mock --------------------------------------
 
@@ -34,7 +38,12 @@ public class NonIdPrimaryKeyTest : IDisposable
     public async Task Supply_ForARecordWhosePrimaryKeyIsNotNamedId_MocksThatField()
     {
         // Arrange
-        RecordProvider provider = new RecordProvider(typeof(Ledger), LookupOf(new LedgerProvider()))
+        LedgerProvider ledgerProvider = new();
+        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get(ledgerProvider.PrimaryTargetField.DeclaringType!)] = ledgerProvider,
+        });
+        RecordProvider provider = new RecordProvider(typeof(Ledger), lookup)
             .SetInsertMode(InsertMode.Mock);
 
         // Act
@@ -161,9 +170,6 @@ public class NonIdPrimaryKeyTest : IDisposable
     }
 
     // Helpers ---------------------------------------------------------
-
-    private static IProviderLookup LookupOf(IRecordProvider provider) =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get(provider.PrimaryTargetField.DeclaringType!)] = provider });
 
     private static IProviderLookup RelatedLookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>

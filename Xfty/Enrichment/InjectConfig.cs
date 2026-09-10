@@ -89,7 +89,9 @@ public sealed class InjectConfig
         return this;
     }
 
-    /// <summary>Inject the child collection this lookup field defines (e.g. Contact.AccountId -&gt; the Account's Contacts).</summary>
+    /// <summary>
+    /// Inject the child collection this lookup field defines (e.g. Contact.AccountId -&gt; the Account's Contacts).
+    /// </summary>
     public InjectConfig InjectChild(PropertyInfo childLookupField)
     {
         _ = this.IncludedChildFields.Add(childLookupField);
@@ -148,7 +150,10 @@ public sealed class InjectConfig
         return this;
     }
 
-    /// <summary>Allow ParentDepth, ChildDepth and the InjectParent path length to exceed what one query round-trip should reasonably return.</summary>
+    /// <summary>
+    /// Allow ParentDepth, ChildDepth and the InjectParent path length to exceed what one query round-trip should
+    /// reasonably return.
+    /// </summary>
     public InjectConfig AllowDeeperGraph()
     {
         this.DepthLimitsLifted = true;

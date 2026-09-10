@@ -26,7 +26,10 @@ public sealed partial class RecordProvider<TRecord>
         return this;
     }
 
-    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IContextAwareExpression contextAwareExpression)
+    public RecordProvider<TRecord> Put(
+        Expression<Func<TRecord, object?>> field,
+        IContextAwareExpression contextAwareExpression
+    )
     {
         _ = this._inner.Put(Field.Of(field), contextAwareExpression);
         return this;
@@ -44,13 +47,19 @@ public sealed partial class RecordProvider<TRecord>
         return this;
     }
 
-    public RecordProvider<TRecord> PutRequired(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate)
+    public RecordProvider<TRecord> PutRequired(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationshipTemplate
+    )
     {
         _ = this._inner.PutRequired(Field.Of(field), relationshipTemplate);
         return this;
     }
 
-    public RecordProvider<TRecord> PutOptional(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate)
+    public RecordProvider<TRecord> PutOptional(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationshipTemplate
+    )
     {
         _ = this._inner.PutOptional(Field.Of(field), relationshipTemplate);
         return this;

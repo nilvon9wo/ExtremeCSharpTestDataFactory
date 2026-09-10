@@ -55,7 +55,10 @@ public sealed partial class ChildProvider<TChild>
         return this;
     }
 
-    public ChildProvider<TChild> Put(Expression<Func<TChild, object?>> field, IContextAwareExpression contextAwareExpression)
+    public ChildProvider<TChild> Put(
+        Expression<Func<TChild, object?>> field,
+        IContextAwareExpression contextAwareExpression
+    )
     {
         _ = this._inner.Put(Field.Of(field), contextAwareExpression);
         return this;

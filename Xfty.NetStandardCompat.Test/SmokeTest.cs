@@ -81,7 +81,7 @@ public class SmokeTest
     // BlankInstances.Of -> FormatterServices.GetUninitializedObject (netstandard2.0 branch) --
 
     [Fact]
-    public async Task Supply_ForARecordTypeWithNoParameterlessConstructor_BuildsAndFillsItViaTheDownlevelUninitializedObjectPath()
+    public async Task Supply_WhenARecordTypeHasNoParameterlessConstructor_UsesTheUninitializedObjectPath()
     {
         // Arrange - Voucher has only a parameterized constructor, so BlankInstances.Of must fall back
         // to FormatterServices.GetUninitializedObject, the netstandard2.0-only branch #if'd out on net8.0+

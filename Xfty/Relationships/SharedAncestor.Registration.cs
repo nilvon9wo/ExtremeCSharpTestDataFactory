@@ -20,7 +20,8 @@ public sealed partial class SharedAncestor
         IdOf(record) is not null ? PutAsValue(name, record!) : PutAsTemplate(name, record);
 
     /// <summary>Register an override template; the shared record is generated from it in the pre-phase.</summary>
-    public static SharedAncestorProvider PutAsTemplate(string name, object? template) => Get(name).Provider().WithTemplate(template);
+    public static SharedAncestorProvider PutAsTemplate(string name, object? template) =>
+        Get(name).Provider().WithTemplate(template);
 
     /// <summary>
     /// Register a record the test built itself; used exactly as-is, no
@@ -39,7 +40,8 @@ public sealed partial class SharedAncestor
     }
 
     /// <summary>Register just the Provider variant that generates the shared record.</summary>
-    public static SharedAncestorProvider Put(string name, ILookupKey variantKey) => Get(name).Provider().FromVariant(variantKey);
+    public static SharedAncestorProvider Put(string name, ILookupKey variantKey) =>
+        Get(name).Provider().FromVariant(variantKey);
 
     /// <summary>Put(name, record) (same Id-disambiguation), applied only if name is not registered yet.</summary>
     public static SharedAncestorProvider PutIfAbsent(string name, object? record)

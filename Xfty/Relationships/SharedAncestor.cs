@@ -46,7 +46,9 @@ public sealed partial class SharedAncestor : ISharedRelationship
 
     private SharedAncestor(string name) => this.SharedName = name;
 
-    /// <summary>The interned instance for name - the token for PutRequired(field, ...). Creates it on first use.</summary>
+    /// <summary>
+    /// The interned instance for name - the token for PutRequired(field, ...). Creates it on first use.
+    /// </summary>
     public static SharedAncestor Get(string name)
     {
         AssertNameGiven(name);
@@ -68,9 +70,17 @@ public sealed partial class SharedAncestor : ISharedRelationship
         return ancestor._resolvedRecord is null ? throw NotYetResolved(name) : ancestor.PrimaryKeyValue()!;
     }
 
-    /// <summary>The resolved record's primary-key value, read through the field the Provider declares (see <see cref="_resolvedPrimaryField"/>).</summary>
-    private object? PrimaryKeyValue() =>
-        (this._resolvedPrimaryField ?? this._resolvedRecord?.GetType().GetProperty(ConventionalIdFieldName))?.GetValue(this._resolvedRecord);
+    /// <summary>
+    /// The resolved record's primary-key value, read through the field the
+    /// Provider declares (see <see cref="_resolvedPrimaryField"/>).
+    /// </summary>
+    private object? PrimaryKeyValue()
+    {
+        PropertyInfo? keyField =
+            this._resolvedPrimaryField
+            ?? this._resolvedRecord?.GetType().GetProperty(ConventionalIdFieldName);
+        return keyField?.GetValue(this._resolvedRecord);
+    }
 
     private static void AssertNotDisabled(string name)
     {
@@ -89,7 +99,8 @@ public sealed partial class SharedAncestor : ISharedRelationship
     // so it disambiguates "already-saved value" from "override template" by a property literally named "Id".
     // A record whose key is named otherwise: use PutAsValue(...) / PutAsTemplate(...) explicitly. Once a
     // lookup is in play (ResolveNow), the real key field takes over - see SharedAncestor.Resolution.
-    private static object? IdOf(object? record) => record?.GetType().GetProperty(ConventionalIdFieldName)?.GetValue(record);
+    private static object? IdOf(object? record) =>
+        record?.GetType().GetProperty(ConventionalIdFieldName)?.GetValue(record);
 
     /// <summary>
     /// Clears every registered/disabled shared ancestor and the manual-

@@ -32,7 +32,8 @@ public class RecordProviderApiTest
         // nothing to arrange
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider((Type)null!, Lookup));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => new RecordProvider((Type)null!, Lookup));
 
         // Assert
         Assert.Contains("record type is required", thrown.Message);
@@ -45,7 +46,8 @@ public class RecordProviderApiTest
         // nothing to arrange
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider(typeof(Contact), null!));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => new RecordProvider(typeof(Contact), null!));
 
         // Assert
         Assert.Contains("Provider Lookup", thrown.Message);
@@ -58,7 +60,8 @@ public class RecordProviderApiTest
         // nothing to arrange
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider((ILookupKey)null!, Lookup));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => new RecordProvider((ILookupKey)null!, Lookup));
 
         // Assert
         Assert.Contains("lookup key", thrown.Message);
@@ -71,7 +74,8 @@ public class RecordProviderApiTest
         // nothing to arrange
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider([], Lookup));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => new RecordProvider([], Lookup));
 
         // Assert
         Assert.Contains("empty or null template list", thrown.Message);
@@ -84,7 +88,8 @@ public class RecordProviderApiTest
         // nothing to arrange
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider([null!], Lookup));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => new RecordProvider([null!], Lookup));
 
         // Assert
         Assert.Contains("empty or null template list", thrown.Message);
@@ -110,7 +115,8 @@ public class RecordProviderApiTest
     public async Task Constructor_FromATemplate_DerivesTheTypeAndAppliesTheOverride()
     {
         // Arrange
-        RecordProvider provider = new RecordProvider(new Contact { FirstName = "Zoe" }, Lookup).SetInsertMode(InsertMode.Mock);
+        RecordProvider provider =
+            new RecordProvider(new Contact { FirstName = "Zoe" }, Lookup).SetInsertMode(InsertMode.Mock);
 
         // Act
         Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
@@ -146,7 +152,8 @@ public class RecordProviderApiTest
         RecordProvider provider = ContactProvider();
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => provider.SetQuantityPerTemplate(0));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => provider.SetQuantityPerTemplate(0));
 
         // Assert
         Assert.Contains("makes no sense", thrown.Message);
@@ -184,7 +191,8 @@ public class RecordProviderApiTest
     public async Task Constructor_FromAHomogeneousTemplateList_IsAccepted()
     {
         // Arrange
-        RecordProvider provider = new RecordProvider([new Contact { FirstName = "A" }, new Contact { FirstName = "B" }], Lookup)
+        List<object> templates = [new Contact { FirstName = "A" }, new Contact { FirstName = "B" }];
+        RecordProvider provider = new RecordProvider(templates, Lookup)
             .SetInsertMode(InsertMode.Mock);
 
         // Act
@@ -219,7 +227,8 @@ public class RecordProviderApiTest
         RecordProvider provider = new(typeof(Contact), Lookup);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => provider.WithVariant(null!));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => provider.WithVariant(null!));
 
         // Assert
         Assert.Contains("variant key is required", thrown.Message);
@@ -260,7 +269,8 @@ public class RecordProviderApiTest
     public async Task Put_ForAValueExpressionPassedAsObject_RoutesItCorrectly()
     {
         // Arrange
-        RecordProvider provider = ContactProvider().Put<Contact>(x => x.FirstName, (object)new LiteralExpression("RoutedStrategy"));
+        RecordProvider provider =
+            ContactProvider().Put<Contact>(x => x.FirstName, (object)new LiteralExpression("RoutedStrategy"));
 
         // Act
         Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
@@ -303,7 +313,8 @@ public class RecordProviderApiTest
     {
         // Regression guard: a defect previously made provider-level Put(...) a no-op.
         // Arrange
-        RecordProvider provider = ContactProvider().Put<Contact>(x => x.FirstName, new LiteralExpression("DeliberateName"));
+        RecordProvider provider =
+            ContactProvider().Put<Contact>(x => x.FirstName, new LiteralExpression("DeliberateName"));
 
         // Act
         Contact result = Assert.IsType<Contact>(await provider.Supply().ConfigureAwait(true));
@@ -344,7 +355,8 @@ public class RecordProviderApiTest
     public async Task Put_OnOneProvider_DoesNotLeakIntoALaterSeparateProvider()
     {
         // Arrange - customise one Provider, then build a pristine one on the same lookup
-        _ = await ContactProvider().Put<Contact>(x => x.FirstName, new LiteralExpression("Customized")).Supply().ConfigureAwait(true);
+        _ = await ContactProvider().Put<Contact>(x => x.FirstName, new LiteralExpression("Customized")).Supply()
+            .ConfigureAwait(true);
 
         // Act
         Contact pristine = Assert.IsType<Contact>(await ContactProvider().Supply().ConfigureAwait(true));
@@ -423,7 +435,8 @@ public class RecordProviderApiTest
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
-        _ = Assert.Single(bundle.GetList<Contact>(x => x.ReportsToId)!); // the included optional relationship is generated
+        // the included optional relationship is generated
+        _ = Assert.Single(bundle.GetList<Contact>(x => x.ReportsToId)!);
         _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!); // the required Account is still generated
     }
 
@@ -454,7 +467,8 @@ public class RecordProviderApiTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle)
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("is not a relationship", thrown.Message);
@@ -496,7 +510,8 @@ public class RecordProviderApiTest
 
         // Assert
         Assert.Null(excluded.GetList<Contact>(x => x.AccountId));
-        _ = Assert.Single(normal.GetList<Contact>(x => x.AccountId)!); // a separate Provider on the same lookup still generates the relationship
+        // a separate Provider on the same lookup still generates the relationship
+        _ = Assert.Single(normal.GetList<Contact>(x => x.AccountId)!);
     }
 
     [Fact]

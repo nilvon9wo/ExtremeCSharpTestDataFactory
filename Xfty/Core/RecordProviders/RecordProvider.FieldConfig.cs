@@ -5,15 +5,29 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
-/// <summary>RecordProvider - field/relationship configuration, delegated to <see cref="RecordProviderTemplateConfig"/>.</summary>
+/// <summary>
+/// RecordProvider - field/relationship configuration, delegated to <see cref="RecordProviderTemplateConfig"/>.
+/// </summary>
 public sealed partial class RecordProvider
 {
-    public RecordProvider Put(PropertyInfo field, IValueExpression valueTemplate) => this.PutValue(field, valueTemplate);
+    public RecordProvider Put(PropertyInfo field, IValueExpression valueTemplate) =>
+        this.PutValue(
+            field,
+            valueTemplate
+        );
 
-    public RecordProvider Put(PropertyInfo field, IContextAwareExpression contextAwareExpression) => this.PutValue(field, contextAwareExpression);
+    public RecordProvider Put(PropertyInfo field, IContextAwareExpression contextAwareExpression) =>
+        this.PutValue(
+            field,
+            contextAwareExpression
+        );
 
     /// <summary>An up-flowing value; needs the DEFERRED insert mode.</summary>
-    public RecordProvider Put(PropertyInfo field, IDeferredExpression deferredValue) => this.PutValue(field, deferredValue);
+    public RecordProvider Put(PropertyInfo field, IDeferredExpression deferredValue) =>
+        this.PutValue(
+            field,
+            deferredValue
+        );
 
     /// <summary>Convenience overload mirroring MasterTemplate.Put(field, object): routed by runtime type.</summary>
     public RecordProvider Put(PropertyInfo field, object? value) => this.PutValue(field, value);
@@ -44,7 +58,9 @@ public sealed partial class RecordProvider
 
     // Per-call relationship control ---------------------------------
 
-    /// <summary>Generate one specific relationship on this call, on top of whatever SetInclusivity(...) covers.</summary>
+    /// <summary>
+    /// Generate one specific relationship on this call, on top of whatever SetInclusivity(...) covers.
+    /// </summary>
     public RecordProvider IncludeOptional(PropertyInfo field) => this.IncludeOptional([field]);
 
     /// <summary>Reach down the graph: force every relationship along the path for this call.</summary>

@@ -113,7 +113,10 @@ public class ForcingAnEmptyFieldValueTest
     // Helper -------------------------------------------------------
 
     private static IProviderLookup CrateLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Crate>()] = new CrateProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<Crate>()] = new CrateProvider(),
+        });
 }
 
 file sealed record Crate

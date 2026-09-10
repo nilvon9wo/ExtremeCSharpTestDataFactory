@@ -4,7 +4,10 @@ using Net.NowhereAtAll.Xfty.Demo;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
-/// <summary>Proves BundleMerger - folding the sibling child bundles of one relationship field into a single navigable bundle. Pure in-memory, no database access.</summary>
+/// <summary>
+/// Proves BundleMerger - folding the sibling child bundles of one relationship field into a single navigable bundle.
+/// Pure in-memory, no database access.
+/// </summary>
 public class BundleMergerTest
 {
     [Fact]

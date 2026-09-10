@@ -22,7 +22,11 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         return bundle;
     }
 
-    private async Task AddRemainingAncestors(Bundle bundle, List<PropertyInfo> fields, HashSet<PropertyInfo> forcedHeads)
+    private async Task AddRemainingAncestors(
+        Bundle bundle,
+        List<PropertyInfo> fields,
+        HashSet<PropertyInfo> forcedHeads
+    )
     {
         if (fields.Count == 0)
         {
@@ -105,7 +109,12 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
     private Task WireSharedAncestor(Bundle bundle, PropertyInfo field, ISharedRelationship shared) =>
         new SharedRelationshipWiring(this._context, shared).Wire(bundle, field, this._quantity);
 
-    private async Task GenerateAncestor(Bundle bundle, PropertyInfo field, IDefaultRelationship relationship, bool isForced)
+    private async Task GenerateAncestor(
+        Bundle bundle,
+        PropertyInfo field,
+        IDefaultRelationship relationship,
+        bool isForced
+    )
     {
         ILookupKey childKey = relationship.ResolveLookupKey(this._context.ProviderLookup)!;
         this.AssertNoAncestorCycle(field, childKey);

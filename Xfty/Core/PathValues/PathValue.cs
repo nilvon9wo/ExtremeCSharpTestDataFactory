@@ -57,7 +57,9 @@ public sealed class PathValue
         return new PathValue(path, new OptionalRelationPathTarget(relationship));
     }
 
-    /// <summary>The path of relationship fields that must be forced generated to reach the target (path minus the target).</summary>
+    /// <summary>
+    /// The path of relationship fields that must be forced generated to reach the target (path minus the target).
+    /// </summary>
     public List<PropertyInfo> RelationshipPrefix() => [.. this.Path.Take(this.Path.Count - 1)];
 
     public PropertyInfo Head() => this.Path[0];

@@ -38,7 +38,10 @@ public class ExContextAwareValuesTest
         // from docs/use/context-aware-values.md "Copy a field from a generated ancestor" (one hop)
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
             .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account { Site = "HQ" }))
-            .Put<Contact>(x => x.Department, CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Site))
+            .Put<Contact>(
+                x => x.Department,
+                CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Site)
+            )
             .SetInclusivity(InsertInclusivity.Required)
             .Supply().ConfigureAwait(true);
 
@@ -80,14 +83,16 @@ public class ExContextAwareValuesTest
     [Fact]
     public async Task HowItRuns_TheOneOrderingRule()
     {
-        // from docs/use/context-aware-values.md "How it runs, and the one ordering rule" - the wrong-order example throws
+        // from docs/use/context-aware-values.md "How it runs, and the one ordering rule" - the wrong-order example
+        // throws
         // (a bare MasterTemplate, not a Provider with its own pre-existing field-order, keeps the example's
         // "BillingCity put before ShippingCity" actually the wrong order at generation time)
         RecordProvider provider = new RecordProvider(typeof(Account), new BlankAccountProviderLookup())
             .Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCity))
             .Put<Account>(x => x.ShippingCity, CopyFromSiblingExpression.From<Account>(x => x.Site));
 
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
         Assert.Contains("ShippingCity", thrown.Message);
     }
 
@@ -202,7 +207,10 @@ file sealed class LeafUserProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-/// <summary>A lookup whose Account provider carries no pre-existing field defaults, so a test controls the value-field order entirely itself.</summary>
+/// <summary>
+/// A lookup whose Account provider carries no pre-existing field defaults, so a test controls the value-field order
+/// entirely itself.
+/// </summary>
 file sealed class BlankAccountProviderLookup : IProviderLookup
 {
     public IRecordProvider Get(Type recordType) => new BlankAccountProvider();

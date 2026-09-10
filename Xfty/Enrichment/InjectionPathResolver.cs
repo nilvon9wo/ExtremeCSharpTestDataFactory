@@ -24,7 +24,10 @@ public static class InjectionPathResolver
         string name = lookupField.Name;
         if (!name.EndsWith(IdSuffix, StringComparison.Ordinal) || name.Length == IdSuffix.Length)
         {
-            throw BadHop($"{DescribeOf(lookupField)} does not follow the <Name>Id lookup convention - it cannot be an ancestor hop.");
+            throw BadHop(
+                $"{DescribeOf(lookupField)} does not follow the <Name>Id lookup "
+                + "convention - it cannot be an ancestor hop."
+            );
         }
 
         string relationshipName = name[..^IdSuffix.Length];
@@ -33,11 +36,15 @@ public static class InjectionPathResolver
             ?? throw BadHop($"{declaringType.Name} has no {relationshipName} property to graft an ancestor under.");
     }
 
-    /// <summary>The child-collection navigation property on parentType matching childLookupField's own record type - Account.Contacts for Account + Contact.AccountId.</summary>
+    /// <summary>
+    /// The child-collection navigation property on parentType matching childLookupField's own record type -
+    /// Account.Contacts for Account + Contact.AccountId.
+    /// </summary>
     public static PropertyInfo ChildRelationshipField(Type parentType, PropertyInfo childLookupField)
     {
         Type childType = DeclaringTypeOf(childLookupField);
-        List<PropertyInfo> candidates = [.. parentType.GetProperties().Where(property => ElementTypeOf(property.PropertyType) == childType)];
+        List<PropertyInfo> candidates =
+            [.. parentType.GetProperties().Where(property => ElementTypeOf(property.PropertyType) == childType)];
         return candidates.Count switch
         {
             1 => candidates[0],

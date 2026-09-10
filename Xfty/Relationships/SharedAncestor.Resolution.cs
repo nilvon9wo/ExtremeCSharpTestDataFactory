@@ -29,7 +29,9 @@ public sealed partial class SharedAncestor
     /// </summary>
     private void LearnPrimaryFieldFrom(IProviderLookup lookup)
     {
-        this._resolvedPrimaryField ??= this._resolvedBundle?.PrimaryTargetField ?? this.PrimaryFieldFromProvider(lookup);
+        this._resolvedPrimaryField ??=
+            this._resolvedBundle?.PrimaryTargetField
+            ?? this.PrimaryFieldFromProvider(lookup);
 
         // Only the PutAsValue path (no bundle) guessed persistence from an "Id"-named property; correct it now.
         bool cameFromPutAsValue = this._resolvedBundle is null && this._resolvedRecord is not null;
@@ -39,7 +41,10 @@ public sealed partial class SharedAncestor
         }
     }
 
-    /// <summary>The Provider's primary-key field, when the source has a template or variant key to resolve one from; null for a bare PutAsValue registration.</summary>
+    /// <summary>
+    /// The Provider's primary-key field, when the source has a template or variant key to resolve one from; null for a
+    /// bare PutAsValue registration.
+    /// </summary>
     private PropertyInfo? PrimaryFieldFromProvider(IProviderLookup lookup) =>
         this._source is { } theSource && theSource.CanResolvePrimaryField
             ? theSource.PrimaryField(lookup)
@@ -47,7 +52,9 @@ public sealed partial class SharedAncestor
 
     public SharedAncestorProvider Source() =>
         this._source ?? throw new XftyConfigurationException(
-            $"Shared ancestor \"{this.SharedName}\" was never registered - call SharedAncestor.Put(\"{this.SharedName}\", template / key).");
+            $"Shared ancestor \"{this.SharedName}\" was never registered - call "
+            + $"SharedAncestor.Put(\"{this.SharedName}\", template / key)."
+        );
 
     /// <summary>The resolver hands back the generated record and its graph.</summary>
     public void AcceptResolved(object record, Bundle bundle, bool persisted)
@@ -86,7 +93,8 @@ public sealed partial class SharedAncestor
 
     private Bundle SingleRecordBundle()
     {
-        PropertyInfo idField = this._resolvedPrimaryField ?? this._resolvedRecord!.GetType().GetProperty(ConventionalIdFieldName)!;
+        PropertyInfo idField =
+            this._resolvedPrimaryField ?? this._resolvedRecord!.GetType().GetProperty(ConventionalIdFieldName)!;
         Bundle bundle = new();
         bundle.PutPrimaries(idField, [this._resolvedRecord!], this._resolvedMockIdGenerator);
         return bundle;

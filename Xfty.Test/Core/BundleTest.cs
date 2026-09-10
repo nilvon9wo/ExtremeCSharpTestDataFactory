@@ -5,7 +5,10 @@ using Net.NowhereAtAll.Xfty.Persistence;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
-/// <summary>Proves Bundle, the container that preserves the shape of a generated object graph. Pure in-memory structure, no database access.</summary>
+/// <summary>
+/// Proves Bundle, the container that preserves the shape of a generated object graph. Pure in-memory structure, no
+/// database access.
+/// </summary>
 public class BundleTest
 {
     // Put / GetList / GetBundle -------------------------------------
@@ -89,7 +92,10 @@ public class BundleTest
     {
         // Arrange
         Bundle bundle = new();
-        _ = bundle.Put<Contact>(x => x.AccountId, [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]);
+        _ = bundle.Put<Contact>(
+            x => x.AccountId,
+            [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]
+        );
 
         // Act
         object? rowOneName = bundle.GetValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)], 1);
@@ -120,7 +126,10 @@ public class BundleTest
     {
         // Arrange - 2 parents; row 0 owns children A0 and A1, row 1 owns A2
         Bundle childBundle = new();
-        childBundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact { LastName = "A0" }, new Contact { LastName = "A1" }, new Contact { LastName = "A2" }]);
+        childBundle.PutPrimaries(
+            Field.Of<Contact>(x => x.Id),
+            [new Contact { LastName = "A0" }, new Contact { LastName = "A1" }, new Contact { LastName = "A2" }]
+        );
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account(), new Account()]);
         _ = bundle.PutChild(Field.Of<Contact>(x => x.AccountId), childBundle, [0, 0, 1]);
@@ -199,7 +208,10 @@ public class BundleTest
     {
         // Arrange - no Ids anywhere, so ancestor row N pairs with primary row N
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact { LastName = "C0" }, new Contact { LastName = "C1" }]);
+        bundle.PutPrimaries(
+            Field.Of<Contact>(x => x.Id),
+            [new Contact { LastName = "C0" }, new Contact { LastName = "C1" }]
+        );
         _ = bundle.Put<Contact>(x => x.AccountId, [new Account(), new Account()]);
 
         // Act

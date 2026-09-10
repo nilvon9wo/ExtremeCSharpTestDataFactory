@@ -53,7 +53,9 @@ public class ExEnrichmentTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 2)
             .SupplyBundle().ConfigureAwait(true);
 
-        List<object> result = bundle.Inject(Field.Of<Account>(x => x.Id), InjectConfig.Nothing().InjectChild(Field.Of<Contact>(x => x.AccountId)));
+        List<object> result = bundle.Inject(
+            Field.Of<Account>(x => x.Id),
+            InjectConfig.Nothing().InjectChild(Field.Of<Contact>(x => x.AccountId)));
 
         Assert.Equal(2, ((Account)result[0]).Contacts!.Count);
     }

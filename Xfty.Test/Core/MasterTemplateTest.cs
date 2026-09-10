@@ -6,7 +6,10 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
-/// <summary>Proves MasterTemplate - the declarative description of how one record type is generated. Pure in-memory map manipulation, no database access.</summary>
+/// <summary>
+/// Proves MasterTemplate - the declarative description of how one record type is generated. Pure in-memory map
+/// manipulation, no database access.
+/// </summary>
 public class MasterTemplateTest
 {
     // Constructor ---------------------------------------------------
@@ -59,8 +62,10 @@ public class MasterTemplateTest
 
         // Assert
         Assert.Equal(contextAware, template.ContextAwareByField[Field.Of<Contact>(x => x.LastName)]);
-        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.LastName))); // not in the plain-value map
-        Assert.Contains(Field.Of<Contact>(x => x.LastName), template.OrderedValueFields()); // still in the ordered value fields
+        // not in the plain-value map
+        Assert.False(template.DefaultByField.ContainsKey(Field.Of<Contact>(x => x.LastName)));
+        // still in the ordered value fields
+        Assert.Contains(Field.Of<Contact>(x => x.LastName), template.OrderedValueFields());
     }
 
     [Fact]
@@ -76,7 +81,8 @@ public class MasterTemplateTest
 
         // Assert
         Assert.False(template.DefaultByField.ContainsKey(Field.Of<Account>(x => x.Name))); // left the plain-value map
-        Assert.True(template.ContextAwareByField.ContainsKey(Field.Of<Account>(x => x.Name))); // landed in the context-aware map
+        // landed in the context-aware map
+        Assert.True(template.ContextAwareByField.ContainsKey(Field.Of<Account>(x => x.Name)));
     }
 
     [Fact]

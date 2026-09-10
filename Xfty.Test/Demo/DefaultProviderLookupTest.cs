@@ -5,7 +5,9 @@ using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Test.Demo;
 
-/// <summary>Proves the starter-kit lookup resolves its two bundled Providers and derives keys from a record's type.</summary>
+/// <summary>
+/// Proves the starter-kit lookup resolves its two bundled Providers and derives keys from a record's type.
+/// </summary>
 public class DefaultProviderLookupTest
 {
     [Fact]

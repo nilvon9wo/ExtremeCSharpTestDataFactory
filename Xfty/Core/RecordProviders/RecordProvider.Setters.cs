@@ -26,7 +26,9 @@ public sealed partial class RecordProvider
     public RecordProvider SetOverrideTemplate(object overrideTemplate) =>
         this.SetOverrideTemplateList([overrideTemplate]);
 
-    /// <summary>Pin the Provider variant explicitly, instead of letting it be derived from the override template.</summary>
+    /// <summary>
+    /// Pin the Provider variant explicitly, instead of letting it be derived from the override template.
+    /// </summary>
     public RecordProvider WithVariant(ILookupKey variantKey)
     {
         this.AssertTemplateNotYetCustomized();
@@ -39,7 +41,9 @@ public sealed partial class RecordProvider
     {
         if (this._templateConfig.HasCustomTemplate)
         {
-            throw new XftyConfigurationException("Call WithVariant(...) before customizing the template with Put(...).");
+            throw new XftyConfigurationException(
+                "Call WithVariant(...) before customizing the template with Put(...)."
+            );
         }
     }
 
@@ -48,7 +52,9 @@ public sealed partial class RecordProvider
         ILookupKey key = variantKey ?? throw new XftyConfigurationException("A variant key is required.");
         if (key.RecordType != recordType)
         {
-            throw new RecordProviderConflictException($"Variant key is for {key.RecordType} but this Provider requests {recordType}.");
+            throw new RecordProviderConflictException(
+                $"Variant key is for {key.RecordType} but this Provider requests {recordType}."
+            );
         }
     }
 
@@ -97,7 +103,9 @@ public sealed partial class RecordProvider
         return this;
     }
 
-    /// <summary>Suppress the ancestor-cycle guard for this call. Use only when the chain genuinely terminates on its own.</summary>
+    /// <summary>
+    /// Suppress the ancestor-cycle guard for this call. Use only when the chain genuinely terminates on its own.
+    /// </summary>
     public RecordProvider AllowAncestorCycles()
     {
         this._ancestorCyclesAllowed = true;
@@ -119,7 +127,9 @@ public sealed partial class RecordProvider
         return this;
     }
 
-    /// <summary>Undoes ExcludePrimaryIds() - back to the default of persisting the primary like everything else.</summary>
+    /// <summary>
+    /// Undoes ExcludePrimaryIds() - back to the default of persisting the primary like everything else.
+    /// </summary>
     public RecordProvider IncludePrimaryIds()
     {
         this._excludePrimaryIds = false;
@@ -137,7 +147,9 @@ public sealed partial class RecordProvider
         return this;
     }
 
-    /// <summary>Internal: a child of a DEFERRED/depth-batched parent must build its own children structurally too.</summary>
+    /// <summary>
+    /// Internal: a child of a DEFERRED/depth-batched parent must build its own children structurally too.
+    /// </summary>
     public RecordProvider ForceStructuralChildGeneration()
     {
         this._forceStructuralChildGeneration = true;

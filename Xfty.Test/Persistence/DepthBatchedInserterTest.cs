@@ -44,7 +44,9 @@ public class DepthBatchedInserterTest
         List<object> records = [child, parent];
 
         // Act
-        await DepthBatchedInserter.ResolveAll(records, [Link(0, 1, Field.Of<Contact>(x => x.AccountId))], InsertMode.Mock).ConfigureAwait(true);
+        await DepthBatchedInserter
+            .ResolveAll(records, [Link(0, 1, Field.Of<Contact>(x => x.AccountId))], InsertMode.Mock)
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Equal(parent.Id, ((Contact)records[0]).AccountId);
@@ -127,7 +129,10 @@ public class DepthBatchedInserterTest
         List<object> records = [new Account { Name = "A" }];
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DepthBatchedInserter.InsertAll(records, null)).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(
+                () => DepthBatchedInserter.InsertAll(records, null)
+            )
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -138,11 +143,19 @@ public class DepthBatchedInserterTest
     private static async Task AssertCyclic(List<object> records, List<DepthBatchedInserterParentLink> parentLinks)
     {
         // Act
-        CyclicGraphException thrown = await Assert.ThrowsAsync<CyclicGraphException>(() => DepthBatchedInserter.ResolveAll(records, parentLinks, InsertMode.Mock)).ConfigureAwait(false);
+        CyclicGraphException thrown = await Assert.ThrowsAsync<CyclicGraphException>(
+                () => DepthBatchedInserter.ResolveAll(records, parentLinks, InsertMode.Mock)
+            )
+            .ConfigureAwait(false);
 
         // Assert - a cyclic graph must be rejected
         Assert.Contains("cycle", thrown.Message);
     }
 
-    private static DepthBatchedInserterParentLink Link(int childIndex, int parentIndex, PropertyInfo field) => new(childIndex, parentIndex, field);
+    private static DepthBatchedInserterParentLink Link(int childIndex, int parentIndex, PropertyInfo field) =>
+        new(
+            childIndex,
+            parentIndex,
+            field
+        );
 }

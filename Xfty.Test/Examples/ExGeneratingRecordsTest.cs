@@ -35,8 +35,11 @@ public class ExGeneratingRecordsTest
     public async Task ShorthandConstructors_FromDocs_AllWork()
     {
         // from docs/use/generating-records.md "Shorthand constructors"
-        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, Lookup).Supply().ConfigureAwait(true);
-        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], Lookup).SupplyList().ConfigureAwait(true);
+        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, Lookup)
+            .Supply()
+            .ConfigureAwait(true);
+        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], Lookup).SupplyList()
+            .ConfigureAwait(true);
         object fromKey = await new RecordProvider(LookupKey.Get<Contact>(), Lookup).Supply().ConfigureAwait(true);
 
         Assert.Equal("Alice", fromTemplate.FirstName);
@@ -76,8 +79,11 @@ public class ExGeneratingRecordsTest
         // from docs/use/getting-started.md "Shorthand Constructors"
         DefaultProviderLookup lookup = new();
 
-        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, lookup).Supply().ConfigureAwait(true);
-        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], lookup).SupplyList().ConfigureAwait(true);
+        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, lookup)
+            .Supply()
+            .ConfigureAwait(true);
+        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], lookup).SupplyList()
+            .ConfigureAwait(true);
         object fromKey = await new RecordProvider(LookupKey.Get<Contact>(), lookup).Supply().ConfigureAwait(true);
 
         Assert.Equal("Alice", fromTemplate.FirstName);

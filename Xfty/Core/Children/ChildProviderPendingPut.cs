@@ -5,7 +5,9 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Core.Children;
 
-/// <summary>One field configuration queued on a <see cref="ChildProvider"/>, applied to the real RecordProvider once it exists.</summary>
+/// <summary>
+/// One field configuration queued on a <see cref="ChildProvider"/>, applied to the real RecordProvider once it exists.
+/// </summary>
 public sealed class ChildProviderPendingPut
 {
     private readonly PropertyInfo _field;
@@ -25,10 +27,16 @@ public sealed class ChildProviderPendingPut
     public static ChildProviderPendingPut OfContextAware(PropertyInfo field, IContextAwareExpression expression) =>
         new(field, ChildProviderPendingPutKind.ContextAware, expression);
 
-    public static ChildProviderPendingPut OfRequiredRelationship(PropertyInfo field, IDefaultRelationship relationship) =>
+    public static ChildProviderPendingPut OfRequiredRelationship(
+        PropertyInfo field,
+        IDefaultRelationship relationship
+    ) =>
         new(field, ChildProviderPendingPutKind.RequiredRelationship, relationship);
 
-    public static ChildProviderPendingPut OfOptionalRelationship(PropertyInfo field, IDefaultRelationship relationship) =>
+    public static ChildProviderPendingPut OfOptionalRelationship(
+        PropertyInfo field,
+        IDefaultRelationship relationship
+    ) =>
         new(field, ChildProviderPendingPutKind.OptionalRelationship, relationship);
 
     public static ChildProviderPendingPut OfLiteral(PropertyInfo field, object? literal) =>
@@ -38,9 +46,12 @@ public sealed class ChildProviderPendingPut
         _ = this._kind switch
         {
             ChildProviderPendingPutKind.Value => provider.Put(this._field, (IValueExpression)this._payload!),
-            ChildProviderPendingPutKind.ContextAware => provider.Put(this._field, (IContextAwareExpression)this._payload!),
-            ChildProviderPendingPutKind.RequiredRelationship => provider.PutRequired(this._field, (IDefaultRelationship)this._payload!),
-            ChildProviderPendingPutKind.OptionalRelationship => provider.PutOptional(this._field, (IDefaultRelationship)this._payload!),
+            ChildProviderPendingPutKind.ContextAware =>
+                provider.Put(this._field, (IContextAwareExpression)this._payload!),
+            ChildProviderPendingPutKind.RequiredRelationship =>
+                provider.PutRequired(this._field, (IDefaultRelationship)this._payload!),
+            ChildProviderPendingPutKind.OptionalRelationship =>
+                provider.PutOptional(this._field, (IDefaultRelationship)this._payload!),
             _ => provider.Put(this._field, this._payload),
         };
 }

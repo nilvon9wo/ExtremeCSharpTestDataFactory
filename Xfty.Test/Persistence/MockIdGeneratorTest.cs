@@ -94,7 +94,8 @@ public class MockIdGeneratorTest
         MockIdContext context = ContextFor<ByteKeyed>(x => x.Id, new ByteKeyed());
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => DefaultMockIdGenerator.Instance.NextId(context));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => DefaultMockIdGenerator.Instance.NextId(context));
 
         // Assert
         Assert.Contains("Byte", thrown.Message);
@@ -173,7 +174,10 @@ public class MockIdGeneratorTest
         new(typeof(TRecord), Field.Of(idField), record);
 
     private static IProviderLookup LookupOf(IRecordProvider provider) =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get(provider.PrimaryTargetField.DeclaringType!)] = provider });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get(provider.PrimaryTargetField.DeclaringType!)] = provider,
+        });
 
     private static IProviderLookup RelatedLookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
@@ -231,7 +235,9 @@ file sealed class PrefixIdGenerator(string prefix) : IMockIdGenerator
     public object NextId(MockIdContext context) => $"{prefix}-{++this._count}";
 }
 
-/// <summary>The shape from the discussion: a letter, a running number, a stamp - built without touching the record's own fields.</summary>
+/// <summary>
+/// The shape from the discussion: a letter, a running number, a stamp - built without touching the record's own fields.
+/// </summary>
 file sealed class AccountStyleIdGenerator : IMockIdGenerator
 {
     private int _count;
@@ -270,7 +276,10 @@ file sealed class RelatedStringKeyedProvider : MockIdProviderBase
 {
     public RelatedStringKeyedProvider() =>
         this.Template = new MasterTemplate<StringKeyed>(x => x.Id)
-            .PutRequired(x => x.ParentId, new Net.NowhereAtAll.Xfty.Relationships.DefaultRelationship(new StringParent()));
+            .PutRequired(
+                x => x.ParentId,
+                new Net.NowhereAtAll.Xfty.Relationships.DefaultRelationship(new StringParent())
+            );
 }
 
 file sealed class StringParentProvider : MockIdProviderBase

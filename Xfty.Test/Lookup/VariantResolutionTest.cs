@@ -13,11 +13,13 @@ namespace Net.NowhereAtAll.Xfty.Test.Lookup;
 /// </summary>
 public class VariantResolutionTest
 {
-    private static readonly ILookupKey Big =
-        FlavouredLookupKey.Get<Account>("reconcile-big").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 1000));
+    private static readonly FlavouredLookupKey Big =
+        FlavouredLookupKey.Get<Account>("reconcile-big")
+            .Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 1000));
 
-    private static readonly ILookupKey Small =
-        FlavouredLookupKey.Get<Account>("reconcile-small").Matching(FieldPredicateFactory.LessThan<Account>(x => x.NumberOfEmployees, 10));
+    private static readonly FlavouredLookupKey Small =
+        FlavouredLookupKey.Get<Account>("reconcile-small")
+            .Matching(FieldPredicateFactory.LessThan<Account>(x => x.NumberOfEmployees, 10));
 
     private static IProviderLookup Lookup() =>
         ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
@@ -51,7 +53,8 @@ public class VariantResolutionTest
         IProviderLookup providerLookup = Lookup();
 
         // Act
-        LookupException thrown = Assert.Throws<LookupException>(() => ProviderLookups.Reconcile(providerLookup, Big, new Account { NumberOfEmployees = 2 }));
+        LookupException thrown = Assert.Throws<LookupException>(() =>
+            ProviderLookups.Reconcile(providerLookup, Big, new Account { NumberOfEmployees = 2 }));
 
         // Assert - a template matching a different variant must be rejected
         Assert.Contains("contradicts", thrown.Message);

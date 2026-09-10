@@ -1,6 +1,8 @@
 namespace Net.NowhereAtAll.Xfty.VectorDatabases.Test;
 
-/// <summary>Proves <see cref="RandomVectorExpression"/> - Get produces the requested shape, range, and variety.</summary>
+/// <summary>
+/// Proves <see cref="RandomVectorExpression"/> - Get produces the requested shape, range, and variety.
+/// </summary>
 public class RandomVectorExpressionTest
 {
     [Fact]
@@ -52,7 +54,10 @@ public class RandomVectorExpressionTest
         List<float[]> produced = [.. Enumerable.Range(0, 10).Select(_ => (float[])expression.Get()!)];
 
         // Assert
-        Assert.True(produced.Select(vector => vector[0]).Distinct().Count() > 1, "expected varied vectors across many calls");
+        Assert.True(
+            produced.Select(vector => vector[0]).Distinct().Count() > 1,
+            "expected varied vectors across many calls"
+        );
     }
 
     [Fact]

@@ -7,7 +7,11 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// the depth-batched insert, and fills every field an IDeferredExpression
 /// left unresolved by reading it from that record's generated descendants.
 /// </summary>
-public sealed class DescendantValuePass(List<object> records, List<DepthBatchedInserterParentLink> links, List<PendingDeferredValue> pending)
+public sealed class DescendantValuePass(
+    List<object> records,
+    List<DepthBatchedInserterParentLink> links,
+    List<PendingDeferredValue> pending
+)
 {
     private readonly List<object> _records = records;
     private readonly DeferredGraph _graph = new(records, links);

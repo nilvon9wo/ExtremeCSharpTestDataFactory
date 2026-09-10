@@ -52,7 +52,8 @@ public class InjectionPathResolverTest
         PropertyInfo notALookup = Field.Of<Account>(x => x.Name);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => InjectionPathResolver.ParentRelationshipField(notALookup));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => InjectionPathResolver.ParentRelationshipField(notALookup));
 
         // Assert - the message names the offending field
         Assert.Contains("Name", thrown.Message);
@@ -65,7 +66,8 @@ public class InjectionPathResolverTest
         Type parentType = typeof(Account);
 
         // Act
-        PropertyInfo field = InjectionPathResolver.ChildRelationshipField(parentType, Field.Of<Contact>(x => x.AccountId));
+        PropertyInfo field =
+            InjectionPathResolver.ChildRelationshipField(parentType, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         Assert.Equal(nameof(Account.Contacts), field.Name);

@@ -60,7 +60,8 @@ public class SharedAncestorLeaksWithoutIsolationTest
         // directly throws "disabled" - a real, observable bug this test's own name has never been through
         // SharedAncestor.ResetAllForTesting(), unlike every test in IsolatesSharedAncestorAttributeTest.
         Assert.Null(result.AccountId);
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => SharedAncestor.GetId(sharedName));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => SharedAncestor.GetId(sharedName));
         Assert.Contains("disabled", thrown.Message);
 
         // Cleanup - so this file's own next test run (or others sharing this process) don't inherit it either

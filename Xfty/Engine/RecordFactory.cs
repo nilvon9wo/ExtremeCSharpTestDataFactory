@@ -18,13 +18,18 @@ public sealed class RecordFactory
         this._template = PathValueApplier.Apply(context.PathValues, forced);
     }
 
-    public static Task<Bundle> CreateBundle(GenerationContext context, MasterTemplate masterTemplate, List<object> testTemplates) =>
+    public static Task<Bundle> CreateBundle(
+        GenerationContext context,
+        MasterTemplate masterTemplate,
+        List<object> testTemplates
+    ) =>
         new RecordFactory(context, masterTemplate).Build(testTemplates);
 
     private async Task<Bundle> Build(List<object> testTemplates)
     {
         int quantity = testTemplates.Count;
-        Bundle bundle = await new AncestorGenerator(this._context, quantity, this._template).Generate().ConfigureAwait(false);
+        Bundle bundle = await new AncestorGenerator(this._context, quantity, this._template).Generate()
+            .ConfigureAwait(false);
         List<object> records = PlainValueFiller.CloneAndCompletePlainValues(this._template, testTemplates);
         bundle.PutPrimaries(this._template.PrimaryTargetField, records, this._template.MockIdGenerator);
         new LookupWiring(bundle, this._context, this._template).Wire();
@@ -51,7 +56,10 @@ public sealed class RecordFactory
 
         List<PropertyInfo> unsetFields = [.. this._template.PrimaryTargetField.DeclaringType!
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(field => field.CanWrite && field.GetIndexParameters().Length == 0 && !this._template.IsConfigured(field))];
+            .Where(field =>
+                field.CanWrite
+                && field.GetIndexParameters().Length == 0
+                && !this._template.IsConfigured(field))];
         if (unsetFields.Count > 0)
         {
             records.ForEach(record => filler.Fill(record, unsetFields));

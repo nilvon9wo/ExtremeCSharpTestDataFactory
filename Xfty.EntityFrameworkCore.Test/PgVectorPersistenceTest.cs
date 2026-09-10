@@ -60,7 +60,10 @@ public sealed class PgVectorPersistenceTest : IAsyncLifetime
     [Fact]
     public async Task Supply_InNowMode_AgainstARealPgvectorColumn_ActuallyInsertsTheVector()
     {
-        Assert.SkipUnless(this._dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
+        Assert.SkipUnless(
+            this._dockerAvailable,
+            "Docker is not reachable from this machine - start Docker Desktop to run this tier."
+        );
 
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(DocumentEmbedding), new DocumentEmbeddingProviderLookup())

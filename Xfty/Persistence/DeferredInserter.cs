@@ -21,7 +21,11 @@ public static class DeferredInserter
     /// ancestors this same registry resolves for real, efficiently,
     /// alongside everything else registered before the flush.
     /// </summary>
-    public static void Register(Bundle bundle, bool excludePrimaryIds = false) => s_buffer.Add(bundle, excludePrimaryIds);
+    public static void Register(Bundle bundle, bool excludePrimaryIds = false) =>
+        s_buffer.Add(
+            bundle,
+            excludePrimaryIds
+        );
 
     public static int PendingCount() => s_buffer.PendingCount();
 

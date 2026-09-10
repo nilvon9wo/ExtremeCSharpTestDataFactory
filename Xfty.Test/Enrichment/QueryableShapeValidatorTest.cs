@@ -28,7 +28,8 @@ public class QueryableShapeValidatorTest
         InjectConfig config = InjectConfig.AllParents().ParentDepth(6);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
 
         // Assert
         Assert.Contains("AllowDeeperGraph", thrown.Message);
@@ -41,7 +42,8 @@ public class QueryableShapeValidatorTest
         InjectConfig config = InjectConfig.AllChildren().ChildDepth(2);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
 
         // Assert - the message points at the escape hatch
         Assert.Contains("AllowDeeperGraph", thrown.Message);
@@ -71,7 +73,8 @@ public class QueryableShapeValidatorTest
         InjectConfig config = InjectConfig.Nothing().InjectParent(sixHops);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
 
         // Assert
         Assert.NotNull(thrown);
@@ -82,10 +85,17 @@ public class QueryableShapeValidatorTest
     {
         // Arrange - a 2-child-hop path, but childDepth is still the default 1
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            [Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)], "x");
+            [
+                Field.Of<Contact>(x => x.AccountId),
+                Field.Of<Case>(x => x.ContactId),
+                Field.Of<Case>(x => x.Subject),
+            ],
+            "x"
+        );
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => QueryableShapeValidator.Validate(config));
 
         // Assert - the message points at childDepth
         Assert.Contains("childDepth", thrown.Message);
@@ -98,7 +108,10 @@ public class QueryableShapeValidatorTest
         InjectConfig config = InjectConfig.Nothing()
             .ChildDepth(2)
             .AllowDeeperGraph()
-            .InjectChildValue([Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)], "x");
+            .InjectChildValue(
+                [Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)],
+                "x"
+            );
 
         // Act
         Exception? thrown = Record.Exception(() => QueryableShapeValidator.Validate(config));

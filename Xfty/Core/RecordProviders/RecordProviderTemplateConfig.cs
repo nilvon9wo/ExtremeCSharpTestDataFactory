@@ -52,7 +52,9 @@ internal sealed class RecordProviderTemplateConfig(Func<MasterTemplate> resolveB
         bool isValid = relationshipPath is { Count: > 0 } && relationshipPath.TrueForAll(step => step is not null);
         if (!isValid)
         {
-            throw new XftyConfigurationException("IncludeOptional(...) needs at least one non-null relationship field.");
+            throw new XftyConfigurationException(
+                "IncludeOptional(...) needs at least one non-null relationship field."
+            );
         }
     }
 
@@ -74,14 +76,17 @@ internal sealed class RecordProviderTemplateConfig(Func<MasterTemplate> resolveB
     {
         if (!this.IsRelationshipOnTemplate(field))
         {
-            throw new XftyConfigurationException($"ExcludeRelationship({field.Name}): {recordType} has no relationship on that field.");
+            throw new XftyConfigurationException(
+                $"ExcludeRelationship({field.Name}): {recordType} has no relationship on that field."
+            );
         }
     }
 
     private bool IsRelationshipOnTemplate(PropertyInfo field)
     {
         MasterTemplate current = this.ResolveTemplate();
-        return current.RequiredRelationshipByField.ContainsKey(field) || current.OptionalRelationshipByField.ContainsKey(field);
+        return current.RequiredRelationshipByField.ContainsKey(field)
+            || current.OptionalRelationshipByField.ContainsKey(field);
     }
 
     public void AddPathValue(PathValue pathValue) => this.PathValues.Add(pathValue);

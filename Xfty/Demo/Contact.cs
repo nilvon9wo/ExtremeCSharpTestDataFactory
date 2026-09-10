@@ -33,6 +33,8 @@ public sealed record class Contact
     /// </summary>
     public Account? Account { get; init; }
 
-    /// <summary>The Cases child collection - populated only via reflection, see <see cref="Account.Contacts"/>.</summary>
+    /// <summary>
+    /// The Cases child collection - populated only via reflection, see <see cref="Account.Contacts"/>.
+    /// </summary>
     public List<Case>? Cases { get; init; }
 }

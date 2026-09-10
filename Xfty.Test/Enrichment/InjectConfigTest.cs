@@ -4,7 +4,9 @@ using Net.NowhereAtAll.Xfty.Enrichment;
 
 namespace Net.NowhereAtAll.Xfty.Test.Enrichment;
 
-/// <summary>Proves InjectConfig - a plain fluent state carrier for bundle.Inject(field, config). No persistence.</summary>
+/// <summary>
+/// Proves InjectConfig - a plain fluent state carrier for bundle.Inject(field, config). No persistence.
+/// </summary>
 public class InjectConfigTest
 {
     [Fact]
@@ -181,7 +183,8 @@ public class InjectConfigTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing();
-        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)];
+        List<PropertyInfo> path =
+            [Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)];
 
         // Act
         _ = config.InjectChildValue(path, "x");

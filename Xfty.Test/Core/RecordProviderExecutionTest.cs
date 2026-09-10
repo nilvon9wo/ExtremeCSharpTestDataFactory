@@ -14,12 +14,16 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// each insert mode. <see cref="RecordProviderApiTest"/> covers the fluent
 /// surface that produces these plans.
 /// </summary>
-public class RecordProviderExecutionTest : IDisposable
+public sealed class RecordProviderExecutionTest : IDisposable
 {
     private static readonly DefaultProviderLookup Lookup = new();
-    private static readonly IRecordProvider AccountOutlet = new AccountDataProvider();
+    private static readonly AccountDataProvider AccountOutlet = new();
 
-    public void Dispose() => DeferredInserter.ResetForTesting();
+    public void Dispose()
+    {
+        DeferredInserter.ResetForTesting();
+        GC.SuppressFinalize(this);
+    }
 
     [Fact]
     public async Task SupplyBundle_WithABarePlan_GeneratesTheOnePrimary()

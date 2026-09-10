@@ -28,7 +28,8 @@ public class ExDeferredInsertTest
             .SetInsertMode(InsertMode.Deferred)
             .SupplyBundle().ConfigureAwait(true);
 
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush()).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush())
+            .ConfigureAwait(true);
 
         Assert.NotEmpty(accounts.PrimaryRecords()!);
         Assert.NotEmpty(contacts.PrimaryRecords()!);

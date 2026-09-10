@@ -34,7 +34,8 @@ public class EnrichmentIntegrationTest
             .SetInclusivity(InsertInclusivity.Required);
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
-        // Act - InjectAll targets the bundle's primary field, not the ancestor key (which addresses the ancestor sub-bundle itself)
+        // Act - InjectAll targets the bundle's primary field, not the ancestor key (which addresses the ancestor
+        // sub-bundle itself)
         List<object> enriched = bundle.InjectAll(Field.Of<Contact>(x => x.Id));
 
         // Assert - the enriched copy carries the populated Account; the original bundle record does not

@@ -105,7 +105,10 @@ public sealed class BundleEnricher
             return;
         }
 
-        pos.SubBundle.RelationshipFields().ToList().ForEach(lookupField => this.GraftAncestor(injector, pos, lookupField));
+        foreach (PropertyInfo lookupField in pos.SubBundle.RelationshipFields())
+        {
+            this.GraftAncestor(injector, pos, lookupField);
+        }
     }
 
     private void GraftAncestor(RecordInjector injector, EnrichmentPosition pos, PropertyInfo lookupField)
@@ -187,7 +190,12 @@ public sealed class BundleEnricher
             root.CarryInverse(
                 this._entryField,
                 InverseAlignment.ChildrenPerParent(
-                    target.Records!, this._entryBundle.PrimaryRecords()!, this._entryField, target.SubBundle?.PrimaryTargetField));
+                    target.Records!,
+                    this._entryBundle.PrimaryRecords()!,
+                    this._entryField,
+                    target.SubBundle?.PrimaryTargetField
+                )
+            );
         }
 
         return root;
@@ -211,7 +219,11 @@ public sealed class BundleEnricher
         return up;
     }
 
-    private EnrichmentPosition ChildrenPosition(EnrichmentPosition pos, BundleChildEntry entry, PropertyInfo childField) =>
+    private EnrichmentPosition ChildrenPosition(
+        EnrichmentPosition pos,
+        BundleChildEntry entry,
+        PropertyInfo childField
+    ) =>
         new(entry.Bundle, entry.Bundle.PrimaryRecords())
         {
             ParentDepthLeft = this._config.ParentDepthLimit,
@@ -228,5 +240,6 @@ public sealed class BundleEnricher
 
     private static List<PropertyInfo> Append(List<PropertyInfo> path, PropertyInfo extra) => [.. path, extra];
 
-    private static List<List<object>> EmptyListsFor(int size) => [.. Enumerable.Range(0, size).Select(_ => new List<object>())];
+    private static List<List<object>> EmptyListsFor(int size) =>
+        [.. Enumerable.Range(0, size).Select(_ => new List<object>())];
 }

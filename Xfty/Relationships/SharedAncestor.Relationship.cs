@@ -5,7 +5,9 @@ using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Relationships;
 
-/// <summary>SharedAncestor - the IDefaultRelationship/ISharedRelationship surface a Master Template puts it as.</summary>
+/// <summary>
+/// SharedAncestor - the IDefaultRelationship/ISharedRelationship surface a Master Template puts it as.
+/// </summary>
 public sealed partial class SharedAncestor
 {
     public object? OverrideTemplate => this._source?.OverrideTemplate();
@@ -33,8 +35,13 @@ public sealed partial class SharedAncestor
 
     private async Task<object?> ResolveAllThenReturnOwn(GenerationContext context)
     {
-        await SharedAncestorResolver.ResolveAllConfigured(context.ProviderLookup, context.InsertMode).ConfigureAwait(false);
-        return (await this.ResolveNow(context.ProviderLookup, context.InsertMode).ConfigureAwait(false))._resolvedRecord;
+        await SharedAncestorResolver
+            .ResolveAllConfigured(context.ProviderLookup, context.InsertMode)
+            .ConfigureAwait(false);
+        SharedAncestor resolved = await this
+            .ResolveNow(context.ProviderLookup, context.InsertMode)
+            .ConfigureAwait(false);
+        return resolved._resolvedRecord;
     }
 
     private async Task<object?> ResolveUnderManualMode(GenerationContext context) =>
@@ -44,7 +51,9 @@ public sealed partial class SharedAncestor
 
     private XftyConfigurationException NoAutoResolutionException() =>
         new(
-            $"Shared ancestor \"{this.SharedName}\" has a sub-graph of its own and auto-resolution is off (manual "
-            + $"resolution only). Resolve it up front: SharedAncestor.Get(\"{this.SharedName}\").ResolveNow(lookup, mode), "
-            + "or SharedAncestor.ResolveNow(lookup, mode, names).");
+            $"Shared ancestor \"{this.SharedName}\" has a sub-graph of its own and "
+            + "auto-resolution is off (manual resolution only). Resolve it up front: "
+            + $"SharedAncestor.Get(\"{this.SharedName}\").ResolveNow(lookup, mode), "
+            + "or SharedAncestor.ResolveNow(lookup, mode, names)."
+        );
 }

@@ -9,7 +9,9 @@ using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Test.Lookup;
 
-/// <summary>Proves DiscriminatorLookupKey - the record-type-discriminator analog built over FlavouredLookupKey.</summary>
+/// <summary>
+/// Proves DiscriminatorLookupKey - the record-type-discriminator analog built over FlavouredLookupKey.
+/// </summary>
 public class DiscriminatorLookupKeyTest
 {
     [Fact]

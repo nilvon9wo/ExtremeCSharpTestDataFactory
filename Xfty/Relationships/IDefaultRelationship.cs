@@ -15,7 +15,9 @@ public interface IDefaultRelationship
     /// <summary>Override template for the generated parent; also identifies its record type.</summary>
     object? OverrideTemplate { get; }
 
-    /// <summary>The parent field whose value is copied into the child's lookup field, or null to use the parent's Id.</summary>
+    /// <summary>
+    /// The parent field whose value is copied into the child's lookup field, or null to use the parent's Id.
+    /// </summary>
     PropertyInfo? RelatedField { get; }
 
     /// <summary>

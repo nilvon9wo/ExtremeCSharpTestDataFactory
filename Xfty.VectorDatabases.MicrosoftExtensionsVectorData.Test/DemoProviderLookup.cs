@@ -15,7 +15,13 @@ public sealed class DemoProviderLookup : IProviderLookup
 
     public IRecordProvider Get(Type recordType) => this.Get(LookupKey.Get(recordType));
 
-    public IRecordProvider Get(ILookupKey lookupKey) => ProviderLookups.Get(ProviderTypeByKey, this._instanceCache, lookupKey);
+    public IRecordProvider Get(ILookupKey lookupKey) =>
+        ProviderLookups.Get(
+            ProviderTypeByKey,
+            this._instanceCache,
+            lookupKey
+        );
 
-    public ISet<ILookupKey> KeysFor(object? record) => ProviderLookups.KeysFor(ProviderTypeByKey.Keys.ToHashSet(), record);
+    public ISet<ILookupKey> KeysFor(object? record) =>
+        ProviderLookups.KeysFor(ProviderTypeByKey.Keys.ToHashSet(), record);
 }

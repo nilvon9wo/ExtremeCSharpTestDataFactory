@@ -2,7 +2,10 @@ using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Core.Children;
 
-/// <summary>ChildProvider&lt;TChild&gt; - child-collection settings (quantity, insert mode, inclusivity, variant, grandchildren).</summary>
+/// <summary>
+/// ChildProvider&lt;TChild&gt; - child-collection settings (quantity, insert mode, inclusivity, variant,
+/// grandchildren).
+/// </summary>
 public sealed partial class ChildProvider<TChild>
 {
     public ChildProvider<TChild> SetQuantity(int quantity)

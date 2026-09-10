@@ -4,7 +4,10 @@ using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Relationships;
 namespace Net.NowhereAtAll.Xfty.Engine;
 
-/// <summary>Wires a shared ancestor into a bundle: one record stands in for every child at its field, resolved once per test, then repeated quantity times.</summary>
+/// <summary>
+/// Wires a shared ancestor into a bundle: one record stands in for every child at its field, resolved once per test,
+/// then repeated quantity times.
+/// </summary>
 public sealed class SharedRelationshipWiring(GenerationContext context, ISharedRelationship shared)
 {
     private readonly GenerationContext _context = context;

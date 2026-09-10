@@ -19,7 +19,10 @@ namespace Net.NowhereAtAll.Xfty.Test.Engine;
 public class AncestorCycleTest
 {
     private static IProviderLookup SelfReferringLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Contact>()] = new SelfReferringContactProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<Contact>()] = new SelfReferringContactProvider(),
+        });
 
     [Fact]
     public async Task SupplyBundle_WithOneLevelOfSelfReference_StopsTheChainOnItsOwn()
@@ -50,7 +53,8 @@ public class AncestorCycleTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle)
+            .ConfigureAwait(true);
 
         // Assert - a deeper same-key chain must throw
         Assert.Contains("cycle", thrown.Message);

@@ -24,7 +24,10 @@ public sealed class SqliteNowPersistenceTest : IDisposable
         // an in-memory SQLite database needs one open connection kept alive for its lifetime
         this._connection = new SqliteConnection("DataSource=:memory:");
         this._connection.Open();
-        this._dbContext = new DemoDbContext(new DbContextOptionsBuilder<DemoDbContext>().UseSqlite(this._connection).Options);
+        DbContextOptions<DemoDbContext> options = new DbContextOptionsBuilder<DemoDbContext>()
+            .UseSqlite(this._connection)
+            .Options;
+        this._dbContext = new DemoDbContext(options);
         _ = this._dbContext.Database.EnsureCreated();
     }
 

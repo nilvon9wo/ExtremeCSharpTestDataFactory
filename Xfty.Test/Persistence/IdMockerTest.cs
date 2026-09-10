@@ -43,7 +43,8 @@ public class IdMockerTest
     public void AddIds_PopulatesEveryRecordWithADistinctId()
     {
         // Arrange
-        List<object> records = [new Contact { LastName = "A" }, new Contact { LastName = "B" }, new Contact { LastName = "C" }];
+        List<object> records =
+            [new Contact { LastName = "A" }, new Contact { LastName = "B" }, new Contact { LastName = "C" }];
 
         // Act
         _ = IdMocker.AddIds(records, Field.Of<Contact>(x => x.Id));

@@ -197,7 +197,8 @@ public class ChildProviderOfTForwardingTest
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
-        List<object> grandchildren = bundle.GetChildBundle<Contact>(x => x.AccountId)!.GetChildList<Contact>(x => x.ReportsToId);
+        List<object> grandchildren =
+            bundle.GetChildBundle<Contact>(x => x.AccountId)!.GetChildList<Contact>(x => x.ReportsToId);
         Assert.Equal(6, grandchildren.Count); // 2 child Contacts x 3 grandchildren
     }
 }

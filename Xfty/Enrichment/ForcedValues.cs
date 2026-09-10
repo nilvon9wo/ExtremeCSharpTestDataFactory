@@ -81,12 +81,19 @@ public sealed class ForcedValues(InjectConfig config)
         if (unreached.Count > 0)
         {
             throw new XftyConfigurationException(
-                $"Inject: [{string.Join(", ", unreached)}] named a record the graph never produced or the walk "
-                + "never reached (check the path, that the ancestor / child was generated, and ParentDepth / ChildDepth).");
+                $"Inject: [{string.Join(", ", unreached)}] named a record the graph "
+                + "never produced or the walk never reached (check the path, that "
+                + "the ancestor / child was generated, and ParentDepth / ChildDepth)."
+            );
         }
     }
 
-    private static void PlaceAll(RecordInjector injector, Dictionary<PropertyInfo, object?> valueByField, int rowCount) =>
+    private static void PlaceAll(
+        RecordInjector injector,
+        Dictionary<PropertyInfo,
+        object?> valueByField,
+        int rowCount
+    ) =>
         valueByField.ToList().ForEach(pair => Place(injector, pair.Key, pair.Value, rowCount));
 
     private static void Place(RecordInjector injector, PropertyInfo field, object? value, int rowCount) =>

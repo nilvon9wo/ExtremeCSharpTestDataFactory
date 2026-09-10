@@ -7,7 +7,8 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus;
 
 /// <summary>
 /// Intercepts a request for a type with a registered <see cref="IRecordProvider"/>
-/// and answers it with <c>new RecordProvider(type, lookup).SetInsertMode(insertMode).SetInclusivity(inclusivity).Supply()</c>
+/// and answers it with
+/// <c>new RecordProvider(type, lookup).SetInsertMode(insertMode).SetInclusivity(inclusivity).Supply()</c>
 /// instead of AutoBogus's own generation - so <c>faker.Generate&lt;Contact&gt;()</c>
 /// gets a fully-formed XFTY graph rather than AutoBogus's own recursive
 /// auto-property population, which knows nothing about XFTY's relationships,
@@ -37,7 +38,11 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus;
 /// Register directly via AutoBogus's own configuration, or use
 /// <see cref="XftyAutoBogus.CreateFaker"/> for the one-line form.
 /// </summary>
-public sealed class XftyAutoBogusOverride(IProviderLookup lookup, InsertMode insertMode, InsertInclusivity inclusivity) : AutoGeneratorOverride
+public sealed class XftyAutoBogusOverride(
+    IProviderLookup lookup,
+    InsertMode insertMode,
+    InsertInclusivity inclusivity
+) : AutoGeneratorOverride
 {
     public override bool Preinitialize => false;
 

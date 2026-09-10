@@ -34,11 +34,14 @@ internal static class QdrantRecordReflection
 
     internal static PropertyInfo FindVectorField(Type recordType)
     {
-        List<PropertyInfo> candidates = [.. recordType.GetProperties().Where(property => property.PropertyType == typeof(float[]))];
+        List<PropertyInfo> candidates =
+            [.. recordType.GetProperties().Where(property => property.PropertyType == typeof(float[]))];
         return candidates.Count == 1
             ? candidates[0]
             : throw new NotSupportedException(
-                $"{recordType.Name} must have exactly one 'float[]' property for this PoC to treat as the vector; "
-                + $"found {candidates.Count}. A differently-typed or ambiguous embedding isn't supported - see README.md.");
+                $"{recordType.Name} must have exactly one 'float[]' property for "
+                + $"this PoC to treat as the vector; found {candidates.Count}. A "
+                + "differently-typed or ambiguous embedding isn't supported - see README.md."
+            );
     }
 }

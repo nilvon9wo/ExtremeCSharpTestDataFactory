@@ -37,7 +37,10 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
             return;
         }
 
-        this._dbContext = new DemoDbContext(new DbContextOptionsBuilder<DemoDbContext>().UseNpgsql(this._container.GetConnectionString()).Options);
+        DbContextOptions<DemoDbContext> options = new DbContextOptionsBuilder<DemoDbContext>()
+            .UseNpgsql(this._container.GetConnectionString())
+            .Options;
+        this._dbContext = new DemoDbContext(options);
         _ = await this._dbContext.Database.EnsureCreatedAsync().ConfigureAwait(false);
     }
 
@@ -57,7 +60,10 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
     [Fact]
     public async Task Supply_InNowMode_AgainstARealPostgresContainer_ActuallyInsertsARow()
     {
-        Assert.SkipUnless(this._dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
+        Assert.SkipUnless(
+            this._dockerAvailable,
+            "Docker is not reachable from this machine - start Docker Desktop to run this tier."
+        );
 
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), new DefaultProviderLookup())
@@ -76,7 +82,10 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
     [Fact]
     public async Task SupplyBundle_NowPlusDepthBatched_AgainstARealPostgresContainer_WiresTheRealForeignKey()
     {
-        Assert.SkipUnless(this._dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
+        Assert.SkipUnless(
+            this._dockerAvailable,
+            "Docker is not reachable from this machine - start Docker Desktop to run this tier."
+        );
 
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), new DefaultProviderLookup())

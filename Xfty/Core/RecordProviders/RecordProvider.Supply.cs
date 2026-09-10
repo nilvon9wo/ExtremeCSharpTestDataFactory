@@ -2,7 +2,10 @@ using Net.NowhereAtAll.Xfty.Core.Bundles;
 
 namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
-/// <summary>RecordProvider - the terminal Supply*() calls: snapshot the configuration into a <see cref="RecordProviderPlan"/> and run it.</summary>
+/// <summary>
+/// RecordProvider - the terminal Supply*() calls: snapshot the configuration into a <see cref="RecordProviderPlan"/>
+/// and run it.
+/// </summary>
 public sealed partial class RecordProvider
 {
     public Task<Bundle> SupplyBundle() => this.Execution().SupplyBundle();

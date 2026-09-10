@@ -23,8 +23,13 @@ public static class PersistenceGatewayExtensions
     public static Task InsertMixed(
         this IPersistenceGateway gateway,
         List<object> records,
-        IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType = null) =>
-        InsertGroups(gateway, [.. records.GroupBy(record => record.GetType())], idFieldByType ?? new Dictionary<Type, PropertyInfo>());
+        IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType = null
+    ) =>
+        InsertGroups(
+            gateway,
+            [.. records.GroupBy(record => record.GetType())],
+            idFieldByType ?? new Dictionary<Type, PropertyInfo>()
+        );
 
     private static Task InsertGroups(
         IPersistenceGateway gateway,

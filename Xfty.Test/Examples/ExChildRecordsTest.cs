@@ -60,8 +60,10 @@ public class ExChildRecordsTest
         // from docs/use/child-records.md "Attaching it"
         Bundle bundle = await new RecordProvider<Account>(LookupWithCase())
             .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "A" }).SetQuantity(3))
-            .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(2))  // additive
-            .With(ChildProvider.For<Case>(x => x.AccountId).SetQuantity(2))                                      // another type
+            // additive
+            .With(ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "B" }).SetQuantity(2))
+            // another type
+            .With(ChildProvider.For<Case>(x => x.AccountId).SetQuantity(2))
             .SetInsertMode(InsertMode.Mock)
             .SupplyBundle().ConfigureAwait(true);
 

@@ -224,13 +224,22 @@ public class NonNullableValueFieldTest
         new RecordProvider(typeof(Widget), WidgetLookup()).SetInsertMode(InsertMode.Never);
 
     private static IProviderLookup WidgetLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Widget>()] = new WidgetProviderImpl() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<Widget>()] = new WidgetProviderImpl(),
+        });
 
     private static IProviderLookup CrateLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Crate>()] = new PlainCrateProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<Crate>()] = new PlainCrateProvider(),
+        });
 
     private static IProviderLookup ParcelLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Parcel>()] = new ParcelProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<Parcel>()] = new ParcelProvider(),
+        });
 
     private static IProviderLookup DepotChainLookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
@@ -240,7 +249,10 @@ public class NonNullableValueFieldTest
         });
 
     private static IProviderLookup ToteLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Tote>()] = new ToteProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<Tote>()] = new ToteProvider(),
+        });
 }
 
 file enum WidgetKind

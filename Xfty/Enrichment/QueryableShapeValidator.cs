@@ -24,13 +24,28 @@ public static class QueryableShapeValidator
             return;
         }
 
-        RejectOverLimit($"parentDepth {config.ParentDepthLimit}", config.ParentDepthLimit, InjectConfig.DefaultParentDepthLimit);
-        RejectOverLimit($"childDepth {config.ChildDepthLimit}", config.ChildDepthLimit, InjectConfig.DefaultChildDepthLimit);
+        RejectOverLimit(
+            $"parentDepth {config.ParentDepthLimit}",
+            config.ParentDepthLimit,
+            InjectConfig.DefaultParentDepthLimit
+        );
+        RejectOverLimit(
+            $"childDepth {config.ChildDepthLimit}",
+            config.ChildDepthLimit,
+            InjectConfig.DefaultChildDepthLimit
+        );
         config.IncludedParentPaths.ForEach(path =>
-            RejectOverLimit($"an InjectParent path of {path.Count} hops", path.Count, InjectConfig.DefaultParentDepthLimit));
+            RejectOverLimit(
+                $"an InjectParent path of {path.Count} hops",
+                path.Count,
+                InjectConfig.DefaultParentDepthLimit
+            ));
     }
 
-    /// <summary>An InjectChildValue path can only place its value if the walk descends far enough - ChildDepth has to allow as many child levels as the path has.</summary>
+    /// <summary>
+    /// An InjectChildValue path can only place its value if the walk descends far enough - ChildDepth has to allow as
+    /// many child levels as the path has.
+    /// </summary>
     private static void RejectChildValuesDeeperThanChildDepth(InjectConfig config) =>
         config.ChildValues.ForEach(childValue =>
         {
@@ -38,8 +53,11 @@ public static class QueryableShapeValidator
             if (childLevels > config.ChildDepthLimit)
             {
                 throw new XftyConfigurationException(
-                    $"Inject: an InjectChildValue path reaches {childLevels} child level(s) but childDepth is "
-                    + $"{config.ChildDepthLimit}. Raise childDepth (past {InjectConfig.DefaultChildDepthLimit} also needs AllowDeeperGraph()).");
+                    $"Inject: an InjectChildValue path reaches {childLevels} child "
+                    + $"level(s) but childDepth is {config.ChildDepthLimit}. Raise "
+                    + $"childDepth (past {InjectConfig.DefaultChildDepthLimit} also "
+                    + "needs AllowDeeperGraph())."
+                );
             }
         });
 

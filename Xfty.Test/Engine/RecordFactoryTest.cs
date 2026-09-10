@@ -24,7 +24,8 @@ public class RecordFactoryTest
 {
     private static readonly DefaultProviderLookup DefaultLookup = new();
 
-    private static IProviderLookup LookupOf(Dictionary<ILookupKey, IRecordProvider> providers) => ProviderLookups.Of(providers);
+    private static IProviderLookup LookupOf(Dictionary<ILookupKey, IRecordProvider> providers) =>
+        ProviderLookups.Of(providers);
 
     private static IProviderLookup OptionalChainLookup() =>
         LookupOf(new Dictionary<ILookupKey, IRecordProvider>
@@ -40,7 +41,8 @@ public class RecordFactoryTest
     public async Task SupplyBundle_AtNoneInclusivity_GeneratesNoRelatedRecords()
     {
         // Arrange
-        RecordProvider provider = ContactProvider(DefaultLookup).SetInclusivity(InsertInclusivity.None).SetInsertMode(InsertMode.Mock);
+        RecordProvider provider =
+            ContactProvider(DefaultLookup).SetInclusivity(InsertInclusivity.None).SetInsertMode(InsertMode.Mock);
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -55,7 +57,8 @@ public class RecordFactoryTest
     public async Task SupplyBundle_AtRequiredInclusivity_GeneratesTheRequiredParentAndWiresTheLookup()
     {
         // Arrange
-        RecordProvider provider = ContactProvider(DefaultLookup).SetInclusivity(InsertInclusivity.Required).SetInsertMode(InsertMode.Mock);
+        RecordProvider provider =
+            ContactProvider(DefaultLookup).SetInclusivity(InsertInclusivity.Required).SetInsertMode(InsertMode.Mock);
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -97,7 +100,9 @@ public class RecordFactoryTest
     public async Task SupplyBundle_AtRequiredInclusivity_RecursesIntoTheGrandparent()
     {
         // Arrange
-        RecordProvider provider = ContactProvider(DeepChainLookup()).SetInclusivity(InsertInclusivity.Required).SetInsertMode(InsertMode.Mock);
+        RecordProvider provider = ContactProvider(DeepChainLookup())
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock);
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -120,7 +125,8 @@ public class RecordFactoryTest
 
         // Assert
         _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!); // the direct Account is still generated
-        Assert.Null(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId)); // PreventCascade stops the second level generating its own relationships
+        // PreventCascade stops the second level generating its own relationships
+        Assert.Null(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId));
     }
 
     [Fact]
@@ -158,7 +164,8 @@ public class RecordFactoryTest
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
-        Assert.Equal(presetAccountId, ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId); // the preset lookup value is kept
+        // the preset lookup value is kept
+        Assert.Equal(presetAccountId, ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId);
         Assert.NotNull(bundle.GetList<Contact>(x => x.AccountId)); // the Account is still generated into the bundle
     }
 
@@ -181,7 +188,8 @@ public class RecordFactoryTest
         Assert.Equal(3, accounts.Count);
         Assert.All(Enumerable.Range(0, 3), i =>
             Assert.Equal(accounts[i].Id, contacts[i].AccountId)); // row i wired to its own parent
-        Assert.Equal(3, accounts.Select(account => account.Id).Distinct().Count()); // each Contact gets a distinct Account
+        // each Contact gets a distinct Account
+        Assert.Equal(3, accounts.Select(account => account.Id).Distinct().Count());
     }
 
     // Insert modes ---------------------------------------------
@@ -226,7 +234,8 @@ public class RecordFactoryTest
 
         // Assert
         _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!); // the optional Account is forced
-        Assert.Null(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId)); // but not the Account Owner - the path stopped at one step
+        // but not the Account Owner - the path stopped at one step
+        Assert.Null(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId));
     }
 
     [Fact]
@@ -245,7 +254,8 @@ public class RecordFactoryTest
 
         // Assert
         _ = Assert.Single(bundle.GetList<Contact>(x => x.AccountId)!); // the optional Account is forced
-        _ = Assert.Single(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId)!); // and its optional Owner, one step deeper
+        // and its optional Owner, one step deeper
+        _ = Assert.Single(bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.OwnerId)!);
     }
 
     [Fact]
@@ -273,18 +283,26 @@ public class RecordFactoryTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle)
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("not a relationship", thrown.Message);
     }
 
     [Fact]
-    public void IncludeOptional_WhenGivenAnEmptyPath_Throws() => AssertIncludeOptionalRejects([], "at least one non-null relationship");
+    public void IncludeOptional_WhenGivenAnEmptyPath_Throws() =>
+        AssertIncludeOptionalRejects(
+            [],
+            "at least one non-null relationship"
+        );
 
     [Fact]
     public void IncludeOptional_WhenGivenANullStep_Throws() =>
-        AssertIncludeOptionalRejects([Field.Of<Contact>(x => x.AccountId), null!], "at least one non-null relationship");
+        AssertIncludeOptionalRejects(
+            [Field.Of<Contact>(x => x.AccountId), null!],
+            "at least one non-null relationship"
+        );
 
     // Runners + helpers -------------------------------------
 
@@ -309,7 +327,8 @@ public class RecordFactoryTest
     private static async Task AssertNoIdsGenerated(InsertMode insertMode)
     {
         // Arrange
-        RecordProvider provider = ContactProvider(DefaultLookup).SetInclusivity(InsertInclusivity.Required).SetInsertMode(insertMode);
+        RecordProvider provider =
+            ContactProvider(DefaultLookup).SetInclusivity(InsertInclusivity.Required).SetInsertMode(insertMode);
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(false);
@@ -325,7 +344,8 @@ public class RecordFactoryTest
         RecordProvider provider = new(typeof(Contact), DefaultLookup);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => provider.IncludeOptional(path));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => provider.IncludeOptional(path));
 
         // Assert
         Assert.Contains(expectedMessagePart, thrown.Message);
@@ -375,7 +395,10 @@ file sealed class DeepContactProvider : BaseProvider
             .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account()));
 }
 
-/// <summary>Copies the parent Account's Name onto Contact.Department via a related-field relationship (a writable stand-in - Contact.Description isn't settable on this demo type).</summary>
+/// <summary>
+/// Copies the parent Account's Name onto Contact.Department via a related-field relationship (a writable stand-in -
+/// Contact.Description isn't settable on this demo type).
+/// </summary>
 file sealed class RelatedFieldContactProvider : BaseProvider
 {
     public RelatedFieldContactProvider() =>

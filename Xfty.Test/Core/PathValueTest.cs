@@ -127,13 +127,19 @@ public class PathValueTest
     [Fact]
     public async Task Put_WithADeepTwoRelationshipPath_WalksBothHopsAndSetsTheTargetField()
     {
-        // Arrange - Contact -> Account (Contact.AccountId) -> Account (self-referencing ParentId), set the grandparent's Industry
+        // Arrange - Contact -> Account (Contact.AccountId) -> Account (self-referencing ParentId), set the
+        // grandparent's Industry
         RecordProvider provider = new RecordProvider(typeof(Contact), DeepAccountLookup())
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .AllowAncestorCycles() // Account -> Account (self-referencing ParentId) terminates on its own after one level
+            // Account -> Account (self-referencing ParentId) terminates on its own after one level
+            .AllowAncestorCycles()
             .Put(
-                [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Industry)],
+                [
+                    Field.Of<Contact>(x => x.AccountId),
+                    Field.Of<Account>(x => x.ParentId),
+                    Field.Of<Account>(x => x.Industry),
+                ],
                 "DeepValue");
 
         // Act
@@ -200,7 +206,8 @@ public class PathValueTest
 
         Bundle managerBundle = ownerBundle.GetBundle<User>(x => x.ManagerId)!;
         Assert.NotNull(managerBundle); // the Manager User (distinct Provider) generated
-        Assert.NotNull(((User)managerBundle.PrimaryRecords()![0]).ManagerId); // the Manager generated its skip-level Manager
+        // the Manager generated its skip-level Manager
+        Assert.NotNull(((User)managerBundle.PrimaryRecords()![0]).ManagerId);
         Assert.NotNull(managerBundle.GetBundle<User>(x => x.ManagerId)); // and that skip-level User is in the bundle
     }
 
@@ -231,7 +238,8 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.FirstName), Field.Of<Account>(x => x.Industry)], "x");
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle)
+            .ConfigureAwait(true);
 
         // Assert - a non-relationship path field is a loud error, not a silent no-op
         Assert.Contains("relationship", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -247,7 +255,8 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace");
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle)
+            .ConfigureAwait(true);
 
         // Assert - a path value into a shared ancestor is a loud error, not a dropped value
         Assert.Contains("shared ancestor", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -296,7 +305,10 @@ file sealed class ContactUnderSharedAccountProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-/// <summary>An Account that generates its own optional parent (self-referencing ParentId) - only needed for the deep-two-hop test.</summary>
+/// <summary>
+/// An Account that generates its own optional parent (self-referencing ParentId) - only needed for the deep-two-hop
+/// test.
+/// </summary>
 file sealed class AccountWithOptionalParentProvider : IRecordProvider
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))

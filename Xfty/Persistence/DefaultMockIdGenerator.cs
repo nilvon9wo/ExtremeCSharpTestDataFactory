@@ -27,7 +27,10 @@ public sealed class DefaultMockIdGenerator : IMockIdGenerator
     public object NextId(MockIdContext context) =>
         RenderedId(UnwrappedIdType(context.IdField.PropertyType), NextSequence(), context);
 
-    /// <summary>The next <c>"mock-N"</c> string - the shape the old string-only mocker produced, kept for callers that just want one.</summary>
+    /// <summary>
+    /// The next <c>"mock-N"</c> string - the shape the old string-only mocker produced, kept for callers that just want
+    /// one.
+    /// </summary>
     internal static string NextMockString() => $"{MockStringPrefix}{NextSequence()}";
 
     private static int NextSequence() => Interlocked.Increment(ref s_sequence);

@@ -41,7 +41,9 @@ internal static class DictionaryCompatExtensions
         dictionary.TryGetValue(key, out TValue? value) ? value : default;
 }
 
-/// <summary>See <see cref="DictionaryCompatExtensions"/> - same reasoning, for <c>IEnumerable&lt;T&gt;.ToHashSet()</c>.</summary>
+/// <summary>
+/// See <see cref="DictionaryCompatExtensions"/> - same reasoning, for <c>IEnumerable&lt;T&gt;.ToHashSet()</c>.
+/// </summary>
 internal static class EnumerableCompatExtensions
 {
     public static HashSet<T> ToHashSet<T>(this IEnumerable<T> source) => [.. source];

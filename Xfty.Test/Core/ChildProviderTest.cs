@@ -235,7 +235,8 @@ public class ChildProviderTest
         List<object> cases = bundle.GetChildBundle<Contact>(x => x.AccountId)!.GetChildList<Case>(x => x.ContactId);
         Assert.Equal(6, cases.Count); // 2 Contacts x 3 Cases
         HashSet<string?> contactIds = [.. contacts.Cast<Contact>().Select(contact => contact.Id)];
-        Assert.All(cases.Cast<Case>(), caseRecord => Assert.Contains(caseRecord.ContactId, contactIds)); // grandchild points at its Contact
+        // grandchild points at its Contact
+        Assert.All(cases.Cast<Case>(), caseRecord => Assert.Contains(caseRecord.ContactId, contactIds));
     }
 
     [Fact]
@@ -256,7 +257,8 @@ public class ChildProviderTest
         Assert.Equal(2, contacts.Count);
         List<object> cases = bundle.GetChildBundle<Contact>(x => x.AccountId)!.GetChildList<Case>(x => x.ContactId);
         Assert.Equal(4, cases.Count);
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush()).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush())
+            .ConfigureAwait(true);
         Assert.Contains("persistence gateway", thrown.Message);
         DeferredInserter.ResetForTesting(); // the failed Flush() deliberately left the registry non-empty
     }
@@ -270,7 +272,8 @@ public class ChildProviderTest
         ChildProvider childProvider = new(Field.Of<Contact>(x => x.AccountId));
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => childProvider.SetQuantity(0));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => childProvider.SetQuantity(0));
 
         // Assert
         Assert.Contains("at least 1", thrown.Message);
@@ -306,7 +309,8 @@ public class ChildProviderTest
         // Act - the child's Now override is honoured (not silently downgraded to the parent's Never); Now with no
         // gateway configured throws rather than silently skipping the insert (see PersistenceGatewayTest for the
         // configured-gateway case, where Now genuinely persists)
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.SupplyBundle).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.SupplyBundle)
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -316,7 +320,11 @@ public class ChildProviderTest
     // never coexist correctly in the same generated graph, whether or not a persistence gateway is
     // configured for Now.
     [Fact]
-    public Task SupplyBundle_WhenAMockParentHasANowChild_Throws() => AssertMockRealMixThrows(InsertMode.Mock, InsertMode.Now);
+    public Task SupplyBundle_WhenAMockParentHasANowChild_Throws() =>
+        AssertMockRealMixThrows(
+            InsertMode.Mock,
+            InsertMode.Now
+        );
 
     [Fact]
     public async Task SupplyBundle_WhenTheParentIsLater_LeavesChildrenExactlyAsNeverWould()
@@ -375,7 +383,8 @@ public class ChildProviderTest
         // Assert
         Bundle merged = bundle.GetChildBundle<Case>(x => x.AccountId)!;
         Assert.Equal(2, merged.PrimaryRecords()!.Count);
-        Assert.Equal(2, merged.GetBundle<Case>(x => x.ContactId)!.PrimaryRecords()!.Count); // the Cases from both configs generated their own Contact parent
+        // the Cases from both configs generated their own Contact parent
+        Assert.Equal(2, merged.GetBundle<Case>(x => x.ContactId)!.PrimaryRecords()!.Count);
     }
 
     // Runners + helpers ----------------------------
@@ -388,7 +397,8 @@ public class ChildProviderTest
             .With(ChildProvider.For<Contact>(x => x.AccountId).SetInsertMode(childMode));
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(false);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle)
+            .ConfigureAwait(false);
 
         // Assert - a mock/real mix must throw
         Assert.Contains("mix mock", thrown.Message);
@@ -401,7 +411,9 @@ public class ChildProviderTest
     }
 }
 
-/// <summary>Case that needs a Contact (which in turn needs its own Account) - an in-test Provider only used here.</summary>
+/// <summary>
+/// Case that needs a Contact (which in turn needs its own Account) - an in-test Provider only used here.
+/// </summary>
 file sealed class CaseProvider : IRecordProvider
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))

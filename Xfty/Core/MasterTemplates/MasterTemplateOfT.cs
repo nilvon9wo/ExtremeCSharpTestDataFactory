@@ -41,13 +41,19 @@ public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> p
         return this;
     }
 
-    public MasterTemplate<TRecord> PutRequired(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship)
+    public MasterTemplate<TRecord> PutRequired(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationship
+    )
     {
         _ = this._inner.PutRequired(Field.Of(field), relationship);
         return this;
     }
 
-    public MasterTemplate<TRecord> PutOptional(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship)
+    public MasterTemplate<TRecord> PutOptional(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationship
+    )
     {
         _ = this._inner.PutOptional(Field.Of(field), relationship);
         return this;

@@ -5,7 +5,10 @@ using Net.NowhereAtAll.Xfty.Relationships;
 
 namespace Net.NowhereAtAll.Xfty.Test.Relationships;
 
-/// <summary>Proves DefaultRelationship - its accessors and its deferred, memoised lookup-key resolution. Pure in-memory, no persistence.</summary>
+/// <summary>
+/// Proves DefaultRelationship - its accessors and its deferred, memoised lookup-key resolution. Pure in-memory, no
+/// persistence.
+/// </summary>
 public class DefaultRelationshipTest
 {
     [Fact]
@@ -29,7 +32,8 @@ public class DefaultRelationshipTest
         // nothing to arrange
 
         // Act
-        DefaultRelationship relationship = new(new Account { Name = "Parent" }, Field.Of<Account>(x => x.AccountNumber));
+        DefaultRelationship relationship =
+            new(new Account { Name = "Parent" }, Field.Of<Account>(x => x.AccountNumber));
 
         // Assert
         Assert.Equal(Field.Of<Account>(x => x.AccountNumber), relationship.RelatedField);

@@ -20,9 +20,10 @@ namespace Net.NowhereAtAll.Xfty.Values;
 /// </summary>
 public sealed class CopyFromSiblingExpression(PropertyInfo sourceField) : IContextAwareExpression
 {
-    private readonly PropertyInfo _sourceField = sourceField ?? throw new XftyConfigurationException("CopyFromSiblingExpression needs a source field.");
+    private readonly PropertyInfo _sourceField = sourceField ?? throw new XftyConfigurationException(
+        "CopyFromSiblingExpression needs a source field."
+    );
 
-    /// <summary>CopyFromSiblingExpression(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public static CopyFromSiblingExpression From<TRecord>(Expression<Func<TRecord, object?>> sourceField) =>
         new(Field.Of(sourceField));
 

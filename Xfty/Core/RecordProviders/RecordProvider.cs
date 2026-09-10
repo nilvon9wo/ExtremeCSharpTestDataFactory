@@ -37,12 +37,20 @@ public sealed partial class RecordProvider
 
     public RecordProvider(Type recordType, IProviderLookup providerLookup)
     {
-        this._recordType = recordType ?? throw new XftyConfigurationException("A record type is required to request data.");
-        this._providerLookup = providerLookup ?? throw new XftyConfigurationException("A Provider Lookup is required to request data.");
-        this._templateConfig = new RecordProviderTemplateConfig(() => this.ResolveFactoryOutlet().MasterTemplate.Copy());
+        this._recordType = recordType ?? throw new XftyConfigurationException(
+            "A record type is required to request data."
+        );
+        this._providerLookup = providerLookup ?? throw new XftyConfigurationException(
+            "A Provider Lookup is required to request data."
+        );
+        this._templateConfig = new RecordProviderTemplateConfig(
+            () => this.ResolveFactoryOutlet().MasterTemplate.Copy()
+        );
     }
 
-    /// <summary>Convenience: start from a lookup key. The record type is taken from the key, pinned as the variant.</summary>
+    /// <summary>
+    /// Convenience: start from a lookup key. The record type is taken from the key, pinned as the variant.
+    /// </summary>
     public RecordProvider(ILookupKey variantKey, IProviderLookup providerLookup)
         : this(TypeOf(variantKey), providerLookup) =>
         this._explicitVariantKey = variantKey;
@@ -53,7 +61,9 @@ public sealed partial class RecordProvider
     {
     }
 
-    /// <summary>Convenience: start from a list of override templates. The record type is taken from the first template.</summary>
+    /// <summary>
+    /// Convenience: start from a list of override templates. The record type is taken from the first template.
+    /// </summary>
     public RecordProvider(List<object> overrideTemplateList, IProviderLookup providerLookup)
         : this(TypeOf(overrideTemplateList), providerLookup) =>
         this.SetOverrideTemplateList(overrideTemplateList);
@@ -84,7 +94,8 @@ public sealed partial class RecordProvider
     private ILookupKey ResolveVariantKey()
     {
         object? firstTemplate = this._overrideTemplateList is { Count: > 0 } ? this._overrideTemplateList[0] : null;
-        ILookupKey? reconciled = ProviderLookups.Reconcile(this._providerLookup, this._explicitVariantKey, firstTemplate);
+        ILookupKey? reconciled =
+            ProviderLookups.Reconcile(this._providerLookup, this._explicitVariantKey, firstTemplate);
         return reconciled ?? LookupKey.Get(this._recordType);
     }
 
@@ -93,7 +104,9 @@ public sealed partial class RecordProvider
         object? conflicting = FirstConflictingTemplate(overrideTemplateList, this._recordType);
         if (conflicting is not null)
         {
-            throw new RecordProviderConflictException($"This Provider requests {this._recordType} but was given a {conflicting.GetType()} override template.");
+            throw new RecordProviderConflictException(
+                $"This Provider requests {this._recordType} but was given a {conflicting.GetType()} override template."
+            );
         }
     }
 

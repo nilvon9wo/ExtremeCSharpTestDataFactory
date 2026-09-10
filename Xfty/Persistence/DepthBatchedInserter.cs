@@ -80,8 +80,15 @@ public sealed class DepthBatchedInserter
         bool nothingToDo = records.Count == 0 || mode == InsertMode.Never;
         return nothingToDo
             ? Task.CompletedTask
-            : new DepthBatchedInserter(records, links, mode, gateway, excludedIndices, idFieldByType, mockIdGeneratorByType)
-                .InsertLayerByLayer();
+            : new DepthBatchedInserter(
+                records,
+                links,
+                mode,
+                gateway,
+                excludedIndices,
+                idFieldByType,
+                mockIdGeneratorByType
+            ).InsertLayerByLayer();
     }
 
     private Task InsertLayerByLayer() =>
@@ -141,7 +148,8 @@ public sealed class DepthBatchedInserter
             : this._gateway.InsertMixed(layer, this._idFieldByType);
 
     private void PointAtParents(int child) =>
-        this._linksByChild[child].ForEach(link => link.Field.SetValue(this._records[child], this.IdOf(this._records[link.ParentIndex])));
+        this._linksByChild[child].ForEach(link =>
+            link.Field.SetValue(this._records[child], this.IdOf(this._records[link.ParentIndex])));
 
     private object? IdOf(object record) => this.IdFieldFor(record)?.GetValue(record);
 
@@ -162,7 +170,8 @@ public sealed class DepthBatchedInserter
         int recordCount,
         List<DepthBatchedInserterParentLink>? links)
     {
-        List<List<DepthBatchedInserterParentLink>> byChild = [.. Enumerable.Range(0, recordCount).Select(_ => new List<DepthBatchedInserterParentLink>())];
+        List<List<DepthBatchedInserterParentLink>> byChild =
+            [.. Enumerable.Range(0, recordCount).Select(_ => new List<DepthBatchedInserterParentLink>())];
         (links ?? []).ForEach(link => byChild[link.ChildIndex].Add(link));
         return byChild;
     }

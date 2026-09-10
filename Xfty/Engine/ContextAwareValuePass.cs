@@ -5,7 +5,10 @@ using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Values;
 namespace Net.NowhereAtAll.Xfty.Engine;
 
-/// <summary>The second value pass: the context-aware expressions, run once the plain values, ancestors and lookups are all in place.</summary>
+/// <summary>
+/// The second value pass: the context-aware expressions, run once the plain values, ancestors and lookups are all in
+/// place.
+/// </summary>
 public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext context, MasterTemplate template)
 {
     private readonly Bundle _bundle = bundle;
@@ -47,8 +50,11 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
 
     private void CompleteField(object record, GenerationContext scoped, PropertyInfo field)
     {
-        bool nothingToFill = !this._template.ContextAwareByField.TryGetValue(field, out IContextAwareExpression? expression)
-            || !FieldState.IsUnset(field, record);
+        bool hasExpression = this._template.ContextAwareByField.TryGetValue(
+            field,
+            out IContextAwareExpression? expression
+        );
+        bool nothingToFill = !hasExpression || !FieldState.IsUnset(field, record);
         if (nothingToFill)
         {
             return;

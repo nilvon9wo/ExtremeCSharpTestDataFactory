@@ -54,7 +54,9 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
     private readonly IProviderLookup _lookup = lookup;
     private readonly InsertMode _mode = Eager(mode);
 
-    /// <summary>Every shared ancestor configured this test method, resolved against the triggering call's mode.</summary>
+    /// <summary>
+    /// Every shared ancestor configured this test method, resolved against the triggering call's mode.
+    /// </summary>
     public static Task ResolveAllConfigured(IProviderLookup lookup, InsertMode callMode) =>
         WithGate(() => ResolveAllConfiguredUnderGate(lookup, callMode));
 
@@ -95,7 +97,8 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
         s_running = true;
         try
         {
-            List<SharedAncestor> toResolve = [.. this.InDependencyOrder(ancestors).Where(ancestor => !ancestor.IsResolved)];
+            List<SharedAncestor> toResolve =
+                [.. this.InDependencyOrder(ancestors).Where(ancestor => !ancestor.IsResolved)];
             await this.ResolveRemaining(toResolve).ConfigureAwait(false);
         }
         finally
@@ -156,7 +159,12 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
         return ordered;
     }
 
-    private void Visit(SharedAncestor ancestor, List<SharedAncestor> ordered, HashSet<string> done, HashSet<string> onThePath)
+    private void Visit(
+        SharedAncestor ancestor,
+        List<SharedAncestor> ordered,
+        HashSet<string> done,
+        HashSet<string> onThePath
+    )
     {
         string name = ancestor.SharedName;
         if (done.Contains(name))

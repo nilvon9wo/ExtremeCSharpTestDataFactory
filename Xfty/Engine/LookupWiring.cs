@@ -49,7 +49,8 @@ public sealed class LookupWiring(Bundle bundle, GenerationContext context, Maste
     private void PointToParent(object record, PropertyInfo field, object parent)
     {
         IDefaultRelationship relationship = this._relationships[field];
-        PropertyInfo? parentSourceField = relationship.RelatedField ?? this._bundle.GetBundle(field)?.PrimaryTargetField;
+        PropertyInfo? parentSourceField =
+            relationship.RelatedField ?? this._bundle.GetBundle(field)?.PrimaryTargetField;
         field.SetValue(record, parentSourceField?.GetValue(parent));
     }
 

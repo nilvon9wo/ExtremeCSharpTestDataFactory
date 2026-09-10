@@ -14,18 +14,22 @@ public class EnrichmentSelectionTest
 {
     private static List<PropertyInfo> AccountPath() => [Field.Of<Contact>(x => x.AccountId)];
 
-    private static List<PropertyInfo> AccountParent() => [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)];
+    private static List<PropertyInfo> AccountParent() =>
+        [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId)];
 
     private static List<PropertyInfo> Owner() => [Field.Of<Contact>(x => x.ReportsToId)];
 
     [Fact]
-    public void WantsAncestor_FromNothing_IsFalse() => AssertWantsAncestor(InjectConfig.Nothing(), AccountPath(), false);
+    public void WantsAncestor_FromNothing_IsFalse() =>
+        AssertWantsAncestor(InjectConfig.Nothing(), AccountPath(), false);
 
     [Fact]
-    public void WantsAncestor_FromAllParents_IsTrueForAnyUpwardPath() => AssertWantsAncestor(InjectConfig.AllParents(), AccountParent(), true);
+    public void WantsAncestor_FromAllParents_IsTrueForAnyUpwardPath() =>
+        AssertWantsAncestor(InjectConfig.AllParents(), AccountParent(), true);
 
     [Fact]
-    public void WantsAncestor_FromAllParentsWhenTheWalkHasTurnedDownward_IsTrue() => AssertWantsAncestor(InjectConfig.AllParents(), null, true);
+    public void WantsAncestor_FromAllParentsWhenTheWalkHasTurnedDownward_IsTrue() =>
+        AssertWantsAncestor(InjectConfig.AllParents(), null, true);
 
     [Fact]
     public void WantsAncestor_FromNothingWhenTheWalkHasTurnedDownward_IsFalse() =>
@@ -86,28 +90,48 @@ public class EnrichmentSelectionTest
     private static List<PropertyInfo> OneChildHop() => [Field.Of<Contact>(x => x.AccountId)];
 
     [Fact]
-    public void ChildFieldsOn_FromAllChildren_IncludesThePresentField() => AssertChildFieldsOnContains(InjectConfig.AllChildren(), RootPath(), true);
+    public void ChildFieldsOn_FromAllChildren_IncludesThePresentField() =>
+        AssertChildFieldsOnContains(InjectConfig.AllChildren(), RootPath(), true);
 
     [Fact]
     public void ChildFieldsOn_WhenExcluded_DropsTheField() =>
-        AssertChildFieldsOnContains(InjectConfig.AllChildren().ExcludeChild(Field.Of<Contact>(x => x.AccountId)), RootPath(), false);
+        AssertChildFieldsOnContains(
+            InjectConfig.AllChildren().ExcludeChild(Field.Of<Contact>(x => x.AccountId)),
+            RootPath(),
+            false
+        );
 
     [Fact]
     public void ChildFieldsOn_ForAnInjectChildFieldAtTheRoot_IncludesIt() =>
-        AssertChildFieldsOnContains(InjectConfig.Nothing().InjectChild(Field.Of<Contact>(x => x.AccountId)), RootPath(), true);
+        AssertChildFieldsOnContains(
+            InjectConfig.Nothing().InjectChild(Field.Of<Contact>(x => x.AccountId)),
+            RootPath(),
+            true
+        );
 
     [Fact]
     public void ChildFieldsOn_ForAnInjectChildFieldNotAtTheRoot_ExcludesIt() =>
-        AssertChildFieldsOnContains(InjectConfig.Nothing().InjectChild(Field.Of<Contact>(x => x.AccountId)), OneChildHop(), false);
+        AssertChildFieldsOnContains(
+            InjectConfig.Nothing().InjectChild(Field.Of<Contact>(x => x.AccountId)),
+            OneChildHop(),
+            false
+        );
 
     [Fact]
     public void ChildFieldsOn_ForAnInjectChildValuePathAtTheRoot_IncludesItsFirstHop() =>
         AssertChildFieldsOnContains(
-            InjectConfig.Nothing().InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), "x"),
+            InjectConfig.Nothing().InjectChildValue(
+                Field.Of<Contact>(x => x.AccountId),
+                Field.Of<Contact>(x => x.Department),
+                "x"),
             RootPath(),
             true);
 
-    private static void AssertChildFieldsOnContains(InjectConfig config, List<PropertyInfo> childPathHere, bool expectedToContain)
+    private static void AssertChildFieldsOnContains(
+        InjectConfig config,
+        List<PropertyInfo> childPathHere,
+        bool expectedToContain
+    )
     {
         // Arrange
         Bundle bundle = new();

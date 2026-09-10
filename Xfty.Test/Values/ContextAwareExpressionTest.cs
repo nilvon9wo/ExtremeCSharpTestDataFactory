@@ -90,7 +90,8 @@ public class ContextAwareExpressionTest
             .Put<Account>(x => x.AccountNumber, "seed");
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("Site", thrown.Message);
@@ -107,7 +108,8 @@ public class ContextAwareExpressionTest
             .Put<Account>(x => x.Site, CopyFromSiblingExpression.From<Account>(x => x.Description));
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("has not been generated yet", thrown.Message);
@@ -121,7 +123,10 @@ public class ContextAwareExpressionTest
         // Arrange
         RecordProvider provider = ContactProvider()
             .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account { Name = "Wired Parent" }))
-            .Put<Contact>(x => x.Department, CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Name))
+            .Put<Contact>(
+                x => x.Department,
+                CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Name)
+            )
             .SetInclusivity(InsertInclusivity.Required);
 
         // Act
@@ -137,7 +142,10 @@ public class ContextAwareExpressionTest
         // Arrange
         RecordProvider provider = ContactProvider()
             .RemoveFromMasterTemplate<Contact>(x => x.AccountId)
-            .Put<Contact>(x => x.Department, CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Name))
+            .Put<Contact>(
+                x => x.Department,
+                CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Name)
+            )
             .SetInclusivity(InsertInclusivity.None);
 
         // Act
@@ -152,7 +160,10 @@ public class ContextAwareExpressionTest
     {
         // Arrange - the bundled Account Provider gives each generated Account an incrementing Name
         RecordProvider provider = ContactProvider()
-            .Put<Contact>(x => x.Department, CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Name))
+            .Put<Contact>(
+                x => x.Department,
+                CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Name)
+            )
             .SetQuantityPerTemplate(3)
             .SetInclusivity(InsertInclusivity.Required);
 
@@ -218,7 +229,8 @@ public class ContextAwareExpressionTest
 
         // Assert
         HashSet<object?> labels = [.. accounts.Cast<Account>().Select(account => account.Description)];
-        Assert.Equal(["1 of 3", "2 of 3", "3 of 3"], labels); // each row sees all three sibling primaries and its own rowIndex
+        // each row sees all three sibling primaries and its own rowIndex
+        Assert.Equal(["1 of 3", "2 of 3", "3 of 3"], labels);
     }
 }
 
@@ -246,7 +258,9 @@ file sealed class LeafUserProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-/// <summary>Derives a MINOR / ADULT flag from a Birthdate sibling - the kind of logic XFTY leaves to consumers.</summary>
+/// <summary>
+/// Derives a MINOR / ADULT flag from a Birthdate sibling - the kind of logic XFTY leaves to consumers.
+/// </summary>
 file sealed class IsMinorFlag(System.Reflection.PropertyInfo birthdateField) : IContextAwareExpression
 {
     public object? Get(GenerationContext context)

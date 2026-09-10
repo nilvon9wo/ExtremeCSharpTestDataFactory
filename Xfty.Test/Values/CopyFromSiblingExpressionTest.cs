@@ -58,7 +58,8 @@ public class CopyFromSiblingExpressionTest
         // Arrange - nothing to arrange
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new CopyFromSiblingExpression(null!));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => new CopyFromSiblingExpression(null!));
 
         // Assert
         Assert.Contains("source field", thrown.Message);
@@ -85,7 +86,8 @@ public class CopyFromSiblingExpressionTest
         CopyFromSiblingExpression expression = new(Field.Of<Account>(x => x.Name));
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => expression.Get(baseContext));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => expression.Get(baseContext));
 
         // Assert - there is no record being built
         Assert.Contains("context-aware value is being generated", thrown.Message);

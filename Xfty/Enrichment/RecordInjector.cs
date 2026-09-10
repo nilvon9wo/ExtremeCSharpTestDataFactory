@@ -34,7 +34,9 @@ public sealed class RecordInjector
     private readonly Dictionary<PropertyInfo, List<object?>> _perRowValuesByField = [];
 
     private RecordInjector(List<object> records) =>
-        this._records = records ?? throw new XftyConfigurationException("RecordInjector needs a records list, not null.");
+        this._records = records ?? throw new XftyConfigurationException(
+            "RecordInjector needs a records list, not null."
+        );
 
     public static RecordInjector Inject(List<object> records) => new(records);
 
@@ -45,7 +47,9 @@ public sealed class RecordInjector
         return this;
     }
 
-    /// <summary>Graft childrenPerRow[row] onto records[row] as relationshipField's collection (e.g. Account.Contacts).</summary>
+    /// <summary>
+    /// Graft childrenPerRow[row] onto records[row] as relationshipField's collection (e.g. Account.Contacts).
+    /// </summary>
     public RecordInjector ChildRelationship(PropertyInfo relationshipField, List<List<object>> childrenPerRow)
     {
         this._childrenByRelationshipField[relationshipField] = childrenPerRow;
@@ -98,7 +102,8 @@ public sealed class RecordInjector
 
     private Dictionary<PropertyInfo, object?> ForcedValuesForRow(int row)
     {
-        Dictionary<PropertyInfo, object?> here = this._uniformValueByField.ToDictionary(pair => pair.Key, pair => pair.Value);
+        Dictionary<PropertyInfo, object?> here =
+            this._uniformValueByField.ToDictionary(pair => pair.Key, pair => pair.Value);
         this._perRowValuesByField.ToList().ForEach(pair => here[pair.Key] = pair.Value[row]);
         return here;
     }
@@ -119,7 +124,9 @@ public sealed class RecordInjector
         if (actual != expected)
         {
             throw new XftyConfigurationException(
-                $"RecordInjector: {label} has {actual} entries but there are {expected} records - grafts must align 1:1 with the records.");
+                $"RecordInjector: {label} has {actual} entries but there are "
+                + $"{expected} records - grafts must align 1:1 with the records."
+            );
         }
     }
 }

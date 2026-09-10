@@ -33,7 +33,9 @@ public sealed class EnrichmentSelection
             : !this.HasExcludedPrefix(pathFromEntry)
                 && (this._config.FromAllParents || this._includedParentKeys.Contains(PathKey.Of(pathFromEntry)));
 
-    /// <summary>Whether an ancestor generated for the level below should carry that level back as its child subquery.</summary>
+    /// <summary>
+    /// Whether an ancestor generated for the level below should carry that level back as its child subquery.
+    /// </summary>
     public bool WantsInverse(PropertyInfo relationshipField) =>
         this._config.FromAllChildren && !this._config.ExcludedChildFields.Contains(relationshipField);
 
@@ -53,7 +55,10 @@ public sealed class EnrichmentSelection
         return wanted;
     }
 
-    private HashSet<PropertyInfo> NamedNextHopsFollowing(List<PropertyInfo> childPathHere, HashSet<PropertyInfo> present)
+    private HashSet<PropertyInfo> NamedNextHopsFollowing(
+        List<PropertyInfo> childPathHere,
+        HashSet<PropertyInfo> present
+    )
     {
         HashSet<PropertyInfo> named = childPathHere.Count == 0
             ? [.. this._config.IncludedChildFields.Where(present.Contains)]
@@ -74,5 +79,6 @@ public sealed class EnrichmentSelection
             .ForEach(length => this._includedParentKeys.Add(PathKey.Of([.. path.Take(length)])));
 
     private bool HasExcludedPrefix(List<PropertyInfo> path) =>
-        Enumerable.Range(1, path.Count).Any(length => this._excludedParentKeys.Contains(PathKey.Of([.. path.Take(length)])));
+        Enumerable.Range(1, path.Count).Any(length =>
+            this._excludedParentKeys.Contains(PathKey.Of([.. path.Take(length)])));
 }

@@ -199,13 +199,22 @@ public class ValueTypeRecordSupportTest
     // Helpers -----------------------------------------------------------
 
     private static IProviderLookup GeoPointLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<GeoPoint>()] = new GeoPointProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<GeoPoint>()] = new GeoPointProvider(),
+        });
 
     private static IProviderLookup FrozenPointLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<FrozenPoint>()] = new FrozenPointProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<FrozenPoint>()] = new FrozenPointProvider(),
+        });
 
     private static IProviderLookup PositionalContactLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<PositionalContact>()] = new PositionalContactProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<PositionalContact>()] = new PositionalContactProvider(),
+        });
 
     private static IProviderLookup RelatedGeoPointLookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>

@@ -4,7 +4,10 @@ using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Relationships;
 namespace Net.NowhereAtAll.Xfty.Engine;
 
-/// <summary>Applies each IncludeOptional(...) path by promoting its head relationship from optional to required, on a copy of the master template.</summary>
+/// <summary>
+/// Applies each IncludeOptional(...) path by promoting its head relationship from optional to required, on a copy of
+/// the master template.
+/// </summary>
 public static class RelationshipForcer
 {
     public static MasterTemplate Apply(List<List<PropertyInfo>> paths, MasterTemplate template)
@@ -39,6 +42,8 @@ public static class RelationshipForcer
         }
 
         throw new XftyConfigurationException(
-            $"IncludeOptional: {head.Name} is not a relationship on the Provider for {template.PrimaryTargetField.Name}.");
+            $"IncludeOptional: {head.Name} is not a relationship on the Provider "
+            + $"for {template.PrimaryTargetField.Name}."
+        );
     }
 }

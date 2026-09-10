@@ -8,7 +8,9 @@ using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 namespace Net.NowhereAtAll.Xfty.Demo;
 
-/// <summary>The bundled Contact Provider - AccountId is a required relationship to a generated <see cref="Account"/>.</summary>
+/// <summary>
+/// The bundled Contact Provider - AccountId is a required relationship to a generated <see cref="Account"/>.
+/// </summary>
 public sealed class ContactDataProvider : IRecordProvider
 {
     public const string DefaultFirstNamePrefix = "Contact First Name";

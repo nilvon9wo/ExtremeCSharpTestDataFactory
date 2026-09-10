@@ -4,10 +4,14 @@ using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Relationships;
 
-/// <summary>SharedAncestor - developer control over resolution: Disable, manual-resolution mode, batched ResolveNow by name.</summary>
+/// <summary>
+/// SharedAncestor - developer control over resolution: Disable, manual-resolution mode, batched ResolveNow by name.
+/// </summary>
 public sealed partial class SharedAncestor
 {
-    /// <summary>This shared ancestor is never resolved; any reference to it leaves the child's foreign key null.</summary>
+    /// <summary>
+    /// This shared ancestor is never resolved; any reference to it leaves the child's foreign key null.
+    /// </summary>
     public static void Disable(string name)
     {
         Get(name).AssertUnresolved("Disable(...)");
@@ -41,7 +45,9 @@ public sealed partial class SharedAncestor
     {
         if (this._resolvedRecord is not null)
         {
-            throw new XftyConfigurationException($"Shared ancestor \"{this.SharedName}\" is already resolved; {call} would have no effect.");
+            throw new XftyConfigurationException(
+                $"Shared ancestor \"{this.SharedName}\" is already resolved; {call} would have no effect."
+            );
         }
     }
 }

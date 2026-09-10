@@ -29,6 +29,8 @@ public sealed class DeferredGraph(List<object> records, List<DepthBatchedInserte
             .Where(link => link.ParentIndex == parentIndex && link.Field == childLookupField)
             .Select(link => link.ChildIndex)];
 
-    /// <summary>The generated record at this flat index - pairs with <see cref="ChildIndicesOf"/> for a multi-hop walk.</summary>
+    /// <summary>
+    /// The generated record at this flat index - pairs with <see cref="ChildIndicesOf"/> for a multi-hop walk.
+    /// </summary>
     public object RecordAt(int index) => this._records[index];
 }

@@ -14,7 +14,10 @@ internal sealed class RecordProviderChildConfig
     private readonly List<ChildProvider> _childProviders = [];
 
     public void Add(ChildProvider childProvider) =>
-        this._childProviders.Add(childProvider ?? throw new XftyConfigurationException("With(...) needs a ChildProvider."));
+        this._childProviders.Add(
+            childProvider
+            ?? throw new XftyConfigurationException("With(...) needs a ChildProvider.")
+        );
 
     public bool HasAny => this._childProviders.Count > 0;
 
@@ -31,21 +34,39 @@ internal sealed class RecordProviderChildConfig
             return;
         }
 
-        await GenerateOneCollection(bundle, childProviders[0], structural, state).ConfigureAwait(false);
-        await GenerateRemainingCollections(bundle, [.. childProviders.Skip(1)], structural, state).ConfigureAwait(false);
+        await GenerateOneCollection(bundle, childProviders[0], structural, state)
+            .ConfigureAwait(false);
+        await GenerateRemainingCollections(
+                bundle,
+                [.. childProviders.Skip(1)],
+                structural,
+                state
+            )
+            .ConfigureAwait(false);
     }
 
-    private static async Task GenerateOneCollection(Bundle bundle, ChildProvider childProvider, bool structural, RecordProviderExecutionState state)
+    private static async Task GenerateOneCollection(
+        Bundle bundle,
+        ChildProvider childProvider,
+        bool structural,
+        RecordProviderExecutionState state
+    )
     {
         PropertyInfo primaryField = state.FactoryOutlet.PrimaryTargetField;
-        List<(object Template, int ParentRow)> childRows = ChildRowsFor(bundle, primaryField, childProvider, structural);
-        RecordProvider childInstance = BuildChildInstance(childProvider, structural, childRows, state);
+        List<(object Template, int ParentRow)> childRows =
+            ChildRowsFor(bundle, primaryField, childProvider, structural);
+        RecordProvider childInstance =
+            BuildChildInstance(childProvider, structural, childRows, state);
         Bundle childBundle = await childInstance.SupplyBundle().ConfigureAwait(false);
         _ = bundle.PutChild(childProvider.RelationshipField, childBundle, [.. childRows.Select(row => row.ParentRow)]);
     }
 
     private static List<(object Template, int ParentRow)> ChildRowsFor(
-        Bundle bundle, PropertyInfo primaryField, ChildProvider childProvider, bool structural)
+        Bundle bundle,
+        PropertyInfo primaryField,
+        ChildProvider childProvider,
+        bool structural
+    )
     {
         List<object> primaries = bundle.GetList(primaryField)!;
         return [.. primaries
@@ -55,7 +76,11 @@ internal sealed class RecordProviderChildConfig
     }
 
     private static RecordProvider BuildChildInstance(
-        ChildProvider childProvider, bool structural, List<(object Template, int ParentRow)> childRows, RecordProviderExecutionState state)
+        ChildProvider childProvider,
+        bool structural,
+        List<(object Template, int ParentRow)> childRows,
+        RecordProviderExecutionState state
+    )
     {
         InsertMode childMode = structural ? InsertMode.Never : childProvider.EffectiveInsertMode(state.InsertMode);
         RecordProvider childInstance = childProvider.NewProvider(state.ProviderLookup)
@@ -67,10 +92,15 @@ internal sealed class RecordProviderChildConfig
             _ = childInstance.SetPersistenceGateway(state.PersistenceGateway);
         }
 
-        return structural
-            // The back-reference is wired by the deferred buffer at flush, so the child must not also
-            // generate its own parent on that field, and its own children stay structural for the same flush.
-            ? childInstance.ExcludeRelationshipIfPresent(childProvider.RelationshipField).ForceStructuralChildGeneration()
-            : childInstance;
+        if (!structural)
+        {
+            return childInstance;
+        }
+
+        // The back-reference is wired by the deferred buffer at flush, so the child must not also
+        // generate its own parent on that field, and its own children stay structural for the same flush.
+        return childInstance
+            .ExcludeRelationshipIfPresent(childProvider.RelationshipField)
+            .ForceStructuralChildGeneration();
     }
 }

@@ -76,7 +76,9 @@ public static class ProviderLookups
         List<string> topTierHashes = [.. topTier.Select(key => key.HashKey).Distinct()];
         return topTierHashes.Count > 1
             ? throw new LookupException(
-                $"Ambiguous Provider variant for {record?.GetType()}: {string.Join(", ", topTierHashes)}. Supply an explicit lookup key.")
+                $"Ambiguous Provider variant for {record?.GetType()}: "
+                + $"{string.Join(", ", topTierHashes)}. Supply an explicit lookup key."
+            )
             : topTier[0];
     }
 
@@ -85,7 +87,11 @@ public static class ProviderLookups
     /// key and an optional override template - the two ways a caller can
     /// name a variant.
     /// </summary>
-    public static ILookupKey? Reconcile(IProviderLookup providerLookup, ILookupKey? explicitKey, object? overrideTemplate) =>
+    public static ILookupKey? Reconcile(
+        IProviderLookup providerLookup,
+        ILookupKey? explicitKey,
+        object? overrideTemplate
+    ) =>
         (explicitKey, overrideTemplate) switch
         {
             (null, null) => null,
@@ -95,7 +101,11 @@ public static class ProviderLookups
             _ => explicitKey,
         };
 
-    private static bool ContradictsTemplate(IProviderLookup providerLookup, ILookupKey explicitKey, object? overrideTemplate)
+    private static bool ContradictsTemplate(
+        IProviderLookup providerLookup,
+        ILookupKey explicitKey,
+        object? overrideTemplate
+    )
     {
         if (overrideTemplate is null)
         {
@@ -106,7 +116,11 @@ public static class ProviderLookups
         return fromTemplate.Specificity > 0 && fromTemplate.HashKey != explicitKey.HashKey;
     }
 
-    private static LookupException ContradictionException(IProviderLookup providerLookup, ILookupKey explicitKey, object? overrideTemplate)
+    private static LookupException ContradictionException(
+        IProviderLookup providerLookup,
+        ILookupKey explicitKey,
+        object? overrideTemplate
+    )
     {
         ILookupKey fromTemplate = Resolve(providerLookup, overrideTemplate);
         return new LookupException(

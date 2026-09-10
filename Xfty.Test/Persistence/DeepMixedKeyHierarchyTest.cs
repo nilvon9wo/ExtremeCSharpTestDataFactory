@@ -31,7 +31,11 @@ public class DeepMixedKeyHierarchyTest : IDisposable
     // (the same pattern as SharedAncestorResetTest).
     public DeepMixedKeyHierarchyTest() => SharedAncestor.ResetAllForTesting();
 
-    public void Dispose() => SharedAncestor.ResetAllForTesting();
+    public void Dispose()
+    {
+        SharedAncestor.ResetAllForTesting();
+        GC.SuppressFinalize(this);
+    }
 
     private static IProviderLookup DeepChainLookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>

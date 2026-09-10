@@ -132,7 +132,9 @@ public sealed partial class MasterTemplate(
         return this;
     }
 
-    /// <summary>The placeholder-Id generator under <see cref="InsertMode.Mock"/> - see <see cref="MockIdGenerator"/>.</summary>
+    /// <summary>
+    /// The placeholder-Id generator under <see cref="InsertMode.Mock"/> - see <see cref="MockIdGenerator"/>.
+    /// </summary>
     public MasterTemplate WithMockIdGenerator(IMockIdGenerator generator)
     {
         this.MockIdGenerator = generator;

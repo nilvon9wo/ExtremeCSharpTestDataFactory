@@ -27,12 +27,21 @@ public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistence
     public Task Insert(List<object> records, PropertyInfo idField) =>
         InsertGroups(this, [.. records.GroupBy(record => record.GetType())], idField);
 
-    private static Task InsertGroups(QdrantPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField) =>
+    private static Task InsertGroups(
+        QdrantPersistenceGateway gateway,
+        List<IGrouping<Type,
+        object>> groups,
+        PropertyInfo idField
+    ) =>
         groups.Count == 0
             ? Task.CompletedTask
             : InsertRemainingGroups(gateway, groups, idField);
 
-    private static async Task InsertRemainingGroups(QdrantPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField)
+    private static async Task InsertRemainingGroups(
+        QdrantPersistenceGateway gateway,
+        List<IGrouping<Type, object>> groups,
+        PropertyInfo idField
+    )
     {
         await gateway.InsertGroup([.. groups[0]], idField).ConfigureAwait(false);
         await InsertGroups(gateway, [.. groups.Skip(1)], idField).ConfigureAwait(false);
@@ -75,7 +84,11 @@ public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistence
         return point;
     }
 
-    private static IEnumerable<PropertyInfo> PayloadPropertiesOf(Type recordType, PropertyInfo idField, PropertyInfo vectorField) =>
+    private static IEnumerable<PropertyInfo> PayloadPropertiesOf(
+        Type recordType,
+        PropertyInfo idField,
+        PropertyInfo vectorField
+    ) =>
         recordType.GetProperties().Where(property => property != idField && property != vectorField);
 
     private static void SetPayloadValue(PointStruct point, PropertyInfo property, object? value)

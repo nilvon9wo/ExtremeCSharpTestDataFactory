@@ -17,6 +17,9 @@ public class UniqueEmailExpressionTest
 
         // Assert
         Assert.Equal(25, produced.Distinct().Count());
-        Assert.All(produced, email => Assert.True(email.StartsWith("test.user") && email.EndsWith("@example.com"), email));
+        Assert.All(
+            produced,
+            email => Assert.True(email.StartsWith("test.user") && email.EndsWith("@example.com"), email)
+        );
     }
 }
