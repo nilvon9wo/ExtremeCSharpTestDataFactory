@@ -10,9 +10,9 @@ relationship on the `RecordProvider` instance.
 ## The simplest case
 
 ```csharp
-new RecordProvider(typeof(Account), lookup)
-    .IncludeOptional<Account>(x => x.OwnerId)     // generate this optional one too
-    .ExcludeRelationship<Account>(x => x.ParentId);   // do not generate this one, even though it is required
+new RecordProvider<Account>(lookup)
+    .IncludeOptional(x => x.OwnerId)     // generate this optional one too
+    .ExcludeRelationship(x => x.ParentId);   // do not generate this one, even though it is required
 ```
 
 - **`IncludeOptional(field)`** generates one named relationship for this call,
@@ -42,7 +42,7 @@ call `ExcludeRelationship` before any `Put(...)` (same ordering rule as
 (`List<PropertyInfo>`), forcing every step for this call only:
 
 ```csharp
-new RecordProvider(typeof(Contact), lookup)
+new RecordProvider<Contact>(lookup)
     .IncludeOptional([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)])
     .SetInclusivity(InsertInclusivity.Required);
 ```

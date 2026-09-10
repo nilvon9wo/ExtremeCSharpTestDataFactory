@@ -10,7 +10,7 @@ ancestor is generated**, for one call — without touching that ancestor's
 Provider.
 
 ```csharp
-await new RecordProvider(typeof(Contact), lookup)
+await new RecordProvider<Contact>(lookup)
     .SetInclusivity(InsertInclusivity.Required)
     .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace")
     .Supply();

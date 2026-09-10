@@ -24,7 +24,7 @@ public class ExGeneratingRecordsTest
     public async Task Supply_TheSimplestCase_ReturnsOneRecord()
     {
         // from docs/use/generating-records.md "One record"
-        Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
+        Contact result = await new RecordProvider<Contact>(Lookup)
             .Supply().ConfigureAwait(true);
 
         Assert.NotNull(result);
@@ -48,9 +48,9 @@ public class ExGeneratingRecordsTest
     public async Task GettingStarted_CreatingYourFirstRecord()
     {
         // from docs/use/getting-started.md "Creating Your First Record"
-        DefaultProviderLookup providerLookup = new();
+        DefaultProviderLookup lookup = new();
 
-        Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
+        Contact contact = await new RecordProvider<Contact>(lookup)
             .Supply().ConfigureAwait(true);
 
         Assert.NotNull(contact);
@@ -60,9 +60,9 @@ public class ExGeneratingRecordsTest
     public async Task GettingStarted_OverrideTemplates()
     {
         // from docs/use/getting-started.md "Override Templates"
-        DefaultProviderLookup providerLookup = new();
+        DefaultProviderLookup lookup = new();
 
-        Contact contact = (Contact)await new RecordProvider(typeof(Contact), providerLookup)
+        Contact contact = await new RecordProvider<Contact>(lookup)
             .SetOverrideTemplate(new Contact { FirstName = "Alice", LastName = "Smith" })
             .Supply().ConfigureAwait(true);
 
@@ -74,11 +74,11 @@ public class ExGeneratingRecordsTest
     public async Task GettingStarted_ShorthandConstructors()
     {
         // from docs/use/getting-started.md "Shorthand Constructors"
-        DefaultProviderLookup providerLookup = new();
+        DefaultProviderLookup lookup = new();
 
-        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, providerLookup).Supply().ConfigureAwait(true);
-        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], providerLookup).SupplyList().ConfigureAwait(true);
-        object fromKey = await new RecordProvider(LookupKey.Get<Contact>(), providerLookup).Supply().ConfigureAwait(true);
+        Contact fromTemplate = (Contact)await new RecordProvider(new Contact { FirstName = "Alice" }, lookup).Supply().ConfigureAwait(true);
+        List<object> fromList = await new RecordProvider([new Contact(), new Contact()], lookup).SupplyList().ConfigureAwait(true);
+        object fromKey = await new RecordProvider(LookupKey.Get<Contact>(), lookup).Supply().ConfigureAwait(true);
 
         Assert.Equal("Alice", fromTemplate.FirstName);
         Assert.Equal(2, fromList.Count);
@@ -95,7 +95,7 @@ public class ExGeneratingRecordsTest
             [LookupKey.Get<Case>()] = new CaseWithAccountProvider(),
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
         });
-        Bundle bundle = await new RecordProvider(typeof(Case), lookup)
+        Bundle bundle = await new RecordProvider<Case>(lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SupplyBundle().ConfigureAwait(true);

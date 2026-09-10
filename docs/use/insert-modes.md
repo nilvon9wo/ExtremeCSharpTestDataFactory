@@ -39,7 +39,7 @@ any of the five above.
 ## `Mock` — the default for a unit test
 
 ```csharp
-Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup)
+Contact result = await new RecordProvider<Contact>(lookup)
     .SetInsertMode(InsertMode.Mock)
     .Supply();
 
@@ -67,7 +67,7 @@ optional related records, then inserts them through
 
 <!-- sketch -->
 ```csharp
-Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup)
+Contact result = await new RecordProvider<Contact>(lookup)
     .SetPersistenceGateway(new EfPersistenceGateway(dbContext))
     .SetInsertMode(InsertMode.Now)
     .Supply();
@@ -103,7 +103,7 @@ different version of "how does the ancestor need to be real":
 one at a time as it's generated, through the configured gateway:
 
 ```csharp
-RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
+RecordProvider<Contact> provider = new RecordProvider<Contact>(lookup)
     .SetInclusivity(InsertInclusivity.Required)
     .SetInsertMode(InsertMode.Now)
     .ExcludePrimaryIds()
@@ -121,7 +121,7 @@ excluding the primary changes how an ancestor gets persisted.
 needs a mock Id; no gateway required at all:
 
 ```csharp
-RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
+RecordProvider<Contact> provider = new RecordProvider<Contact>(lookup)
     .SetInclusivity(InsertInclusivity.Required)
     .SetInsertMode(InsertMode.Mock)
     .ExcludePrimaryIds();
@@ -134,7 +134,7 @@ depth-batched, in one real pass, while the primary that relates to it stays
 un-Id'd for the whole lifetime of the call:
 
 ```csharp
-RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
+RecordProvider<Contact> provider = new RecordProvider<Contact>(lookup)
     .SetInclusivity(InsertInclusivity.Required)
     .SetInsertMode(InsertMode.Deferred)
     .ExcludePrimaryIds();
@@ -163,7 +163,7 @@ still get their own Id under whatever mode they inherit or set, just with a
 wins:
 
 ```csharp
-RecordProvider provider = new RecordProvider(typeof(Account), lookup)
+RecordProvider<Account> provider = new RecordProvider<Account>(lookup)
     .SetInsertMode(InsertMode.Mock)
     .ExcludePrimaryIds()
     .IncludePrimaryIds();

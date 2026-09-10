@@ -7,11 +7,13 @@ The three `Supply*()` methods and the ways to ask for more than one record.
 ## One record
 
 ```csharp
-Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup)
+Contact result = await new RecordProvider<Contact>(lookup)
     .Supply();
 ```
 
 By default: one record, not inserted, no related records, default values filled.
+`RecordProvider<Contact>` returns a typed record; the non-generic
+`new RecordProvider(typeof(Contact), lookup)` returns `object` from `Supply()`.
 
 ---
 
@@ -22,9 +24,9 @@ of it.
 
 | Method | Returns |
 |--------|---------|
-| `Supply()` | the first generated primary record |
-| `SupplyList()` | all primary records |
-| `SupplyBundle()` | the whole generated object graph |
+| `Supply()` | the first generated primary record (`Contact` from `RecordProvider<Contact>`, `object` from the non-generic) |
+| `SupplyList()` | all primary records (`List<Contact>` / `List<object>`) |
+| `SupplyBundle()` | the whole generated object graph (a `Bundle` either way) |
 
 Use `Supply()` / `SupplyList()` when the test only needs the requested records;
 `SupplyBundle()` when it needs related records too.
@@ -34,7 +36,7 @@ Use `Supply()` / `SupplyList()` when the test only needs the requested records;
 ## Many copies of one template
 
 ```csharp
-List<object> results = await new RecordProvider(typeof(Contact), lookup)
+List<Contact> results = await new RecordProvider<Contact>(lookup)
     .SetQuantityPerTemplate(5)
     .SupplyList();
 ```
@@ -44,7 +46,7 @@ List<object> results = await new RecordProvider(typeof(Contact), lookup)
 ## Different values per record
 
 ```csharp
-List<object> results = await new RecordProvider(typeof(Contact), lookup)
+List<Contact> results = await new RecordProvider<Contact>(lookup)
     .SetOverrideTemplateList([
         new Contact { FirstName = "Alice" },
         new Contact { FirstName = "Bob" },
@@ -67,7 +69,8 @@ Alice, Bob, Alice, Bob        (not Alice, Alice, Bob, Bob)
 
 ## Shorthand constructors
 
-Three overloads save a call for the common starting points:
+Three overloads on the **non-generic** `RecordProvider` save a call when the
+record type is already implied by what you pass:
 
 ```csharp
 // from a template - derives the record type (and any Provider variant) from it
@@ -80,8 +83,9 @@ new RecordProvider([new Contact(), new Contact()], lookup);
 new RecordProvider(LookupKey.Get<Contact>(), lookup);
 ```
 
-They are exactly equivalent to the `(Type, lookup)` constructor followed by
-`SetOverrideTemplate(...)` / `SetOverrideTemplateList(...)` / `WithVariant(...)`.
+Each is equivalent to `new RecordProvider<Contact>(lookup)` followed by
+`SetOverrideTemplate(...)` / `SetOverrideTemplateList(...)` / `WithVariant(...)` —
+use whichever reads better; the generic form keeps `Supply()` typed.
 Lookup keys and variants: [provider-variants](provider-variants.md).
 
 ---

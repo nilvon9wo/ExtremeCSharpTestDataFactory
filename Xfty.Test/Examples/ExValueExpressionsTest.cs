@@ -16,8 +16,8 @@ public class ExValueExpressionsTest
     public async Task PutAnExpression()
     {
         // from docs/use/value-expressions.md "Put(...) an expression"
-        List<object> results = await new RecordProvider(typeof(Contact), Lookup)
-            .Put<Contact>(x => x.FirstName, new IncrementingStringExpression("Test Contact"))
+        List<Contact> results = await new RecordProvider<Contact>(Lookup)
+            .Put(x => x.FirstName, new IncrementingStringExpression("Test Contact"))
             .SetQuantityPerTemplate(3)
             .SupplyList().ConfigureAwait(true);
 
@@ -28,14 +28,14 @@ public class ExValueExpressionsTest
     public async Task ImplicitExactValues()
     {
         // from docs/use/value-expressions.md "Implicit exact values"
-        Account withImplicitLiterals = (Account)await new RecordProvider(typeof(Account), Lookup)
-            .Put<Account>(x => x.Type, "Customer")
-            .Put<Account>(x => x.NumberOfEmployees, 500)
+        Account withImplicitLiterals = await new RecordProvider<Account>(Lookup)
+            .Put(x => x.Type, "Customer")
+            .Put(x => x.NumberOfEmployees, 500)
             .Supply().ConfigureAwait(true);
 
-        Account withExplicitLiterals = (Account)await new RecordProvider(typeof(Account), Lookup)
-            .Put<Account>(x => x.Type, new LiteralExpression("Customer"))
-            .Put<Account>(x => x.NumberOfEmployees, new LiteralExpression(500))
+        Account withExplicitLiterals = await new RecordProvider<Account>(Lookup)
+            .Put(x => x.Type, new LiteralExpression("Customer"))
+            .Put(x => x.NumberOfEmployees, new LiteralExpression(500))
             .Supply().ConfigureAwait(true);
 
         Assert.Equal(withExplicitLiterals.Type, withImplicitLiterals.Type);

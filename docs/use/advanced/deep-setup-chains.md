@@ -23,11 +23,11 @@ already re-runs per test with no extra machinery:
 public class ContactValidationTests
 {
     private readonly DefaultProviderLookup lookup = new();
-    private readonly List<object> sharedAccounts;
+    private readonly List<Account> sharedAccounts;
 
     public ContactValidationTests()
     {
-        this.sharedAccounts = await new RecordProvider(typeof(Account), this.lookup)
+        this.sharedAccounts = await new RecordProvider<Account>(this.lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetQuantityPerTemplate(3)
             .SupplyList();
@@ -57,13 +57,13 @@ graph spanning several `SupplyBundle()` calls resolves and links correctly as
 <!-- sketch -->
 ```csharp
 private Task<Bundle> SeedAccounts() =>
-    new RecordProvider(typeof(Account), this.lookup)
+    new RecordProvider<Account>(this.lookup)
         .SetInsertMode(InsertMode.Deferred)
         .SetQuantityPerTemplate(3)
         .SupplyBundle();
 
 private Task<Bundle> SeedContacts() =>
-    new RecordProvider(typeof(Contact), this.lookup)
+    new RecordProvider<Contact>(this.lookup)
         .SetInclusivity(InsertInclusivity.Required)
         .SetInsertMode(InsertMode.Deferred)
         .SetQuantityPerTemplate(9)
