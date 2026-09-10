@@ -8,11 +8,9 @@ namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 /// <summary>
 /// The recipe for one Provider's records: default values, context-aware
 /// values, deferred (up-flowing) values, and required/optional relationships,
-/// keyed by field. Split by concern - this file is the field maps and the
-/// three core Put(...) overloads; MasterTemplate.Lambda.cs is the
-/// `Put&lt;TRecord&gt;(x => x.Field, ...)` overloads; MasterTemplate.Copy.cs is
-/// Copy/Remove/field ordering. See also <see cref="MasterTemplate{TRecord}"/>,
-/// the ergonomic lambda-based wrapper for building one of these.
+/// keyed by field. <see cref="MasterTemplate{TRecord}"/> is the ergonomic
+/// lambda-based wrapper for building one; MasterTemplate.Lambda.cs adds the
+/// <c>Put&lt;TRecord&gt;(x =&gt; x.Field, ...)</c> overloads.
 /// </summary>
 public sealed partial class MasterTemplate(
     PropertyInfo primaryTargetField,
@@ -28,32 +26,57 @@ public sealed partial class MasterTemplate(
 
     public Dictionary<PropertyInfo, IDeferredExpression> DeferredExpressionByField { get; } = [];
 
-    public Dictionary<PropertyInfo, IDefaultRelationship> RequiredRelationshipByField { get; } = requiredRelationshipByField;
+    public Dictionary<PropertyInfo, IDefaultRelationship> RequiredRelationshipByField { get; } =
+        requiredRelationshipByField;
 
-    public Dictionary<PropertyInfo, IDefaultRelationship> OptionalRelationshipByField { get; } = optionalRelationshipByField;
+    public Dictionary<PropertyInfo, IDefaultRelationship> OptionalRelationshipByField { get; } =
+        optionalRelationshipByField;
 
     /// <summary>
     /// The placeholder-Id generator for this record type under
     /// <see cref="InsertMode.Mock"/>. Null - the default - means
-    /// <see cref="DefaultMockIdGenerator"/>. Carried through
-    /// <see cref="Copy"/>; a per-call override lands on the copy via
+    /// <see cref="DefaultMockIdGenerator"/>. Carried through <see cref="Copy"/>;
+    /// a per-call override lands on the copy via
     /// <c>RecordProvider.SetMockIdGenerator(...)</c>.
     /// </summary>
     public IMockIdGenerator? MockIdGenerator { get; private set; }
 
-    // Insertion order of the value fields (plain + context-aware) - a
-    // context-aware value may read an earlier one, so the value passes need a
-    // deterministic order.
-    private readonly List<PropertyInfo> _valueFieldOrder = [.. defaultByField.Keys];
+    private readonly ValueFieldOrder _valueFieldOrder = new(defaultByField.Keys);
 
     public MasterTemplate(PropertyInfo primaryTargetField)
         : this(primaryTargetField, [], [], [])
     {
     }
 
+    /// <summary>
+    /// An independent copy: the field maps and the field-order list are
+    /// recreated so a caller can add or remove entries without touching the
+    /// shared template a Provider exposes. The expression instances themselves
+    /// are shared - they are immutable configuration.
+    /// </summary>
+    private MasterTemplate(MasterTemplate source)
+        : this(
+            source.PrimaryTargetField,
+            new Dictionary<PropertyInfo, IValueExpression>(source.DefaultByField),
+            new Dictionary<PropertyInfo, IDefaultRelationship>(source.RequiredRelationshipByField),
+            new Dictionary<PropertyInfo, IDefaultRelationship>(source.OptionalRelationshipByField))
+    {
+        CopyInto(this.ContextAwareByField, source.ContextAwareByField);
+        CopyInto(this.DeferredExpressionByField, source.DeferredExpressionByField);
+        this._valueFieldOrder = new ValueFieldOrder(source._valueFieldOrder.Snapshot());
+        this.MockIdGenerator = source.MockIdGenerator;
+    }
+
+    private static void CopyInto<TValue>(
+        Dictionary<PropertyInfo, TValue> target,
+        Dictionary<PropertyInfo, TValue> source) =>
+        source.ToList().ForEach(pair => target[pair.Key] = pair.Value);
+
+    public MasterTemplate Copy() => new(this);
+
     public MasterTemplate Put(PropertyInfo field, IValueExpression valueTemplate)
     {
-        this.TrackFieldOrder(field);
+        this._valueFieldOrder.Append(field);
         _ = this.ContextAwareByField.Remove(field);
         _ = this.DeferredExpressionByField.Remove(field);
         this.DefaultByField[field] = valueTemplate;
@@ -62,7 +85,7 @@ public sealed partial class MasterTemplate(
 
     public MasterTemplate Put(PropertyInfo field, IContextAwareExpression contextAwareExpression)
     {
-        this.TrackFieldOrder(field);
+        this._valueFieldOrder.Append(field);
         _ = this.DefaultByField.Remove(field);
         _ = this.DeferredExpressionByField.Remove(field);
         this.ContextAwareByField[field] = contextAwareExpression;
@@ -72,23 +95,34 @@ public sealed partial class MasterTemplate(
     /// <summary>An up-flowing value - resolved during the DEFERRED flush.</summary>
     public MasterTemplate Put(PropertyInfo field, IDeferredExpression deferredValue)
     {
-        this.TrackFieldOrder(field);
+        this._valueFieldOrder.Append(field);
         _ = this.DefaultByField.Remove(field);
         _ = this.ContextAwareByField.Remove(field);
         this.DeferredExpressionByField[field] = deferredValue;
         return this;
     }
 
+    /// <summary>
+    /// Convenience overload, routed by the value's runtime type: a relationship
+    /// is rejected (its requiredness must be stated via PutRequired/PutOptional);
+    /// anything else is treated as an exact literal.
+    /// </summary>
+    public MasterTemplate Put(PropertyInfo field, object? value) =>
+        value switch
+        {
+            IDeferredExpression deferred => this.Put(field, deferred),
+            IContextAwareExpression contextAware => this.Put(field, contextAware),
+            IValueExpression valueExpression => this.Put(field, valueExpression),
+            IDefaultRelationship => throw RelationshipsNeedPutRequiredOrOptional(),
+            _ => this.Put(field, new LiteralExpression(value)),
+        };
+
+    private static XftyConfigurationException RelationshipsNeedPutRequiredOrOptional() =>
+        new("Relationships must be added with PutRequired(...) or PutOptional(...), not Put(...).");
+
     public MasterTemplate PutRequired(PropertyInfo field, IDefaultRelationship relationshipTemplate)
     {
         this.RequiredRelationshipByField[field] = relationshipTemplate;
-        return this;
-    }
-
-    /// <summary>Set the placeholder-Id generator for this record type under <see cref="InsertMode.Mock"/> - see <see cref="MockIdGenerator"/>.</summary>
-    public MasterTemplate WithMockIdGenerator(IMockIdGenerator generator)
-    {
-        this.MockIdGenerator = generator;
         return this;
     }
 
@@ -98,10 +132,31 @@ public sealed partial class MasterTemplate(
         return this;
     }
 
+    /// <summary>The placeholder-Id generator under <see cref="InsertMode.Mock"/> - see <see cref="MockIdGenerator"/>.</summary>
+    public MasterTemplate WithMockIdGenerator(IMockIdGenerator generator)
+    {
+        this.MockIdGenerator = generator;
+        return this;
+    }
+
+    public MasterTemplate Remove(PropertyInfo field)
+    {
+        _ = this.DefaultByField.Remove(field);
+        _ = this.ContextAwareByField.Remove(field);
+        _ = this.DeferredExpressionByField.Remove(field);
+        _ = this.RequiredRelationshipByField.Remove(field);
+        _ = this.OptionalRelationshipByField.Remove(field);
+        this._valueFieldOrder.Remove(field);
+        return this;
+    }
+
+    /// <summary>Every value field (plain + context-aware + deferred) in the order it was Put.</summary>
+    public List<PropertyInfo> OrderedValueFields() => this._valueFieldOrder.Snapshot();
+
     /// <summary>
     /// Whether field has a default value, a context-aware value, a deferred
-    /// value, a required/optional relationship, or is the primary target
-    /// field itself - i.e. whether this template touches it at all. See
+    /// value, a required/optional relationship, or is the primary target field
+    /// itself - i.e. whether this template touches it at all. See
     /// <see cref="IUnsetFieldFiller"/>, the one consumer of the negation.
     /// </summary>
     public bool IsConfigured(PropertyInfo field) =>
