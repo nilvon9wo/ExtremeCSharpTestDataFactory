@@ -113,7 +113,8 @@ public class GenerationContextTest
             .ForValueField(DescriptionField, new HashSet<PropertyInfo> { TypeField });
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => atField.SiblingValue(TypeField));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => atField.SiblingValue(TypeField));
 
         // Assert - Account.Type is still pending, not a misleading null
         Assert.Contains("Type", thrown.Message);
@@ -127,7 +128,8 @@ public class GenerationContextTest
         GenerationContext baseContext = Context(InsertMode.Mock, InsertInclusivity.None);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => baseContext.SiblingValue(SiteField));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => baseContext.SiblingValue(SiteField));
 
         // Assert
         Assert.Contains("context-aware value is being generated", thrown.Message);
@@ -139,13 +141,15 @@ public class GenerationContextTest
     public void ForRelated_AlwaysResetsExcludePrimaryIdsToFalse()
     {
         // Arrange - ExcludePrimaryIds means "this call's own primary," never an ancestor
-        GenerationContext baseContext = Context(InsertMode.Now, InsertInclusivity.Required).WithPrimaryIdsExcluded(true);
+        GenerationContext baseContext =
+            Context(InsertMode.Now, InsertInclusivity.Required).WithPrimaryIdsExcluded(true);
 
         // Act
         GenerationContext related = baseContext.ForRelated();
 
         // Assert
-        Assert.False(related.ExcludePrimaryIds); // an ancestor is always persisted, regardless of the primary's own setting
+        // an ancestor is always persisted, regardless of the primary's own setting
+        Assert.False(related.ExcludePrimaryIds);
         Assert.Equal(InsertMode.Now, related.InsertMode); // insert mode itself is unaffected
     }
 
@@ -182,7 +186,8 @@ public class GenerationContextTest
     public void ForRelated_ClearsAnyPerRecordState()
     {
         // Arrange
-        GenerationContext scoped = Context(InsertMode.Mock, InsertInclusivity.All).ForRecord(new Account(), new Bundle(), 0);
+        GenerationContext scoped =
+            Context(InsertMode.Mock, InsertInclusivity.All).ForRecord(new Account(), new Bundle(), 0);
 
         // Act
         GenerationContext related = scoped.ForRelated();
@@ -296,5 +301,6 @@ public class GenerationContextTest
         Assert.True(derived.BatchedInsertPending);
     }
 
-    private static GenerationContext BatchedContext() => Context(InsertMode.Never, InsertInclusivity.All).ForBatchedInsert();
+    private static GenerationContext BatchedContext() =>
+        Context(InsertMode.Never, InsertInclusivity.All).ForBatchedInsert();
 }

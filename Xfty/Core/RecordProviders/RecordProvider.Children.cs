@@ -3,13 +3,15 @@ using Net.NowhereAtAll.Xfty.Core.Children;
 
 namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
-/// <summary>RecordProvider - downward generation (child collections), delegated to <see cref="RecordProviderChildConfig"/>.</summary>
+/// <summary>
+/// RecordProvider - downward generation (child collections), delegated to <see cref="RecordProviderChildConfig"/>.
+/// </summary>
 public sealed partial class RecordProvider
 {
     /// <summary>Add a fully-configured child collection. Repeatable.</summary>
     public RecordProvider With(ChildProvider childProvider)
     {
-        this.childConfig.Add(childProvider);
+        this._childConfig.Add(childProvider);
         return this;
     }
 

@@ -41,7 +41,7 @@ public class ContactDataProviderTest
     }
 
     [Fact]
-    public async Task SupplyBundle_AtAllInclusivityInMockMode_GeneratesTheContactAndItsAccountWithTheDocumentedDefaults()
+    public async Task SupplyBundle_AtAllInclusivityInMockMode_GeneratesTheContactAndAccountWithDefaults()
     {
         // Arrange
         RecordProvider provider = ContactProvider(InsertInclusivity.All, InsertMode.Mock);
@@ -55,7 +55,8 @@ public class ContactDataProviderTest
         Assert.NotNull(generatedAccount.Id);
         Assert.Contains(AccountDataProvider.DefaultNamePrefix, generatedAccount.Name);
         Assert.Equal(ContactDataProvider.DefaultAccountDescription, generatedAccount.Description);
-        Assert.Equal(generatedAccount.Id, ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId); // the FK is wired
+        // the FK is wired
+        Assert.Equal(generatedAccount.Id, ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId);
     }
 
     [Fact]
@@ -86,8 +87,9 @@ public class ContactDataProviderTest
         // Act
         MasterTemplate template = provider.MasterTemplate;
 
-        // Assert
-        Assert.True(template.RequiredRelationshipByField.ContainsKey(Field.Of<Contact>(x => x.AccountId))); // Contact requires an Account
+        // Assert - Contact requires an Account
+        RelationshipConfig account = template.RelationshipByField[Field.Of<Contact>(x => x.AccountId)];
+        Assert.True(account.IsRequired);
     }
 
     [Fact]

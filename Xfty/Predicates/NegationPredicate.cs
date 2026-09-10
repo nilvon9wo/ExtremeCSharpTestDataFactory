@@ -10,9 +10,9 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 /// </summary>
 public sealed class NegationPredicate : IRecordPredicate
 {
-    private readonly IRecordPredicate negated;
+    private readonly IRecordPredicate _negated;
 
-    private NegationPredicate(IRecordPredicate negated) => this.negated = negated;
+    private NegationPredicate(IRecordPredicate negated) => this._negated = negated;
 
     public static NegationPredicate Of(IRecordPredicate? predicate) =>
         predicate is null
@@ -20,5 +20,5 @@ public sealed class NegationPredicate : IRecordPredicate
             : new NegationPredicate(predicate);
 
     public bool IsSatisfiedBy(object? record) =>
-        !this.negated.IsSatisfiedBy(record);
+        !this._negated.IsSatisfiedBy(record);
 }

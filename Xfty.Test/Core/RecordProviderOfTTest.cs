@@ -7,7 +7,9 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
-/// <summary>Proves <see cref="RecordProvider{TRecord}"/> - the typed wrapper - chains and returns TRecord with no cast.</summary>
+/// <summary>
+/// Proves <see cref="RecordProvider{TRecord}"/> - the typed wrapper - chains and returns TRecord with no cast.
+/// </summary>
 public class RecordProviderOfTTest
 {
     private static readonly DefaultProviderLookup Lookup = new();
@@ -81,10 +83,11 @@ public class RecordProviderOfTTest
     public void ObjectInitializer_WhenGivenARelationship_Throws()
     {
         // Arrange - relationships must state their own requiredness; the indexer can't infer it
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new RecordProvider<Contact>(Lookup)
-        {
-            [x => x.AccountId] = new DefaultRelationship(new Account()),
-        });
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() =>
+            new RecordProvider<Contact>(Lookup)
+            {
+                [x => x.AccountId] = new DefaultRelationship(new Account()),
+            });
 
         // Assert
         Assert.Contains("PutRequired", thrown.Message);

@@ -113,7 +113,10 @@ public class ForcingAnEmptyFieldValueTest
     // Helper -------------------------------------------------------
 
     private static IProviderLookup CrateLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Crate>()] = new CrateProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<Crate>()] = new CrateProvider(),
+        });
 }
 
 file sealed record Crate
@@ -127,14 +130,12 @@ file sealed record Crate
 
 file sealed class CrateProvider : IRecordProvider
 {
-    private MasterTemplate template { get; } = new MasterTemplate<Crate>(x => x.Reference)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Crate>(x => x.Reference)
         .Put(x => x.Label, new LiteralExpression("stock"))
         .Put(x => x.Count, new LiteralExpression(5));
 
-    public PropertyInfo PrimaryTargetField => this.template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this.template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

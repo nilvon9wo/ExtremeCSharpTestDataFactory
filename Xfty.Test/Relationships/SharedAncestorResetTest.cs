@@ -95,7 +95,8 @@ public class SharedAncestorResetTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(heavyName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(heavyProvider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(heavyProvider.Supply)
+            .ConfigureAwait(true);
         Assert.Contains("manual resolution only", thrown.Message);
 
         // Act - reset

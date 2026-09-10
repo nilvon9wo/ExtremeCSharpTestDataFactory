@@ -17,10 +17,10 @@ internal static class SharedRandom
     // auto-property equivalent - the two together are the whole point.
 #pragma warning disable IDE0032
     [ThreadStatic]
-    private static Random? _threadInstance;
+    private static Random? s_threadInstance;
 #pragma warning restore IDE0032
 
-    public static Random Instance => _threadInstance ??= new Random();
+    public static Random Instance => s_threadInstance ??= new Random();
 #else
     public static Random Instance => Random.Shared;
 #endif
@@ -41,7 +41,9 @@ internal static class DictionaryCompatExtensions
         dictionary.TryGetValue(key, out TValue? value) ? value : default;
 }
 
-/// <summary>See <see cref="DictionaryCompatExtensions"/> - same reasoning, for <c>IEnumerable&lt;T&gt;.ToHashSet()</c>.</summary>
+/// <summary>
+/// See <see cref="DictionaryCompatExtensions"/> - same reasoning, for <c>IEnumerable&lt;T&gt;.ToHashSet()</c>.
+/// </summary>
 internal static class EnumerableCompatExtensions
 {
     public static HashSet<T> ToHashSet<T>(this IEnumerable<T> source) => [.. source];

@@ -11,7 +11,10 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Test.Lookup;
 
-/// <summary>Proves multi-variant Provider resolution end to end: one record type, several Providers, chosen by lookup key. Mock mode throughout.</summary>
+/// <summary>
+/// Proves multi-variant Provider resolution end to end: one record type, several Providers, chosen by lookup key. Mock
+/// mode throughout.
+/// </summary>
 public class MultiVariantProviderTest
 {
     // Shared keys - in a real project these live in a *LookupKeys constants class
@@ -31,13 +34,18 @@ public class MultiVariantProviderTest
     // lookup.Get(key) ------------------------------------------------
 
     [Fact]
-    public Task Get_ForAnExplicitEnterpriseKey_ReturnsTheEnterpriseProvider() => AssertGetIndustry(Enterprise, "Enterprise");
+    public Task Get_ForAnExplicitEnterpriseKey_ReturnsTheEnterpriseProvider() =>
+        AssertGetIndustry(
+            Enterprise,
+            "Enterprise"
+        );
 
     [Fact]
     public Task Get_ForAnExplicitSmbKey_ReturnsTheSmbProvider() => AssertGetIndustry(Smb, "SMB");
 
     [Fact]
-    public Task Get_ForThePlainTypeKey_ReturnsTheDefaultProvider() => AssertGetIndustry(LookupKey.Get<Account>(), "SMB");
+    public Task Get_ForThePlainTypeKey_ReturnsTheDefaultProvider() =>
+        AssertGetIndustry(LookupKey.Get<Account>(), "SMB");
 
     // Variant chosen while generating a related record ---------------
 

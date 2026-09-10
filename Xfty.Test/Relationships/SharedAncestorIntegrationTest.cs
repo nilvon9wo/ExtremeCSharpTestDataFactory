@@ -71,7 +71,8 @@ public class SharedAncestorIntegrationTest
         _ = SharedAncestor.Get(sharedName);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => SharedAncestor.GetId(sharedName));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => SharedAncestor.GetId(sharedName));
 
         // Assert
         Assert.Contains("not resolved yet", thrown.Message);

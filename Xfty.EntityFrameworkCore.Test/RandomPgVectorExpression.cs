@@ -12,7 +12,7 @@ namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 /// </summary>
 public sealed class RandomPgVectorExpression(int dimensions) : IValueExpression
 {
-    private readonly RandomVectorExpression inner = new(dimensions);
+    private readonly RandomVectorExpression _inner = new(dimensions);
 
-    public object Get() => new Vector((float[])this.inner.Get()!);
+    public object Get() => new Vector((float[])this._inner.Get()!);
 }

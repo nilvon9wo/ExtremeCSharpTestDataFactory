@@ -42,7 +42,9 @@ public sealed class EnrichmentTarget
     public bool HasAnythingToInject()
     {
         bool hasParents = this.SubBundle is not null && this.SubBundle.RelationshipFields().Count > 0;
-        bool hasChildren = (this.SubBundle is not null && this.SubBundle.ChildRelationshipFields().Count > 0) || this.IsGeneratedAncestor;
+        bool hasChildren =
+            (this.SubBundle is not null && this.SubBundle.ChildRelationshipFields().Count > 0)
+            || this.IsGeneratedAncestor;
         return hasParents || hasChildren;
     }
 }

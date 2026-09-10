@@ -38,7 +38,10 @@ public class ExContextAwareValuesTest
         // from docs/use/context-aware-values.md "Copy a field from a generated ancestor" (one hop)
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup)
             .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account { Site = "HQ" }))
-            .Put<Contact>(x => x.Department, CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Site))
+            .Put<Contact>(
+                x => x.Department,
+                CopyFromAncestorExpression.From<Contact, Account>(x => x.AccountId, x => x.Site)
+            )
             .SetInclusivity(InsertInclusivity.Required)
             .Supply().ConfigureAwait(true);
 
@@ -80,14 +83,16 @@ public class ExContextAwareValuesTest
     [Fact]
     public async Task HowItRuns_TheOneOrderingRule()
     {
-        // from docs/use/context-aware-values.md "How it runs, and the one ordering rule" - the wrong-order example throws
+        // from docs/use/context-aware-values.md "How it runs, and the one ordering rule" - the wrong-order example
+        // throws
         // (a bare MasterTemplate, not a Provider with its own pre-existing field-order, keeps the example's
         // "BillingCity put before ShippingCity" actually the wrong order at generation time)
         RecordProvider provider = new RecordProvider(typeof(Account), new BlankAccountProviderLookup())
             .Put<Account>(x => x.BillingCity, CopyFromSiblingExpression.From<Account>(x => x.ShippingCity))
             .Put<Account>(x => x.ShippingCity, CopyFromSiblingExpression.From<Account>(x => x.Site));
 
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
         Assert.Contains("ShippingCity", thrown.Message);
     }
 
@@ -167,48 +172,45 @@ file sealed class IsMinorFlag : IContextAwareExpression
 
 file sealed class CaseUnderAccountProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Case>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Case>(x => x.Id)
         .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 file sealed class AccountWithOwnerProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Account>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id)
     {
         [x => x.Name] = new IncrementingStringExpression("Acct"),
     }.PutRequired(x => x.OwnerId, new DefaultRelationship(new User()));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 file sealed class LeafUserProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<User>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<User>(x => x.Id)
     {
         [x => x.LastName] = new IncrementingStringExpression("User"),
     };
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-/// <summary>A lookup whose Account provider carries no pre-existing field defaults, so a test controls the value-field order entirely itself.</summary>
+/// <summary>
+/// A lookup whose Account provider carries no pre-existing field defaults, so a test controls the value-field order
+/// entirely itself.
+/// </summary>
 file sealed class BlankAccountProviderLookup : IProviderLookup
 {
     public IRecordProvider Get(Type recordType) => new BlankAccountProvider();
@@ -220,14 +222,12 @@ file sealed class BlankAccountProviderLookup : IProviderLookup
 
 file sealed class BlankAccountProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Account>(x => x.Id);
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id);
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 /// <summary>An Account whose Site is copied up from the Contact that references it.</summary>
@@ -236,27 +236,23 @@ file sealed class AccountReadingChildDepartmentProvider : IRecordProvider
     // on the Account Provider - from docs/use/context-aware-values.md "Reading up from a child"
     // and docs/use/advanced/matching-values.md "Child value up onto a parent" - the doc's own
     // .Put<Account>(...) chain form is kept here verbatim.
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
         .Put<Account>(x => x.Name, new IncrementingStringExpression("Acct"))
         .Put<Account>(x => x.Site, CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department));
 
     public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 file sealed class ContactUnderAccountProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Contact>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Contact>(x => x.Id)
         .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

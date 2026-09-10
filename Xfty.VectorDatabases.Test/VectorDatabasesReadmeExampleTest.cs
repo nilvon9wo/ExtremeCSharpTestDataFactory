@@ -17,17 +17,15 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.Test;
 /// </summary>
 file sealed class DocumentChunkProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<DocumentChunk>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<DocumentChunk>(x => x.Id)
     {
         [x => x.Embedding] = new RandomVectorExpression(KnownEmbeddingDimensions.OpenAiTextEmbedding3Small),
     };
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 public class VectorDatabasesReadmeExampleTest

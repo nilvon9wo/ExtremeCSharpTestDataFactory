@@ -18,40 +18,29 @@ namespace Net.NowhereAtAll.Xfty.Core.Children;
 ///
 /// Converts implicitly to the plain <see cref="ChildProvider"/> everything
 /// else (<see cref="RecordProvider.With(ChildProvider)"/> included) already
-/// works with. The forwarders are split across files by the same concern as
-/// <see cref="RecordProvider{TRecord}"/>'s partials: FieldConfig, Setters.
+/// works with.
 /// </summary>
 public sealed partial class ChildProvider<TChild>
 {
-    private readonly ChildProvider inner;
+    private readonly ChildProvider _inner;
 
     public ChildProvider(Expression<Func<TChild, object?>> relationshipField) =>
-        this.inner = new ChildProvider(Field.Of(relationshipField));
+        this._inner = new ChildProvider(Field.Of(relationshipField));
 
     public ChildProvider(Expression<Func<TChild, object?>> relationshipField, TChild template) =>
-        this.inner = new ChildProvider(Field.Of(relationshipField), template);
-
-    /// <summary>Object-initializer field configuration, mirroring <see cref="RecordProvider{TRecord}"/>'s own indexer.</summary>
-    public object? this[Expression<Func<TChild, object?>> field]
-    {
-        set => _ = this.inner.Put(Field.Of(field), value);
-    }
-
-    public static implicit operator ChildProvider(ChildProvider<TChild> typed) => typed.inner;
-
-    public PropertyInfo RelationshipField => this.inner.RelationshipField;
-
-    public Type ChildType => this.inner.ChildType;
+        this._inner = new ChildProvider(Field.Of(relationshipField), template);
 
     /// <summary>
-    /// Runs one configuration call against <see cref="inner"/> and returns this
-    /// wrapper - never the <see cref="ChildProvider"/> the inner call hands back -
-    /// so the fluent chain stays typed as <see cref="ChildProvider{TChild}"/>.
-    /// Every fluent forwarder in the other partials is one of these.
+    /// Object-initializer field configuration, mirroring <see cref="RecordProvider{TRecord}"/>'s own indexer.
     /// </summary>
-    private ChildProvider<TChild> Forwarding(Func<ChildProvider> innerCall)
+    public object? this[Expression<Func<TChild, object?>> field]
     {
-        _ = innerCall();
-        return this;
+        set => _ = this._inner.Put(Field.Of(field), value);
     }
+
+    public static implicit operator ChildProvider(ChildProvider<TChild> typed) => typed._inner;
+
+    public PropertyInfo RelationshipField => this._inner.RelationshipField;
+
+    public Type ChildType => this._inner.ChildType;
 }

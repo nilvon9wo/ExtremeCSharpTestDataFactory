@@ -1,6 +1,6 @@
 using Net.NowhereAtAll.Xfty.Core;
-using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Persistence;
 
@@ -28,7 +28,8 @@ public class ExDeferredInsertTest
             .SetInsertMode(InsertMode.Deferred)
             .SupplyBundle().ConfigureAwait(true);
 
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush()).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush())
+            .ConfigureAwait(true);
 
         Assert.NotEmpty(accounts.PrimaryRecords()!);
         Assert.NotEmpty(contacts.PrimaryRecords()!);

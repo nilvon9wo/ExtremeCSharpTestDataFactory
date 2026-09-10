@@ -28,8 +28,14 @@ public class RecordProviderOfTForwardingTest : IDisposable
 {
     private static readonly DefaultProviderLookup Lookup = new();
 
-    /// <summary>The one Deferred test registers into the process-wide DeferredInserter; clear it however that test ends.</summary>
-    public void Dispose() => DeferredInserter.ResetForTesting();
+    /// <summary>
+    /// The one Deferred test registers into the process-wide DeferredInserter; clear it however that test ends.
+    /// </summary>
+    public void Dispose()
+    {
+        DeferredInserter.ResetForTesting();
+        GC.SuppressFinalize(this);
+    }
 
     // FieldConfig - PropertyInfo forms -----------------------------------
 
@@ -71,7 +77,11 @@ public class RecordProviderOfTForwardingTest : IDisposable
     }
 
     [Fact]
-    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "one relationship generated")]
+    [SuppressMessage(
+        "Performance",
+        "HLQ005:Avoid Single() and SingleOrDefault()",
+        Justification = "one relationship generated"
+    )]
     public async Task PutRequired_ByPropertyInfo_GeneratesTheRelationship()
     {
         // Arrange
@@ -139,7 +149,11 @@ public class RecordProviderOfTForwardingTest : IDisposable
     }
 
     [Fact]
-    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "one relationship generated")]
+    [SuppressMessage(
+        "Performance",
+        "HLQ005:Avoid Single() and SingleOrDefault()",
+        Justification = "one relationship generated"
+    )]
     public async Task IncludeOptional_ByPropertyInfo_PromotesTheOptionalRelationship()
     {
         // Arrange
@@ -196,7 +210,8 @@ public class RecordProviderOfTForwardingTest : IDisposable
         // Arrange - Site and AccountNumber are untouched by any template, so the path-scoped
         // override is the only thing that could set them on the generated ancestor Account
         List<PropertyInfo> siteOfAccount = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Site)];
-        List<PropertyInfo> numberOfAccount = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AccountNumber)];
+        List<PropertyInfo> numberOfAccount =
+            [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AccountNumber)];
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
             .Put(siteOfAccount, (object?)"HQ")
             .Put(numberOfAccount, new LiteralExpression("AN-42"))
@@ -217,7 +232,8 @@ public class RecordProviderOfTForwardingTest : IDisposable
     {
         // Arrange - the ancestor's BillingCity is copied from its own (path-set) Site
         List<PropertyInfo> siteOfAccount = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Site)];
-        List<PropertyInfo> billingCityOfAccount = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.BillingCity)];
+        List<PropertyInfo> billingCityOfAccount =
+            [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.BillingCity)];
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
             .Put(siteOfAccount, (object?)"Berlin")
             .Put(billingCityOfAccount, CopyFromSiblingExpression.From<Account>(x => x.Site))
@@ -233,7 +249,11 @@ public class RecordProviderOfTForwardingTest : IDisposable
     }
 
     [Fact]
-    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "one owner generated")]
+    [SuppressMessage(
+        "Performance",
+        "HLQ005:Avoid Single() and SingleOrDefault()",
+        Justification = "one owner generated"
+    )]
     public async Task PutRequired_ByPath_AddsARequiredRelationshipToAGeneratedAncestor()
     {
         // Arrange - the Account under the Contact gets a required Owner it would not otherwise have
@@ -269,7 +289,11 @@ public class RecordProviderOfTForwardingTest : IDisposable
     }
 
     [Fact]
-    [SuppressMessage("Performance", "HLQ005:Avoid Single() and SingleOrDefault()", Justification = "one child requested")]
+    [SuppressMessage(
+        "Performance",
+        "HLQ005:Avoid Single() and SingleOrDefault()",
+        Justification = "one child requested"
+    )]
     public async Task WithChild_GeneratesASingleChild()
     {
         // Arrange
@@ -495,7 +519,7 @@ file sealed class NamedIndustryAccountProvider : TemplateProvider
 
 file sealed class PrefixedIdGenerator(string prefix) : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"{prefix}-{++this.count}";
+    public object NextId(MockIdContext context) => $"{prefix}-{++this._count}";
 }

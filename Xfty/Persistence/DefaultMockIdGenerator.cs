@@ -22,15 +22,18 @@ public sealed class DefaultMockIdGenerator : IMockIdGenerator
 
     private const string MockStringPrefix = "mock-";
 
-    private static int _sequence;
+    private static int s_sequence;
 
     public object NextId(MockIdContext context) =>
         RenderedId(UnwrappedIdType(context.IdField.PropertyType), NextSequence(), context);
 
-    /// <summary>The next <c>"mock-N"</c> string - the shape the old string-only mocker produced, kept for callers that just want one.</summary>
+    /// <summary>
+    /// The next <c>"mock-N"</c> string - the shape the old string-only mocker produced, kept for callers that just want
+    /// one.
+    /// </summary>
     internal static string NextMockString() => $"{MockStringPrefix}{NextSequence()}";
 
-    private static int NextSequence() => Interlocked.Increment(ref _sequence);
+    private static int NextSequence() => Interlocked.Increment(ref s_sequence);
 
     private static Type UnwrappedIdType(Type idFieldType) => Nullable.GetUnderlyingType(idFieldType) ?? idFieldType;
 

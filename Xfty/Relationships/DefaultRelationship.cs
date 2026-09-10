@@ -7,20 +7,26 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 /// The standard relationship implementation: generate a fresh parent record
 /// from the given override template.
 /// </summary>
-public sealed class DefaultRelationship(ILookupKey? lookupKey, object? overrideTemplate, PropertyInfo? relatedField) : IDefaultRelationship
+public sealed class DefaultRelationship(
+    ILookupKey? lookupKey,
+    object? overrideTemplate,
+    PropertyInfo? relatedField
+) : IDefaultRelationship
 {
-    private readonly ILookupKey? explicitLookupKey = lookupKey;
-    private ILookupKey? resolvedLookupKey;
+    private readonly ILookupKey? _explicitLookupKey = lookupKey;
+    private ILookupKey? _resolvedLookupKey;
 
     public DefaultRelationship(object? overrideTemplate) : this(null, overrideTemplate, null)
     {
     }
 
-    public DefaultRelationship(object? overrideTemplate, PropertyInfo? relatedField) : this(null, overrideTemplate, relatedField)
+    public DefaultRelationship(object? overrideTemplate, PropertyInfo? relatedField)
+        : this(null, overrideTemplate, relatedField)
     {
     }
 
-    public DefaultRelationship(ILookupKey? lookupKey, object? overrideTemplate) : this(lookupKey, overrideTemplate, null)
+    public DefaultRelationship(ILookupKey? lookupKey, object? overrideTemplate)
+        : this(lookupKey, overrideTemplate, null)
     {
     }
 
@@ -30,7 +36,11 @@ public sealed class DefaultRelationship(ILookupKey? lookupKey, object? overrideT
 
     public ILookupKey? ResolveLookupKey(IProviderLookup providerLookup)
     {
-        this.resolvedLookupKey ??= ProviderLookups.Reconcile(providerLookup, this.explicitLookupKey, this.OverrideTemplate);
-        return this.resolvedLookupKey;
+        this._resolvedLookupKey ??= ProviderLookups.Reconcile(
+            providerLookup,
+            this._explicitLookupKey,
+            this.OverrideTemplate
+        );
+        return this._resolvedLookupKey;
     }
 }

@@ -18,7 +18,7 @@ namespace Net.NowhereAtAll.Xfty.Xunit.Test;
 [IsolatesSharedAncestor]
 public class IsolatesSharedAncestorAttributeTest
 {
-    private const string _sharedName = "isolation-test-shared-name";
+    private const string SharedName = "isolation-test-shared-name";
 
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
@@ -32,11 +32,11 @@ public class IsolatesSharedAncestorAttributeTest
     {
         // Arrange - a fixed Id makes this a value Put, not a template, so the record itself is the resolved one
         Account first = new() { Name = "First", Id = IdMocker.GenerateId() };
-        _ = SharedAncestor.Put(_sharedName, first);
+        _ = SharedAncestor.Put(SharedName, first);
 
         // Act
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(_sharedName))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(SharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply().ConfigureAwait(true);
@@ -50,11 +50,11 @@ public class IsolatesSharedAncestorAttributeTest
     {
         // Arrange - same name as FirstTest; would collide with its resolution without isolation
         Account second = new() { Name = "Second", Id = IdMocker.GenerateId() };
-        _ = SharedAncestor.Put(_sharedName, second);
+        _ = SharedAncestor.Put(SharedName, second);
 
         // Act
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(_sharedName))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(SharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply().ConfigureAwait(true);
@@ -67,7 +67,7 @@ public class IsolatesSharedAncestorAttributeTest
 /// <summary>Proves the attribute works applied directly to one method, not just a whole class.</summary>
 public class IsolatesSharedAncestorAttributeMethodLevelTest
 {
-    private const string _sharedName = "isolation-test-method-level-name";
+    private const string SharedName = "isolation-test-method-level-name";
 
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
@@ -82,11 +82,11 @@ public class IsolatesSharedAncestorAttributeMethodLevelTest
     {
         // Arrange - a fixed Id makes this a value Put, not a template, so the record itself is the resolved one
         Account account = new() { Name = "Method-Level", Id = IdMocker.GenerateId() };
-        _ = SharedAncestor.Put(_sharedName, account);
+        _ = SharedAncestor.Put(SharedName, account);
 
         // Act
         Contact result = (Contact)await new RecordProvider(typeof(Contact), Lookup())
-            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(_sharedName))
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(SharedName))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply().ConfigureAwait(true);

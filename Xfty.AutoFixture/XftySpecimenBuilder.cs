@@ -33,12 +33,24 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture;
 ///
 /// Registered via <see cref="XftyCustomization"/>, not used directly.
 /// </summary>
-public sealed class XftySpecimenBuilder(IProviderLookup lookup, InsertMode insertMode, InsertInclusivity inclusivity) : ISpecimenBuilder
+public sealed class XftySpecimenBuilder(
+    IProviderLookup lookup,
+    InsertMode insertMode,
+    InsertInclusivity inclusivity
+) : ISpecimenBuilder
 {
     public object Create(object request, ISpecimenContext context) =>
         request is Type type && this.IsRegistered(type)
-            ? Task.Run(() => new RecordProvider(type, lookup).SetInsertMode(insertMode).SetInclusivity(inclusivity).Supply()).GetAwaiter().GetResult()
+            ? this.Supply(type)
             : new NoSpecimen();
+
+    private object Supply(Type type) =>
+        Task.Run(() => new RecordProvider(type, lookup)
+                .SetInsertMode(insertMode)
+                .SetInclusivity(inclusivity)
+                .Supply())
+            .GetAwaiter()
+            .GetResult();
 
     private bool IsRegistered(Type type)
     {

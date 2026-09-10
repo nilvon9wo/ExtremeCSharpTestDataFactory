@@ -7,7 +7,10 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
-/// <summary>Proves PathTargetValue - the value half of a PathValue, one of five kinds. ApplyTo lands on a master template (in-memory); no database access.</summary>
+/// <summary>
+/// Proves PathTargetValue - the value half of a PathValue, one of five kinds. ApplyTo lands on a master template
+/// (in-memory); no database access.
+/// </summary>
 public class PathTargetValueTest
 {
     [Fact]
@@ -64,7 +67,8 @@ public class PathTargetValueTest
         value.ApplyTo(template, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
-        Assert.True(template.OptionalRelationshipByField.ContainsKey(Field.Of<Contact>(x => x.AccountId)));
+        RelationshipConfig config = template.RelationshipByField[Field.Of<Contact>(x => x.AccountId)];
+        Assert.False(config.IsRequired);
     }
 
     [Fact]

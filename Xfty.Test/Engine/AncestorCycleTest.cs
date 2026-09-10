@@ -19,7 +19,10 @@ namespace Net.NowhereAtAll.Xfty.Test.Engine;
 public class AncestorCycleTest
 {
     private static IProviderLookup SelfReferringLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Contact>()] = new SelfReferringContactProvider() });
+        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        {
+            [LookupKey.Get<Contact>()] = new SelfReferringContactProvider(),
+        });
 
     [Fact]
     public async Task SupplyBundle_WithOneLevelOfSelfReference_StopsTheChainOnItsOwn()
@@ -50,7 +53,8 @@ public class AncestorCycleTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle)
+            .ConfigureAwait(true);
 
         // Assert - a deeper same-key chain must throw
         Assert.Contains("cycle", thrown.Message);
@@ -79,14 +83,12 @@ public class AncestorCycleTest
 
 file sealed class SelfReferringContactProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
         .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Mgr"))
         .PutOptional<Contact>(x => x.ReportsToId, new DefaultRelationship(new Contact()));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

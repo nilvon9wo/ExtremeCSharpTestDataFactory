@@ -197,25 +197,24 @@ public class ChildProviderOfTForwardingTest
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
-        List<object> grandchildren = bundle.GetChildBundle<Contact>(x => x.AccountId)!.GetChildList<Contact>(x => x.ReportsToId);
+        List<object> grandchildren =
+            bundle.GetChildBundle<Contact>(x => x.AccountId)!.GetChildList<Contact>(x => x.ReportsToId);
         Assert.Equal(6, grandchildren.Count); // 2 child Contacts x 3 grandchildren
     }
 }
 
 file sealed class NamedLastNameContactProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; }
+    public MasterTemplate MasterTemplate { get; }
 
     public NamedLastNameContactProvider(string lastName) =>
-        this._template = new MasterTemplate<Contact>(x => x.Id)
+        this.MasterTemplate = new MasterTemplate<Contact>(x => x.Id)
         {
             [x => x.LastName] = new LiteralExpression(lastName),
         };
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

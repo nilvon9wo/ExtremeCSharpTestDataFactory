@@ -5,21 +5,24 @@ using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Values;
 namespace Net.NowhereAtAll.Xfty.Engine;
 
-/// <summary>The second value pass: the context-aware expressions, run once the plain values, ancestors and lookups are all in place.</summary>
+/// <summary>
+/// The second value pass: the context-aware expressions, run once the plain values, ancestors and lookups are all in
+/// place.
+/// </summary>
 public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext context, MasterTemplate template)
 {
-    private readonly Bundle bundle = bundle;
-    private readonly GenerationContext context = context;
-    private readonly MasterTemplate template = template;
+    private readonly Bundle _bundle = bundle;
+    private readonly GenerationContext _context = context;
+    private readonly MasterTemplate _template = template;
 
     public void Complete()
     {
-        if (this.template.ContextAwareByField.Count == 0)
+        if (this._template.ContextAwareByField.Count == 0)
         {
             return;
         }
 
-        List<object> records = this.bundle.PrimaryRecords()!;
+        List<object> records = this._bundle.PrimaryRecords()!;
         records
             .Select((record, row) => (record, row))
             .ToList()
@@ -28,9 +31,10 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
 
     private void CompleteRow(object record, int row)
     {
-        GenerationContext rowContext = this.context.ForRecord(record, this.bundle, row);
-        HashSet<PropertyInfo> pendingContextAwareValues = [.. this.template.ContextAwareByField.Keys];
-        this.template.OrderedValueFields()
+        GenerationContext rowContext = this._context.ForRecord(record, this._bundle, row);
+        List<PropertyInfo> contextAwareFields = [.. this._template.ContextAwareByField.Keys];
+        HashSet<PropertyInfo> pendingContextAwareValues = [.. contextAwareFields];
+        contextAwareFields
             .ForEach(field => this.CompleteFieldAndUnmark(record, rowContext, field, pendingContextAwareValues));
     }
 
@@ -47,13 +51,12 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
 
     private void CompleteField(object record, GenerationContext scoped, PropertyInfo field)
     {
-        bool nothingToFill = !this.template.ContextAwareByField.TryGetValue(field, out IContextAwareExpression? expression)
-            || !FieldState.IsUnset(field, record);
-        if (nothingToFill)
+        if (!FieldState.IsUnset(field, record))
         {
             return;
         }
 
-        field.SetValue(record, expression!.Get(scoped));
+        IContextAwareExpression expression = this._template.ContextAwareByField[field];
+        field.SetValue(record, expression.Get(scoped));
     }
 }

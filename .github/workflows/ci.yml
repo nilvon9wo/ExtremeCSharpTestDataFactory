@@ -28,6 +28,13 @@ jobs:
       - name: Build (strict .editorconfig analyzers enforced)
         run: dotnet build Xfty.ci-cross-platform.slnf --no-restore
 
+      # The build enforces most of .editorconfig, but a few style/naming analyzers
+      # (IDE1006 naming, IDE0130 namespace-folder for partial types) do not run
+      # under `dotnet build` even with EnforceCodeStyleInBuild. This is the gate
+      # that runs them - and every whitespace/formatting rule - so they stay fixed.
+      - name: Verify code style, naming, and formatting (dotnet format)
+        run: dotnet format Xfty.slnx --verify-no-changes --severity info
+
       - name: Test (excluding the informational performance suite)
         run: dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"
 

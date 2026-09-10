@@ -13,7 +13,11 @@ public class AllOfPredicateTest
 {
     [Fact]
     public void IsSatisfiedBy_WhenEveryMemberIsSatisfied_ReturnsTrue() =>
-        AssertIsSatisfiedBy(BigTechPredicates(), new Account { NumberOfEmployees = 900, Industry = "Technology" }, true);
+        AssertIsSatisfiedBy(
+            BigTechPredicates(),
+            new Account { NumberOfEmployees = 900, Industry = "Technology" },
+            true
+        );
 
     [Fact]
     public void IsSatisfiedBy_WhenOneMemberIsNotSatisfied_ReturnsFalse() =>
@@ -44,7 +48,7 @@ public class AllOfPredicateTest
     private static void AssertIsSatisfiedBy(List<IRecordPredicate> members, Account? record, bool expectedResult)
     {
         // Arrange
-        IRecordPredicate predicate = AllOfPredicate.Of(members);
+        AllOfPredicate predicate = AllOfPredicate.Of(members);
 
         // Act
         bool actualResult = predicate.IsSatisfiedBy(record);

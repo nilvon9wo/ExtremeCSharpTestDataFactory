@@ -48,19 +48,21 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
 {
     private static readonly SemaphoreSlim ResolutionGate = new(1, 1);
     private static readonly AsyncLocal<bool> HoldsGate = new();
-    private static bool _running;
+    private static bool s_running;
     private static readonly HashSet<string> InProgress = [];
 
-    private readonly IProviderLookup lookup = lookup;
-    private readonly InsertMode mode = Eager(mode);
+    private readonly IProviderLookup _lookup = lookup;
+    private readonly InsertMode _mode = Eager(mode);
 
-    /// <summary>Every shared ancestor configured this test method, resolved against the triggering call's mode.</summary>
+    /// <summary>
+    /// Every shared ancestor configured this test method, resolved against the triggering call's mode.
+    /// </summary>
     public static Task ResolveAllConfigured(IProviderLookup lookup, InsertMode callMode) =>
         WithGate(() => ResolveAllConfiguredUnderGate(lookup, callMode));
 
     private static async Task ResolveAllConfiguredUnderGate(IProviderLookup lookup, InsertMode callMode)
     {
-        if (_running)
+        if (s_running)
         {
             return;
         }
@@ -91,18 +93,19 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
 
     private async Task ResolveUnderGate(List<SharedAncestor> ancestors)
     {
-        bool owns = !_running;
-        _running = true;
+        bool owns = !s_running;
+        s_running = true;
         try
         {
-            List<SharedAncestor> toResolve = [.. this.InDependencyOrder(ancestors).Where(ancestor => !ancestor.IsResolved)];
+            List<SharedAncestor> toResolve =
+                [.. this.InDependencyOrder(ancestors).Where(ancestor => !ancestor.IsResolved)];
             await this.ResolveRemaining(toResolve).ConfigureAwait(false);
         }
         finally
         {
             if (owns)
             {
-                _running = false;
+                s_running = false;
             }
         }
     }
@@ -115,7 +118,7 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
         }
 
         await this.ResolveOne(ancestors[0]).ConfigureAwait(false);
-        await this.ResolveRemaining(ancestors.Skip(1).ToList()).ConfigureAwait(false);
+        await this.ResolveRemaining([.. ancestors.Skip(1)]).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -156,7 +159,12 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
         return ordered;
     }
 
-    private void Visit(SharedAncestor ancestor, List<SharedAncestor> ordered, HashSet<string> done, HashSet<string> onThePath)
+    private void Visit(
+        SharedAncestor ancestor,
+        List<SharedAncestor> ordered,
+        HashSet<string> done,
+        HashSet<string> onThePath
+    )
     {
         string name = ancestor.SharedName;
         if (done.Contains(name))
@@ -184,9 +192,9 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
 
     private List<SharedAncestor> NestedOf(SharedAncestor ancestor)
     {
-        MasterTemplate template = ancestor.Source().MasterTemplate(this.lookup);
-        return [.. template.RequiredRelationshipByField.Values
-            .Concat(template.OptionalRelationshipByField.Values)
+        MasterTemplate template = ancestor.Source().MasterTemplate(this._lookup);
+        return [.. template.RelationshipByField.Values
+            .Select(config => config.Relationship)
             .OfType<SharedAncestor>()];
     }
 
@@ -213,7 +221,7 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
     private async Task BuildAndPersist(SharedAncestor ancestor)
     {
         SharedAncestorProvider source = ancestor.Source();
-        PropertyInfo primaryField = source.PrimaryField(this.lookup);
+        PropertyInfo primaryField = source.PrimaryField(this._lookup);
 
         // A record registered with its key already set means "this one exists, use it" - so decide
         // value-vs-generate here, where the real key field is known, not by a property literally named "Id".
@@ -223,14 +231,14 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
             return;
         }
 
-        Bundle graph = await source.BuildInMemory(this.lookup).ConfigureAwait(false);
+        Bundle graph = await source.BuildInMemory(this._lookup).ConfigureAwait(false);
 
         DeferredInsertBuffer buffer = new();
         buffer.Add(graph);
-        await buffer.ResolveAll(this.mode).ConfigureAwait(false);
+        await buffer.ResolveAll(this._mode).ConfigureAwait(false);
 
         object record = graph.GetList(primaryField)![0];
-        ancestor.AcceptResolved(record, graph, this.mode == InsertMode.Now);
+        ancestor.AcceptResolved(record, graph, this._mode == InsertMode.Now);
     }
 
     private static InsertMode Eager(InsertMode? callMode) =>

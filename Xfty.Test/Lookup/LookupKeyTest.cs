@@ -23,13 +23,16 @@ public class LookupKeyTest
     // Flavoured keys are interned flyweights whose .Matching(...) predicates
     // mutate the shared instance - build each exactly once, here.
     private static readonly FlavouredLookupKey EnterpriseFlavour =
-        FlavouredLookupKey.Get<Account>("enterprise").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 500));
+        FlavouredLookupKey.Get<Account>("enterprise")
+            .Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 500));
 
     private static readonly FlavouredLookupKey NamedFlavour =
-        FlavouredLookupKey.Get<Account>("named-runner").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
+        FlavouredLookupKey.Get<Account>("named-runner")
+            .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
 
     private static readonly FlavouredLookupKey BigAccount =
-        FlavouredLookupKey.Get<Account>("big").Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 100));
+        FlavouredLookupKey.Get<Account>("big")
+            .Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 100));
 
     // LookupKey ---------------------------------------------------------------
 
@@ -76,7 +79,8 @@ public class LookupKeyTest
     public void IsInstanceOf_WhenTheRecordIsOfThatType_ReturnsTrue() => AssertPlainKeyIsInstanceOf(new Account(), true);
 
     [Fact]
-    public void IsInstanceOf_WhenTheRecordIsADifferentType_ReturnsFalse() => AssertPlainKeyIsInstanceOf(new Contact(), false);
+    public void IsInstanceOf_WhenTheRecordIsADifferentType_ReturnsFalse() =>
+        AssertPlainKeyIsInstanceOf(new Contact(), false);
 
     [Fact]
     public void IsInstanceOf_WhenTheRecordIsNull_ReturnsFalse() => AssertPlainKeyIsInstanceOf(null, false);
@@ -120,22 +124,37 @@ public class LookupKeyTest
     // FlavouredLookupKey --------------------------------------------------
 
     [Fact]
-    public void IsInstanceOf_WhenEveryPredicateHolds_ReturnsTrue() => AssertEnterpriseFlavourIsInstanceOf(new Account { NumberOfEmployees = 1000 }, true);
+    public void IsInstanceOf_WhenEveryPredicateHolds_ReturnsTrue() =>
+        AssertEnterpriseFlavourIsInstanceOf(
+            new Account { NumberOfEmployees = 1000 },
+            true
+        );
 
     [Fact]
-    public void IsInstanceOf_WhenAPredicateFails_ReturnsFalse() => AssertEnterpriseFlavourIsInstanceOf(new Account { NumberOfEmployees = 10 }, false);
+    public void IsInstanceOf_WhenAPredicateFails_ReturnsFalse() =>
+        AssertEnterpriseFlavourIsInstanceOf(
+            new Account { NumberOfEmployees = 10 },
+            false
+        );
 
     [Fact]
-    public void IsInstanceOf_WhenThePredicatedFieldIsBlank_ReturnsFalse() => AssertEnterpriseFlavourIsInstanceOf(new Account(), false);
+    public void IsInstanceOf_WhenThePredicatedFieldIsBlank_ReturnsFalse() =>
+        AssertEnterpriseFlavourIsInstanceOf(new Account(), false);
 
     [Fact]
-    public void IsInstanceOf_ForAFlavouredKey_WhenTheRecordIsADifferentType_ReturnsFalse() => AssertEnterpriseFlavourIsInstanceOf(new Contact(), false);
+    public void IsInstanceOf_ForAFlavouredKey_WhenTheRecordIsADifferentType_ReturnsFalse() =>
+        AssertEnterpriseFlavourIsInstanceOf(new Contact(), false);
 
     [Fact]
-    public void IsInstanceOf_WhenAPredicateHolds_ReturnsTrue() => AssertNamedFlavourIsInstanceOf(new Account { Name = "x" }, true);
+    public void IsInstanceOf_WhenAPredicateHolds_ReturnsTrue() =>
+        AssertNamedFlavourIsInstanceOf(
+            new Account { Name = "x" },
+            true
+        );
 
     [Fact]
-    public void IsInstanceOf_WhenThePredicateFails_ReturnsFalse() => AssertNamedFlavourIsInstanceOf(new Account(), false);
+    public void IsInstanceOf_WhenThePredicateFails_ReturnsFalse() =>
+        AssertNamedFlavourIsInstanceOf(new Account(), false);
 
     [Fact]
     public void FlavouredGetOfTRecord_IsTheSameInternedInstanceAsGetOfType()
@@ -167,7 +186,8 @@ public class LookupKeyTest
     public void Specificity_ForAFlavouredKey_GrowsWithEachPredicateAndBeatsAPlainKey()
     {
         // Arrange
-        FlavouredLookupKey onePredicate = FlavouredLookupKey.Get<Account>("hashkey-a").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
+        FlavouredLookupKey onePredicate = FlavouredLookupKey.Get<Account>("hashkey-a")
+            .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name));
         FlavouredLookupKey twoPredicates = FlavouredLookupKey.Get<Account>("hashkey-b")
             .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))
             .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Industry));
@@ -220,7 +240,10 @@ public class LookupKeyTest
     public void Get_ForARegisteredKey_ReturnsTheProviderAndCachesTheInstance()
     {
         // Arrange
-        IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type> { [LookupKey.Get<Account>()] = typeof(AccountDataProvider) });
+        IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
+        {
+            [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
+        });
 
         // Act
         IRecordProvider first = lookup.Get(LookupKey.Get<Account>());
@@ -235,7 +258,8 @@ public class LookupKeyTest
     {
         // Arrange
         IRecordProvider provider = new AccountDataProvider();
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Account>()] = provider });
+        IProviderLookup lookup =
+            ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Account>()] = provider });
 
         // Act
         IRecordProvider resolved = lookup.Get<Account>();
@@ -249,7 +273,8 @@ public class LookupKeyTest
     {
         // Arrange
         IRecordProvider provider = new AccountDataProvider();
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Account>()] = provider });
+        IProviderLookup lookup =
+            ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Account>()] = provider });
 
         // Act
         IRecordProvider resolved = lookup.Get(typeof(Account));
@@ -265,7 +290,8 @@ public class LookupKeyTest
         IProviderLookup lookup = ProviderLookups.OfTypes([]);
 
         // Act
-        LookupException thrown = Assert.Throws<LookupException>(() => lookup.Get(FlavouredLookupKey.Get<Account>("unregistered")));
+        LookupException thrown =
+            Assert.Throws<LookupException>(() => lookup.Get(FlavouredLookupKey.Get<Account>("unregistered")));
 
         // Assert
         Assert.Contains("Account", thrown.Message);
@@ -317,7 +343,8 @@ public class LookupKeyTest
         // Arrange - nothing to arrange
 
         // Act
-        LookupException thrown = Assert.Throws<LookupException>(() => ProviderLookups.KeysFor(new HashSet<ILookupKey>(), null));
+        LookupException thrown =
+            Assert.Throws<LookupException>(() => ProviderLookups.KeysFor(new HashSet<ILookupKey>(), null));
 
         // Assert
         Assert.Contains("record is required", thrown.Message);
@@ -386,12 +413,17 @@ public class LookupKeyTest
         // Arrange
         IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
         {
-            [FlavouredLookupKey.Get<Account>("ambiguous-a").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] = typeof(AccountDataProvider),
-            [FlavouredLookupKey.Get<Account>("ambiguous-b").Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] = typeof(AccountDataProvider),
+            [FlavouredLookupKey.Get<Account>("ambiguous-a")
+                .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] =
+                typeof(AccountDataProvider),
+            [FlavouredLookupKey.Get<Account>("ambiguous-b")
+                .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] =
+                typeof(AccountDataProvider),
         });
 
         // Act
-        LookupException thrown = Assert.Throws<LookupException>(() => ProviderLookups.Resolve(lookup, new Account { Name = "x" }));
+        LookupException thrown =
+            Assert.Throws<LookupException>(() => ProviderLookups.Resolve(lookup, new Account { Name = "x" }));
 
         // Assert
         Assert.Contains("Ambiguous", thrown.Message);

@@ -10,7 +10,8 @@ public static class PlainValueFiller
     public static object CloneAndCompletePlainValues(MasterTemplate template, object testTemplate)
     {
         object record = RecordCloneFactory.DeepClone(testTemplate);
-        template.OrderedValueFields().ForEach(field => FillPlainValue(template, record, field));
+        List<PropertyInfo> plainFields = [.. template.DefaultByField.Keys];
+        plainFields.ForEach(field => FillPlainValue(template, record, field));
         return record;
     }
 
@@ -19,13 +20,11 @@ public static class PlainValueFiller
 
     private static void FillPlainValue(MasterTemplate template, object record, PropertyInfo field)
     {
-        bool nothingToFill = !template.DefaultByField.TryGetValue(field, out IValueExpression? strategy)
-            || !FieldState.IsUnset(field, record);
-        if (nothingToFill)
+        if (!FieldState.IsUnset(field, record))
         {
             return;
         }
 
-        field.SetValue(record, strategy!.Get());
+        field.SetValue(record, template.DefaultByField[field].Get());
     }
 }

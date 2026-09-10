@@ -22,7 +22,10 @@ public class RecordInjectorTest
         List<object> accounts = [new Account { Name = "Acme" }, new Account { Name = "Globex" }];
 
         // Act
-        List<Contact> enriched = [.. RecordInjector.Inject(contacts).Relationship(Field.Of<Contact>(x => x.Account), accounts).Result().Cast<Contact>()];
+        List<Contact> enriched = [.. RecordInjector.Inject(contacts)
+            .Relationship(Field.Of<Contact>(x => x.Account), accounts)
+            .Result()
+            .Cast<Contact>()];
 
         // Assert
         Assert.Equal("Acme", enriched[0].Account!.Name);
@@ -37,7 +40,10 @@ public class RecordInjectorTest
         List<object> accounts = [new Account { Name = "Acme" }, null!];
 
         // Act
-        List<Contact> enriched = [.. RecordInjector.Inject(contacts).Relationship(Field.Of<Contact>(x => x.Account), accounts).Result().Cast<Contact>()];
+        List<Contact> enriched = [.. RecordInjector.Inject(contacts)
+            .Relationship(Field.Of<Contact>(x => x.Account), accounts)
+            .Result()
+            .Cast<Contact>()];
 
         // Assert
         Assert.Equal("Acme", enriched[0].Account!.Name);
@@ -52,7 +58,10 @@ public class RecordInjectorTest
         List<List<object>> contactsPerRow = [[new Contact { LastName = "A" }, new Contact { LastName = "B" }]];
 
         // Act
-        List<Account> enriched = [.. RecordInjector.Inject(accounts).ChildRelationship(Field.Of<Account>(x => x.Contacts), contactsPerRow).Result().Cast<Account>()];
+        List<Account> enriched = [.. RecordInjector.Inject(accounts)
+            .ChildRelationship(Field.Of<Account>(x => x.Contacts), contactsPerRow)
+            .Result()
+            .Cast<Account>()];
 
         // Assert
         Assert.Equal(2, enriched[0].Contacts!.Count);
@@ -67,7 +76,10 @@ public class RecordInjectorTest
         List<List<object>> none = [[]];
 
         // Act
-        List<Account> enriched = [.. RecordInjector.Inject(accounts).ChildRelationship(Field.Of<Account>(x => x.Contacts), none).Result().Cast<Account>()];
+        List<Account> enriched = [.. RecordInjector.Inject(accounts)
+            .ChildRelationship(Field.Of<Account>(x => x.Contacts), none)
+            .Result()
+            .Cast<Account>()];
 
         // Assert
         Assert.Empty(enriched[0].Contacts!);
@@ -81,7 +93,8 @@ public class RecordInjectorTest
         const string site = "HQ";
 
         // Act
-        List<Account> enriched = [.. RecordInjector.Inject(accounts).Value(Field.Of<Account>(x => x.Site), site).Result().Cast<Account>()];
+        List<Account> enriched =
+            [.. RecordInjector.Inject(accounts).Value(Field.Of<Account>(x => x.Site), site).Result().Cast<Account>()];
 
         // Assert
         Assert.Equal(site, enriched[0].Site);
@@ -96,7 +109,10 @@ public class RecordInjectorTest
         List<object?> revenues = [100m, 250m];
 
         // Act
-        List<Account> enriched = [.. RecordInjector.Inject(accounts).ValuePerRow(Field.Of<Account>(x => x.AnnualRevenue), revenues).Result().Cast<Account>()];
+        List<Account> enriched = [.. RecordInjector.Inject(accounts)
+            .ValuePerRow(Field.Of<Account>(x => x.AnnualRevenue), revenues)
+            .Result()
+            .Cast<Account>()];
 
         // Assert
         Assert.Equal(100m, enriched[0].AnnualRevenue);
@@ -111,7 +127,10 @@ public class RecordInjectorTest
         List<object> contacts = [original];
 
         // Act
-        List<Contact> enriched = [.. RecordInjector.Inject(contacts).Relationship(Field.Of<Contact>(x => x.Account), [new Account { Name = "Grafted" }]).Result().Cast<Contact>()];
+        List<Contact> enriched = [.. RecordInjector.Inject(contacts)
+            .Relationship(Field.Of<Contact>(x => x.Account), [new Account { Name = "Grafted" }])
+            .Result()
+            .Cast<Contact>()];
 
         // Assert
         Assert.Null(original.Account); // the input record was not mutated
@@ -139,7 +158,8 @@ public class RecordInjectorTest
         List<object> nothing = null!;
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => RecordInjector.Inject(nothing));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => RecordInjector.Inject(nothing));
 
         // Assert
         Assert.NotNull(thrown);
@@ -153,8 +173,10 @@ public class RecordInjectorTest
         List<object> onlyOneAccount = [new Account { Name = "Acme" }];
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => RecordInjector.Inject(contacts).Relationship(Field.Of<Contact>(x => x.Account), onlyOneAccount).Result());
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() =>
+            RecordInjector.Inject(contacts)
+                .Relationship(Field.Of<Contact>(x => x.Account), onlyOneAccount)
+                .Result());
 
         // Assert - the message names the misaligned graft
         Assert.NotNull(thrown);
@@ -170,7 +192,8 @@ public class RecordInjectorTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => RecordInjector.Inject(accounts).ValuePerRow(Field.Of<Account>(x => x.AnnualRevenue), tooFew).Result());
+            () =>
+                RecordInjector.Inject(accounts).ValuePerRow(Field.Of<Account>(x => x.AnnualRevenue), tooFew).Result());
 
         // Assert
         Assert.NotNull(thrown);

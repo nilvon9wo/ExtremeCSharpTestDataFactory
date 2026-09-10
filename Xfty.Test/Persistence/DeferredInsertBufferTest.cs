@@ -99,7 +99,8 @@ public class DeferredInsertBufferTest
     {
         // Arrange - a shared ancestor: 3 Contacts, one Account bundle
         Account sharedParent = new() { Name = "Shared Parent" };
-        List<object> contacts = [new Contact { LastName = "A" }, new Contact { LastName = "B" }, new Contact { LastName = "C" }];
+        List<object> contacts =
+            [new Contact { LastName = "A" }, new Contact { LastName = "B" }, new Contact { LastName = "C" }];
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), contacts);
         _ = bundle.Put<Contact>(x => x.AccountId, BundleOf(Field.Of<Account>(x => x.Id), sharedParent));

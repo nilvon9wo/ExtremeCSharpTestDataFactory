@@ -8,7 +8,10 @@ using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
-/// <summary>Proves <see cref="ChildProvider{TChild}"/> - the typed wrapper - mirrors <see cref="RecordProvider{TRecord}"/>'s own pattern.</summary>
+/// <summary>
+/// Proves <see cref="ChildProvider{TChild}"/> - the typed wrapper - mirrors <see cref="RecordProvider{TRecord}"/>'s own
+/// pattern.
+/// </summary>
 public class ChildProviderOfTTest
 {
     private static IProviderLookup Lookup() =>

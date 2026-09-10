@@ -40,13 +40,13 @@ public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFil
 
     private static readonly Action<IAutoGenerateConfigBuilder> NoConfiguration = static _ => { };
 
-    private readonly HashSet<PropertyInfo> excludedFields = [];
-    private readonly Dictionary<Type, MethodInfo> generateMethodByType = [];
+    private readonly HashSet<PropertyInfo> _excludedFields = [];
+    private readonly Dictionary<Type, MethodInfo> _generateMethodByType = [];
 
     /// <summary>Opt field out of this filler entirely - it stays exactly as XFTY left it. Chainable.</summary>
     public AutoBogusUnsetFieldFiller Excluding(PropertyInfo field)
     {
-        _ = this.excludedFields.Add(field);
+        _ = this._excludedFields.Add(field);
         return this;
     }
 
@@ -54,7 +54,7 @@ public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFil
     {
         foreach (PropertyInfo field in unsetFields)
         {
-            if (!this.excludedFields.Contains(field))
+            if (!this._excludedFields.Contains(field))
             {
                 field.SetValue(record, this.Generate(field.PropertyType));
             }
@@ -63,10 +63,10 @@ public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFil
 
     private object? Generate(Type type)
     {
-        if (!this.generateMethodByType.TryGetValue(type, out MethodInfo? method))
+        if (!this._generateMethodByType.TryGetValue(type, out MethodInfo? method))
         {
             method = GenerateOfT.MakeGenericMethod(type);
-            this.generateMethodByType[type] = method;
+            this._generateMethodByType[type] = method;
         }
 
         return method.Invoke(faker, [NoConfiguration]);

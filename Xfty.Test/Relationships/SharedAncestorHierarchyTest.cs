@@ -60,8 +60,18 @@ public class SharedAncestorHierarchyTest
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
-            [level1Key] = ChildOfSharedProvider.Of<Account>(nameof(Account.Id), nameof(Account.ParentId), nameof(Account.Name), "hierarchy-root"),
-            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), "hierarchy-level1"),
+            [level1Key] = ChildOfSharedProvider.Of<Account>(
+                nameof(Account.Id),
+                nameof(Account.ParentId),
+                nameof(Account.Name),
+                "hierarchy-root"
+            ),
+            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(
+                nameof(Contact.Id),
+                nameof(Contact.AccountId),
+                nameof(Contact.LastName),
+                "hierarchy-level1"
+            ),
         });
 
         // Act
@@ -71,7 +81,10 @@ public class SharedAncestorHierarchyTest
             .Supply().ConfigureAwait(true);
 
         // Assert - the nested shared ancestor was wired
-        Assert.Equal(SharedAncestor.GetId("hierarchy-root"), ((Account)FirstResolvedAccount("hierarchy-level1")).ParentId);
+        Assert.Equal(
+            SharedAncestor.GetId("hierarchy-root"),
+            ((Account)FirstResolvedAccount("hierarchy-level1")).ParentId
+        );
         Assert.Equal(SharedAncestor.GetId("hierarchy-level1"), leaf.AccountId);
     }
 
@@ -249,12 +262,14 @@ public class SharedAncestorHierarchyTest
         ILookupKey keyB = FlavouredLookupKey.Get<Account>("hierarchy-cycle-b");
         _ = SharedAncestor.Put("hierarchy-cycle-a", new Account()).FromVariant(keyA);
         _ = SharedAncestor.Put("hierarchy-cycle-b", new Account()).FromVariant(keyB);
-        RecordProvider provider = new RecordProvider(typeof(Contact), CycleLookup(keyA, keyB, "hierarchy-cycle-a", "hierarchy-cycle-b"))
+        IProviderLookup lookup = CycleLookup(keyA, keyB, "hierarchy-cycle-a", "hierarchy-cycle-b");
+        RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert - a shared-ancestor cycle must throw
         Assert.Contains("cycle", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -299,7 +314,10 @@ public class SharedAncestorHierarchyTest
         _ = SharedAncestor.Put(name, new Account { Name = "HQ" });
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => SupplyContactsUnderWithMode(name, 2, InsertMode.Deferred)).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(
+                () => SupplyContactsUnderWithMode(name, 2, InsertMode.Deferred)
+            )
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -386,8 +404,18 @@ public class SharedAncestorHierarchyTest
         IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
-            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), name),
-            [LookupKey.Get<Case>()] = ChildOfSharedProvider.Of<Case>(nameof(Case.Id), nameof(Case.AccountId), null, name),
+            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(
+                nameof(Contact.Id),
+                nameof(Contact.AccountId),
+                nameof(Contact.LastName),
+                name
+            ),
+            [LookupKey.Get<Case>()] = ChildOfSharedProvider.Of<Case>(
+                nameof(Case.Id),
+                nameof(Case.AccountId),
+                null,
+                name
+            ),
         });
 
         // Act - one supply per record type
@@ -473,9 +501,18 @@ public class SharedAncestorHierarchyTest
 
     // Fixture - supply helpers -------------------------------------------
 
-    private static Task<List<Contact>> SupplyContactsUnder(string sharedName, int howMany) => SupplyContactsUnderWithMode(sharedName, howMany, InsertMode.Mock);
+    private static Task<List<Contact>> SupplyContactsUnder(string sharedName, int howMany) =>
+        SupplyContactsUnderWithMode(
+            sharedName,
+            howMany,
+            InsertMode.Mock
+        );
 
-    private static async Task<List<Contact>> SupplyContactsUnderWithMode(string sharedName, int howMany, InsertMode mode) =>
+    private static async Task<List<Contact>> SupplyContactsUnderWithMode(
+        string sharedName,
+        int howMany,
+        InsertMode mode
+    ) =>
         [.. (await new RecordProvider(typeof(Contact), ContactsUnder(sharedName))
             .SetQuantityPerTemplate(howMany)
             .SetInclusivity(InsertInclusivity.Required)
@@ -483,9 +520,11 @@ public class SharedAncestorHierarchyTest
             .SupplyList().ConfigureAwait(false))
             .Cast<Contact>()];
 
-    private static async Task<Contact> SupplyOneContactUnder(string sharedName) => (await SupplyContactsUnder(sharedName, 1).ConfigureAwait(false))[0];
+    private static async Task<Contact> SupplyOneContactUnder(string sharedName) =>
+        (await SupplyContactsUnder(sharedName, 1).ConfigureAwait(false))[0];
 
-    private static object FirstResolvedAccount(string sharedName) => SharedAncestor.Get(sharedName).GetResolvedBundle().PrimaryRecords()![0];
+    private static object FirstResolvedAccount(string sharedName) =>
+        SharedAncestor.Get(sharedName).GetResolvedBundle().PrimaryRecords()![0];
 
     // Fixture - lookups + the Provider double ---------------------------
 
@@ -493,7 +532,12 @@ public class SharedAncestorHierarchyTest
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
-            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), sharedName),
+            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(
+                nameof(Contact.Id),
+                nameof(Contact.AccountId),
+                nameof(Contact.LastName),
+                sharedName
+            ),
         });
 
     private static IProviderLookup ContactsUnderWithDefault(string sharedName, Account theDefault) =>
@@ -501,16 +545,36 @@ public class SharedAncestorHierarchyTest
             new Dictionary<ILookupKey, IRecordProvider>
             {
                 [LookupKey.Get<Account>()] = new AccountDataProvider(),
-                [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), sharedName),
+                [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(
+                    nameof(Contact.Id),
+                    nameof(Contact.AccountId),
+                    nameof(Contact.LastName),
+                    sharedName
+                ),
             },
             new Dictionary<string, object> { [sharedName] = theDefault });
 
     private static IProviderLookup CycleLookup(ILookupKey keyA, ILookupKey keyB, string nameA, string nameB) =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [keyA] = ChildOfSharedProvider.Of<Account>(nameof(Account.Id), nameof(Account.ParentId), nameof(Account.Name), nameB),
-            [keyB] = ChildOfSharedProvider.Of<Account>(nameof(Account.Id), nameof(Account.ParentId), nameof(Account.Name), nameA),
-            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(nameof(Contact.Id), nameof(Contact.AccountId), nameof(Contact.LastName), nameA),
+            [keyA] = ChildOfSharedProvider.Of<Account>(
+                nameof(Account.Id),
+                nameof(Account.ParentId),
+                nameof(Account.Name),
+                nameB
+            ),
+            [keyB] = ChildOfSharedProvider.Of<Account>(
+                nameof(Account.Id),
+                nameof(Account.ParentId),
+                nameof(Account.Name),
+                nameA
+            ),
+            [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(
+                nameof(Contact.Id),
+                nameof(Contact.AccountId),
+                nameof(Contact.LastName),
+                nameA
+            ),
         });
 }
 
@@ -518,29 +582,34 @@ file sealed class LeafUserProvider : IRecordProvider
 {
     public static readonly LeafUserProvider Instance = new();
 
-    private MasterTemplate _template { get; } = new MasterTemplate<User>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<User>(x => x.Id)
         .Put(x => x.LastName, new IncrementingStringExpression("User"));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-/// <summary>A Provider with one required lookup to a named shared ancestor, plus an optional label field its generation needs.</summary>
+/// <summary>
+/// A Provider with one required lookup to a named shared ancestor, plus an optional label field its generation needs.
+/// </summary>
 file sealed class ChildOfSharedProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; }
+    public MasterTemplate MasterTemplate { get; }
 
     private ChildOfSharedProvider(PropertyInfo primaryField, MasterTemplate template)
     {
         this.PrimaryTargetField = primaryField;
-        this._template = template;
+        this.MasterTemplate = template;
     }
 
-    public static ChildOfSharedProvider Of<TRecord>(string primaryFieldName, string lookupFieldName, string? labelFieldName, string sharedName)
+    public static ChildOfSharedProvider Of<TRecord>(
+        string primaryFieldName,
+        string lookupFieldName,
+        string? labelFieldName,
+        string sharedName
+    )
     {
         PropertyInfo primaryField = Field.Of<TRecord>(primaryFieldName);
         MasterTemplate template = new MasterTemplate(primaryField)
@@ -555,8 +624,6 @@ file sealed class ChildOfSharedProvider : IRecordProvider
 
     public PropertyInfo PrimaryTargetField { get; }
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

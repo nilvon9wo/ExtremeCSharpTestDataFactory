@@ -11,14 +11,12 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Te
 /// <summary>A demo Provider pairing a `Content` field with a `RandomVectorExpression`-generated embedding.</summary>
 public sealed class DocumentChunkProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<DocumentChunk>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<DocumentChunk>(x => x.Id)
         .Put(x => x.Content, new IncrementingStringExpression("chunk"))
         .Put(x => x.Embedding, new RandomVectorExpression(dimensions: 16));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

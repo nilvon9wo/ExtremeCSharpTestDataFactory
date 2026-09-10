@@ -9,7 +9,7 @@ namespace Net.NowhereAtAll.Xfty.Bogus;
 /// </summary>
 public sealed class FakeStreetAddressExpression(string locale = "en") : IValueExpression
 {
-    private readonly Faker faker = new(locale);
+    private readonly Faker _faker = new(locale);
 
-    public object Get() => this.faker.Address.StreetAddress();
+    public object Get() => this._faker.Address.StreetAddress();
 }

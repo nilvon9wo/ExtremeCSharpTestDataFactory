@@ -20,6 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The test project exercises a few internal seams directly (the
+         RecordProvider execution pipeline, lookup mechanics). Internal, so a
+         consumer never sees it. -->
+    <InternalsVisibleTo Include="Net.NowhereAtAll.Xfty.Test" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!--
       Supplies IsExternalInit (the marker type `init` accessors need) on
       netstandard2.0, where it isn't part of the real BCL - a no-op on

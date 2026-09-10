@@ -20,7 +20,7 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 public interface IPersistenceGateway
 {
     /// <summary>
-    /// Persist every record in <paramref name="records"/> - all the same
+    /// Persist every record in <paramref name="_records"/> - all the same
     /// type - and set <paramref name="idField"/> on each to its real,
     /// generated identifier.
     /// </summary>

@@ -29,20 +29,20 @@ namespace Net.NowhereAtAll.Xfty.Enrichment;
 /// </summary>
 public sealed class BundleEnricher
 {
-    private readonly Bundle entryBundle;
-    private readonly PropertyInfo entryField;
-    private readonly InjectConfig config;
-    private readonly EnrichmentSelection selection;
-    private readonly ForcedValues forcedValues;
+    private readonly Bundle _entryBundle;
+    private readonly PropertyInfo _entryField;
+    private readonly InjectConfig _config;
+    private readonly EnrichmentSelection _selection;
+    private readonly ForcedValues _forcedValues;
 
     private BundleEnricher(Bundle bundle, PropertyInfo field, InjectConfig config)
     {
         QueryableShapeValidator.Validate(config);
-        this.entryBundle = bundle;
-        this.entryField = field;
-        this.config = config;
-        this.selection = new EnrichmentSelection(config);
-        this.forcedValues = new ForcedValues(config);
+        this._entryBundle = bundle;
+        this._entryField = field;
+        this._config = config;
+        this._selection = new EnrichmentSelection(config);
+        this._forcedValues = new ForcedValues(config);
     }
 
     public static List<object> Enrich(Bundle bundle, PropertyInfo field, InjectConfig config) =>
@@ -58,9 +58,9 @@ public sealed class BundleEnricher
 
     private List<object> Run()
     {
-        EnrichmentTarget target = EnrichmentTarget.Locate(this.entryBundle, this.entryField);
+        EnrichmentTarget target = EnrichmentTarget.Locate(this._entryBundle, this._entryField);
         List<object> result = this.EnrichPosition(this.RootPosition(target));
-        this.forcedValues.AssertEveryPathWasReached();
+        this._forcedValues.AssertEveryPathWasReached();
         return result;
     }
 
@@ -73,7 +73,7 @@ public sealed class BundleEnricher
 
         RecordInjector injector = RecordInjector.Inject(pos.Records);
         this.GraftAncestors(injector, pos);
-        this.GraftInverse(injector, pos);
+        GraftInverse(injector, pos);
         this.GraftChildren(injector, pos);
         this.ApplyForcedValues(injector, pos);
         return injector.Result();
@@ -84,17 +84,17 @@ public sealed class BundleEnricher
         int rowCount = pos.Records!.Count;
         if (pos.IsRoot)
         {
-            this.forcedValues.ApplyRecordValues(injector, rowCount);
+            this._forcedValues.ApplyRecordValues(injector, rowCount);
         }
 
         if (pos.PathFromEntry is { Count: > 0 })
         {
-            this.forcedValues.ApplyAncestorValues(injector, pos.PathFromEntry, rowCount);
+            this._forcedValues.ApplyAncestorValues(injector, pos.PathFromEntry, rowCount);
         }
 
         if (pos.ChildPathFromEntry is { Count: > 0 })
         {
-            this.forcedValues.ApplyChildValues(injector, pos.ChildPathFromEntry, rowCount);
+            this._forcedValues.ApplyChildValues(injector, pos.ChildPathFromEntry, rowCount);
         }
     }
 
@@ -105,12 +105,15 @@ public sealed class BundleEnricher
             return;
         }
 
-        pos.SubBundle.RelationshipFields().ToList().ForEach(lookupField => this.GraftAncestor(injector, pos, lookupField));
+        foreach (PropertyInfo lookupField in pos.SubBundle.RelationshipFields())
+        {
+            this.GraftAncestor(injector, pos, lookupField);
+        }
     }
 
     private void GraftAncestor(RecordInjector injector, EnrichmentPosition pos, PropertyInfo lookupField)
     {
-        if (!this.selection.WantsAncestor(AncestorPath(pos, lookupField)))
+        if (!this._selection.WantsAncestor(AncestorPath(pos, lookupField)))
         {
             return;
         }
@@ -126,7 +129,7 @@ public sealed class BundleEnricher
             this.EnrichPosition(this.AncestorPosition(pos, lookupField, parents)));
     }
 
-    private void GraftInverse(RecordInjector injector, EnrichmentPosition pos)
+    private static void GraftInverse(RecordInjector injector, EnrichmentPosition pos)
     {
         if (pos.InverseChildField is null)
         {
@@ -145,7 +148,7 @@ public sealed class BundleEnricher
             return;
         }
 
-        this.selection.ChildFieldsOn(pos.SubBundle, ChildPathOf(pos)).ToList().ForEach(childField =>
+        this._selection.ChildFieldsOn(pos.SubBundle, ChildPathOf(pos)).ToList().ForEach(childField =>
             injector.ChildRelationship(
                 InjectionPathResolver.ChildRelationshipField(pos.PositionType()!, childField),
                 this.ChildrenPerRow(pos, childField)));
@@ -178,16 +181,21 @@ public sealed class BundleEnricher
         {
             PathFromEntry = [],
             ChildPathFromEntry = [],
-            ParentDepthLeft = this.config.ParentDepthLimit,
-            ChildDepthLeft = this.config.ChildDepthLimit,
+            ParentDepthLeft = this._config.ParentDepthLimit,
+            ChildDepthLeft = this._config.ChildDepthLimit,
             IsRoot = true,
         };
         if (target.IsGeneratedAncestor)
         {
             root.CarryInverse(
-                this.entryField,
+                this._entryField,
                 InverseAlignment.ChildrenPerParent(
-                    target.Records!, this.entryBundle.PrimaryRecords()!, this.entryField, target.SubBundle?.PrimaryTargetField));
+                    target.Records!,
+                    this._entryBundle.PrimaryRecords()!,
+                    this._entryField,
+                    target.SubBundle?.PrimaryTargetField
+                )
+            );
         }
 
         return root;
@@ -200,7 +208,7 @@ public sealed class BundleEnricher
             PathFromEntry = AncestorPath(pos, lookupField),
             ParentDepthLeft = pos.ParentDepthLeft - 1,
         };
-        if (this.selection.WantsInverse(lookupField))
+        if (this._selection.WantsInverse(lookupField))
         {
             up.CarryInverse(
                 lookupField,
@@ -211,10 +219,14 @@ public sealed class BundleEnricher
         return up;
     }
 
-    private EnrichmentPosition ChildrenPosition(EnrichmentPosition pos, BundleChildEntry entry, PropertyInfo childField) =>
+    private EnrichmentPosition ChildrenPosition(
+        EnrichmentPosition pos,
+        BundleChildEntry entry,
+        PropertyInfo childField
+    ) =>
         new(entry.Bundle, entry.Bundle.PrimaryRecords())
         {
-            ParentDepthLeft = this.config.ParentDepthLimit,
+            ParentDepthLeft = this._config.ParentDepthLimit,
             ChildDepthLeft = pos.ChildDepthLeft - 1,
             ChildPathFromEntry = Append(ChildPathOf(pos), childField),
         };
@@ -228,5 +240,6 @@ public sealed class BundleEnricher
 
     private static List<PropertyInfo> Append(List<PropertyInfo> path, PropertyInfo extra) => [.. path, extra];
 
-    private static List<List<object>> EmptyListsFor(int size) => [.. Enumerable.Range(0, size).Select(_ => new List<object>())];
+    private static List<List<object>> EmptyListsFor(int size) =>
+        [.. Enumerable.Range(0, size).Select(_ => new List<object>())];
 }

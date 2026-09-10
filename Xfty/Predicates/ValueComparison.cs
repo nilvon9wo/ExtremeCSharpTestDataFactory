@@ -12,7 +12,7 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 public static class ValueComparison
 {
     /// <summary>
-    /// -1 / 0 / 1 comparing <paramref name="record"/>'s <paramref name="field"/>
+    /// -1 / 0 / 1 comparing <paramref name="record"/>'s <paramref name="_field"/>
     /// against <paramref name="value"/>, or null when either side is absent
     /// (so the caller can decide what an incomparable pair means).
     /// </summary>

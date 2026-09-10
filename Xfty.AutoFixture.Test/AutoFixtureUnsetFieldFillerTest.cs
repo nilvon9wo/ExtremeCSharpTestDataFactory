@@ -6,7 +6,10 @@ using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.AutoFixture.Test;
 
-/// <summary>Proves AutoFixtureUnsetFieldFiller - the bundled IUnsetFieldFiller. See UnsetFieldFillerTest (Xfty.Test) for the core contract it relies on.</summary>
+/// <summary>
+/// Proves AutoFixtureUnsetFieldFiller - the bundled IUnsetFieldFiller. See UnsetFieldFillerTest (Xfty.Test) for the
+/// core contract it relies on.
+/// </summary>
 public class AutoFixtureUnsetFieldFillerTest
 {
     private static readonly IProviderLookup Lookup =
@@ -96,7 +99,7 @@ public class AutoFixtureUnsetFieldFillerTest
     public async Task Supply_WithOmitOnRecursionBehaviorInstalled_StillFillsTheSelfReferencingFieldWithoutThrowing()
     {
         // Arrange - the documented alternative to relying on this filler's own catch
-        IFixture fixture = new Fixture();
+        Fixture fixture = new();
         _ = fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().Single());
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup)

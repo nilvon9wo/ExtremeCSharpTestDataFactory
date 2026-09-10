@@ -5,14 +5,18 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Test.Enrichment;
 
-/// <summary>Proves ForcedValues - placing the config's forced scalars on the injector for a position. In-memory; the injector round-trip is exercised, no persistence.</summary>
+/// <summary>
+/// Proves ForcedValues - placing the config's forced scalars on the injector for a position. In-memory; the injector
+/// round-trip is exercised, no persistence.
+/// </summary>
 public class ForcedValuesTest
 {
     [Fact]
     public void ApplyRecordValues_AppliesOnRecordScalars()
     {
         // Arrange
-        InjectConfig config = InjectConfig.Nothing().InjectValue(Field.Of<Contact>(x => x.Birthdate), new DateTime(2020, 1, 1));
+        InjectConfig config =
+            InjectConfig.Nothing().InjectValue(Field.Of<Contact>(x => x.Birthdate), new DateTime(2020, 1, 1));
         RecordInjector injector = RecordInjector.Inject([new Contact { LastName = "X" }]);
 
         // Act
@@ -26,7 +30,8 @@ public class ForcedValuesTest
     public void ApplyAncestorValues_AtAMatchingAncestorPosition_AppliesTheValue()
     {
         // Arrange - InjectValue(path) targets the record at path's relationship prefix
-        List<System.Reflection.PropertyInfo> pathToField = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)];
+        List<System.Reflection.PropertyInfo> pathToField =
+            [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)];
         InjectConfig config = InjectConfig.Nothing().InjectValue(pathToField, 5000m);
         RecordInjector injector = RecordInjector.Inject([new Account { Name = "A" }]);
 
@@ -41,7 +46,8 @@ public class ForcedValuesTest
     public void ApplyAncestorValues_AtANonMatchingPosition_AppliesNothing()
     {
         // Arrange
-        List<System.Reflection.PropertyInfo> pathToField = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)];
+        List<System.Reflection.PropertyInfo> pathToField =
+            [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AnnualRevenue)];
         InjectConfig config = InjectConfig.Nothing().InjectValue(pathToField, 5000m);
         RecordInjector injector = RecordInjector.Inject([new Account { Name = "A" }]);
 
@@ -58,7 +64,8 @@ public class ForcedValuesTest
         // Arrange - InjectChildValue(childField, leafField, literal) - every child gets it
         InjectConfig config = InjectConfig.Nothing()
             .InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), "shared");
-        RecordInjector injector = RecordInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
+        RecordInjector injector =
+            RecordInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
 
         // Act
         new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 2);
@@ -74,8 +81,12 @@ public class ForcedValuesTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), new IncrementingStringExpression("n"));
-        RecordInjector injector = RecordInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
+            Field.Of<Contact>(x => x.AccountId),
+            Field.Of<Contact>(x => x.Department),
+            new IncrementingStringExpression("n")
+        );
+        RecordInjector injector =
+            RecordInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
 
         // Act
         new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 2);
@@ -91,8 +102,12 @@ public class ForcedValuesTest
     {
         // Arrange
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), new List<object?> { "first", "second" });
-        RecordInjector injector = RecordInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
+            Field.Of<Contact>(x => x.AccountId),
+            Field.Of<Contact>(x => x.Department),
+            new List<object?> { "first", "second" }
+        );
+        RecordInjector injector =
+            RecordInjector.Inject([new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
 
         // Act
         new ForcedValues(config).ApplyChildValues(injector, [Field.Of<Contact>(x => x.AccountId)], 2);
@@ -112,7 +127,8 @@ public class ForcedValuesTest
         ForcedValues forcedValues = new(config);
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(forcedValues.AssertEveryPathWasReached);
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(forcedValues.AssertEveryPathWasReached);
 
         // Assert - the error names the unreached path
         Assert.Contains("InjectValue", thrown.Message);

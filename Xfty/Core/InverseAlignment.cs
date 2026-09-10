@@ -25,7 +25,12 @@ public static class InverseAlignment
             MatchesFor(parent, children, relationshipField, parentRow, parentPrimaryField ?? IdFieldOf(parent)))];
 
     private static List<object> MatchesFor(
-        object parent, List<object> children, PropertyInfo relationshipField, int parentRow, PropertyInfo? parentPrimaryField) =>
+        object parent,
+        List<object> children,
+        PropertyInfo relationshipField,
+        int parentRow,
+        PropertyInfo? parentPrimaryField
+    ) =>
         parentPrimaryField?.GetValue(parent) is { } parentId
             ? ForeignKeyMatch(children, relationshipField, parentId)
             : PositionMatch(children, parentRow);
@@ -33,7 +38,11 @@ public static class InverseAlignment
     private static PropertyInfo? IdFieldOf(object? record) =>
         record?.GetType().GetProperty(IdFieldName);
 
-    private static List<object> ForeignKeyMatch(List<object> children, PropertyInfo relationshipField, object parentId) =>
+    private static List<object> ForeignKeyMatch(
+        List<object> children,
+        PropertyInfo relationshipField,
+        object parentId
+    ) =>
         [.. children.Where(child => child is not null && Equals(relationshipField.GetValue(child), parentId))];
 
     private static List<object> PositionMatch(List<object> children, int parentRow) =>

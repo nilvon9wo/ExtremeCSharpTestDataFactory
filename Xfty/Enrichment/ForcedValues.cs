@@ -22,27 +22,27 @@ namespace Net.NowhereAtAll.Xfty.Enrichment;
 /// </summary>
 public sealed class ForcedValues(InjectConfig config)
 {
-    private readonly InjectConfig config = config;
-    private readonly HashSet<int> reachedAncestorValues = [];
-    private readonly HashSet<int> reachedChildValues = [];
+    private readonly InjectConfig _config = config;
+    private readonly HashSet<int> _reachedAncestorValues = [];
+    private readonly HashSet<int> _reachedChildValues = [];
 
     /// <summary>The InjectValue(field, v) scalars - the target record itself.</summary>
     public void ApplyRecordValues(RecordInjector injector, int rowCount) =>
-        PlaceAll(injector, this.config.OnRecordValues, rowCount);
+        PlaceAll(injector, this._config.OnRecordValues, rowCount);
 
     /// <summary>The InjectValue(path, v) scalars whose relationship prefix is this ancestor position.</summary>
     public void ApplyAncestorValues(RecordInjector injector, List<PropertyInfo> pathFromEntry, int rowCount)
     {
         string hereKey = PathKey.Of(pathFromEntry);
         Dictionary<PropertyInfo, object?> matched = [];
-        this.config.AncestorValues
+        this._config.AncestorValues
             .Select((ancestorValue, index) => (ancestorValue, index))
             .Where(pair => PathKey.Of(pair.ancestorValue.RelationshipPrefix()) == hereKey)
             .ToList()
             .ForEach(pair =>
             {
                 matched[pair.ancestorValue.TargetField()] = pair.ancestorValue.Value;
-                _ = this.reachedAncestorValues.Add(pair.index);
+                _ = this._reachedAncestorValues.Add(pair.index);
             });
         PlaceAll(injector, matched, rowCount);
     }
@@ -52,14 +52,14 @@ public sealed class ForcedValues(InjectConfig config)
     {
         string hereKey = PathKey.Of(childPathFromEntry);
         Dictionary<PropertyInfo, object?> matched = [];
-        this.config.ChildValues
+        this._config.ChildValues
             .Select((childValue, index) => (childValue, index))
             .Where(pair => PathKey.Of(pair.childValue.RelationshipPrefix()) == hereKey)
             .ToList()
             .ForEach(pair =>
             {
                 matched[pair.childValue.TargetField()] = pair.childValue.Value;
-                _ = this.reachedChildValues.Add(pair.index);
+                _ = this._reachedChildValues.Add(pair.index);
             });
         PlaceAll(injector, matched, rowCount);
     }
@@ -69,24 +69,31 @@ public sealed class ForcedValues(InjectConfig config)
     {
         List<string> unreached =
         [
-            .. this.config.AncestorValues
+            .. this._config.AncestorValues
                 .Select((value, index) => (value, index))
-                .Where(pair => !this.reachedAncestorValues.Contains(pair.index))
+                .Where(pair => !this._reachedAncestorValues.Contains(pair.index))
                 .Select(pair => $"InjectValue {PathKey.Of(pair.value.Path)}"),
-            .. this.config.ChildValues
+            .. this._config.ChildValues
                 .Select((value, index) => (value, index))
-                .Where(pair => !this.reachedChildValues.Contains(pair.index))
+                .Where(pair => !this._reachedChildValues.Contains(pair.index))
                 .Select(pair => $"InjectChildValue {PathKey.Of(pair.value.Path)}"),
         ];
         if (unreached.Count > 0)
         {
             throw new XftyConfigurationException(
-                $"Inject: [{string.Join(", ", unreached)}] named a record the graph never produced or the walk "
-                + "never reached (check the path, that the ancestor / child was generated, and ParentDepth / ChildDepth).");
+                $"Inject: [{string.Join(", ", unreached)}] named a record the graph "
+                + "never produced or the walk never reached (check the path, that "
+                + "the ancestor / child was generated, and ParentDepth / ChildDepth)."
+            );
         }
     }
 
-    private static void PlaceAll(RecordInjector injector, Dictionary<PropertyInfo, object?> valueByField, int rowCount) =>
+    private static void PlaceAll(
+        RecordInjector injector,
+        Dictionary<PropertyInfo,
+        object?> valueByField,
+        int rowCount
+    ) =>
         valueByField.ToList().ForEach(pair => Place(injector, pair.Key, pair.Value, rowCount));
 
     private static void Place(RecordInjector injector, PropertyInfo field, object? value, int rowCount) =>

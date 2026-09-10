@@ -120,7 +120,10 @@ public class SharedAncestorTest
         // Assert
         Assert.Equal("Shared HQ", ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Name);
         Assert.NotNull(bundle.GetBundle<Contact>(x => x.AccountId)); // the shared ancestor has a sub-bundle
-        Assert.Equal("Shared HQ", ((Account)bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.Id)![0]).Name);
+        Assert.Equal(
+            "Shared HQ",
+            ((Account)bundle.GetBundle<Contact>(x => x.AccountId)!.GetList<Account>(x => x.Id)![0]).Name
+        );
     }
 
     [Fact]
@@ -140,7 +143,8 @@ public class SharedAncestorTest
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Now);
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(nowProvider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(nowProvider.Supply)
+            .ConfigureAwait(true);
 
         // Assert - a Mock-then-Now mix must throw, not drift a mock Id into real generation
         Assert.Contains("consistent insert mode", thrown.Message);
@@ -324,7 +328,8 @@ public class SharedAncestorTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert - an unregistered shared ancestor must throw when generation reaches it
         Assert.Contains("never registered", thrown.Message);
@@ -345,7 +350,8 @@ public class SharedAncestorTest
             .DepthBatched();
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -387,7 +393,8 @@ public class SharedAncestorTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert - a self-referential shared ancestor must throw, not stack-overflow
         Assert.Contains("cycle", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -420,7 +427,8 @@ public class SharedAncestorTest
             .SetInsertMode(InsertMode.Mock);
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert - a three-way shared-ancestor cycle must throw
         Assert.Contains("cycle", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -459,29 +467,25 @@ public class SharedAncestorTest
 
 file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Loop"))
             .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(loopSharedName));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 /// <summary>An Account Provider whose ParentId is the named shared ancestor - for the cycle tests.</summary>
 file sealed class ParentedAccountProvider(string parentSharedName) : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Ring"))
             .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(parentSharedName));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

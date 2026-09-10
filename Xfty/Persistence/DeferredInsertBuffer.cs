@@ -18,21 +18,27 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 /// </summary>
 public sealed class DeferredInsertBuffer
 {
-    private readonly List<DepthBatchedInserterParentLink> pendingLinks = [];
-    private readonly List<object> pendingRecords = [];
-    private readonly List<PendingDeferredValue> pendingDeferredValues = [];
-    private readonly HashSet<int> excludedIndices = [];
-    private readonly Dictionary<Type, PropertyInfo> idFieldByType = [];
-    private readonly Dictionary<Type, IMockIdGenerator> mockIdGeneratorByType = [];
+    private readonly List<DepthBatchedInserterParentLink> _pendingLinks = [];
+    private readonly List<object> _pendingRecords = [];
+    private readonly List<PendingDeferredValue> _pendingDeferredValues = [];
+    private readonly HashSet<int> _excludedIndices = [];
+    private readonly Dictionary<Type, PropertyInfo> _idFieldByType = [];
+    private readonly Dictionary<Type, IMockIdGenerator> _mockIdGeneratorByType = [];
 
-    public static async Task InsertGraph(Bundle? bundle, IPersistenceGateway? gateway = null, bool excludePrimaryIds = false)
+    public static async Task InsertGraph(
+        Bundle? bundle,
+        IPersistenceGateway? gateway = null,
+        bool excludePrimaryIds = false
+    )
     {
         DeferredInsertBuffer buffer = new();
         buffer.Add(bundle, excludePrimaryIds);
         await buffer.InsertAll(gateway).ConfigureAwait(false);
     }
 
-    /// <summary>The whole graph flattened to its records and parent links, with the up-flow value pass already run.</summary>
+    /// <summary>
+    /// The whole graph flattened to its records and parent links, with the up-flow value pass already run.
+    /// </summary>
     public static DeferredInsertBuffer Flatten(Bundle? bundle)
     {
         DeferredInsertBuffer buffer = new();
@@ -50,31 +56,40 @@ public sealed class DeferredInsertBuffer
     /// </summary>
     public void Add(Bundle? bundle, bool excludePrimaryIds = false)
     {
-        int startIndex = this.pendingRecords.Count;
+        int startIndex = this._pendingRecords.Count;
         int primaryCount = bundle?.PrimaryRecords()?.Count ?? 0;
         _ = this.Collect(bundle);
         if (excludePrimaryIds)
         {
-            Enumerable.Range(startIndex, primaryCount).ToList().ForEach(index => this.excludedIndices.Add(index));
+            Enumerable.Range(startIndex, primaryCount).ToList().ForEach(index => this._excludedIndices.Add(index));
         }
     }
 
-    public int PendingCount() => this.pendingRecords.Count;
+    public int PendingCount() => this._pendingRecords.Count;
 
     /// <summary>Every record the graph holds, in collection order (not insert order).</summary>
-    public List<object> Records() => this.pendingRecords;
+    public List<object> Records() => this._pendingRecords;
 
     /// <summary>Each record's lookup to another record in Records(), by index.</summary>
-    public List<DepthBatchedInserterParentLink> ParentLinks() => this.pendingLinks;
+    public List<DepthBatchedInserterParentLink> ParentLinks() => this._pendingLinks;
 
-    /// <summary>Each buffered record type's primary-key field, taken from the bundle it came from - so nothing here assumes the key is called "Id".</summary>
-    public IReadOnlyDictionary<Type, PropertyInfo> IdFieldByType() => this.idFieldByType;
+    /// <summary>
+    /// Each buffered record type's primary-key field, taken from the bundle it came from - so nothing here assumes the
+    /// key is called "Id".
+    /// </summary>
+    public IReadOnlyDictionary<Type, PropertyInfo> IdFieldByType() => this._idFieldByType;
 
     public Task InsertAll(IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
         return DepthBatchedInserter.InsertAll(
-            this.pendingRecords, this.pendingLinks, gateway, this.excludedIndices, this.idFieldByType, this.mockIdGeneratorByType);
+            this._pendingRecords,
+            this._pendingLinks,
+            gateway,
+            this._excludedIndices,
+            this._idFieldByType,
+            this._mockIdGeneratorByType
+        );
     }
 
     /// <summary>Depth-batched resolution of every buffered bundle honouring mode (Now/Mock/Never).</summary>
@@ -82,11 +97,18 @@ public sealed class DeferredInsertBuffer
     {
         this.ResolveUpFlowValues();
         return DepthBatchedInserter.ResolveAll(
-            this.pendingRecords, this.pendingLinks, mode, gateway, this.excludedIndices, this.idFieldByType, this.mockIdGeneratorByType);
+            this._pendingRecords,
+            this._pendingLinks,
+            mode,
+            gateway,
+            this._excludedIndices,
+            this._idFieldByType,
+            this._mockIdGeneratorByType
+        );
     }
 
     private void ResolveUpFlowValues() =>
-        new DescendantValuePass(this.pendingRecords, this.pendingLinks, this.pendingDeferredValues).Complete();
+        new DescendantValuePass(this._pendingRecords, this._pendingLinks, this._pendingDeferredValues).Complete();
 
     private List<IndexedRecord> Collect(Bundle? bundle)
     {
@@ -104,7 +126,10 @@ public sealed class DeferredInsertBuffer
         return theseRecords;
     }
 
-    /// <summary>Record this bundle's primary-key field and mock-Id generator against its record type, so the depth-batched pass never has to guess either.</summary>
+    /// <summary>
+    /// Record this bundle's primary-key field and mock-Id generator against its record type, so the depth-batched pass
+    /// never has to guess either.
+    /// </summary>
     private void RememberIdField(Bundle bundle)
     {
         if (bundle.PrimaryTargetField is not { DeclaringType: { } recordType } idField)
@@ -112,22 +137,27 @@ public sealed class DeferredInsertBuffer
             return;
         }
 
-        this.idFieldByType[recordType] = idField;
+        this._idFieldByType[recordType] = idField;
         if (bundle.MockIdGenerator is { } generator)
         {
-            this.mockIdGeneratorByType[recordType] = generator;
+            this._mockIdGeneratorByType[recordType] = generator;
         }
     }
 
     /// <summary>An up-flow strategy on this bundle becomes a pending value keyed by the record's flat index.</summary>
     private void CaptureDeferredValues(Bundle bundle, List<IndexedRecord> primaries) =>
         bundle.DeferredValues().ForEach(deferred =>
-            this.pendingDeferredValues.Add(
+            this._pendingDeferredValues.Add(
                 new PendingDeferredValue(primaries[deferred.PrimaryRow].Index, deferred.Field, deferred.Strategy)));
 
     /// <summary>Downward children (With(...)/WithChildren(...)): each child row points at its primary row.</summary>
-    private void LinkToChildCollections(Bundle bundle, List<IndexedRecord> primaries) =>
-        bundle.ChildRelationshipFields().ToList().ForEach(childField => this.LinkChildField(bundle, primaries, childField));
+    private void LinkToChildCollections(Bundle bundle, List<IndexedRecord> primaries)
+    {
+        foreach (PropertyInfo childField in bundle.ChildRelationshipFields())
+        {
+            this.LinkChildField(bundle, primaries, childField);
+        }
+    }
 
     private void LinkChildField(Bundle bundle, List<IndexedRecord> primaries, PropertyInfo childField) =>
         bundle.ChildEntries(childField).ForEach(entry => this.LinkChildEntry(entry, primaries, childField));
@@ -135,14 +165,20 @@ public sealed class DeferredInsertBuffer
     private void LinkChildEntry(BundleChildEntry entry, List<IndexedRecord> primaries, PropertyInfo childField)
     {
         List<IndexedRecord> childRecords = this.Collect(entry.Bundle);
-        childRecords
-            .Select((childRecord, childRow) => (childRecord, childRow))
-            .ToList()
-            .ForEach(each => this.LinkChild(each.childRecord, primaries[entry.ParentRowByChildRow[each.childRow]], childField));
+        for (int childRow = 0; childRow < childRecords.Count; childRow++)
+        {
+            IndexedRecord parent = primaries[entry.ParentRowByChildRow[childRow]];
+            this.LinkChild(childRecords[childRow], parent, childField);
+        }
     }
 
-    private void LinkToParents(Bundle bundle, List<IndexedRecord> children) =>
-        bundle.RelationshipFields().ToList().ForEach(parentField => this.LinkToParentsOn(bundle, children, parentField));
+    private void LinkToParents(Bundle bundle, List<IndexedRecord> children)
+    {
+        foreach (PropertyInfo parentField in bundle.RelationshipFields())
+        {
+            this.LinkToParentsOn(bundle, children, parentField);
+        }
+    }
 
     private void LinkToParentsOn(Bundle bundle, List<IndexedRecord> children, PropertyInfo parentField)
     {
@@ -181,15 +217,15 @@ public sealed class DeferredInsertBuffer
             return;
         }
 
-        this.pendingLinks.Add(new DepthBatchedInserterParentLink(child.Index, parent.Index, field));
+        this._pendingLinks.Add(new DepthBatchedInserterParentLink(child.Index, parent.Index, field));
     }
 
     private List<IndexedRecord> Append(List<object> records) => [.. records.Select(this.AppendOne)];
 
     private IndexedRecord AppendOne(object record)
     {
-        int index = this.pendingRecords.Count;
-        this.pendingRecords.Add(record);
+        int index = this._pendingRecords.Count;
+        this._pendingRecords.Add(record);
         return new IndexedRecord(index, record);
     }
 

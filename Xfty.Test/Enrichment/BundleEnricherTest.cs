@@ -308,7 +308,11 @@ public class BundleEnricherTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
             .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Nothing()
-            .InjectChildValue(Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Birthdate), new DateTime(2021, 6, 1));
+            .InjectChildValue(
+                Field.Of<Contact>(x => x.AccountId),
+                Field.Of<Contact>(x => x.Birthdate),
+                new DateTime(2021, 6, 1)
+            );
 
         // Act
         List<object> enriched = bundle.Inject(Field.Of<Account>(x => x.Id), config);
@@ -328,7 +332,10 @@ public class BundleEnricherTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 3)
             .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department), new IncrementingStringExpression("note"));
+            Field.Of<Contact>(x => x.AccountId),
+            Field.Of<Contact>(x => x.Department),
+            new IncrementingStringExpression("note")
+        );
 
         // Act
         List<object> enriched = bundle.Inject(Field.Of<Account>(x => x.Id), config);
@@ -346,7 +353,10 @@ public class BundleEnricherTest
         Bundle parentSub = new();
         parentSub.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "original parent" }]);
         Bundle childrenSub = new();
-        childrenSub.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "original c0" }, new Account { Name = "original c1" }]);
+        childrenSub.PutPrimaries(
+            Field.Of<Account>(x => x.Id),
+            [new Account { Name = "original c0" }, new Account { Name = "original c1" }]
+        );
         Bundle middle = new();
         middle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Name = "Middle" }]);
         _ = middle.Put<Account>(x => x.ParentId, parentSub.PrimaryRecords()!);
@@ -362,7 +372,8 @@ public class BundleEnricherTest
         // Assert
         Account enrichedMiddle = (Account)enriched[0];
         Assert.Equal("parent name", enrichedMiddle.Parent!.Name); // InjectValue(path) walked up to the parent
-        Assert.Equal("child name", enrichedMiddle.ChildAccounts![0].Name); // InjectChildValue walked down to the children
+        // InjectChildValue walked down to the children
+        Assert.Equal("child name", enrichedMiddle.ChildAccounts![0].Name);
         Assert.Equal("child name", enrichedMiddle.ChildAccounts![1].Name);
     }
 
@@ -374,7 +385,11 @@ public class BundleEnricherTest
             .SetInsertMode(InsertMode.Mock)
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
             .SupplyBundle().ConfigureAwait(true);
-        InjectConfig config = InjectConfig.Nothing().InjectChildValue(Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject), "x");
+        InjectConfig config = InjectConfig.Nothing().InjectChildValue(
+            Field.Of<Case>(x => x.ContactId),
+            Field.Of<Case>(x => x.Subject),
+            "x"
+        );
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
@@ -393,7 +408,13 @@ public class BundleEnricherTest
             .WithChildren(Field.Of<Contact>(x => x.AccountId), 1)
             .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.Nothing().InjectChildValue(
-            [Field.Of<Contact>(x => x.AccountId), Field.Of<Case>(x => x.ContactId), Field.Of<Case>(x => x.Subject)], "x");
+            [
+                Field.Of<Contact>(x => x.AccountId),
+                Field.Of<Case>(x => x.ContactId),
+                Field.Of<Case>(x => x.Subject),
+            ],
+            "x"
+        );
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
@@ -424,27 +445,23 @@ public class BundleEnricherTest
 
 file sealed class CaseProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
         .Put<Case>(x => x.Subject, new IncrementingStringExpression("Enricher Case"));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 file sealed class AccountWithParentProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
         .Put<Account>(x => x.Name, new IncrementingStringExpression("Enricher Account"))
         .PutOptional<Account>(x => x.ParentId, new DefaultRelationship(new Account { Name = "Parent Co" }));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

@@ -17,35 +17,43 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// </summary>
 public sealed partial class RecordProvider
 {
-    private readonly Type recordType;
-    private readonly IProviderLookup providerLookup;
-    private readonly RecordProviderTemplateConfig templateConfig;
-    private readonly RecordProviderChildConfig childConfig = new();
+    private readonly Type _recordType;
+    private readonly IProviderLookup _providerLookup;
+    private readonly RecordProviderTemplateConfig _templateConfig;
+    private readonly RecordProviderChildConfig _childConfig = new();
 
-    private List<object>? overrideTemplateList;
-    private ILookupKey? explicitVariantKey;
-    private int quantityPerListedTemplate = 1;
-    private InsertMode insertMode = InsertMode.Never;
-    private InsertInclusivity inclusivity = InsertInclusivity.None;
-    private bool ancestorCyclesAllowed;
-    private bool excludePrimaryIds;
-    private bool depthBatched;
-    private bool forceStructuralChildGeneration;
-    private IPersistenceGateway? persistenceGateway;
-    private IUnsetFieldFiller? unsetFieldFiller;
-    private IRecordProvider? factoryOutlet;
+    private List<object>? _overrideTemplateList;
+    private ILookupKey? _explicitVariantKey;
+    private int _quantityPerListedTemplate = 1;
+    private InsertMode _insertMode = InsertMode.Never;
+    private InsertInclusivity _inclusivity = InsertInclusivity.None;
+    private bool _ancestorCyclesAllowed;
+    private bool _excludePrimaryIds;
+    private bool _depthBatched;
+    private bool _forceStructuralChildGeneration;
+    private IPersistenceGateway? _persistenceGateway;
+    private IUnsetFieldFiller? _unsetFieldFiller;
+    private IRecordProvider? _factoryOutlet;
 
     public RecordProvider(Type recordType, IProviderLookup providerLookup)
     {
-        this.recordType = recordType ?? throw new XftyConfigurationException("A record type is required to request data.");
-        this.providerLookup = providerLookup ?? throw new XftyConfigurationException("A Provider Lookup is required to request data.");
-        this.templateConfig = new RecordProviderTemplateConfig(() => this.ResolveFactoryOutlet().MasterTemplate.Copy());
+        this._recordType = recordType ?? throw new XftyConfigurationException(
+            "A record type is required to request data."
+        );
+        this._providerLookup = providerLookup ?? throw new XftyConfigurationException(
+            "A Provider Lookup is required to request data."
+        );
+        this._templateConfig = new RecordProviderTemplateConfig(
+            () => this.ResolveFactoryOutlet().MasterTemplate.Copy()
+        );
     }
 
-    /// <summary>Convenience: start from a lookup key. The record type is taken from the key, pinned as the variant.</summary>
+    /// <summary>
+    /// Convenience: start from a lookup key. The record type is taken from the key, pinned as the variant.
+    /// </summary>
     public RecordProvider(ILookupKey variantKey, IProviderLookup providerLookup)
         : this(TypeOf(variantKey), providerLookup) =>
-        this.explicitVariantKey = variantKey;
+        this._explicitVariantKey = variantKey;
 
     /// <summary>Convenience: start from an override template. The record type is taken from the template.</summary>
     public RecordProvider(object overrideTemplate, IProviderLookup providerLookup)
@@ -53,7 +61,9 @@ public sealed partial class RecordProvider
     {
     }
 
-    /// <summary>Convenience: start from a list of override templates. The record type is taken from the first template.</summary>
+    /// <summary>
+    /// Convenience: start from a list of override templates. The record type is taken from the first template.
+    /// </summary>
     public RecordProvider(List<object> overrideTemplateList, IProviderLookup providerLookup)
         : this(TypeOf(overrideTemplateList), providerLookup) =>
         this.SetOverrideTemplateList(overrideTemplateList);
@@ -73,7 +83,7 @@ public sealed partial class RecordProvider
             + "template, or use the (Type, lookup) constructor.");
 
     private IRecordProvider ResolveFactoryOutlet() =>
-        this.factoryOutlet ??= this.providerLookup.Get(this.ResolveVariantKey());
+        this._factoryOutlet ??= this._providerLookup.Get(this.ResolveVariantKey());
 
     /// <summary>
     /// Which Provider variant to use: an explicit key from WithVariant(...),
@@ -83,17 +93,20 @@ public sealed partial class RecordProvider
     /// </summary>
     private ILookupKey ResolveVariantKey()
     {
-        object? firstTemplate = this.overrideTemplateList is { Count: > 0 } ? this.overrideTemplateList[0] : null;
-        ILookupKey? reconciled = ProviderLookups.Reconcile(this.providerLookup, this.explicitVariantKey, firstTemplate);
-        return reconciled ?? LookupKey.Get(this.recordType);
+        object? firstTemplate = this._overrideTemplateList is { Count: > 0 } ? this._overrideTemplateList[0] : null;
+        ILookupKey? reconciled =
+            ProviderLookups.Reconcile(this._providerLookup, this._explicitVariantKey, firstTemplate);
+        return reconciled ?? LookupKey.Get(this._recordType);
     }
 
     private void AssertNoRecordTypeConflict(List<object>? overrideTemplateList)
     {
-        object? conflicting = FirstConflictingTemplate(overrideTemplateList, this.recordType);
+        object? conflicting = FirstConflictingTemplate(overrideTemplateList, this._recordType);
         if (conflicting is not null)
         {
-            throw new RecordProviderConflictException($"This Provider requests {this.recordType} but was given a {conflicting.GetType()} override template.");
+            throw new RecordProviderConflictException(
+                $"This Provider requests {this._recordType} but was given a {conflicting.GetType()} override template."
+            );
         }
     }
 

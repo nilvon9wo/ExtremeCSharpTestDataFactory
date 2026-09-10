@@ -10,16 +10,16 @@ namespace Net.NowhereAtAll.Xfty.Enrichment;
 /// </summary>
 public sealed class EnrichmentSelection
 {
-    private readonly InjectConfig config;
-    private readonly HashSet<string> includedParentKeys = [];
-    private readonly HashSet<string> excludedParentKeys = [];
+    private readonly InjectConfig _config;
+    private readonly HashSet<string> _includedParentKeys = [];
+    private readonly HashSet<string> _excludedParentKeys = [];
 
     public EnrichmentSelection(InjectConfig config)
     {
-        this.config = config;
+        this._config = config;
         config.IncludedParentPaths.ForEach(this.IncludeWithPrefixes);
         config.AncestorValues.ForEach(ancestorValue => this.IncludeWithPrefixes(ancestorValue.RelationshipPrefix()));
-        config.ExcludedParentPaths.ForEach(path => this.excludedParentKeys.Add(PathKey.Of(path)));
+        config.ExcludedParentPaths.ForEach(path => this._excludedParentKeys.Add(PathKey.Of(path)));
     }
 
     /// <summary>
@@ -29,13 +29,15 @@ public sealed class EnrichmentSelection
     /// </summary>
     public bool WantsAncestor(List<PropertyInfo>? pathFromEntry) =>
         pathFromEntry is null
-            ? this.config.FromAllParents
+            ? this._config.FromAllParents
             : !this.HasExcludedPrefix(pathFromEntry)
-                && (this.config.FromAllParents || this.includedParentKeys.Contains(PathKey.Of(pathFromEntry)));
+                && (this._config.FromAllParents || this._includedParentKeys.Contains(PathKey.Of(pathFromEntry)));
 
-    /// <summary>Whether an ancestor generated for the level below should carry that level back as its child subquery.</summary>
+    /// <summary>
+    /// Whether an ancestor generated for the level below should carry that level back as its child subquery.
+    /// </summary>
     public bool WantsInverse(PropertyInfo relationshipField) =>
-        this.config.FromAllChildren && !this.config.ExcludedChildFields.Contains(relationshipField);
+        this._config.FromAllChildren && !this._config.ExcludedChildFields.Contains(relationshipField);
 
     /// <summary>
     /// The child relationship fields to inject at this position. childPathHere
@@ -47,18 +49,21 @@ public sealed class EnrichmentSelection
     public HashSet<PropertyInfo> ChildFieldsOn(Bundle subBundle, List<PropertyInfo> childPathHere)
     {
         HashSet<PropertyInfo> present = [.. subBundle.ChildRelationshipFields()];
-        HashSet<PropertyInfo> wanted = this.config.FromAllChildren ? [.. present] : [];
+        HashSet<PropertyInfo> wanted = this._config.FromAllChildren ? [.. present] : [];
         wanted.UnionWith(this.NamedNextHopsFollowing(childPathHere, present));
-        wanted.ExceptWith(this.config.ExcludedChildFields);
+        wanted.ExceptWith(this._config.ExcludedChildFields);
         return wanted;
     }
 
-    private HashSet<PropertyInfo> NamedNextHopsFollowing(List<PropertyInfo> childPathHere, HashSet<PropertyInfo> present)
+    private HashSet<PropertyInfo> NamedNextHopsFollowing(
+        List<PropertyInfo> childPathHere,
+        HashSet<PropertyInfo> present
+    )
     {
         HashSet<PropertyInfo> named = childPathHere.Count == 0
-            ? [.. this.config.IncludedChildFields.Where(present.Contains)]
+            ? [.. this._config.IncludedChildFields.Where(present.Contains)]
             : [];
-        named.UnionWith(this.config.ChildValues
+        named.UnionWith(this._config.ChildValues
             .Select(childValue => NextHopAfter(childPathHere, childValue.RelationshipPrefix()))
             .Where(nextHop => nextHop is not null && present.Contains(nextHop))!);
         return named;
@@ -71,8 +76,9 @@ public sealed class EnrichmentSelection
 
     private void IncludeWithPrefixes(List<PropertyInfo> path) =>
         Enumerable.Range(1, path.Count).ToList()
-            .ForEach(length => this.includedParentKeys.Add(PathKey.Of([.. path.Take(length)])));
+            .ForEach(length => this._includedParentKeys.Add(PathKey.Of([.. path.Take(length)])));
 
     private bool HasExcludedPrefix(List<PropertyInfo> path) =>
-        Enumerable.Range(1, path.Count).Any(length => this.excludedParentKeys.Contains(PathKey.Of([.. path.Take(length)])));
+        Enumerable.Range(1, path.Count).Any(length =>
+            this._excludedParentKeys.Contains(PathKey.Of([.. path.Take(length)])));
 }

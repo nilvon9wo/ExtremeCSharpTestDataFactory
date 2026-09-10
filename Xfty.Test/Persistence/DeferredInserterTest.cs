@@ -27,7 +27,10 @@ public class DeferredInserterTest
     {
         // Arrange
         Bundle bundle = new();
-        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact { LastName = "A" }, new Contact { LastName = "B" }]);
+        bundle.PutPrimaries(
+            Field.Of<Contact>(x => x.Id),
+            [new Contact { LastName = "A" }, new Contact { LastName = "B" }]
+        );
         int before = DeferredInserter.PendingCount();
 
         // Act
@@ -65,7 +68,8 @@ public class DeferredInserterTest
         int beforeFlush = DeferredInserter.PendingCount();
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush()).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(() => DeferredInserter.Flush())
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);

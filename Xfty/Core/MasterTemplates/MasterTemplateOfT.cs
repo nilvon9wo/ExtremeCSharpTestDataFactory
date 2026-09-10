@@ -24,11 +24,11 @@ namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 /// </summary>
 public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> primaryTargetField)
 {
-    private readonly MasterTemplate inner = new(Field.Of(primaryTargetField));
+    private readonly MasterTemplate _inner = new(Field.Of(primaryTargetField));
 
     public object? this[Expression<Func<TRecord, object?>> field]
     {
-        set => this.inner.Put(Field.Of(field), value);
+        set => this._inner.Put(Field.Of(field), value);
     }
 
     /// <summary>
@@ -37,28 +37,34 @@ public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> p
     /// </summary>
     public MasterTemplate<TRecord> Put(Expression<Func<TRecord, object?>> field, object? value)
     {
-        _ = this.inner.Put(Field.Of(field), value);
+        _ = this._inner.Put(Field.Of(field), value);
         return this;
     }
 
-    public MasterTemplate<TRecord> PutRequired(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship)
+    public MasterTemplate<TRecord> PutRequired(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationship
+    )
     {
-        _ = this.inner.PutRequired(Field.Of(field), relationship);
+        _ = this._inner.PutRequired(Field.Of(field), relationship);
         return this;
     }
 
-    public MasterTemplate<TRecord> PutOptional(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationship)
+    public MasterTemplate<TRecord> PutOptional(
+        Expression<Func<TRecord, object?>> field,
+        IDefaultRelationship relationship
+    )
     {
-        _ = this.inner.PutOptional(Field.Of(field), relationship);
+        _ = this._inner.PutOptional(Field.Of(field), relationship);
         return this;
     }
 
     /// <summary>Set this record type's placeholder-Id generator for <see cref="InsertMode.Mock"/>.</summary>
     public MasterTemplate<TRecord> WithMockIdGenerator(IMockIdGenerator generator)
     {
-        _ = this.inner.WithMockIdGenerator(generator);
+        _ = this._inner.WithMockIdGenerator(generator);
         return this;
     }
 
-    public static implicit operator MasterTemplate(MasterTemplate<TRecord> typed) => typed.inner;
+    public static implicit operator MasterTemplate(MasterTemplate<TRecord> typed) => typed._inner;
 }

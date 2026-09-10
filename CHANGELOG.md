@@ -12,6 +12,59 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+## [1.0.0-beta.11] – 2026-09-10
+
+> **Theme: beta code-quality pass.** Naming is standard modern C# throughout
+> and a `dotnet format` gate keeps it that way; a few internal collaborators
+> that were leaking through the public API are now `internal`; one latent
+> `MasterTemplate` bug is fixed. Generation behaviour is otherwise unchanged.
+
+### Changed
+
+- **`MasterTemplate`'s field maps are no longer public.**
+  `RequiredRelationshipByField` and `OptionalRelationshipByField` are now a
+  single `internal` map; `DefaultByField`, `ContextAwareByField`,
+  `DeferredExpressionByField`, `OrderedValueFields()` and the four-argument
+  constructor are `internal` or gone. These were engine wiring — a Provider is
+  authored entirely through `Put` / `PutRequired` / `PutOptional` / `Remove`,
+  none of which changed. If you were reading a built template back, open an
+  issue.
+- **`PutRequired` and `PutOptional` on the same field now replace each other.**
+  `template.PutOptional(f, r).PutRequired(f, r)` previously left `f` registered
+  as *both*; every `Put*` / `Remove` now enforces one configuration per field.
+
+### Internal
+
+- **Naming brought to standard modern C#** across ~280 files: `_camelCase`
+  private instance fields, `s_camelCase` genuinely-mutable private statics,
+  PascalCase everywhere else. **No public API name changed.** The
+  `.editorconfig` naming rules are `error`, and CI now runs
+  `dotnet format --verify-no-changes` — the only gate that catches IDE1006
+  (naming) and IDE0130 (namespace-folder), which `dotnet build` skips.
+- **`RecordProvider`'s execution pipeline is extracted.** At `Supply*()` time
+  it snapshots its configuration into an immutable `internal RecordProviderPlan`
+  and hands it to an `internal RecordProviderExecution`. Public API and
+  behaviour are byte-identical. New `RecordProviderExecutionTest` exercises the
+  insert-mode / persistence branching against hand-built plans.
+- `MasterTemplate.Copy()` is a copy constructor, the field-order tracking is
+  folded into the value maps, and the `.Copy.cs` / `.Routing.cs` /
+  `RecordProvider.SupplyContext.cs` partials are gone. The typed-wrapper
+  `Forwarding(...)` helper added in beta.10 is gone too — each forwarder is a
+  plain two-line body again.
+- ~500 lines reflowed to an 80-soft / 120-hard column ceiling, one expression
+  and one declaration per line, wrapped argument lists closing on their own
+  line.
+
+### Documentation
+
+- `docs/contribute/coding-standards.md` rewritten: rule 17 is now intention
+  and separation of concerns over line count (~250 lines is the real smell);
+  a naming-policy table; the "every diagnostic is `error`, never demoted"
+  principle; the 80/120 and closing-paren formatting rules; and a table of
+  every CI quality gate and what it covers.
+- `docs/contribute/ci.md` and `local-development.md` document the
+  `dotnet format --verify-no-changes` pre-push check.
+
 ## [1.0.0-beta.10] – 2026-09-10
 
 > **Theme: namespace consistency and verified docs.** `RecordProvider` and

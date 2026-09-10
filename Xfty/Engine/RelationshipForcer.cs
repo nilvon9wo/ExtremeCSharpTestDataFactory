@@ -4,7 +4,10 @@ using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Relationships;
 namespace Net.NowhereAtAll.Xfty.Engine;
 
-/// <summary>Applies each IncludeOptional(...) path by promoting its head relationship from optional to required, on a copy of the master template.</summary>
+/// <summary>
+/// Applies each IncludeOptional(...) path by promoting its head relationship from optional to required, on a copy of
+/// the master template.
+/// </summary>
 public static class RelationshipForcer
 {
     public static MasterTemplate Apply(List<List<PropertyInfo>> paths, MasterTemplate template)
@@ -21,24 +24,17 @@ public static class RelationshipForcer
 
     private static void PromoteHead(PropertyInfo head, MasterTemplate forced, MasterTemplate source)
     {
-        if (!source.OptionalRelationshipByField.TryGetValue(head, out IDefaultRelationship? optional))
+        if (!source.RelationshipByField.TryGetValue(head, out RelationshipConfig? config))
         {
-            AssertIsRelationship(source, head);
-            return;
+            throw new XftyConfigurationException(
+                $"IncludeOptional: {head.Name} is not a relationship on the Provider "
+                + $"for {source.PrimaryTargetField.Name}."
+            );
         }
 
-        _ = forced.Remove(head);
-        _ = forced.PutRequired(head, optional);
-    }
-
-    private static void AssertIsRelationship(MasterTemplate template, PropertyInfo head)
-    {
-        if (template.RequiredRelationshipByField.ContainsKey(head))
+        if (!config.IsRequired)
         {
-            return;
+            _ = forced.PutRequired(head, config.Relationship);
         }
-
-        throw new XftyConfigurationException(
-            $"IncludeOptional: {head.Name} is not a relationship on the Provider for {template.PrimaryTargetField.Name}.");
     }
 }

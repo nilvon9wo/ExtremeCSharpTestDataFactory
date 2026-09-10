@@ -9,7 +9,9 @@ using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.Test.Lookup;
 
-/// <summary>Proves DiscriminatorLookupKey - the record-type-discriminator analog built over FlavouredLookupKey.</summary>
+/// <summary>
+/// Proves DiscriminatorLookupKey - the record-type-discriminator analog built over FlavouredLookupKey.
+/// </summary>
 public class DiscriminatorLookupKeyTest
 {
     [Fact]
@@ -71,15 +73,13 @@ public class DiscriminatorLookupKeyTest
 
 file sealed class PersonAccountProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Account>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id)
     {
         [x => x.Name] = "Person Default",
     };
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

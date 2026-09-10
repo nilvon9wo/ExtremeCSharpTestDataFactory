@@ -22,7 +22,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// </summary>
 public class PathValueTest
 {
-    private const string _sharedAcctName = "path-value-test-shared-acct";
+    private const string SharedAcctName = "path-value-test-shared-acct";
 
     private static IProviderLookup Lookup() =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
@@ -127,13 +127,19 @@ public class PathValueTest
     [Fact]
     public async Task Put_WithADeepTwoRelationshipPath_WalksBothHopsAndSetsTheTargetField()
     {
-        // Arrange - Contact -> Account (Contact.AccountId) -> Account (self-referencing ParentId), set the grandparent's Industry
+        // Arrange - Contact -> Account (Contact.AccountId) -> Account (self-referencing ParentId), set the
+        // grandparent's Industry
         RecordProvider provider = new RecordProvider(typeof(Contact), DeepAccountLookup())
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
-            .AllowAncestorCycles() // Account -> Account (self-referencing ParentId) terminates on its own after one level
+            // Account -> Account (self-referencing ParentId) terminates on its own after one level
+            .AllowAncestorCycles()
             .Put(
-                [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Industry)],
+                [
+                    Field.Of<Contact>(x => x.AccountId),
+                    Field.Of<Account>(x => x.ParentId),
+                    Field.Of<Account>(x => x.Industry),
+                ],
                 "DeepValue");
 
         // Act
@@ -200,7 +206,8 @@ public class PathValueTest
 
         Bundle managerBundle = ownerBundle.GetBundle<User>(x => x.ManagerId)!;
         Assert.NotNull(managerBundle); // the Manager User (distinct Provider) generated
-        Assert.NotNull(((User)managerBundle.PrimaryRecords()![0]).ManagerId); // the Manager generated its skip-level Manager
+        // the Manager generated its skip-level Manager
+        Assert.NotNull(((User)managerBundle.PrimaryRecords()![0]).ManagerId);
         Assert.NotNull(managerBundle.GetBundle<User>(x => x.ManagerId)); // and that skip-level User is in the bundle
     }
 
@@ -231,7 +238,8 @@ public class PathValueTest
             .Put([Field.Of<Contact>(x => x.FirstName), Field.Of<Account>(x => x.Industry)], "x");
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle)
+            .ConfigureAwait(true);
 
         // Assert - a non-relationship path field is a loud error, not a silent no-op
         Assert.Contains("relationship", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -241,13 +249,14 @@ public class PathValueTest
     public async Task Put_WhenThePathTargetsASharedAncestor_Throws()
     {
         // Arrange
-        _ = SharedAncestor.Put(_sharedAcctName, new Account { Name = "Shared HQ" });
+        _ = SharedAncestor.Put(SharedAcctName, new Account { Name = "Shared HQ" });
         RecordProvider provider = new RecordProvider(typeof(Contact), SharedParentLookup())
             .SetInclusivity(InsertInclusivity.Required)
             .Put([Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Industry)], "Aerospace");
 
         // Act
-        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle).ConfigureAwait(true);
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.SupplyBundle)
+            .ConfigureAwait(true);
 
         // Assert - a path value into a shared ancestor is a loud error, not a dropped value
         Assert.Contains("shared ancestor", thrown.Message, StringComparison.OrdinalIgnoreCase);
@@ -272,7 +281,7 @@ public class PathValueTest
 
 file sealed class ContactWithOptionalManagerProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
         .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Contact"))
         .Put<Contact>(x => x.Email, new UniqueEmailExpression("test.contact"))
         .PutRequired<Contact>(x => x.AccountId, new DefaultRelationship(new Account()))
@@ -280,53 +289,48 @@ file sealed class ContactWithOptionalManagerProvider : IRecordProvider
 
     public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 file sealed class ContactUnderSharedAccountProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
         .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Contact"))
         .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get("path-value-test-shared-acct"));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-/// <summary>An Account that generates its own optional parent (self-referencing ParentId) - only needed for the deep-two-hop test.</summary>
+/// <summary>
+/// An Account that generates its own optional parent (self-referencing ParentId) - only needed for the deep-two-hop
+/// test.
+/// </summary>
 file sealed class AccountWithOptionalParentProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
         .Put<Account>(x => x.Name, new IncrementingStringExpression("Account"))
         .PutOptional<Account>(x => x.ParentId, new DefaultRelationship(new Account()));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 /// <summary>A User that requires a Manager generated by nextKey.</summary>
 file sealed class ChainedUserProvider(ILookupKey nextKey) : IRecordProvider
 {
-    private MasterTemplate _template { get; } = LeafUserTemplate()
+    public MasterTemplate MasterTemplate { get; } = LeafUserTemplate()
             .PutRequired<User>(x => x.ManagerId, new DefaultRelationship(nextKey, new User()));
 
     public PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 
     internal static MasterTemplate LeafUserTemplate() =>
         new MasterTemplate(Field.Of<User>(x => x.Id))
@@ -336,12 +340,10 @@ file sealed class ChainedUserProvider(ILookupKey nextKey) : IRecordProvider
 
 file sealed class LeafUserProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = ChainedUserProvider.LeafUserTemplate();
+    public MasterTemplate MasterTemplate { get; } = ChainedUserProvider.LeafUserTemplate();
 
     public PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

@@ -12,52 +12,53 @@ namespace Net.NowhereAtAll.Xfty.Core.Bundles;
 /// </summary>
 public sealed class Bundle
 {
-    private readonly Dictionary<PropertyInfo, Bundle> BundleByField = [];
-    private readonly Dictionary<PropertyInfo, List<object>> RecordListByField = [];
-    private readonly Dictionary<PropertyInfo, List<BundleChildEntry>> ChildEntriesByRelationshipField = [];
-    private readonly DeferredValueQueue DeferredValueQueue = new();
+    private readonly Dictionary<PropertyInfo, Bundle> _bundleByField = [];
+    private readonly Dictionary<PropertyInfo, List<object>> _recordListByField = [];
+    private readonly Dictionary<PropertyInfo, List<BundleChildEntry>> _childEntriesByRelationshipField = [];
+    private readonly DeferredValueQueue _deferredValueQueue = new();
 
     /// <summary>The field this bundle's primary records are keyed under. Null on a bundle built by hand.</summary>
     public PropertyInfo? PrimaryTargetField { get; private set; }
 
-    /// <summary>The Provider's placeholder-Id generator for these primaries, so the depth-batched insert honours it too. Null: <see cref="DefaultMockIdGenerator"/>.</summary>
+    /// <summary>
+    /// The Provider's placeholder-Id generator for these primaries, so the depth-batched insert honours it too. Null:
+    /// <see cref="DefaultMockIdGenerator"/>.
+    /// </summary>
     public IMockIdGenerator? MockIdGenerator { get; private set; }
 
     public Bundle Put(PropertyInfo field, List<object> records)
     {
-        this.RecordListByField[field] = records;
+        this._recordListByField[field] = records;
         return this;
     }
 
-    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public Bundle Put<TRecord>(Expression<Func<TRecord, object?>> field, List<object> records) =>
         this.Put(Field.Of(field), records);
 
     public Bundle Put(PropertyInfo field, Bundle bundle)
     {
-        this.BundleByField[field] = bundle;
+        this._bundleByField[field] = bundle;
         return this;
     }
 
-    /// <summary>Put(field, ...), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public Bundle Put<TRecord>(Expression<Func<TRecord, object?>> field, Bundle bundle) =>
         this.Put(Field.Of(field), bundle);
 
     public Bundle? GetBundle(PropertyInfo field) =>
-        this.BundleByField.GetValueOrDefault(field);
+        this._bundleByField.GetValueOrDefault(field);
 
     public List<object>? GetList(PropertyInfo field) =>
-        this.RecordListByField.GetValueOrDefault(field);
+        this._recordListByField.GetValueOrDefault(field);
 
-    /// <summary>GetList(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public List<object>? GetList<TRecord>(Expression<Func<TRecord, object?>> field) =>
         this.GetList(Field.Of(field));
 
-    /// <summary>GetBundle(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public Bundle? GetBundle<TRecord>(Expression<Func<TRecord, object?>> field) =>
         this.GetBundle(Field.Of(field));
 
-    /// <summary>Read one field several relationship hops up the generated ancestor graph. See <see cref="AncestorPathWalker"/>.</summary>
+    /// <summary>
+    /// Read one field several relationship hops up the generated ancestor graph. See <see cref="AncestorPathWalker"/>.
+    /// </summary>
     public object? GetValue(List<PropertyInfo> path, int rowIndex) =>
         AncestorPathWalker.Read(this, path, rowIndex);
 
@@ -65,8 +66,15 @@ public sealed class Bundle
     public object? GetValue(List<PropertyInfo> path) =>
         this.GetValue(path, 0);
 
-    /// <summary>Record the primary records, the field they belong to, and (optionally) the Provider's mock-Id generator for them.</summary>
-    public void PutPrimaries(PropertyInfo primaryTargetField, List<object> records, IMockIdGenerator? mockIdGenerator = null)
+    /// <summary>
+    /// Record the primary records, the field they belong to, and (optionally) the Provider's mock-Id generator for
+    /// them.
+    /// </summary>
+    public void PutPrimaries(
+        PropertyInfo primaryTargetField,
+        List<object> records,
+        IMockIdGenerator? mockIdGenerator = null
+    )
     {
         this.PrimaryTargetField = primaryTargetField;
         this.MockIdGenerator = mockIdGenerator;
@@ -81,7 +89,7 @@ public sealed class Bundle
 
     /// <summary>The relationship fields that carry a generated sub-bundle (the parents).</summary>
     public ISet<PropertyInfo> RelationshipFields() =>
-        this.BundleByField.Keys.ToHashSet();
+        this._bundleByField.Keys.ToHashSet();
 
     /// <summary>
     /// The primary records generated pointing at getList(relationshipField) row
@@ -95,25 +103,41 @@ public sealed class Bundle
             || ancestors is null
             || ancestorRowIndex < 0
             || ancestorRowIndex >= ancestors.Count;
-        return cannotResolve
-            ? []
-            : InverseAlignment.ChildrenPerParent(
-                ancestors!, this.PrimaryRecords()!, relationshipField, this.GetBundle(relationshipField)?.PrimaryTargetField)[ancestorRowIndex];
+        if (cannotResolve)
+        {
+            return [];
+        }
+
+        List<List<object>> childrenPerParent = InverseAlignment.ChildrenPerParent(
+            ancestors!,
+            this.PrimaryRecords()!,
+            relationshipField,
+            this.GetBundle(relationshipField)?.PrimaryTargetField
+        );
+        return childrenPerParent[ancestorRowIndex];
     }
 
     /// <summary>Record that each primary row's byField entries are still to be resolved up from descendants.</summary>
-    public void DeferValues(Dictionary<PropertyInfo, IDeferredExpression> byField) =>
-        this.DeferredValueQueue.AddForEachRow(this.PrimaryRecords()!.Count, byField);
+    public void DeferValues(IEnumerable<KeyValuePair<PropertyInfo, IDeferredExpression>> byField) =>
+        this._deferredValueQueue.AddForEachRow(this.PrimaryRecords()!.Count, byField);
 
     public List<BundleDeferredEntry> DeferredValues() =>
-        this.DeferredValueQueue.Entries();
+        this._deferredValueQueue.Entries();
 
-    public Bundle PutChild(PropertyInfo childRelationshipField, Bundle childBundle, List<int> parentRowByChildRow)
+    public Bundle PutChild(
+        PropertyInfo childRelationshipField,
+        Bundle childBundle,
+        List<int> parentRowByChildRow
+    )
     {
-        if (!this.ChildEntriesByRelationshipField.TryGetValue(childRelationshipField, out List<BundleChildEntry>? entries))
+        bool known = this._childEntriesByRelationshipField.TryGetValue(
+            childRelationshipField,
+            out List<BundleChildEntry>? existing
+        );
+        List<BundleChildEntry> entries = existing ?? [];
+        if (!known)
         {
-            entries = [];
-            this.ChildEntriesByRelationshipField[childRelationshipField] = entries;
+            this._childEntriesByRelationshipField[childRelationshipField] = entries;
         }
 
         entries.Add(new BundleChildEntry(childBundle, parentRowByChildRow));
@@ -122,13 +146,17 @@ public sealed class Bundle
 
     /// <summary>Every child relationship field this bundle carries children for.</summary>
     public ISet<PropertyInfo> ChildRelationshipFields() =>
-        this.ChildEntriesByRelationshipField.Keys.ToHashSet();
+        this._childEntriesByRelationshipField.Keys.ToHashSet();
 
-    /// <summary>The configured child collections for a relationship field, in declaration order (empty if none).</summary>
+    /// <summary>
+    /// The configured child collections for a relationship field, in declaration order (empty if none).
+    /// </summary>
     public List<BundleChildEntry> ChildEntries(PropertyInfo childRelationshipField) =>
-        this.ChildEntriesByRelationshipField.GetValueOrDefault(childRelationshipField) ?? [];
+        this._childEntriesByRelationshipField.GetValueOrDefault(childRelationshipField) ?? [];
 
-    /// <summary>The sub-bundles for a child relationship field, in config declaration order (empty list if none).</summary>
+    /// <summary>
+    /// The sub-bundles for a child relationship field, in config declaration order (empty list if none).
+    /// </summary>
     public List<Bundle> ChildBundles(PropertyInfo childRelationshipField) =>
         [.. this.ChildEntries(childRelationshipField).Select(entry => entry.Bundle)];
 
@@ -141,15 +169,15 @@ public sealed class Bundle
             : all[0];
     }
 
-    /// <summary>GetChild(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public object? GetChild<TChild>(Expression<Func<TChild, object?>> childRelationshipField) =>
         this.GetChild(Field.Of(childRelationshipField));
 
-    /// <summary>Every child generated for childRelationshipField, merged across configs, in the documented order.</summary>
+    /// <summary>
+    /// Every child generated for childRelationshipField, merged across configs, in the documented order.
+    /// </summary>
     public List<object> GetChildList(PropertyInfo childRelationshipField) =>
         [.. this.ChildBundles(childRelationshipField).SelectMany(childBundle => childBundle.PrimaryRecords() ?? [])];
 
-    /// <summary>GetChildList(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public List<object> GetChildList<TChild>(Expression<Func<TChild, object?>> childRelationshipField) =>
         this.GetChildList(Field.Of(childRelationshipField));
 
@@ -159,7 +187,10 @@ public sealed class Bundle
             .SelectMany(entry => (entry.Bundle.PrimaryRecords() ?? [])
                 .Where((_, childRow) => entry.ParentRowByChildRow[childRow] == parentRowIndex))];
 
-    /// <summary>A single bundle of every child for childRelationshipField - merged primaries plus each child's own generated parents. Null if none.</summary>
+    /// <summary>
+    /// A single bundle of every child for childRelationshipField - merged primaries plus each child's own generated
+    /// parents. Null if none.
+    /// </summary>
     public Bundle? GetChildBundle(PropertyInfo childRelationshipField)
     {
         List<Bundle> bundles = this.ChildBundles(childRelationshipField);
@@ -171,7 +202,6 @@ public sealed class Bundle
         };
     }
 
-    /// <summary>GetChildBundle(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public Bundle? GetChildBundle<TChild>(Expression<Func<TChild, object?>> childRelationshipField) =>
         this.GetChildBundle(Field.Of(childRelationshipField));
 

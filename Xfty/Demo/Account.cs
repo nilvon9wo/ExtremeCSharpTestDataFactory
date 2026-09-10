@@ -52,9 +52,14 @@ public sealed class Account
     /// </summary>
     public List<Contact>? Contacts { get; init; }
 
-    /// <summary>The self-referencing Parent ancestor - populated only via reflection, see <see cref="Contacts"/>.</summary>
+    /// <summary>
+    /// The self-referencing Parent ancestor - populated only via reflection, see <see cref="Contacts"/>.
+    /// </summary>
     public Account? Parent { get; init; }
 
-    /// <summary>The self-referencing ChildAccounts collection (the inverse of ParentId) - populated only via reflection, see <see cref="Contacts"/>.</summary>
+    /// <summary>
+    /// The self-referencing ChildAccounts collection (the inverse of ParentId) - populated only via reflection, see
+    /// <see cref="Contacts"/>.
+    /// </summary>
     public List<Account>? ChildAccounts { get; init; }
 }

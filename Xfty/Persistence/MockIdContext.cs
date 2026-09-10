@@ -9,6 +9,8 @@ public sealed class MockIdContext(Type recordType, PropertyInfo idField, object 
 
     public PropertyInfo IdField { get; } = idField;
 
-    /// <summary>The record instance itself, so a generator can build an Id from its other field values if it needs to.</summary>
+    /// <summary>
+    /// The record instance itself, so a generator can build an Id from its other field values if it needs to.
+    /// </summary>
     public object Record { get; } = record;
 }

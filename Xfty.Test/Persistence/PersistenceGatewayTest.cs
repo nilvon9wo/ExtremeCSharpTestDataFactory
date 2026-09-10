@@ -41,7 +41,10 @@ public class PersistenceGatewayTest : IDisposable
         // Assert
         Assert.NotNull(result.Id);
         Assert.StartsWith("real-", result.Id);
-        _ = gateway.Received(1).Insert(Arg.Is<List<object>>(list => list.Contains(result)), Arg.Any<System.Reflection.PropertyInfo>());
+        _ = gateway.Received(1).Insert(
+            Arg.Is<List<object>>(list => list.Contains(result)),
+            Arg.Any<System.Reflection.PropertyInfo>()
+        );
     }
 
     [Fact]
@@ -51,7 +54,8 @@ public class PersistenceGatewayTest : IDisposable
         RecordProvider provider = new RecordProvider(typeof(Account), Lookup).SetInsertMode(InsertMode.Now);
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -127,7 +131,8 @@ public class PersistenceGatewayTest : IDisposable
             .ExcludePrimaryIds();
 
         // Act
-        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply).ConfigureAwait(true);
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply)
+            .ConfigureAwait(true);
 
         // Assert
         Assert.Contains("persistence gateway", thrown.Message);
@@ -283,5 +288,8 @@ public class PersistenceGatewayTest : IDisposable
     }
 
     public void Dispose()
-        => DeferredInserter.ResetForTesting();
+    {
+        DeferredInserter.ResetForTesting();
+        GC.SuppressFinalize(this);
+    }
 }

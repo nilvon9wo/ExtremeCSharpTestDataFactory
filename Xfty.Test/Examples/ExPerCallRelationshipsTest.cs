@@ -54,39 +54,33 @@ public class ExPerCallRelationshipsTest
 
 file sealed class ContactRequiringAccountProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Contact>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Contact>(x => x.Id)
         .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 file sealed class AccountWithOptionalOwnerAndParentProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Account>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id)
         .PutOptional(x => x.OwnerId, new DefaultRelationship(new User()))
         .PutOptional(x => x.ParentId, new DefaultRelationship(new Account()));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 file sealed class LeafUserProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<User>(x => x.Id);
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<User>(x => x.Id);
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

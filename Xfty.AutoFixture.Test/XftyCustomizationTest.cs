@@ -90,7 +90,8 @@ public class XftyCustomizationTest
     public void Create_WithInclusivityOverriddenToNone_LeavesTheRelationshipUngenerated()
     {
         // Arrange - overriding back to RecordProvider's own defaults, explicitly
-        IFixture fixture = new Fixture().Customize(new XftyCustomization(Lookup, InsertMode.Mock, InsertInclusivity.None));
+        IFixture fixture =
+            new Fixture().Customize(new XftyCustomization(Lookup, InsertMode.Mock, InsertInclusivity.None));
 
         // Act
         Contact contact = fixture.Create<Contact>();

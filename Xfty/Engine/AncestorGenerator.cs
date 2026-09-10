@@ -10,9 +10,9 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// <summary>Generates the ancestor sub-bundle for each relationship the inclusivity covers.</summary>
 public sealed class AncestorGenerator(GenerationContext context, int quantity, MasterTemplate template)
 {
-    private readonly GenerationContext context = context;
-    private readonly int quantity = quantity;
-    private readonly MasterTemplate template = template;
+    private readonly GenerationContext _context = context;
+    private readonly int _quantity = quantity;
+    private readonly MasterTemplate _template = template;
 
     public async Task<Bundle> Generate()
     {
@@ -22,7 +22,11 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         return bundle;
     }
 
-    private async Task AddRemainingAncestors(Bundle bundle, List<PropertyInfo> fields, HashSet<PropertyInfo> forcedHeads)
+    private async Task AddRemainingAncestors(
+        Bundle bundle,
+        List<PropertyInfo> fields,
+        HashSet<PropertyInfo> forcedHeads
+    )
     {
         if (fields.Count == 0)
         {
@@ -30,12 +34,12 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         }
 
         await this.AddAncestor(bundle, fields[0], forcedHeads.Contains(fields[0])).ConfigureAwait(false);
-        await this.AddRemainingAncestors(bundle, fields.Skip(1).ToList(), forcedHeads).ConfigureAwait(false);
+        await this.AddRemainingAncestors(bundle, [.. fields.Skip(1)], forcedHeads).ConfigureAwait(false);
     }
 
     private List<PropertyInfo> RelationshipFields()
     {
-        HashSet<PropertyInfo> fields = this.context.Inclusivity == InsertInclusivity.None
+        HashSet<PropertyInfo> fields = this._context.Inclusivity == InsertInclusivity.None
             ? []
             : this.RequiredAndMaybeOptionalFields();
 
@@ -47,21 +51,18 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
 
     private HashSet<PropertyInfo> RequiredAndMaybeOptionalFields()
     {
-        HashSet<PropertyInfo> fields = [.. this.template.RequiredRelationshipByField.Keys];
-        if (this.context.Inclusivity == InsertInclusivity.All)
-        {
-            fields.UnionWith(this.template.OptionalRelationshipByField.Keys);
-        }
-
-        return fields;
+        bool includeOptional = this._context.Inclusivity == InsertInclusivity.All;
+        return [.. this._template.RelationshipByField
+            .Where(pair => pair.Value.IsRequired || includeOptional)
+            .Select(pair => pair.Key)];
     }
 
     private HashSet<PropertyInfo> ExplicitlyRequestedRelationshipHeads()
     {
-        HashSet<PropertyInfo> heads = [.. this.context.ForcedRelationshipPaths
+        HashSet<PropertyInfo> heads = [.. this._context.ForcedRelationshipPaths
             .Where(path => path.Count > 0 && this.IsRelationshipHere(path[0]))
             .Select(path => path[0])];
-        heads.UnionWith(this.context.PathValues
+        heads.UnionWith(this._context.PathValues
             .Where(pathValue => this.IsRelationshipHere(pathValue.Head())
                 && (!pathValue.IsAtTarget() || pathValue.IsRelationshipKind()))
             .Select(pathValue => pathValue.Head()));
@@ -69,8 +70,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
     }
 
     private bool IsRelationshipHere(PropertyInfo field) =>
-        this.template.RequiredRelationshipByField.ContainsKey(field)
-        || this.template.OptionalRelationshipByField.ContainsKey(field);
+        this._template.RelationshipByField.ContainsKey(field);
 
     private Task AddAncestor(Bundle bundle, PropertyInfo field, bool isForced)
     {
@@ -91,7 +91,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
     /// </summary>
     private void AssertNoPathValueInto(PropertyInfo field)
     {
-        bool setsAValueOnTheSharedRecord = this.context.PathValues
+        bool setsAValueOnTheSharedRecord = this._context.PathValues
             .Where(pathValue => pathValue.Head() == field && !pathValue.IsSharedRelationshipValue())
             .Any(pathValue => !pathValue.IsAtTarget() || pathValue.IsRelationshipKind());
         if (setsAValueOnTheSharedRecord)
@@ -103,16 +103,21 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
     }
 
     private Task WireSharedAncestor(Bundle bundle, PropertyInfo field, ISharedRelationship shared) =>
-        new SharedRelationshipWiring(this.context, shared).Wire(bundle, field, this.quantity);
+        new SharedRelationshipWiring(this._context, shared).Wire(bundle, field, this._quantity);
 
-    private async Task GenerateAncestor(Bundle bundle, PropertyInfo field, IDefaultRelationship relationship, bool isForced)
+    private async Task GenerateAncestor(
+        Bundle bundle,
+        PropertyInfo field,
+        IDefaultRelationship relationship,
+        bool isForced
+    )
     {
-        ILookupKey childKey = relationship.ResolveLookupKey(this.context.ProviderLookup)!;
+        ILookupKey childKey = relationship.ResolveLookupKey(this._context.ProviderLookup)!;
         this.AssertNoAncestorCycle(field, childKey);
-        IRecordProvider provider = this.context.ProviderLookup.Get(childKey);
-        GenerationContext childContext = this.ForcedChildContext(this.context.ForRelated(field), isForced)
+        IRecordProvider provider = this._context.ProviderLookup.Get(childKey);
+        GenerationContext childContext = ForcedChildContext(this._context.ForRelated(field), isForced)
             .EnteringProviderFor(childKey.HashKey);
-        List<object> templates = ClonedTemplatesFor(relationship, this.quantity);
+        List<object> templates = ClonedTemplatesFor(relationship, this._quantity);
         Bundle generated = await provider.CreateBundle(childContext, templates).ConfigureAwait(false);
         List<object>? primaries = generated.GetList(provider.PrimaryTargetField);
         _ = bundle.Put(field, generated);
@@ -125,7 +130,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
     /// for NONE. Everything not on a forced path still follows the call's
     /// inclusivity.
     /// </summary>
-    private GenerationContext ForcedChildContext(GenerationContext childContext, bool isForced)
+    private static GenerationContext ForcedChildContext(GenerationContext childContext, bool isForced)
     {
         bool bumpNeeded = isForced && childContext.Inclusivity == InsertInclusivity.None;
         return bumpNeeded
@@ -135,7 +140,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
 
     private void AssertNoAncestorCycle(PropertyInfo field, ILookupKey childKey)
     {
-        if (!this.context.CycleGuard.WouldCycleOn(childKey.HashKey))
+        if (!this._context.CycleGuard.WouldCycleOn(childKey.HashKey))
         {
             return;
         }
@@ -150,7 +155,5 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         RecordCloneFactory.DeepClones(relationship.OverrideTemplate!, quantity);
 
     private IDefaultRelationship? RelationshipOn(PropertyInfo field) =>
-        this.template.RequiredRelationshipByField.TryGetValue(field, out IDefaultRelationship? required)
-            ? required
-            : this.template.OptionalRelationshipByField.GetValueOrDefault(field);
+        this._template.RelationshipByField.GetValueOrDefault(field)?.Relationship;
 }

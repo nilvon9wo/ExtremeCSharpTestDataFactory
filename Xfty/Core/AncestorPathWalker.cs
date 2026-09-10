@@ -42,7 +42,9 @@ public static class AncestorPathWalker
     {
         if (path is null || path.Count < 2)
         {
-            throw new XftyConfigurationException("GetValue needs a path of at least one relationship field then the field to read.");
+            throw new XftyConfigurationException(
+                "GetValue needs a path of at least one relationship field then the field to read."
+            );
         }
 
         if (path.Any(step => step is null))

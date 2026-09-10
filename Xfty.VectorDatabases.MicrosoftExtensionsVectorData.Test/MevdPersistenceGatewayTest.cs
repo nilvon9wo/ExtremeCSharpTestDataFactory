@@ -54,7 +54,10 @@ public sealed class MevdPersistenceGatewayTest : IAsyncLifetime
     [Fact]
     public async Task Supply_InNowMode_AgainstARealVectorStore_ActuallyInsertsARecord()
     {
-        Assert.SkipUnless(this._dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
+        Assert.SkipUnless(
+            this._dockerAvailable,
+            "Docker is not reachable from this machine - start Docker Desktop to run this tier."
+        );
 
         // Arrange - a QdrantVectorStore here is just one VectorStore among many the gateway could take.
         VectorStore vectorStore = new QdrantVectorStore(this._client!, ownsClient: false);

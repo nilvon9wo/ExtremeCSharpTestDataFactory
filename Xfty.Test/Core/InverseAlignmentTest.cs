@@ -5,7 +5,9 @@ using Net.NowhereAtAll.Xfty.Persistence;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
-/// <summary>Proves InverseAlignment - for each parent, the children pointing back at it. Pure in-memory, no database access.</summary>
+/// <summary>
+/// Proves InverseAlignment - for each parent, the children pointing back at it. Pure in-memory, no database access.
+/// </summary>
 public class InverseAlignmentTest
 {
     [Fact]
@@ -16,10 +18,12 @@ public class InverseAlignmentTest
         string one = IdMocker.GenerateId();
         string two = IdMocker.GenerateId();
         List<object> parents = [new Account { Id = one }, new Account { Id = two }];
-        List<object> children = [new Contact { AccountId = two }, new Contact { AccountId = one }, new Contact { AccountId = two }];
+        List<object> children =
+            [new Contact { AccountId = two }, new Contact { AccountId = one }, new Contact { AccountId = two }];
 
         // Act
-        List<List<object>> perParent = InverseAlignment.ChildrenPerParent(parents, children, Field.Of<Contact>(x => x.AccountId));
+        List<List<object>> perParent =
+            InverseAlignment.ChildrenPerParent(parents, children, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         _ = Assert.Single(perParent[0]); // parent one has one child
@@ -34,7 +38,8 @@ public class InverseAlignmentTest
         List<object> children = [new Contact { LastName = "A" }, new Contact { LastName = "B" }];
 
         // Act
-        List<List<object>> perParent = InverseAlignment.ChildrenPerParent(parents, children, Field.Of<Contact>(x => x.AccountId));
+        List<List<object>> perParent =
+            InverseAlignment.ChildrenPerParent(parents, children, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         Assert.Equal("A", ((Contact)perParent[0][0]).LastName);
@@ -49,7 +54,8 @@ public class InverseAlignmentTest
         List<object> children = [new Contact { AccountId = IdMocker.GenerateId() }];
 
         // Act
-        List<List<object>> perParent = InverseAlignment.ChildrenPerParent(parents, children, Field.Of<Contact>(x => x.AccountId));
+        List<List<object>> perParent =
+            InverseAlignment.ChildrenPerParent(parents, children, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         Assert.Empty(perParent[0]);
@@ -64,7 +70,8 @@ public class InverseAlignmentTest
         List<object> children = [new Contact { LastName = "A" }];
 
         // Act
-        List<List<object>> perParent = InverseAlignment.ChildrenPerParent(parents, children, Field.Of<Contact>(x => x.AccountId));
+        List<List<object>> perParent =
+            InverseAlignment.ChildrenPerParent(parents, children, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
         _ = Assert.Single(perParent[0]);

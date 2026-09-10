@@ -22,7 +22,10 @@ public class ExValueExpressionsTest
             .SetQuantityPerTemplate(3)
             .SupplyList().ConfigureAwait(true);
 
-        Assert.Equal(["Test Contact 1", "Test Contact 2", "Test Contact 3"], results.Cast<Contact>().Select(c => c.FirstName));
+        Assert.Equal(
+            ["Test Contact 1", "Test Contact 2", "Test Contact 3"],
+            results.Cast<Contact>().Select(c => c.FirstName)
+        );
     }
 
     [Fact]

@@ -5,7 +5,10 @@ using Net.NowhereAtAll.Xfty.Demo;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
-/// <summary>Proves AncestorPathWalker - reading a field several relationship hops up a generated ancestor graph. Pure in-memory, no database access.</summary>
+/// <summary>
+/// Proves AncestorPathWalker - reading a field several relationship hops up a generated ancestor graph. Pure in-memory,
+/// no database access.
+/// </summary>
 public class AncestorPathWalkerTest
 {
     [Fact]
@@ -14,7 +17,10 @@ public class AncestorPathWalkerTest
         // Arrange - two Contacts, each with its own parent Account carrying a distinct name
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact(), new Contact()]);
-        _ = bundle.Put<Contact>(x => x.AccountId, [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]);
+        _ = bundle.Put<Contact>(
+            x => x.AccountId,
+            [new Account { Name = "Row Zero" }, new Account { Name = "Row One" }]
+        );
         List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
 
         // Act
@@ -32,7 +38,8 @@ public class AncestorPathWalkerTest
         _ = accountBundle.Put<Account>(x => x.ParentId, [new Account { Name = "Grandparent" }]);
         Bundle bundle = new();
         _ = bundle.Put<Contact>(x => x.AccountId, accountBundle);
-        List<PropertyInfo> path = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Name)];
+        List<PropertyInfo> path =
+            [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.Name)];
 
         // Act
         object? grandparentName = AncestorPathWalker.Read(bundle, path, 0);
@@ -94,7 +101,8 @@ public class AncestorPathWalkerTest
         Bundle bundle = new();
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => AncestorPathWalker.Read(bundle, justAField, 0));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => AncestorPathWalker.Read(bundle, justAField, 0));
 
         // Assert - a path needs at least one relationship hop then the field to read
         Assert.NotNull(thrown);
@@ -108,7 +116,8 @@ public class AncestorPathWalkerTest
         Bundle bundle = new();
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => AncestorPathWalker.Read(bundle, withNullStep, 0));
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => AncestorPathWalker.Read(bundle, withNullStep, 0));
 
         // Assert - a null path step is rejected
         Assert.NotNull(thrown);

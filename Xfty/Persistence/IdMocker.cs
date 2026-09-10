@@ -30,6 +30,9 @@ public static class IdMocker
         return record;
     }
 
-    /// <summary>A bare <c>"mock-N"</c> string, for a caller that just needs a placeholder Id value and not a whole record populated.</summary>
+    /// <summary>
+    /// A bare <c>"mock-N"</c> string, for a caller that just needs a placeholder Id value and not a whole record
+    /// populated.
+    /// </summary>
     public static string GenerateId() => DefaultMockIdGenerator.NextMockString();
 }

@@ -4,15 +4,18 @@ using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Relationships;
 namespace Net.NowhereAtAll.Xfty.Engine;
 
-/// <summary>Wires a shared ancestor into a bundle: one record stands in for every child at its field, resolved once per test, then repeated quantity times.</summary>
+/// <summary>
+/// Wires a shared ancestor into a bundle: one record stands in for every child at its field, resolved once per test,
+/// then repeated quantity times.
+/// </summary>
 public sealed class SharedRelationshipWiring(GenerationContext context, ISharedRelationship shared)
 {
-    private readonly GenerationContext context = context;
-    private readonly ISharedRelationship shared = shared;
+    private readonly GenerationContext _context = context;
+    private readonly ISharedRelationship _shared = shared;
 
     public async Task Wire(Bundle bundle, PropertyInfo field, int quantity)
     {
-        object? record = await this.shared.ResolveSharedRecord(this.context).ConfigureAwait(false);
+        object? record = await this._shared.ResolveSharedRecord(this._context).ConfigureAwait(false);
         this.AssertSavedConsistently();
         List<object> children = Repeat(record!, quantity);
         _ = bundle.Put(field, children);
@@ -21,7 +24,7 @@ public sealed class SharedRelationshipWiring(GenerationContext context, ISharedR
 
     private void AssertSavedConsistently()
     {
-        bool safe = this.context.InsertMode != InsertMode.Now || this.shared.IsResolvedRecordPersisted;
+        bool safe = this._context.InsertMode != InsertMode.Now || this._shared.IsResolvedRecordPersisted;
         if (safe)
         {
             return;
@@ -37,7 +40,7 @@ public sealed class SharedRelationshipWiring(GenerationContext context, ISharedR
         [.. Enumerable.Repeat(record, times)];
 
     private void PlaceResolvedBundle(Bundle bundle, PropertyInfo field) =>
-        bundle.Put(field, this.shared.GetResolvedBundle());
+        bundle.Put(field, this._shared.GetResolvedBundle());
 
-    private string Name() => this.shared.SharedName;
+    private string Name() => this._shared.SharedName;
 }

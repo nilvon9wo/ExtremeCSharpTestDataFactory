@@ -20,7 +20,8 @@ public sealed partial class SharedAncestor
         IdOf(record) is not null ? PutAsValue(name, record!) : PutAsTemplate(name, record);
 
     /// <summary>Register an override template; the shared record is generated from it in the pre-phase.</summary>
-    public static SharedAncestorProvider PutAsTemplate(string name, object? template) => Get(name).Provider().WithTemplate(template);
+    public static SharedAncestorProvider PutAsTemplate(string name, object? template) =>
+        Get(name).Provider().WithTemplate(template);
 
     /// <summary>
     /// Register a record the test built itself; used exactly as-is, no
@@ -32,14 +33,15 @@ public sealed partial class SharedAncestor
     public static SharedAncestorProvider PutAsValue(string name, object record)
     {
         SharedAncestor ancestor = Get(name);
-        ancestor.resolvedRecord = record;
-        ancestor.resolvedBundle = null;
-        ancestor._resolvedRecordIsPersisted = IdOf(record) is not null;
+        ancestor._resolvedRecord = record;
+        ancestor._resolvedBundle = null;
+        ancestor.IsResolvedRecordPersisted = IdOf(record) is not null;
         return ancestor.Provider();
     }
 
     /// <summary>Register just the Provider variant that generates the shared record.</summary>
-    public static SharedAncestorProvider Put(string name, ILookupKey variantKey) => Get(name).Provider().FromVariant(variantKey);
+    public static SharedAncestorProvider Put(string name, ILookupKey variantKey) =>
+        Get(name).Provider().FromVariant(variantKey);
 
     /// <summary>Put(name, record) (same Id-disambiguation), applied only if name is not registered yet.</summary>
     public static SharedAncestorProvider PutIfAbsent(string name, object? record)
@@ -55,5 +57,5 @@ public sealed partial class SharedAncestor
         return ancestor.IsUnregistered() ? Put(name, variantKey) : ancestor.Provider();
     }
 
-    private SharedAncestorProvider Provider() => this.source ??= new SharedAncestorProvider(this);
+    private SharedAncestorProvider Provider() => this._source ??= new SharedAncestorProvider(this);
 }

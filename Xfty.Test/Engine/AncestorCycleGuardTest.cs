@@ -2,7 +2,10 @@ using Net.NowhereAtAll.Xfty.Engine;
 
 namespace Net.NowhereAtAll.Xfty.Test.Engine;
 
-/// <summary>Proves AncestorCycleGuard - the key-chain tracking that stops an infinite A -> A -> A ... ancestor cycle. Pure in-memory state, no database access.</summary>
+/// <summary>
+/// Proves AncestorCycleGuard - the key-chain tracking that stops an infinite A -> A -> A ... ancestor cycle. Pure
+/// in-memory state, no database access.
+/// </summary>
 public class AncestorCycleGuardTest
 {
     [Fact]

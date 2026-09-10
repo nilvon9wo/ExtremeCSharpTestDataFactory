@@ -6,7 +6,10 @@ using Net.NowhereAtAll.Xfty.Lookup;
 
 namespace Net.NowhereAtAll.Xfty.AutoBogus.Test;
 
-/// <summary>Proves AutoBogusUnsetFieldFiller - the AutoBogus-backed IUnsetFieldFiller. See UnsetFieldFillerTest (Xfty.Test) for the core contract it relies on.</summary>
+/// <summary>
+/// Proves AutoBogusUnsetFieldFiller - the AutoBogus-backed IUnsetFieldFiller. See UnsetFieldFillerTest (Xfty.Test) for
+/// the core contract it relies on.
+/// </summary>
 public class AutoBogusUnsetFieldFillerTest
 {
     private static readonly IProviderLookup Lookup =

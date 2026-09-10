@@ -9,11 +9,19 @@ Two jobs, no secrets.
 ```yaml
 dotnet restore Xfty.ci-cross-platform.slnf
 dotnet build Xfty.ci-cross-platform.slnf --no-restore                        # .editorconfig analyzers enforced - a style violation fails the build
+dotnet format Xfty.slnx --verify-no-changes --severity info                  # whitespace + IDE1006 naming + IDE0130 namespace-folder, which the build itself does not run
 dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass
 dotnet test Xfty.Test/Xfty.Test.csproj --no-build --filter "Category=Performance"     # informational only (continue-on-error)
 python3 scripts/verify-doc-examples.py                                       # every documented code example is exercised by a real test
 python3 scripts/verify-doc-links.py                                          # every relative doc link and anchor resolves
 ```
+
+`dotnet build` with `EnforceCodeStyleInBuild` runs most of `.editorconfig`, but
+not the naming analyzer (IDE1006) or IDE0130 (namespace-matches-folder, which
+only fires for `partial` types). `dotnet format --verify-no-changes` is the gate
+for those two and for every whitespace/formatting rule; it runs against the raw
+`Xfty.slnx` (it only reads source, so the `net472` project is not a problem
+here). See [coding-standards](coding-standards.md#quality-gates).
 
 Runs against [`Xfty.ci-cross-platform.slnf`](../../Xfty.ci-cross-platform.slnf)
 (a solution filter: every project in `Xfty.slnx` except
