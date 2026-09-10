@@ -10,9 +10,9 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 /// </summary>
 public sealed class AnyOfPredicate : IRecordPredicate
 {
-    private readonly IReadOnlyList<IRecordPredicate> members;
+    private readonly IReadOnlyList<IRecordPredicate> _members;
 
-    private AnyOfPredicate(IReadOnlyList<IRecordPredicate> members) => this.members = members;
+    private AnyOfPredicate(IReadOnlyList<IRecordPredicate> members) => this._members = members;
 
     public static AnyOfPredicate Of(IReadOnlyList<IRecordPredicate>? members) =>
         members is null
@@ -20,5 +20,5 @@ public sealed class AnyOfPredicate : IRecordPredicate
             : new AnyOfPredicate(members);
 
     public bool IsSatisfiedBy(object? record) =>
-        this.members.Any(member => member.IsSatisfiedBy(record));
+        this._members.Any(member => member.IsSatisfiedBy(record));
 }

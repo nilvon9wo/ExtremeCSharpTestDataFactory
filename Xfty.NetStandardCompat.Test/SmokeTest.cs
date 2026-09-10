@@ -101,25 +101,21 @@ public class SmokeTest
     }
 }
 
-file sealed class Voucher
+// A parameterized constructor only - no public parameterless one for Activator to use.
+file sealed class Voucher(string kind)
 {
-    // Only a parameterized constructor - so there is no public parameterless one for Activator to use.
-    public Voucher(string kind) => this.Kind = kind;
-
     public string? Code { get; set; }
 
-    public string? Kind { get; set; }
+    public string? Kind { get; set; } = kind;
 }
 
 file sealed class VoucherProvider : IRecordProvider
 {
-    private MasterTemplate template { get; } = new MasterTemplate<Voucher>(x => x.Code)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Voucher>(x => x.Code)
         .Put(x => x.Kind, new LiteralExpression("Gift"));
 
-    public PropertyInfo PrimaryTargetField => this.template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this.template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this.template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

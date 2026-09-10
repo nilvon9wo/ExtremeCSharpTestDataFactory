@@ -12,14 +12,14 @@ namespace Net.NowhereAtAll.Xfty.Core;
 /// </summary>
 public sealed class DeferredValueQueue
 {
-    private readonly List<BundleDeferredEntry> entries = [];
+    private readonly List<BundleDeferredEntry> _entries = [];
 
     /// <summary>Queue each byField entry for every one of rowCount primary rows.</summary>
     public void AddForEachRow(int rowCount, Dictionary<PropertyInfo, IDeferredExpression> byField) =>
         Enumerable.Range(0, rowCount)
             .SelectMany(row => byField.Select(pair => new BundleDeferredEntry(row, pair.Key, pair.Value)))
             .ToList()
-            .ForEach(this.entries.Add);
+            .ForEach(this._entries.Add);
 
-    public List<BundleDeferredEntry> Entries() => this.entries;
+    public List<BundleDeferredEntry> Entries() => this._entries;
 }

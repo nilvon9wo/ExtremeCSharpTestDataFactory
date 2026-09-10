@@ -12,7 +12,7 @@ public sealed partial class SharedAncestor
     /// <summary>Resolve now - e.g. to read GetId(name) before any Supply*() call.</summary>
     public async Task<SharedAncestor> ResolveNow(IProviderLookup lookup, InsertMode insertMode)
     {
-        if (this.resolvedRecord is null)
+        if (this._resolvedRecord is null)
         {
             SharedAncestorResolver.ApplyLookupDefaults(lookup);
             await new SharedAncestorResolver(lookup, insertMode).Resolve([this]).ConfigureAwait(false);
@@ -29,34 +29,34 @@ public sealed partial class SharedAncestor
     /// </summary>
     private void LearnPrimaryFieldFrom(IProviderLookup lookup)
     {
-        this.resolvedPrimaryField ??= this.resolvedBundle?.PrimaryTargetField ?? this.PrimaryFieldFromProvider(lookup);
+        this._resolvedPrimaryField ??= this._resolvedBundle?.PrimaryTargetField ?? this.PrimaryFieldFromProvider(lookup);
 
         // Only the PutAsValue path (no bundle) guessed persistence from an "Id"-named property; correct it now.
-        bool cameFromPutAsValue = this.resolvedBundle is null && this.resolvedRecord is not null;
-        if (cameFromPutAsValue && this.resolvedPrimaryField is not null)
+        bool cameFromPutAsValue = this._resolvedBundle is null && this._resolvedRecord is not null;
+        if (cameFromPutAsValue && this._resolvedPrimaryField is not null)
         {
-            this._resolvedRecordIsPersisted = this.resolvedPrimaryField.GetValue(this.resolvedRecord) is not null;
+            this.IsResolvedRecordPersisted = this._resolvedPrimaryField.GetValue(this._resolvedRecord) is not null;
         }
     }
 
     /// <summary>The Provider's primary-key field, when the source has a template or variant key to resolve one from; null for a bare PutAsValue registration.</summary>
     private PropertyInfo? PrimaryFieldFromProvider(IProviderLookup lookup) =>
-        this.source is { } theSource && theSource.CanResolvePrimaryField
+        this._source is { } theSource && theSource.CanResolvePrimaryField
             ? theSource.PrimaryField(lookup)
             : null;
 
     public SharedAncestorProvider Source() =>
-        this.source ?? throw new XftyConfigurationException(
-            $"Shared ancestor \"{this._name}\" was never registered - call SharedAncestor.Put(\"{this._name}\", template / key).");
+        this._source ?? throw new XftyConfigurationException(
+            $"Shared ancestor \"{this.SharedName}\" was never registered - call SharedAncestor.Put(\"{this.SharedName}\", template / key).");
 
     /// <summary>The resolver hands back the generated record and its graph.</summary>
     public void AcceptResolved(object record, Bundle bundle, bool persisted)
     {
-        this.resolvedRecord = record;
-        this.resolvedBundle = bundle;
-        this.resolvedPrimaryField = bundle.PrimaryTargetField;
-        this.resolvedMockIdGenerator = bundle.MockIdGenerator;
-        this._resolvedRecordIsPersisted = persisted;
+        this._resolvedRecord = record;
+        this._resolvedBundle = bundle;
+        this._resolvedPrimaryField = bundle.PrimaryTargetField;
+        this._resolvedMockIdGenerator = bundle.MockIdGenerator;
+        this.IsResolvedRecordPersisted = persisted;
     }
 
     /// <summary>
@@ -67,28 +67,28 @@ public sealed partial class SharedAncestor
     /// </summary>
     public void AcceptResolvedValue(object record, PropertyInfo primaryField)
     {
-        this.resolvedRecord = record;
-        this.resolvedBundle = null;
-        this.resolvedPrimaryField = primaryField;
-        this._resolvedRecordIsPersisted = true;
+        this._resolvedRecord = record;
+        this._resolvedBundle = null;
+        this._resolvedPrimaryField = primaryField;
+        this.IsResolvedRecordPersisted = true;
     }
 
     /// <summary>The shared record as a single-record sub-bundle. Never null once resolved.</summary>
     public Bundle GetResolvedBundle()
     {
-        if (this.resolvedBundle is null && this.resolvedRecord is not null)
+        if (this._resolvedBundle is null && this._resolvedRecord is not null)
         {
-            this.resolvedBundle = this.SingleRecordBundle();
+            this._resolvedBundle = this.SingleRecordBundle();
         }
 
-        return this.resolvedBundle!;
+        return this._resolvedBundle!;
     }
 
     private Bundle SingleRecordBundle()
     {
-        PropertyInfo idField = this.resolvedPrimaryField ?? this.resolvedRecord!.GetType().GetProperty(ConventionalIdFieldName)!;
+        PropertyInfo idField = this._resolvedPrimaryField ?? this._resolvedRecord!.GetType().GetProperty(ConventionalIdFieldName)!;
         Bundle bundle = new();
-        bundle.PutPrimaries(idField, [this.resolvedRecord!], this.resolvedMockIdGenerator);
+        bundle.PutPrimaries(idField, [this._resolvedRecord!], this._resolvedMockIdGenerator);
         return bundle;
     }
 }

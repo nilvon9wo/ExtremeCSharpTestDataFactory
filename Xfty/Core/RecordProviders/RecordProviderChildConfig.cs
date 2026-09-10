@@ -11,16 +11,16 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// </summary>
 internal sealed class RecordProviderChildConfig
 {
-    private readonly List<ChildProvider> childProviders = [];
+    private readonly List<ChildProvider> _childProviders = [];
 
     public void Add(ChildProvider childProvider) =>
-        this.childProviders.Add(childProvider ?? throw new XftyConfigurationException("With(...) needs a ChildProvider."));
+        this._childProviders.Add(childProvider ?? throw new XftyConfigurationException("With(...) needs a ChildProvider."));
 
-    public bool HasAny => this.childProviders.Count > 0;
+    public bool HasAny => this._childProviders.Count > 0;
 
     public Task GenerateAll(Bundle bundle, bool structural, RecordProviderExecutionState state) =>
         this.HasAny
-            ? GenerateRemainingCollections(bundle, this.childProviders, structural, state)
+            ? GenerateRemainingCollections(bundle, this._childProviders, structural, state)
             : Task.CompletedTask;
 
     private static async Task GenerateRemainingCollections(
@@ -32,7 +32,7 @@ internal sealed class RecordProviderChildConfig
         }
 
         await GenerateOneCollection(bundle, childProviders[0], structural, state).ConfigureAwait(false);
-        await GenerateRemainingCollections(bundle, childProviders.Skip(1).ToList(), structural, state).ConfigureAwait(false);
+        await GenerateRemainingCollections(bundle, [.. childProviders.Skip(1)], structural, state).ConfigureAwait(false);
     }
 
     private static async Task GenerateOneCollection(Bundle bundle, ChildProvider childProvider, bool structural, RecordProviderExecutionState state)

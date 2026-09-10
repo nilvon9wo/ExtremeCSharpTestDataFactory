@@ -16,54 +16,54 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 public sealed partial class RecordProvider<TRecord>
 {
     public RecordProvider<TRecord> Put(PropertyInfo field, IValueExpression valueTemplate) =>
-        this.Forwarding(() => this.inner.Put(field, valueTemplate));
+        this.Forwarding(() => this._inner.Put(field, valueTemplate));
 
     public RecordProvider<TRecord> Put(PropertyInfo field, IContextAwareExpression contextAwareExpression) =>
-        this.Forwarding(() => this.inner.Put(field, contextAwareExpression));
+        this.Forwarding(() => this._inner.Put(field, contextAwareExpression));
 
     public RecordProvider<TRecord> Put(PropertyInfo field, IDeferredExpression deferredValue) =>
-        this.Forwarding(() => this.inner.Put(field, deferredValue));
+        this.Forwarding(() => this._inner.Put(field, deferredValue));
 
     public RecordProvider<TRecord> Put(PropertyInfo field, object? value) =>
-        this.Forwarding(() => this.inner.Put(field, value));
+        this.Forwarding(() => this._inner.Put(field, value));
 
     public RecordProvider<TRecord> PutRequired(PropertyInfo field, IDefaultRelationship relationshipTemplate) =>
-        this.Forwarding(() => this.inner.PutRequired(field, relationshipTemplate));
+        this.Forwarding(() => this._inner.PutRequired(field, relationshipTemplate));
 
     public RecordProvider<TRecord> PutOptional(PropertyInfo field, IDefaultRelationship relationshipTemplate) =>
-        this.Forwarding(() => this.inner.PutOptional(field, relationshipTemplate));
+        this.Forwarding(() => this._inner.PutOptional(field, relationshipTemplate));
 
     public RecordProvider<TRecord> RemoveFromMasterTemplate(PropertyInfo field) =>
-        this.Forwarding(() => this.inner.RemoveFromMasterTemplate(field));
+        this.Forwarding(() => this._inner.RemoveFromMasterTemplate(field));
 
     // Per-call relationship control ----------------------------------------
 
     public RecordProvider<TRecord> IncludeOptional(PropertyInfo field) =>
-        this.Forwarding(() => this.inner.IncludeOptional(field));
+        this.Forwarding(() => this._inner.IncludeOptional(field));
 
     public RecordProvider<TRecord> IncludeOptional(List<PropertyInfo> relationshipPath) =>
-        this.Forwarding(() => this.inner.IncludeOptional(relationshipPath));
+        this.Forwarding(() => this._inner.IncludeOptional(relationshipPath));
 
     public RecordProvider<TRecord> ExcludeRelationship(PropertyInfo field) =>
-        this.Forwarding(() => this.inner.ExcludeRelationship(field));
+        this.Forwarding(() => this._inner.ExcludeRelationship(field));
 
     public RecordProvider<TRecord> ExcludeRelationshipIfPresent(PropertyInfo field) =>
-        this.Forwarding(() => this.inner.ExcludeRelationshipIfPresent(field));
+        this.Forwarding(() => this._inner.ExcludeRelationshipIfPresent(field));
 
     // Path-scoped value overrides -----------------------------------------
 
     public RecordProvider<TRecord> Put(List<PropertyInfo> path, IValueExpression valueExpression) =>
-        this.Forwarding(() => this.inner.Put(path, valueExpression));
+        this.Forwarding(() => this._inner.Put(path, valueExpression));
 
     public RecordProvider<TRecord> Put(List<PropertyInfo> path, IContextAwareExpression contextAwareExpression) =>
-        this.Forwarding(() => this.inner.Put(path, contextAwareExpression));
+        this.Forwarding(() => this._inner.Put(path, contextAwareExpression));
 
     public RecordProvider<TRecord> Put(List<PropertyInfo> path, object? literal) =>
-        this.Forwarding(() => this.inner.Put(path, literal));
+        this.Forwarding(() => this._inner.Put(path, literal));
 
     public RecordProvider<TRecord> PutRequired(List<PropertyInfo> path, IDefaultRelationship relationship) =>
-        this.Forwarding(() => this.inner.PutRequired(path, relationship));
+        this.Forwarding(() => this._inner.PutRequired(path, relationship));
 
     public RecordProvider<TRecord> PutOptional(List<PropertyInfo> path, IDefaultRelationship relationship) =>
-        this.Forwarding(() => this.inner.PutOptional(path, relationship));
+        this.Forwarding(() => this._inner.PutOptional(path, relationship));
 }

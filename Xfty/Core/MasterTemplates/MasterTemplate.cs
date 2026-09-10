@@ -44,7 +44,7 @@ public sealed partial class MasterTemplate(
     // Insertion order of the value fields (plain + context-aware) - a
     // context-aware value may read an earlier one, so the value passes need a
     // deterministic order.
-    private readonly List<PropertyInfo> valueFieldOrder = [.. defaultByField.Keys];
+    private readonly List<PropertyInfo> _valueFieldOrder = [.. defaultByField.Keys];
 
     public MasterTemplate(PropertyInfo primaryTargetField)
         : this(primaryTargetField, [], [], [])

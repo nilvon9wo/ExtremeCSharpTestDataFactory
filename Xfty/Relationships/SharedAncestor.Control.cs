@@ -15,15 +15,15 @@ public sealed partial class SharedAncestor
     }
 
     /// <summary>Turn off the pre-phase that auto-resolves every registered shared ancestor.</summary>
-    public static void ManualResolutionOnly() => _manualResolution = true;
+    public static void ManualResolutionOnly() => s_manualResolution = true;
 
-    public static bool IsManualResolutionOnly() => _manualResolution;
+    public static bool IsManualResolutionOnly() => s_manualResolution;
 
     /// <summary>Resolve a named set of shared ancestors up front, in one depth-batched pass.</summary>
     public static Task ResolveNow(IProviderLookup lookup, InsertMode insertMode, List<string> names)
     {
         SharedAncestorResolver.ApplyLookupDefaults(lookup);
-        List<SharedAncestor> toResolve = [.. names.Select(Get).Where(ancestor => ancestor.resolvedRecord is null)];
+        List<SharedAncestor> toResolve = [.. names.Select(Get).Where(ancestor => ancestor._resolvedRecord is null)];
         return toResolve.Count > 0
             ? new SharedAncestorResolver(lookup, insertMode).Resolve(toResolve)
             : Task.CompletedTask;
@@ -33,15 +33,15 @@ public sealed partial class SharedAncestor
     public static List<SharedAncestor> ConfiguredUnresolved() => [.. ByName.Values.Where(IsUnresolvedAndEnabled)];
 
     private static bool IsUnresolvedAndEnabled(SharedAncestor ancestor) =>
-        ancestor.source is not null && ancestor.resolvedRecord is null && !Disabled.ContainsKey(ancestor._name);
+        ancestor._source is not null && ancestor._resolvedRecord is null && !Disabled.ContainsKey(ancestor.SharedName);
 
-    private bool IsUnregistered() => this.source is null && this.resolvedRecord is null;
+    private bool IsUnregistered() => this._source is null && this._resolvedRecord is null;
 
     public void AssertUnresolved(string call)
     {
-        if (this.resolvedRecord is not null)
+        if (this._resolvedRecord is not null)
         {
-            throw new XftyConfigurationException($"Shared ancestor \"{this._name}\" is already resolved; {call} would have no effect.");
+            throw new XftyConfigurationException($"Shared ancestor \"{this.SharedName}\" is already resolved; {call} would have no effect.");
         }
     }
 }

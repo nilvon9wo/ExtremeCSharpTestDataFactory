@@ -32,7 +32,7 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// </summary>
 public sealed partial class RecordProvider<TRecord>(IProviderLookup providerLookup)
 {
-    private readonly RecordProvider inner = new(typeof(TRecord), providerLookup);
+    private readonly RecordProvider _inner = new(typeof(TRecord), providerLookup);
 
     /// <summary>
     /// Object-initializer field configuration, mirroring <see cref="MasterTemplate{TRecord}"/>'s
@@ -43,13 +43,13 @@ public sealed partial class RecordProvider<TRecord>(IProviderLookup providerLook
     /// </summary>
     public object? this[Expression<Func<TRecord, object?>> field]
     {
-        set => _ = this.inner.Put(Field.Of(field), value);
+        set => _ = this._inner.Put(Field.Of(field), value);
     }
 
-    public static implicit operator RecordProvider(RecordProvider<TRecord> typed) => typed.inner;
+    public static implicit operator RecordProvider(RecordProvider<TRecord> typed) => typed._inner;
 
     /// <summary>
-    /// Runs one configuration call against <see cref="inner"/> and returns this
+    /// Runs one configuration call against <see cref="_inner"/> and returns this
     /// wrapper - never the <see cref="RecordProvider"/> the inner call hands back -
     /// so the fluent chain stays typed as <see cref="RecordProvider{TRecord}"/>.
     /// Every fluent forwarder in the other partials is one of these.

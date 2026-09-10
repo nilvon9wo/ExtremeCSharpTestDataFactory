@@ -11,7 +11,7 @@ namespace Net.NowhereAtAll.Xfty.Bogus;
 /// </summary>
 public sealed class FakeFullNameExpression(string locale = "en") : IValueExpression
 {
-    private readonly Faker faker = new(locale);
+    private readonly Faker _faker = new(locale);
 
-    public object Get() => this.faker.Name.FullName();
+    public object Get() => this._faker.Name.FullName();
 }

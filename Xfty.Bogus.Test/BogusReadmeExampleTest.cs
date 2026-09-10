@@ -17,18 +17,16 @@ namespace Net.NowhereAtAll.Xfty.Bogus.Test;
 /// </summary>
 file sealed class ContactWithFakeDataProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Contact>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Contact>(x => x.Id)
     {
         [x => x.FirstName] = new FakeFullNameExpression(),
         [x => x.Email] = new FakeEmailAddressExpression(),
     };
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 public class BogusReadmeExampleTest

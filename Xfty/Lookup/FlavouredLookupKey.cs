@@ -20,15 +20,15 @@ public sealed class FlavouredLookupKey : ILookupKey
 {
     private static readonly Dictionary<string, FlavouredLookupKey> InstanceByHash = [];
 
-    private readonly LookupKey baseKey;
-    private readonly List<IRecordPredicate> predicates = [];
+    private readonly LookupKey _baseKey;
+    private readonly List<IRecordPredicate> _predicates = [];
 
-    private string _flavour { get; }
+    private string Flavour { get; }
 
     private FlavouredLookupKey(Type recordType, string flavour)
     {
-        this.baseKey = LookupKey.Get(recordType);
-        this._flavour = flavour;
+        this._baseKey = LookupKey.Get(recordType);
+        this.Flavour = flavour;
     }
 
     public static FlavouredLookupKey Get(Type recordType, string flavour)
@@ -49,21 +49,21 @@ public sealed class FlavouredLookupKey : ILookupKey
     /// <summary>Add a condition the record must satisfy to belong to this flavour. Chainable.</summary>
     public FlavouredLookupKey Matching(IRecordPredicate predicate)
     {
-        this.predicates.Add(predicate);
+        this._predicates.Add(predicate);
         return this;
     }
 
-    public Type RecordType => this.baseKey.RecordType;
+    public Type RecordType => this._baseKey.RecordType;
 
     public bool IsInstanceOf(object? record) =>
-        this.predicates.Count > 0
-        && this.baseKey.IsInstanceOf(record)
-        && this.predicates.All(predicate => predicate.IsSatisfiedBy(record));
+        this._predicates.Count > 0
+        && this._baseKey.IsInstanceOf(record)
+        && this._predicates.All(predicate => predicate.IsSatisfiedBy(record));
 
-    public string HashKey => HashOf(this.baseKey, this._flavour);
+    public string HashKey => HashOf(this._baseKey, this.Flavour);
 
     // More specific than the plain type key, and more so with more predicates.
-    public int Specificity => 20 + this.predicates.Count;
+    public int Specificity => 20 + this._predicates.Count;
 
     public override bool Equals(object? other) =>
         other is ILookupKey otherKey && otherKey.HashKey == this.HashKey;

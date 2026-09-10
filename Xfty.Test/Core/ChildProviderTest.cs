@@ -404,14 +404,12 @@ public class ChildProviderTest
 /// <summary>Case that needs a Contact (which in turn needs its own Account) - an in-test Provider only used here.</summary>
 file sealed class CaseProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
         .Put<Case>(x => x.Subject, new IncrementingStringExpression("Case"))
         .PutRequired<Case>(x => x.ContactId, new DefaultRelationship(new Contact()));
 
     public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

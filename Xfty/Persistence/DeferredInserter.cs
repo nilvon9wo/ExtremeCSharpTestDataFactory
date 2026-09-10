@@ -11,7 +11,7 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 /// </summary>
 public static class DeferredInserter
 {
-    private static DeferredInsertBuffer _buffer = new();
+    private static DeferredInsertBuffer s_buffer = new();
 
     /// <summary>
     /// Register bundle for the eventual Flush(). excludePrimaryIds marks
@@ -21,9 +21,9 @@ public static class DeferredInserter
     /// ancestors this same registry resolves for real, efficiently,
     /// alongside everything else registered before the flush.
     /// </summary>
-    public static void Register(Bundle bundle, bool excludePrimaryIds = false) => _buffer.Add(bundle, excludePrimaryIds);
+    public static void Register(Bundle bundle, bool excludePrimaryIds = false) => s_buffer.Add(bundle, excludePrimaryIds);
 
-    public static int PendingCount() => _buffer.PendingCount();
+    public static int PendingCount() => s_buffer.PendingCount();
 
     /// <summary>
     /// Save every registered record through <paramref name="gateway"/>,
@@ -34,8 +34,8 @@ public static class DeferredInserter
     /// </summary>
     public static async Task Flush(IPersistenceGateway? gateway = null)
     {
-        await _buffer.InsertAll(gateway).ConfigureAwait(false);
-        _buffer = new DeferredInsertBuffer();
+        await s_buffer.InsertAll(gateway).ConfigureAwait(false);
+        s_buffer = new DeferredInsertBuffer();
     }
 
     /// <summary>
@@ -46,5 +46,5 @@ public static class DeferredInserter
     /// registered - so a test doing that must call this afterward, or every
     /// later test sharing this static registry inherits its leftovers.
     /// </summary>
-    public static void ResetForTesting() => _buffer = new DeferredInsertBuffer();
+    public static void ResetForTesting() => s_buffer = new DeferredInsertBuffer();
 }

@@ -225,29 +225,25 @@ public class ContextAwareExpressionTest
 /// <summary>An Account whose Owner is generated, so multi-hop tests have a second level.</summary>
 file sealed class AccountWithOwnerProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Account>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id)
         .Put(x => x.Name, new IncrementingStringExpression("Acct"))
         .PutRequired(x => x.OwnerId, new DefaultRelationship(new User()));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 file sealed class LeafUserProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<User>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<User>(x => x.Id)
         .Put(x => x.LastName, new IncrementingStringExpression("User"));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 /// <summary>Derives a MINOR / ADULT flag from a Birthdate sibling - the kind of logic XFTY leaves to consumers.</summary>

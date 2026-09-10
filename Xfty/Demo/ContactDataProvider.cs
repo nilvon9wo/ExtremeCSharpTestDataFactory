@@ -16,7 +16,7 @@ public sealed class ContactDataProvider : IRecordProvider
     public const string DefaultEmailPrefix = "test.contact";
     public const string DefaultAccountDescription = "Account for contact";
 
-    private MasterTemplate _template { get; } = new MasterTemplate<Contact>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Contact>(x => x.Id)
     {
         [x => x.Email] = new UniqueEmailExpression(DefaultEmailPrefix),
         [x => x.FirstName] = new IncrementingStringExpression(DefaultFirstNamePrefix),
@@ -25,8 +25,6 @@ public sealed class ContactDataProvider : IRecordProvider
 
     public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

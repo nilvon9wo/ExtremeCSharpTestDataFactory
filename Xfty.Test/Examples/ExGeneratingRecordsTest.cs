@@ -110,13 +110,11 @@ public class ExGeneratingRecordsTest
 
 file sealed class CaseWithAccountProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Case>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Case>(x => x.Id)
         .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

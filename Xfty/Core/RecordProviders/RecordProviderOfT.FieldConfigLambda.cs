@@ -21,32 +21,32 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 public sealed partial class RecordProvider<TRecord>
 {
     public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IValueExpression valueTemplate) =>
-        this.Forwarding(() => this.inner.Put(Field.Of(field), valueTemplate));
+        this.Forwarding(() => this._inner.Put(Field.Of(field), valueTemplate));
 
     public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IContextAwareExpression contextAwareExpression) =>
-        this.Forwarding(() => this.inner.Put(Field.Of(field), contextAwareExpression));
+        this.Forwarding(() => this._inner.Put(Field.Of(field), contextAwareExpression));
 
     public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IDeferredExpression deferredValue) =>
-        this.Forwarding(() => this.inner.Put(Field.Of(field), deferredValue));
+        this.Forwarding(() => this._inner.Put(Field.Of(field), deferredValue));
 
     public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, object? value) =>
-        this.Forwarding(() => this.inner.Put(Field.Of(field), value));
+        this.Forwarding(() => this._inner.Put(Field.Of(field), value));
 
     public RecordProvider<TRecord> PutRequired(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
-        this.Forwarding(() => this.inner.PutRequired(Field.Of(field), relationshipTemplate));
+        this.Forwarding(() => this._inner.PutRequired(Field.Of(field), relationshipTemplate));
 
     public RecordProvider<TRecord> PutOptional(Expression<Func<TRecord, object?>> field, IDefaultRelationship relationshipTemplate) =>
-        this.Forwarding(() => this.inner.PutOptional(Field.Of(field), relationshipTemplate));
+        this.Forwarding(() => this._inner.PutOptional(Field.Of(field), relationshipTemplate));
 
     public RecordProvider<TRecord> RemoveFromMasterTemplate(Expression<Func<TRecord, object?>> field) =>
-        this.Forwarding(() => this.inner.RemoveFromMasterTemplate(Field.Of(field)));
+        this.Forwarding(() => this._inner.RemoveFromMasterTemplate(Field.Of(field)));
 
     public RecordProvider<TRecord> IncludeOptional(Expression<Func<TRecord, object?>> field) =>
-        this.Forwarding(() => this.inner.IncludeOptional(Field.Of(field)));
+        this.Forwarding(() => this._inner.IncludeOptional(Field.Of(field)));
 
     public RecordProvider<TRecord> ExcludeRelationship(Expression<Func<TRecord, object?>> field) =>
-        this.Forwarding(() => this.inner.ExcludeRelationship(Field.Of(field)));
+        this.Forwarding(() => this._inner.ExcludeRelationship(Field.Of(field)));
 
     public RecordProvider<TRecord> ExcludeRelationshipIfPresent(Expression<Func<TRecord, object?>> field) =>
-        this.Forwarding(() => this.inner.ExcludeRelationshipIfPresent(Field.Of(field)));
+        this.Forwarding(() => this._inner.ExcludeRelationshipIfPresent(Field.Of(field)));
 }

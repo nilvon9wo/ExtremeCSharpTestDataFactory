@@ -11,8 +11,8 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// </summary>
 public sealed class AncestorCycleGuard
 {
-    private readonly bool cyclesAllowed;
-    private readonly HashSet<string> providerKeyHashesInProgress;
+    private readonly bool _cyclesAllowed;
+    private readonly HashSet<string> _providerKeyHashesInProgress;
 
     public AncestorCycleGuard(bool cyclesAllowed) : this(cyclesAllowed, [])
     {
@@ -20,15 +20,15 @@ public sealed class AncestorCycleGuard
 
     private AncestorCycleGuard(bool cyclesAllowed, HashSet<string> providerKeyHashesInProgress)
     {
-        this.cyclesAllowed = cyclesAllowed;
-        this.providerKeyHashesInProgress = providerKeyHashesInProgress;
+        this._cyclesAllowed = cyclesAllowed;
+        this._providerKeyHashesInProgress = providerKeyHashesInProgress;
     }
 
     /// <summary>True when descending into providerKeyHash would repeat a key already in progress.</summary>
     public bool WouldCycleOn(string providerKeyHash) =>
-        !this.cyclesAllowed && this.providerKeyHashesInProgress.Contains(providerKeyHash);
+        !this._cyclesAllowed && this._providerKeyHashesInProgress.Contains(providerKeyHash);
 
     /// <summary>A guard for one level deeper, with providerKeyHash added to the chain.</summary>
     public AncestorCycleGuard DescendingInto(string providerKeyHash) =>
-        new(this.cyclesAllowed, [.. this.providerKeyHashesInProgress, providerKeyHash]);
+        new(this._cyclesAllowed, [.. this._providerKeyHashesInProgress, providerKeyHash]);
 }

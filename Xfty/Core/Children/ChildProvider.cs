@@ -21,9 +21,9 @@ namespace Net.NowhereAtAll.Xfty.Core.Children;
 /// </summary>
 public sealed class ChildProvider
 {
-    private readonly object Template;
-    private readonly List<ChildProviderPendingPut> PendingPuts = [];
-    private readonly List<ChildProvider> GrandchildProviders = [];
+    private readonly object _template;
+    private readonly List<ChildProviderPendingPut> _pendingPuts = [];
+    private readonly List<ChildProvider> _grandchildProviders = [];
 
     private int _quantity = 1;
     private InsertMode? _insertModeOverride;
@@ -43,7 +43,7 @@ public sealed class ChildProvider
             throw new XftyConfigurationException($"Template is a {template.GetType()} but {relationshipField.Name} is on {this.ChildType}.");
         }
 
-        this.Template = template ?? BlankInstances.Of(this.ChildType);
+        this._template = template ?? BlankInstances.Of(this.ChildType);
     }
 
     /// <summary>ChildProvider(field), naming field by lambda instead of Field.Of&lt;TChild&gt;(...).</summary>
@@ -118,7 +118,7 @@ public sealed class ChildProvider
 
     private ChildProvider AddPendingPut(ChildProviderPendingPut pendingPut)
     {
-        this.PendingPuts.Add(pendingPut);
+        this._pendingPuts.Add(pendingPut);
         return this;
     }
 
@@ -146,7 +146,7 @@ public sealed class ChildProvider
     /// <summary>Nest a further child collection under these children - grandchildren, and so on.</summary>
     public ChildProvider With(ChildProvider? grandchildProvider)
     {
-        this.GrandchildProviders.Add(grandchildProvider ?? throw new XftyConfigurationException("With(...) needs a ChildProvider."));
+        this._grandchildProviders.Add(grandchildProvider ?? throw new XftyConfigurationException("With(...) needs a ChildProvider."));
         return this;
     }
 
@@ -168,7 +168,7 @@ public sealed class ChildProvider
 
     private object CloneWithBackReference(object? parentId)
     {
-        object childTemplate = RecordCloneFactory.DeepClone(this.Template);
+        object childTemplate = RecordCloneFactory.DeepClone(this._template);
         this.RelationshipField.SetValue(childTemplate, parentId);
         return childTemplate;
     }
@@ -179,8 +179,8 @@ public sealed class ChildProvider
         RecordProvider provider = this._variantKey is null
             ? new RecordProvider(this.ChildType, lookup)
             : new RecordProvider(this._variantKey, lookup);
-        this.PendingPuts.ForEach(pendingPut => pendingPut.ApplyTo(provider));
-        this.GrandchildProviders.ForEach(grandchild => provider.With(grandchild));
+        this._pendingPuts.ForEach(pendingPut => pendingPut.ApplyTo(provider));
+        this._grandchildProviders.ForEach(grandchild => provider.With(grandchild));
         return provider;
     }
 

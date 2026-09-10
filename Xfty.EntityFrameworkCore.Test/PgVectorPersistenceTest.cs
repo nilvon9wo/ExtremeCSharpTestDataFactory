@@ -19,60 +19,60 @@ namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 [Trait("Category", "Docker")]
 public sealed class PgVectorPersistenceTest : IAsyncLifetime
 {
-    private PostgreSqlContainer? container;
-    private PgVectorDbContext? dbContext;
-    private bool dockerAvailable = true;
+    private PostgreSqlContainer? _container;
+    private PgVectorDbContext? _dbContext;
+    private bool _dockerAvailable = true;
 
     public async ValueTask InitializeAsync()
     {
         try
         {
-            this.container = new PostgreSqlBuilder("pgvector/pgvector:pg16").Build();
-            await this.container.StartAsync().ConfigureAwait(false);
+            this._container = new PostgreSqlBuilder("pgvector/pgvector:pg16").Build();
+            await this._container.StartAsync().ConfigureAwait(false);
         }
         catch (Exception)
         {
             // Docker is not reachable from this machine right now - skip this tier rather than fail the build.
-            this.dockerAvailable = false;
+            this._dockerAvailable = false;
             return;
         }
 
         DbContextOptions<PgVectorDbContext> options = new DbContextOptionsBuilder<PgVectorDbContext>()
-            .UseNpgsql(this.container.GetConnectionString(), o => o.UseVector())
+            .UseNpgsql(this._container.GetConnectionString(), o => o.UseVector())
             .Options;
-        this.dbContext = new PgVectorDbContext(options);
-        _ = await this.dbContext.Database.EnsureCreatedAsync().ConfigureAwait(false);
+        this._dbContext = new PgVectorDbContext(options);
+        _ = await this._dbContext.Database.EnsureCreatedAsync().ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (this.dbContext is not null)
+        if (this._dbContext is not null)
         {
-            await this.dbContext.DisposeAsync().ConfigureAwait(false);
+            await this._dbContext.DisposeAsync().ConfigureAwait(false);
         }
 
-        if (this.container is not null)
+        if (this._container is not null)
         {
-            await this.container.DisposeAsync().ConfigureAwait(false);
+            await this._container.DisposeAsync().ConfigureAwait(false);
         }
     }
 
     [Fact]
     public async Task Supply_InNowMode_AgainstARealPgvectorColumn_ActuallyInsertsTheVector()
     {
-        Assert.SkipUnless(this.dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
+        Assert.SkipUnless(this._dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
 
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(DocumentEmbedding), new DocumentEmbeddingProviderLookup())
             .SetInsertMode(InsertMode.Now)
-            .SetPersistenceGateway(new EfPersistenceGateway(this.dbContext!));
+            .SetPersistenceGateway(new EfPersistenceGateway(this._dbContext!));
 
         // Act
         DocumentEmbedding result = (DocumentEmbedding)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.Id);
-        DocumentEmbedding reread = this.dbContext!.DocumentEmbeddings.AsNoTracking().First(x => x.Id == result.Id);
+        DocumentEmbedding reread = this._dbContext!.DocumentEmbeddings.AsNoTracking().First(x => x.Id == result.Id);
         Assert.NotNull(reread.Embedding);
         Assert.Equal(DocumentEmbedding.EmbeddingDimensions, reread.Embedding!.ToArray().Length);
     }

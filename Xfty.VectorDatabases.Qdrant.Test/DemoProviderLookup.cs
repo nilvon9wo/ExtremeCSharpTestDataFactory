@@ -11,11 +11,11 @@ public sealed class DemoProviderLookup : IProviderLookup
         [LookupKey.Get<DocumentChunk>()] = typeof(DocumentChunkProvider),
     };
 
-    private readonly Dictionary<ILookupKey, IRecordProvider> InstanceCache = [];
+    private readonly Dictionary<ILookupKey, IRecordProvider> _instanceCache = [];
 
     public IRecordProvider Get(Type recordType) => this.Get(LookupKey.Get(recordType));
 
-    public IRecordProvider Get(ILookupKey lookupKey) => ProviderLookups.Get(ProviderTypeByKey, this.InstanceCache, lookupKey);
+    public IRecordProvider Get(ILookupKey lookupKey) => ProviderLookups.Get(ProviderTypeByKey, this._instanceCache, lookupKey);
 
     public ISet<ILookupKey> KeysFor(object? record) => ProviderLookups.KeysFor(ProviderTypeByKey.Keys.ToHashSet(), record);
 }

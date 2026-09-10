@@ -21,17 +21,18 @@ public static class ProviderLookups
         ILookupKey key)
     {
         RequireKey(key);
-        if (!instanceCache.ContainsKey(key))
+        if (!instanceCache.TryGetValue(key, out IRecordProvider? cached))
         {
             if (!providerTypeByKey.TryGetValue(key, out Type? providerType))
             {
                 throw NotRegistered(key);
             }
 
-            instanceCache[key] = (IRecordProvider)Activator.CreateInstance(providerType)!;
+            cached = (IRecordProvider)Activator.CreateInstance(providerType)!;
+            instanceCache[key] = cached;
         }
 
-        return instanceCache[key];
+        return cached;
     }
 
     /// <summary>Look up an already-constructed Provider for key.</summary>

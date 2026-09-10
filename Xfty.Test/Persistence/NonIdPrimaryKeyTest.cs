@@ -189,9 +189,9 @@ file sealed record Entry
 
 file sealed class LedgerIdGenerator : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"LDG-{++this.count}";
+    public object NextId(MockIdContext context) => $"LDG-{++this._count}";
 }
 
 file abstract class NonIdProviderBase : IRecordProvider

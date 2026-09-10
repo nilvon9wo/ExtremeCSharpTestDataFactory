@@ -12,13 +12,13 @@ public sealed class UniqueStringOfLengthExpression(int length) : IValueExpressio
 
     private static readonly Dictionary<int, int> LengthToCounter = [];
 
-    private readonly int length = length;
+    private readonly int _length = length;
 
     public object Get()
     {
-        int counter = LengthToCounter.GetValueOrDefault(this.length);
-        LengthToCounter[this.length] = counter + 1;
-        return GenerateNextString(counter, this.length);
+        int counter = LengthToCounter.GetValueOrDefault(this._length);
+        LengthToCounter[this._length] = counter + 1;
+        return GenerateNextString(counter, this._length);
     }
 
     private static string GenerateNextString(int counter, int remainingLength) =>

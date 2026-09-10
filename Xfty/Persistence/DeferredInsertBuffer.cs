@@ -18,12 +18,12 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 /// </summary>
 public sealed class DeferredInsertBuffer
 {
-    private readonly List<DepthBatchedInserterParentLink> pendingLinks = [];
-    private readonly List<object> pendingRecords = [];
-    private readonly List<PendingDeferredValue> pendingDeferredValues = [];
-    private readonly HashSet<int> excludedIndices = [];
-    private readonly Dictionary<Type, PropertyInfo> idFieldByType = [];
-    private readonly Dictionary<Type, IMockIdGenerator> mockIdGeneratorByType = [];
+    private readonly List<DepthBatchedInserterParentLink> _pendingLinks = [];
+    private readonly List<object> _pendingRecords = [];
+    private readonly List<PendingDeferredValue> _pendingDeferredValues = [];
+    private readonly HashSet<int> _excludedIndices = [];
+    private readonly Dictionary<Type, PropertyInfo> _idFieldByType = [];
+    private readonly Dictionary<Type, IMockIdGenerator> _mockIdGeneratorByType = [];
 
     public static async Task InsertGraph(Bundle? bundle, IPersistenceGateway? gateway = null, bool excludePrimaryIds = false)
     {
@@ -50,31 +50,31 @@ public sealed class DeferredInsertBuffer
     /// </summary>
     public void Add(Bundle? bundle, bool excludePrimaryIds = false)
     {
-        int startIndex = this.pendingRecords.Count;
+        int startIndex = this._pendingRecords.Count;
         int primaryCount = bundle?.PrimaryRecords()?.Count ?? 0;
         _ = this.Collect(bundle);
         if (excludePrimaryIds)
         {
-            Enumerable.Range(startIndex, primaryCount).ToList().ForEach(index => this.excludedIndices.Add(index));
+            Enumerable.Range(startIndex, primaryCount).ToList().ForEach(index => this._excludedIndices.Add(index));
         }
     }
 
-    public int PendingCount() => this.pendingRecords.Count;
+    public int PendingCount() => this._pendingRecords.Count;
 
     /// <summary>Every record the graph holds, in collection order (not insert order).</summary>
-    public List<object> Records() => this.pendingRecords;
+    public List<object> Records() => this._pendingRecords;
 
     /// <summary>Each record's lookup to another record in Records(), by index.</summary>
-    public List<DepthBatchedInserterParentLink> ParentLinks() => this.pendingLinks;
+    public List<DepthBatchedInserterParentLink> ParentLinks() => this._pendingLinks;
 
     /// <summary>Each buffered record type's primary-key field, taken from the bundle it came from - so nothing here assumes the key is called "Id".</summary>
-    public IReadOnlyDictionary<Type, PropertyInfo> IdFieldByType() => this.idFieldByType;
+    public IReadOnlyDictionary<Type, PropertyInfo> IdFieldByType() => this._idFieldByType;
 
     public Task InsertAll(IPersistenceGateway? gateway = null)
     {
         this.ResolveUpFlowValues();
         return DepthBatchedInserter.InsertAll(
-            this.pendingRecords, this.pendingLinks, gateway, this.excludedIndices, this.idFieldByType, this.mockIdGeneratorByType);
+            this._pendingRecords, this._pendingLinks, gateway, this._excludedIndices, this._idFieldByType, this._mockIdGeneratorByType);
     }
 
     /// <summary>Depth-batched resolution of every buffered bundle honouring mode (Now/Mock/Never).</summary>
@@ -82,11 +82,11 @@ public sealed class DeferredInsertBuffer
     {
         this.ResolveUpFlowValues();
         return DepthBatchedInserter.ResolveAll(
-            this.pendingRecords, this.pendingLinks, mode, gateway, this.excludedIndices, this.idFieldByType, this.mockIdGeneratorByType);
+            this._pendingRecords, this._pendingLinks, mode, gateway, this._excludedIndices, this._idFieldByType, this._mockIdGeneratorByType);
     }
 
     private void ResolveUpFlowValues() =>
-        new DescendantValuePass(this.pendingRecords, this.pendingLinks, this.pendingDeferredValues).Complete();
+        new DescendantValuePass(this._pendingRecords, this._pendingLinks, this._pendingDeferredValues).Complete();
 
     private List<IndexedRecord> Collect(Bundle? bundle)
     {
@@ -112,17 +112,17 @@ public sealed class DeferredInsertBuffer
             return;
         }
 
-        this.idFieldByType[recordType] = idField;
+        this._idFieldByType[recordType] = idField;
         if (bundle.MockIdGenerator is { } generator)
         {
-            this.mockIdGeneratorByType[recordType] = generator;
+            this._mockIdGeneratorByType[recordType] = generator;
         }
     }
 
     /// <summary>An up-flow strategy on this bundle becomes a pending value keyed by the record's flat index.</summary>
     private void CaptureDeferredValues(Bundle bundle, List<IndexedRecord> primaries) =>
         bundle.DeferredValues().ForEach(deferred =>
-            this.pendingDeferredValues.Add(
+            this._pendingDeferredValues.Add(
                 new PendingDeferredValue(primaries[deferred.PrimaryRow].Index, deferred.Field, deferred.Strategy)));
 
     /// <summary>Downward children (With(...)/WithChildren(...)): each child row points at its primary row.</summary>
@@ -181,15 +181,15 @@ public sealed class DeferredInsertBuffer
             return;
         }
 
-        this.pendingLinks.Add(new DepthBatchedInserterParentLink(child.Index, parent.Index, field));
+        this._pendingLinks.Add(new DepthBatchedInserterParentLink(child.Index, parent.Index, field));
     }
 
     private List<IndexedRecord> Append(List<object> records) => [.. records.Select(this.AppendOne)];
 
     private IndexedRecord AppendOne(object record)
     {
-        int index = this.pendingRecords.Count;
-        this.pendingRecords.Add(record);
+        int index = this._pendingRecords.Count;
+        this._pendingRecords.Add(record);
         return new IndexedRecord(index, record);
     }
 

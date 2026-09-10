@@ -20,32 +20,32 @@ namespace Net.NowhereAtAll.Xfty.Core.Children;
 public sealed partial class ChildProvider<TChild>
 {
     public ChildProvider<TChild> Put(PropertyInfo field, IValueExpression valueExpression) =>
-        this.Forwarding(() => this.inner.Put(field, valueExpression));
+        this.Forwarding(() => this._inner.Put(field, valueExpression));
 
     public ChildProvider<TChild> Put(PropertyInfo field, IContextAwareExpression contextAwareExpression) =>
-        this.Forwarding(() => this.inner.Put(field, contextAwareExpression));
+        this.Forwarding(() => this._inner.Put(field, contextAwareExpression));
 
     public ChildProvider<TChild> Put(PropertyInfo field, object? value) =>
-        this.Forwarding(() => this.inner.Put(field, value));
+        this.Forwarding(() => this._inner.Put(field, value));
 
     public ChildProvider<TChild> PutRequired(PropertyInfo field, IDefaultRelationship relationship) =>
-        this.Forwarding(() => this.inner.PutRequired(field, relationship));
+        this.Forwarding(() => this._inner.PutRequired(field, relationship));
 
     public ChildProvider<TChild> PutOptional(PropertyInfo field, IDefaultRelationship relationship) =>
-        this.Forwarding(() => this.inner.PutOptional(field, relationship));
+        this.Forwarding(() => this._inner.PutOptional(field, relationship));
 
     public ChildProvider<TChild> Put(Expression<Func<TChild, object?>> field, IValueExpression valueExpression) =>
-        this.Forwarding(() => this.inner.Put(Field.Of(field), valueExpression));
+        this.Forwarding(() => this._inner.Put(Field.Of(field), valueExpression));
 
     public ChildProvider<TChild> Put(Expression<Func<TChild, object?>> field, IContextAwareExpression contextAwareExpression) =>
-        this.Forwarding(() => this.inner.Put(Field.Of(field), contextAwareExpression));
+        this.Forwarding(() => this._inner.Put(Field.Of(field), contextAwareExpression));
 
     public ChildProvider<TChild> Put(Expression<Func<TChild, object?>> field, object? value) =>
-        this.Forwarding(() => this.inner.Put(Field.Of(field), value));
+        this.Forwarding(() => this._inner.Put(Field.Of(field), value));
 
     public ChildProvider<TChild> PutRequired(Expression<Func<TChild, object?>> field, IDefaultRelationship relationship) =>
-        this.Forwarding(() => this.inner.PutRequired(Field.Of(field), relationship));
+        this.Forwarding(() => this._inner.PutRequired(Field.Of(field), relationship));
 
     public ChildProvider<TChild> PutOptional(Expression<Func<TChild, object?>> field, IDefaultRelationship relationship) =>
-        this.Forwarding(() => this.inner.PutOptional(Field.Of(field), relationship));
+        this.Forwarding(() => this._inner.PutOptional(Field.Of(field), relationship));
 }

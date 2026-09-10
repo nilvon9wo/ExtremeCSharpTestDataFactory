@@ -28,7 +28,7 @@ namespace Net.NowhereAtAll.Xfty.Values;
 public sealed class CopyFromDescendantExpression : IDeferredExpression
 {
     // path = [hop1, hop2, ..., hopK, sourceField] - K >= 1 child-lookup hops then the field to read.
-    private readonly List<PropertyInfo> path;
+    private readonly List<PropertyInfo> _path;
 
     public CopyFromDescendantExpression(PropertyInfo childLookupField, PropertyInfo sourceField)
         : this([childLookupField, sourceField])
@@ -53,7 +53,7 @@ public sealed class CopyFromDescendantExpression : IDeferredExpression
             throw new XftyConfigurationException("CopyFromDescendantExpression path steps cannot be null.");
         }
 
-        this.path = pathEndingInSourceField;
+        this._path = pathEndingInSourceField;
     }
 
     public object? Get(DeferredGraph graph, int recordIndex)
@@ -61,17 +61,17 @@ public sealed class CopyFromDescendantExpression : IDeferredExpression
         int? descendantIndex = this.WalkHops(graph, recordIndex, hopNumber: 0);
         return descendantIndex is null
             ? null
-            : this.path[^1].GetValue(graph.RecordAt(descendantIndex.Value));
+            : this._path[^1].GetValue(graph.RecordAt(descendantIndex.Value));
     }
 
     private int? WalkHops(DeferredGraph graph, int currentIndex, int hopNumber)
     {
-        if (hopNumber == this.path.Count - 1)
+        if (hopNumber == this._path.Count - 1)
         {
             return currentIndex;
         }
 
-        List<int> childIndices = graph.ChildIndicesOf(currentIndex, this.path[hopNumber]);
+        List<int> childIndices = graph.ChildIndicesOf(currentIndex, this._path[hopNumber]);
         return childIndices.Count == 0
             ? null
             : this.WalkHops(graph, childIndices[0], hopNumber + 1);

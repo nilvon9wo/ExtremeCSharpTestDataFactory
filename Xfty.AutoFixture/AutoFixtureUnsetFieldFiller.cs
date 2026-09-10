@@ -32,12 +32,12 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture;
 /// </summary>
 public sealed class AutoFixtureUnsetFieldFiller(IFixture fixture) : IUnsetFieldFiller
 {
-    private readonly HashSet<PropertyInfo> excludedFields = [];
+    private readonly HashSet<PropertyInfo> _excludedFields = [];
 
     /// <summary>Opt field out of this filler entirely - it stays exactly as XFTY left it. Chainable.</summary>
     public AutoFixtureUnsetFieldFiller Excluding(PropertyInfo field)
     {
-        _ = this.excludedFields.Add(field);
+        _ = this._excludedFields.Add(field);
         return this;
     }
 
@@ -46,14 +46,14 @@ public sealed class AutoFixtureUnsetFieldFiller(IFixture fixture) : IUnsetFieldF
         SpecimenContext context = new(fixture);
         foreach (PropertyInfo field in unsetFields)
         {
-            if (!this.excludedFields.Contains(field))
+            if (!this._excludedFields.Contains(field))
             {
-                this.FillOne(record, field, context);
+                FillOne(record, field, context);
             }
         }
     }
 
-    private void FillOne(object record, PropertyInfo field, SpecimenContext context)
+    private static void FillOne(object record, PropertyInfo field, SpecimenContext context)
     {
         try
         {

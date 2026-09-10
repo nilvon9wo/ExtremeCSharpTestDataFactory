@@ -18,7 +18,7 @@ public sealed class AccountDataProvider : IRecordProvider
     public const string DefaultShippingCountry = "Germany";
     public const string DefaultShippingStreet = "Test Shipping Street Industry";
 
-    private MasterTemplate _template { get; } = new MasterTemplate<Account>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id)
     {
         [x => x.Name] = new IncrementingStringExpression(DefaultNamePrefix),
         [x => x.Industry] = new LiteralExpression(DefaultIndustry),
@@ -30,8 +30,6 @@ public sealed class AccountDataProvider : IRecordProvider
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

@@ -495,7 +495,7 @@ file sealed class NamedIndustryAccountProvider : TemplateProvider
 
 file sealed class PrefixedIdGenerator(string prefix) : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"{prefix}-{++this.count}";
+    public object NextId(MockIdContext context) => $"{prefix}-{++this._count}";
 }

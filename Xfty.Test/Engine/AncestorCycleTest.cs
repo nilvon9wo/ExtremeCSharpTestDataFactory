@@ -79,14 +79,12 @@ public class AncestorCycleTest
 
 file sealed class SelfReferringContactProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
         .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Mgr"))
         .PutOptional<Contact>(x => x.ReportsToId, new DefaultRelationship(new Contact()));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Contact>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

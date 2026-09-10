@@ -7,11 +7,11 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 public sealed partial class RecordProvider<TRecord>
 {
     public RecordProvider<TRecord> With(ChildProvider childProvider) =>
-        this.Forwarding(() => this.inner.With(childProvider));
+        this.Forwarding(() => this._inner.With(childProvider));
 
     public RecordProvider<TRecord> WithChildren(PropertyInfo childRelationshipField, int countPerParent) =>
-        this.Forwarding(() => this.inner.WithChildren(childRelationshipField, countPerParent));
+        this.Forwarding(() => this._inner.WithChildren(childRelationshipField, countPerParent));
 
     public RecordProvider<TRecord> WithChild(PropertyInfo childRelationshipField) =>
-        this.Forwarding(() => this.inner.WithChild(childRelationshipField));
+        this.Forwarding(() => this._inner.WithChild(childRelationshipField));
 }

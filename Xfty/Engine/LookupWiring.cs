@@ -8,9 +8,9 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// <summary>Points each primary record's lookup at the matching generated ancestor.</summary>
 public sealed class LookupWiring(Bundle bundle, GenerationContext context, MasterTemplate template)
 {
-    private readonly Bundle bundle = bundle;
-    private readonly GenerationContext context = context;
-    private readonly Dictionary<PropertyInfo, IDefaultRelationship> relationships = MergeRelationships(template);
+    private readonly Bundle _bundle = bundle;
+    private readonly GenerationContext _context = context;
+    private readonly Dictionary<PropertyInfo, IDefaultRelationship> _relationships = MergeRelationships(template);
 
     /// <summary>
     /// Wires whatever ancestors are actually present in the bundle. There is no
@@ -22,7 +22,7 @@ public sealed class LookupWiring(Bundle bundle, GenerationContext context, Maste
     /// </summary>
     public void Wire()
     {
-        List<object> records = this.bundle.PrimaryRecords()!;
+        List<object> records = this._bundle.PrimaryRecords()!;
         records
             .Select((record, row) => (record, row))
             .ToList()
@@ -30,7 +30,7 @@ public sealed class LookupWiring(Bundle bundle, GenerationContext context, Maste
     }
 
     private void WireRecord(object record, int row) =>
-        this.relationships.Keys.ToList().ForEach(field => this.WireField(record, row, field));
+        this._relationships.Keys.ToList().ForEach(field => this.WireField(record, row, field));
 
     private void WireField(object record, int row, PropertyInfo field)
     {
@@ -48,14 +48,14 @@ public sealed class LookupWiring(Bundle bundle, GenerationContext context, Maste
 
     private void PointToParent(object record, PropertyInfo field, object parent)
     {
-        IDefaultRelationship relationship = this.relationships[field];
-        PropertyInfo? parentSourceField = relationship.RelatedField ?? this.bundle.GetBundle(field)?.PrimaryTargetField;
+        IDefaultRelationship relationship = this._relationships[field];
+        PropertyInfo? parentSourceField = relationship.RelatedField ?? this._bundle.GetBundle(field)?.PrimaryTargetField;
         field.SetValue(record, parentSourceField?.GetValue(parent));
     }
 
     private object? ParentAt(PropertyInfo field, int row)
     {
-        List<object>? parents = this.bundle.GetList(field);
+        List<object>? parents = this._bundle.GetList(field);
         bool noParentForRow = parents is null || row >= parents.Count;
         return noParentForRow
             ? null

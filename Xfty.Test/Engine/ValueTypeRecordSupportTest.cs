@@ -215,7 +215,7 @@ public class ValueTypeRecordSupportTest
         });
 }
 
-file record struct GeoPoint
+file readonly record struct GeoPoint
 {
     public string? Id { get; init; }
 

@@ -9,8 +9,8 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 /// </summary>
 public sealed class DefaultRelationship(ILookupKey? lookupKey, object? overrideTemplate, PropertyInfo? relatedField) : IDefaultRelationship
 {
-    private readonly ILookupKey? explicitLookupKey = lookupKey;
-    private ILookupKey? resolvedLookupKey;
+    private readonly ILookupKey? _explicitLookupKey = lookupKey;
+    private ILookupKey? _resolvedLookupKey;
 
     public DefaultRelationship(object? overrideTemplate) : this(null, overrideTemplate, null)
     {
@@ -30,7 +30,7 @@ public sealed class DefaultRelationship(ILookupKey? lookupKey, object? overrideT
 
     public ILookupKey? ResolveLookupKey(IProviderLookup providerLookup)
     {
-        this.resolvedLookupKey ??= ProviderLookups.Reconcile(providerLookup, this.explicitLookupKey, this.OverrideTemplate);
-        return this.resolvedLookupKey;
+        this._resolvedLookupKey ??= ProviderLookups.Reconcile(providerLookup, this._explicitLookupKey, this.OverrideTemplate);
+        return this._resolvedLookupKey;
     }
 }

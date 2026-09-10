@@ -226,17 +226,17 @@ file sealed record StringParent
 
 file sealed class PrefixIdGenerator(string prefix) : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"{prefix}-{++this.count}";
+    public object NextId(MockIdContext context) => $"{prefix}-{++this._count}";
 }
 
 /// <summary>The shape from the discussion: a letter, a running number, a stamp - built without touching the record's own fields.</summary>
 file sealed class AccountStyleIdGenerator : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"ACC-{++this.count}-{context.RecordType.Name}";
+    public object NextId(MockIdContext context) => $"ACC-{++this._count}-{context.RecordType.Name}";
 }
 
 file abstract class MockIdProviderBase : IRecordProvider

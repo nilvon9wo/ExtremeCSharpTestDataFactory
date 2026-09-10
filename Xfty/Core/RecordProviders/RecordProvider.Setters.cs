@@ -8,7 +8,7 @@ public sealed partial class RecordProvider
 {
     public RecordProvider SetQuantityPerTemplate(int quantityPerListedTemplate)
     {
-        this.quantityPerListedTemplate = AssertPositive(quantityPerListedTemplate);
+        this._quantityPerListedTemplate = AssertPositive(quantityPerListedTemplate);
         return this;
     }
 
@@ -19,7 +19,7 @@ public sealed partial class RecordProvider
     public RecordProvider SetOverrideTemplateList(List<object> overrideTemplateList)
     {
         this.AssertNoRecordTypeConflict(overrideTemplateList);
-        this.overrideTemplateList = overrideTemplateList;
+        this._overrideTemplateList = overrideTemplateList;
         return this;
     }
 
@@ -30,14 +30,14 @@ public sealed partial class RecordProvider
     public RecordProvider WithVariant(ILookupKey variantKey)
     {
         this.AssertTemplateNotYetCustomized();
-        AssertVariantKeyMatchesType(variantKey, this.recordType);
-        this.explicitVariantKey = variantKey;
+        AssertVariantKeyMatchesType(variantKey, this._recordType);
+        this._explicitVariantKey = variantKey;
         return this;
     }
 
     private void AssertTemplateNotYetCustomized()
     {
-        if (this.templateConfig.HasCustomTemplate)
+        if (this._templateConfig.HasCustomTemplate)
         {
             throw new XftyConfigurationException("Call WithVariant(...) before customizing the template with Put(...).");
         }
@@ -54,7 +54,7 @@ public sealed partial class RecordProvider
 
     public RecordProvider SetInsertMode(InsertMode insertMode)
     {
-        this.insertMode = insertMode;
+        this._insertMode = insertMode;
         return this;
     }
 
@@ -67,20 +67,20 @@ public sealed partial class RecordProvider
     /// </summary>
     public RecordProvider SetMockIdGenerator(IMockIdGenerator mockIdGenerator)
     {
-        this.templateConfig.SetMockIdGenerator(mockIdGenerator);
+        this._templateConfig.SetMockIdGenerator(mockIdGenerator);
         return this;
     }
 
     public RecordProvider SetInclusivity(InsertInclusivity inclusivity)
     {
-        this.inclusivity = inclusivity;
+        this._inclusivity = inclusivity;
         return this;
     }
 
     /// <summary>The real backing store InsertMode.Now saves through. Without one, Now throws.</summary>
     public RecordProvider SetPersistenceGateway(IPersistenceGateway gateway)
     {
-        this.persistenceGateway = gateway;
+        this._persistenceGateway = gateway;
         return this;
     }
 
@@ -93,14 +93,14 @@ public sealed partial class RecordProvider
     /// </summary>
     public RecordProvider SetUnsetFieldFiller(IUnsetFieldFiller filler)
     {
-        this.unsetFieldFiller = filler;
+        this._unsetFieldFiller = filler;
         return this;
     }
 
     /// <summary>Suppress the ancestor-cycle guard for this call. Use only when the chain genuinely terminates on its own.</summary>
     public RecordProvider AllowAncestorCycles()
     {
-        this.ancestorCyclesAllowed = true;
+        this._ancestorCyclesAllowed = true;
         return this;
     }
 
@@ -115,14 +115,14 @@ public sealed partial class RecordProvider
     /// </summary>
     public RecordProvider ExcludePrimaryIds()
     {
-        this.excludePrimaryIds = true;
+        this._excludePrimaryIds = true;
         return this;
     }
 
     /// <summary>Undoes ExcludePrimaryIds() - back to the default of persisting the primary like everything else.</summary>
     public RecordProvider IncludePrimaryIds()
     {
-        this.excludePrimaryIds = false;
+        this._excludePrimaryIds = false;
         return this;
     }
 
@@ -133,14 +133,14 @@ public sealed partial class RecordProvider
     /// </summary>
     public RecordProvider DepthBatched()
     {
-        this.depthBatched = true;
+        this._depthBatched = true;
         return this;
     }
 
     /// <summary>Internal: a child of a DEFERRED/depth-batched parent must build its own children structurally too.</summary>
     public RecordProvider ForceStructuralChildGeneration()
     {
-        this.forceStructuralChildGeneration = true;
+        this._forceStructuralChildGeneration = true;
         return this;
     }
 }

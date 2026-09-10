@@ -90,12 +90,10 @@ public class ExChildRecordsTest
 
 file sealed class BlankCaseProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate<Case>(x => x.Id);
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Case>(x => x.Id);
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

@@ -8,7 +8,7 @@ namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 public sealed partial class MasterTemplate
 {
     /// <summary>Every value field (plain + context-aware) in the order it was Put.</summary>
-    public List<PropertyInfo> OrderedValueFields() => [.. this.valueFieldOrder];
+    public List<PropertyInfo> OrderedValueFields() => [.. this._valueFieldOrder];
 
     /// <summary>
     /// An independent copy of this template. The field maps (and the field-
@@ -22,8 +22,8 @@ public sealed partial class MasterTemplate
         MasterTemplate theCopy = this.CopyOwnMaps();
         CopyInto(theCopy.ContextAwareByField, this.ContextAwareByField);
         CopyInto(theCopy.DeferredExpressionByField, this.DeferredExpressionByField);
-        theCopy.valueFieldOrder.Clear();
-        theCopy.valueFieldOrder.AddRange(this.valueFieldOrder);
+        theCopy._valueFieldOrder.Clear();
+        theCopy._valueFieldOrder.AddRange(this._valueFieldOrder);
         if (this.MockIdGenerator is not null)
         {
             _ = theCopy.WithMockIdGenerator(this.MockIdGenerator);
@@ -49,7 +49,7 @@ public sealed partial class MasterTemplate
         _ = this.DeferredExpressionByField.Remove(field);
         _ = this.RequiredRelationshipByField.Remove(field);
         _ = this.OptionalRelationshipByField.Remove(field);
-        _ = this.valueFieldOrder.RemoveAll(each => each == field);
+        _ = this._valueFieldOrder.RemoveAll(each => each == field);
         return this;
     }
 
@@ -57,7 +57,7 @@ public sealed partial class MasterTemplate
     {
         if (!this.IsAlreadyTracked(field))
         {
-            this.valueFieldOrder.Add(field);
+            this._valueFieldOrder.Add(field);
         }
     }
 

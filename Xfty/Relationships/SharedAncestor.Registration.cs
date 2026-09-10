@@ -32,9 +32,9 @@ public sealed partial class SharedAncestor
     public static SharedAncestorProvider PutAsValue(string name, object record)
     {
         SharedAncestor ancestor = Get(name);
-        ancestor.resolvedRecord = record;
-        ancestor.resolvedBundle = null;
-        ancestor._resolvedRecordIsPersisted = IdOf(record) is not null;
+        ancestor._resolvedRecord = record;
+        ancestor._resolvedBundle = null;
+        ancestor.IsResolvedRecordPersisted = IdOf(record) is not null;
         return ancestor.Provider();
     }
 
@@ -55,5 +55,5 @@ public sealed partial class SharedAncestor
         return ancestor.IsUnregistered() ? Put(name, variantKey) : ancestor.Provider();
     }
 
-    private SharedAncestorProvider Provider() => this.source ??= new SharedAncestorProvider(this);
+    private SharedAncestorProvider Provider() => this._source ??= new SharedAncestorProvider(this);
 }

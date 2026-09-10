@@ -10,7 +10,7 @@ public sealed partial class RecordProvider
     public async Task<Bundle> SupplyBundle()
     {
         this.WarnIfMixingCustomTemplateWithOverrides();
-        await SharedAncestorResolver.ResolveAllConfigured(this.providerLookup, this.insertMode).ConfigureAwait(false);
+        await SharedAncestorResolver.ResolveAllConfigured(this._providerLookup, this._insertMode).ConfigureAwait(false);
         GenerationContext context = this.BuildContext();
         List<object> templates = this.TemplatesToFill();
         Bundle bundle = await this.Generate(context, templates).ConfigureAwait(false);
@@ -24,7 +24,7 @@ public sealed partial class RecordProvider
         // Children join the same deferred graph when batched - generated structurally now, FK wired when the
         // buffer flushes. A structural child of a deferred parent also stays structural, but persists nothing here.
         // Otherwise (Now/Mock), primaries already have Ids after Generate(); wire the back-reference concretely.
-        await this.childConfig.GenerateAll(bundle, batched || this.forceStructuralChildGeneration, this.ExecutionState()).ConfigureAwait(false);
+        await this._childConfig.GenerateAll(bundle, batched || this._forceStructuralChildGeneration, this.ExecutionState()).ConfigureAwait(false);
         if (batched)
         {
             await this.Persist(bundle).ConfigureAwait(false);
@@ -32,7 +32,7 @@ public sealed partial class RecordProvider
     }
 
     private RecordProviderExecutionState ExecutionState() =>
-        new(this.providerLookup, this.ResolveFactoryOutlet(), this.insertMode, this.inclusivity, this.persistenceGateway);
+        new(this._providerLookup, this.ResolveFactoryOutlet(), this._insertMode, this._inclusivity, this._persistenceGateway);
 
     public async Task<List<object>> SupplyList() =>
         (await this.SupplyBundle().ConfigureAwait(false)).GetList(this.ResolveFactoryOutlet().PrimaryTargetField)!;
@@ -40,20 +40,20 @@ public sealed partial class RecordProvider
     public async Task<object> Supply() => (await this.SupplyList().ConfigureAwait(false))[0];
 
     private Task<Bundle> Generate(GenerationContext context, List<object> templates) =>
-        this.templateConfig.HasCustomTemplate
-            ? RecordFactory.CreateBundle(context, this.templateConfig.ResolveTemplate(), templates)
+        this._templateConfig.HasCustomTemplate
+            ? RecordFactory.CreateBundle(context, this._templateConfig.ResolveTemplate(), templates)
             : this.ResolveFactoryOutlet().CreateBundle(context, templates);
 
     private Task Persist(Bundle bundle)
     {
         if (this.FlushesGraphWhenThisCallEnds())
         {
-            return DeferredInsertBuffer.InsertGraph(bundle, this.persistenceGateway, this.excludePrimaryIds);
+            return DeferredInsertBuffer.InsertGraph(bundle, this._persistenceGateway, this._excludePrimaryIds);
         }
 
         if (this.DeferredToRegistry())
         {
-            DeferredInserter.Register(bundle, this.excludePrimaryIds);
+            DeferredInserter.Register(bundle, this._excludePrimaryIds);
         }
 
         return Task.CompletedTask;

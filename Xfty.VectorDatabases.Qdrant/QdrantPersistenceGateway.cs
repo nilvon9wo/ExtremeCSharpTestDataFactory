@@ -35,7 +35,7 @@ public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistence
     private static async Task InsertRemainingGroups(QdrantPersistenceGateway gateway, List<IGrouping<Type, object>> groups, PropertyInfo idField)
     {
         await gateway.InsertGroup([.. groups[0]], idField).ConfigureAwait(false);
-        await InsertGroups(gateway, groups.Skip(1).ToList(), idField).ConfigureAwait(false);
+        await InsertGroups(gateway, [.. groups.Skip(1)], idField).ConfigureAwait(false);
     }
 
     private async Task InsertGroup(List<object> records, PropertyInfo idField)

@@ -20,25 +20,25 @@ public sealed partial class RecordProvider
 
     private RecordProvider PutValue(PropertyInfo field, object? value)
     {
-        this.templateConfig.Put(field, value);
+        this._templateConfig.Put(field, value);
         return this;
     }
 
     public RecordProvider PutRequired(PropertyInfo field, IDefaultRelationship relationshipTemplate)
     {
-        this.templateConfig.PutRequired(field, relationshipTemplate);
+        this._templateConfig.PutRequired(field, relationshipTemplate);
         return this;
     }
 
     public RecordProvider PutOptional(PropertyInfo field, IDefaultRelationship relationshipTemplate)
     {
-        this.templateConfig.PutOptional(field, relationshipTemplate);
+        this._templateConfig.PutOptional(field, relationshipTemplate);
         return this;
     }
 
     public RecordProvider RemoveFromMasterTemplate(PropertyInfo field)
     {
-        this.templateConfig.RemoveFromMasterTemplate(field);
+        this._templateConfig.RemoveFromMasterTemplate(field);
         return this;
     }
 
@@ -50,21 +50,21 @@ public sealed partial class RecordProvider
     /// <summary>Reach down the graph: force every relationship along the path for this call.</summary>
     public RecordProvider IncludeOptional(List<PropertyInfo> relationshipPath)
     {
-        this.templateConfig.IncludeOptional(relationshipPath);
+        this._templateConfig.IncludeOptional(relationshipPath);
         return this;
     }
 
     /// <summary>Do not generate one specific relationship on this call - required or optional.</summary>
     public RecordProvider ExcludeRelationship(PropertyInfo field)
     {
-        this.templateConfig.ExcludeRelationship(field, this.recordType);
+        this._templateConfig.ExcludeRelationship(field, this._recordType);
         return this;
     }
 
     /// <summary>Like ExcludeRelationship, but a no-op when the field is not a relationship on this Provider.</summary>
     public RecordProvider ExcludeRelationshipIfPresent(PropertyInfo field)
     {
-        this.templateConfig.ExcludeRelationshipIfPresent(field);
+        this._templateConfig.ExcludeRelationshipIfPresent(field);
         return this;
     }
 
@@ -87,7 +87,7 @@ public sealed partial class RecordProvider
 
     private RecordProvider PutPathValue(PathValue pathValue)
     {
-        this.templateConfig.AddPathValue(pathValue);
+        this._templateConfig.AddPathValue(pathValue);
         return this;
     }
 }

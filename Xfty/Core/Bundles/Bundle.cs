@@ -12,10 +12,10 @@ namespace Net.NowhereAtAll.Xfty.Core.Bundles;
 /// </summary>
 public sealed class Bundle
 {
-    private readonly Dictionary<PropertyInfo, Bundle> BundleByField = [];
-    private readonly Dictionary<PropertyInfo, List<object>> RecordListByField = [];
-    private readonly Dictionary<PropertyInfo, List<BundleChildEntry>> ChildEntriesByRelationshipField = [];
-    private readonly DeferredValueQueue DeferredValueQueue = new();
+    private readonly Dictionary<PropertyInfo, Bundle> _bundleByField = [];
+    private readonly Dictionary<PropertyInfo, List<object>> _recordListByField = [];
+    private readonly Dictionary<PropertyInfo, List<BundleChildEntry>> _childEntriesByRelationshipField = [];
+    private readonly DeferredValueQueue _deferredValueQueue = new();
 
     /// <summary>The field this bundle's primary records are keyed under. Null on a bundle built by hand.</summary>
     public PropertyInfo? PrimaryTargetField { get; private set; }
@@ -25,7 +25,7 @@ public sealed class Bundle
 
     public Bundle Put(PropertyInfo field, List<object> records)
     {
-        this.RecordListByField[field] = records;
+        this._recordListByField[field] = records;
         return this;
     }
 
@@ -35,7 +35,7 @@ public sealed class Bundle
 
     public Bundle Put(PropertyInfo field, Bundle bundle)
     {
-        this.BundleByField[field] = bundle;
+        this._bundleByField[field] = bundle;
         return this;
     }
 
@@ -44,10 +44,10 @@ public sealed class Bundle
         this.Put(Field.Of(field), bundle);
 
     public Bundle? GetBundle(PropertyInfo field) =>
-        this.BundleByField.GetValueOrDefault(field);
+        this._bundleByField.GetValueOrDefault(field);
 
     public List<object>? GetList(PropertyInfo field) =>
-        this.RecordListByField.GetValueOrDefault(field);
+        this._recordListByField.GetValueOrDefault(field);
 
     /// <summary>GetList(field), naming field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
     public List<object>? GetList<TRecord>(Expression<Func<TRecord, object?>> field) =>
@@ -81,7 +81,7 @@ public sealed class Bundle
 
     /// <summary>The relationship fields that carry a generated sub-bundle (the parents).</summary>
     public ISet<PropertyInfo> RelationshipFields() =>
-        this.BundleByField.Keys.ToHashSet();
+        this._bundleByField.Keys.ToHashSet();
 
     /// <summary>
     /// The primary records generated pointing at getList(relationshipField) row
@@ -103,17 +103,17 @@ public sealed class Bundle
 
     /// <summary>Record that each primary row's byField entries are still to be resolved up from descendants.</summary>
     public void DeferValues(Dictionary<PropertyInfo, IDeferredExpression> byField) =>
-        this.DeferredValueQueue.AddForEachRow(this.PrimaryRecords()!.Count, byField);
+        this._deferredValueQueue.AddForEachRow(this.PrimaryRecords()!.Count, byField);
 
     public List<BundleDeferredEntry> DeferredValues() =>
-        this.DeferredValueQueue.Entries();
+        this._deferredValueQueue.Entries();
 
     public Bundle PutChild(PropertyInfo childRelationshipField, Bundle childBundle, List<int> parentRowByChildRow)
     {
-        if (!this.ChildEntriesByRelationshipField.TryGetValue(childRelationshipField, out List<BundleChildEntry>? entries))
+        if (!this._childEntriesByRelationshipField.TryGetValue(childRelationshipField, out List<BundleChildEntry>? entries))
         {
             entries = [];
-            this.ChildEntriesByRelationshipField[childRelationshipField] = entries;
+            this._childEntriesByRelationshipField[childRelationshipField] = entries;
         }
 
         entries.Add(new BundleChildEntry(childBundle, parentRowByChildRow));
@@ -122,11 +122,11 @@ public sealed class Bundle
 
     /// <summary>Every child relationship field this bundle carries children for.</summary>
     public ISet<PropertyInfo> ChildRelationshipFields() =>
-        this.ChildEntriesByRelationshipField.Keys.ToHashSet();
+        this._childEntriesByRelationshipField.Keys.ToHashSet();
 
     /// <summary>The configured child collections for a relationship field, in declaration order (empty if none).</summary>
     public List<BundleChildEntry> ChildEntries(PropertyInfo childRelationshipField) =>
-        this.ChildEntriesByRelationshipField.GetValueOrDefault(childRelationshipField) ?? [];
+        this._childEntriesByRelationshipField.GetValueOrDefault(childRelationshipField) ?? [];
 
     /// <summary>The sub-bundles for a child relationship field, in config declaration order (empty list if none).</summary>
     public List<Bundle> ChildBundles(PropertyInfo childRelationshipField) =>

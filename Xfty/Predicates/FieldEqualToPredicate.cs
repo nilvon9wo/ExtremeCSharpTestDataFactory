@@ -13,13 +13,13 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 /// </summary>
 public sealed class FieldEqualToPredicate : IRecordPredicate
 {
-    private readonly PropertyInfo field;
-    private readonly object? comparisonValue;
+    private readonly PropertyInfo _field;
+    private readonly object? _comparisonValue;
 
     private FieldEqualToPredicate(PropertyInfo field, object? comparisonValue)
     {
-        this.field = field;
-        this.comparisonValue = comparisonValue;
+        this._field = field;
+        this._comparisonValue = comparisonValue;
     }
 
     public static FieldEqualToPredicate Of(PropertyInfo field, object? comparisonValue) =>
@@ -29,7 +29,7 @@ public sealed class FieldEqualToPredicate : IRecordPredicate
     {
         object? actual = record is null
             ? null
-            : this.field.GetValue(record);
-        return Equals(actual, this.comparisonValue);
+            : this._field.GetValue(record);
+        return Equals(actual, this._comparisonValue);
     }
 }

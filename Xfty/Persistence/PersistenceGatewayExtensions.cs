@@ -41,7 +41,7 @@ public static class PersistenceGatewayExtensions
     {
         IGrouping<Type, object> group = groups[0];
         await gateway.Insert([.. group], IdFieldOf(group.Key, idFieldByType)).ConfigureAwait(false);
-        await InsertGroups(gateway, groups.Skip(1).ToList(), idFieldByType).ConfigureAwait(false);
+        await InsertGroups(gateway, [.. groups.Skip(1)], idFieldByType).ConfigureAwait(false);
     }
 
     private static PropertyInfo IdFieldOf(Type recordType, IReadOnlyDictionary<Type, PropertyInfo> idFieldByType) =>

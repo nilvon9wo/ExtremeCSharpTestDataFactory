@@ -276,7 +276,7 @@ file sealed record Crate
     public int DepotCode { get; init; }
 }
 
-file record struct Parcel
+file readonly record struct Parcel
 {
     public string? Id { get; init; }
 

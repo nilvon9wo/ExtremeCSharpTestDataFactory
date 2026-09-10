@@ -518,26 +518,24 @@ file sealed class LeafUserProvider : IRecordProvider
 {
     public static readonly LeafUserProvider Instance = new();
 
-    private MasterTemplate _template { get; } = new MasterTemplate<User>(x => x.Id)
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate<User>(x => x.Id)
         .Put(x => x.LastName, new IncrementingStringExpression("User"));
 
-    public PropertyInfo PrimaryTargetField => this._template.PrimaryTargetField;
-
-    public MasterTemplate MasterTemplate => this._template;
+    public PropertyInfo PrimaryTargetField => this.MasterTemplate.PrimaryTargetField;
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 /// <summary>A Provider with one required lookup to a named shared ancestor, plus an optional label field its generation needs.</summary>
 file sealed class ChildOfSharedProvider : IRecordProvider
 {
-    private MasterTemplate _template { get; }
+    public MasterTemplate MasterTemplate { get; }
 
     private ChildOfSharedProvider(PropertyInfo primaryField, MasterTemplate template)
     {
         this.PrimaryTargetField = primaryField;
-        this._template = template;
+        this.MasterTemplate = template;
     }
 
     public static ChildOfSharedProvider Of<TRecord>(string primaryFieldName, string lookupFieldName, string? labelFieldName, string sharedName)
@@ -555,8 +553,6 @@ file sealed class ChildOfSharedProvider : IRecordProvider
 
     public PropertyInfo PrimaryTargetField { get; }
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

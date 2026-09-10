@@ -215,42 +215,42 @@ file sealed record L9Tenant   // Guid key (built-in)
 
 file sealed class PrefixSequenceIdGenerator(string prefix) : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"{prefix}{++this.count}";
+    public object NextId(MockIdContext context) => $"{prefix}{++this._count}";
 }
 
 file sealed class ShipmentKeyGenerator : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"SHIP|{1_700_000_000 + this.count}|{++this.count}";
+    public object NextId(MockIdContext context) => $"SHIP|{1_700_000_000 + this._count}|{++this._count}";
 }
 
 /// <summary>Reads the record's own Region field to build the id - the "any weird requirement" case.</summary>
 file sealed class DepotIdGenerator : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
     public object NextId(MockIdContext context)
     {
         string region = (string?)context.RecordType.GetProperty("Region")!.GetValue(context.Record) ?? "XX";
-        return $"DEPOT-{region}-{++this.count}";
+        return $"DEPOT-{region}-{++this._count}";
     }
 }
 
 file sealed class DatestampedIdGenerator(string prefix) : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"{prefix}-{new DateTime(2024, 3, 9):yyyyMMdd}-{++this.count}";
+    public object NextId(MockIdContext context) => $"{prefix}-{new DateTime(2024, 3, 9):yyyyMMdd}-{++this._count}";
 }
 
 file sealed class ZeroPaddedSlugGenerator : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"rgn_{++this.count:D6}";
+    public object NextId(MockIdContext context) => $"rgn_{++this._count:D6}";
 }
 
 file abstract class DeepChainProviderBase : IRecordProvider

@@ -6,17 +6,17 @@ namespace Net.NowhereAtAll.Xfty.Core.Children;
 public sealed partial class ChildProvider<TChild>
 {
     public ChildProvider<TChild> SetQuantity(int quantity) =>
-        this.Forwarding(() => this.inner.SetQuantity(quantity));
+        this.Forwarding(() => this._inner.SetQuantity(quantity));
 
     public ChildProvider<TChild> SetInsertMode(InsertMode insertMode) =>
-        this.Forwarding(() => this.inner.SetInsertMode(insertMode));
+        this.Forwarding(() => this._inner.SetInsertMode(insertMode));
 
     public ChildProvider<TChild> SetInclusivity(InsertInclusivity inclusivity) =>
-        this.Forwarding(() => this.inner.SetInclusivity(inclusivity));
+        this.Forwarding(() => this._inner.SetInclusivity(inclusivity));
 
     public ChildProvider<TChild> WithVariant(ILookupKey variantKey) =>
-        this.Forwarding(() => this.inner.WithVariant(variantKey));
+        this.Forwarding(() => this._inner.WithVariant(variantKey));
 
     public ChildProvider<TChild> With(ChildProvider? grandchildProvider) =>
-        this.Forwarding(() => this.inner.With(grandchildProvider));
+        this.Forwarding(() => this._inner.With(grandchildProvider));
 }

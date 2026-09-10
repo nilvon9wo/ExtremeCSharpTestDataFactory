@@ -8,18 +8,18 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// <summary>The second value pass: the context-aware expressions, run once the plain values, ancestors and lookups are all in place.</summary>
 public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext context, MasterTemplate template)
 {
-    private readonly Bundle bundle = bundle;
-    private readonly GenerationContext context = context;
-    private readonly MasterTemplate template = template;
+    private readonly Bundle _bundle = bundle;
+    private readonly GenerationContext _context = context;
+    private readonly MasterTemplate _template = template;
 
     public void Complete()
     {
-        if (this.template.ContextAwareByField.Count == 0)
+        if (this._template.ContextAwareByField.Count == 0)
         {
             return;
         }
 
-        List<object> records = this.bundle.PrimaryRecords()!;
+        List<object> records = this._bundle.PrimaryRecords()!;
         records
             .Select((record, row) => (record, row))
             .ToList()
@@ -28,9 +28,9 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
 
     private void CompleteRow(object record, int row)
     {
-        GenerationContext rowContext = this.context.ForRecord(record, this.bundle, row);
-        HashSet<PropertyInfo> pendingContextAwareValues = [.. this.template.ContextAwareByField.Keys];
-        this.template.OrderedValueFields()
+        GenerationContext rowContext = this._context.ForRecord(record, this._bundle, row);
+        HashSet<PropertyInfo> pendingContextAwareValues = [.. this._template.ContextAwareByField.Keys];
+        this._template.OrderedValueFields()
             .ForEach(field => this.CompleteFieldAndUnmark(record, rowContext, field, pendingContextAwareValues));
     }
 
@@ -47,7 +47,7 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
 
     private void CompleteField(object record, GenerationContext scoped, PropertyInfo field)
     {
-        bool nothingToFill = !this.template.ContextAwareByField.TryGetValue(field, out IContextAwareExpression? expression)
+        bool nothingToFill = !this._template.ContextAwareByField.TryGetValue(field, out IContextAwareExpression? expression)
             || !FieldState.IsUnset(field, record);
         if (nothingToFill)
         {

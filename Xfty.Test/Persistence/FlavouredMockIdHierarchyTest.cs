@@ -126,33 +126,33 @@ file sealed record Node
 
 file sealed class PrefixCounterIdGenerator(string prefix) : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"{prefix}{++this.count}";
+    public object NextId(MockIdContext context) => $"{prefix}{++this._count}";
 }
 
 file sealed class DatestampedIdGenerator(string prefix) : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"{prefix}-{new DateTime(2024, 5, 6):yyyyMMdd}-{++this.count}";
+    public object NextId(MockIdContext context) => $"{prefix}-{new DateTime(2024, 5, 6):yyyyMMdd}-{++this._count}";
 }
 
 file sealed class ZeroPaddedIdGenerator : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
-    public object NextId(MockIdContext context) => $"z_{++this.count:D6}";
+    public object NextId(MockIdContext context) => $"z_{++this._count:D6}";
 }
 
 file sealed class RegionScopedIdGenerator : IMockIdGenerator
 {
-    private int count;
+    private int _count;
 
     public object NextId(MockIdContext context)
     {
         string region = (string?)context.RecordType.GetProperty("Region")!.GetValue(context.Record) ?? "??";
-        return $"g:{region}:{++this.count}";
+        return $"g:{region}:{++this._count}";
     }
 }
 

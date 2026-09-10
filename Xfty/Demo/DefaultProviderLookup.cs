@@ -19,11 +19,11 @@ public sealed class DefaultProviderLookup : IProviderLookup
         [LookupKey.Get<Contact>()] = typeof(ContactDataProvider),
     };
 
-    private readonly Dictionary<ILookupKey, IRecordProvider> instanceCache = [];
+    private readonly Dictionary<ILookupKey, IRecordProvider> _instanceCache = [];
 
     public IRecordProvider Get(Type recordType) => this.Get(LookupKey.Get(recordType));
 
-    public IRecordProvider Get(ILookupKey lookupKey) => ProviderLookups.Get(ProviderTypeByKey, this.instanceCache, lookupKey);
+    public IRecordProvider Get(ILookupKey lookupKey) => ProviderLookups.Get(ProviderTypeByKey, this._instanceCache, lookupKey);
 
     public ISet<ILookupKey> KeysFor(object? record) => ProviderLookups.KeysFor(ProviderTypeByKey.Keys.ToHashSet(), record);
 }

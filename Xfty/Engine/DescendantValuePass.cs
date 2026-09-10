@@ -9,20 +9,20 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// </summary>
 public sealed class DescendantValuePass(List<object> records, List<DepthBatchedInserterParentLink> links, List<PendingDeferredValue> pending)
 {
-    private readonly List<object> records = records;
-    private readonly DeferredGraph graph = new(records, links);
-    private readonly List<PendingDeferredValue> pending = pending;
+    private readonly List<object> _records = records;
+    private readonly DeferredGraph _graph = new(records, links);
+    private readonly List<PendingDeferredValue> _pending = pending;
 
-    public void Complete() => this.pending.ForEach(this.Fill);
+    public void Complete() => this._pending.ForEach(this.Fill);
 
     private void Fill(PendingDeferredValue value)
     {
-        object target = this.records[value.RecordIndex];
+        object target = this._records[value.RecordIndex];
         if (!FieldState.IsUnset(value.Field, target))
         {
             return;
         }
 
-        value.Field.SetValue(target, value.Strategy.Get(this.graph, value.RecordIndex));
+        value.Field.SetValue(target, value.Strategy.Get(this._graph, value.RecordIndex));
     }
 }

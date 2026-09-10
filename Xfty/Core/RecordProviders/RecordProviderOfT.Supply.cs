@@ -6,10 +6,10 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 public sealed partial class RecordProvider<TRecord>
 {
     public async Task<TRecord> Supply() =>
-        (TRecord)await this.inner.Supply().ConfigureAwait(false);
+        (TRecord)await this._inner.Supply().ConfigureAwait(false);
 
     public async Task<List<TRecord>> SupplyList() =>
-        [.. (await this.inner.SupplyList().ConfigureAwait(false)).Cast<TRecord>()];
+        [.. (await this._inner.SupplyList().ConfigureAwait(false)).Cast<TRecord>()];
 
-    public Task<Bundle> SupplyBundle() => this.inner.SupplyBundle();
+    public Task<Bundle> SupplyBundle() => this._inner.SupplyBundle();
 }

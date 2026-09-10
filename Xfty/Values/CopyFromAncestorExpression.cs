@@ -23,7 +23,7 @@ namespace Net.NowhereAtAll.Xfty.Values;
 public sealed class CopyFromAncestorExpression : IContextAwareExpression
 {
     // path = [hop1, hop2, ..., hopK, sourceField] - K >= 1 relationship hops then the field to read.
-    private readonly List<PropertyInfo> path;
+    private readonly List<PropertyInfo> _path;
 
     public CopyFromAncestorExpression(PropertyInfo relationshipField, PropertyInfo sourceField)
         : this([relationshipField, sourceField])
@@ -48,9 +48,9 @@ public sealed class CopyFromAncestorExpression : IContextAwareExpression
             throw new XftyConfigurationException("CopyFromAncestorExpression path steps cannot be null.");
         }
 
-        this.path = pathEndingInSourceField;
+        this._path = pathEndingInSourceField;
     }
 
     public object? Get(GenerationContext context) =>
-        context.BundleSoFar?.GetValue(this.path, context.RowIndex);
+        context.BundleSoFar?.GetValue(this._path, context.RowIndex);
 }

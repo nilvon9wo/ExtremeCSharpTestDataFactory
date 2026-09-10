@@ -17,9 +17,9 @@ namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 [Trait("Category", "Docker")]
 public sealed class PostgresNowPersistenceTest : IAsyncLifetime
 {
-    private PostgreSqlContainer? container;
-    private DemoDbContext? dbContext;
-    private bool dockerAvailable = true;
+    private PostgreSqlContainer? _container;
+    private DemoDbContext? _dbContext;
+    private bool _dockerAvailable = true;
 
     public async ValueTask InitializeAsync()
     {
@@ -27,70 +27,70 @@ public sealed class PostgresNowPersistenceTest : IAsyncLifetime
         {
             // Build() itself validates Docker connectivity - both it and StartAsync() can be
             // where "Docker is not reachable" surfaces, so both are covered by this one try.
-            this.container = new PostgreSqlBuilder("postgres:16-alpine").Build();
-            await this.container.StartAsync().ConfigureAwait(false);
+            this._container = new PostgreSqlBuilder("postgres:16-alpine").Build();
+            await this._container.StartAsync().ConfigureAwait(false);
         }
         catch (Exception)
         {
             // Docker is not reachable from this machine right now - skip this tier rather than fail the build.
-            this.dockerAvailable = false;
+            this._dockerAvailable = false;
             return;
         }
 
-        this.dbContext = new DemoDbContext(new DbContextOptionsBuilder<DemoDbContext>().UseNpgsql(this.container.GetConnectionString()).Options);
-        _ = await this.dbContext.Database.EnsureCreatedAsync().ConfigureAwait(false);
+        this._dbContext = new DemoDbContext(new DbContextOptionsBuilder<DemoDbContext>().UseNpgsql(this._container.GetConnectionString()).Options);
+        _ = await this._dbContext.Database.EnsureCreatedAsync().ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (this.dbContext is not null)
+        if (this._dbContext is not null)
         {
-            await this.dbContext.DisposeAsync().ConfigureAwait(false);
+            await this._dbContext.DisposeAsync().ConfigureAwait(false);
         }
 
-        if (this.container is not null)
+        if (this._container is not null)
         {
-            await this.container.DisposeAsync().ConfigureAwait(false);
+            await this._container.DisposeAsync().ConfigureAwait(false);
         }
     }
 
     [Fact]
     public async Task Supply_InNowMode_AgainstARealPostgresContainer_ActuallyInsertsARow()
     {
-        Assert.SkipUnless(this.dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
+        Assert.SkipUnless(this._dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
 
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Account), new DefaultProviderLookup())
             .SetInsertMode(InsertMode.Now)
-            .SetPersistenceGateway(new EfPersistenceGateway(this.dbContext!));
+            .SetPersistenceGateway(new EfPersistenceGateway(this._dbContext!));
 
         // Act
         Account result = (Account)await provider.Supply().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result.Id);
-        Account? reread = this.dbContext!.Accounts.AsNoTracking().FirstOrDefault(a => a.Id == result.Id);
+        Account? reread = this._dbContext!.Accounts.AsNoTracking().FirstOrDefault(a => a.Id == result.Id);
         Assert.NotNull(reread);
     }
 
     [Fact]
     public async Task SupplyBundle_NowPlusDepthBatched_AgainstARealPostgresContainer_WiresTheRealForeignKey()
     {
-        Assert.SkipUnless(this.dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
+        Assert.SkipUnless(this._dockerAvailable, "Docker is not reachable from this machine - start Docker Desktop to run this tier.");
 
         // Arrange
         RecordProvider provider = new RecordProvider(typeof(Contact), new DefaultProviderLookup())
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Now)
-            .SetPersistenceGateway(new EfPersistenceGateway(this.dbContext!))
+            .SetPersistenceGateway(new EfPersistenceGateway(this._dbContext!))
             .DepthBatched();
 
         // Act
         Contact result = (Contact)await provider.Supply().ConfigureAwait(true);
 
         // Assert
-        Contact rereadContact = this.dbContext!.Contacts.AsNoTracking().First(c => c.Id == result.Id);
-        Account rereadAccount = this.dbContext!.Accounts.AsNoTracking().First();
+        Contact rereadContact = this._dbContext!.Contacts.AsNoTracking().First(c => c.Id == result.Id);
+        Account rereadAccount = this._dbContext!.Accounts.AsNoTracking().First();
         Assert.Equal(rereadAccount.Id, rereadContact.AccountId);
     }
 }

@@ -11,8 +11,8 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// </summary>
 public sealed class DeferredGraph(List<object> records, List<DepthBatchedInserterParentLink> links)
 {
-    private readonly List<object> records = records;
-    private readonly List<DepthBatchedInserterParentLink> links = links;
+    private readonly List<object> _records = records;
+    private readonly List<DepthBatchedInserterParentLink> _links = links;
 
     /// <summary>The generated records that reference records[parentIndex] through childLookupField.</summary>
     public List<object> ChildrenOf(int parentIndex, PropertyInfo childLookupField) =>
@@ -25,10 +25,10 @@ public sealed class DeferredGraph(List<object> records, List<DepthBatchedInserte
     /// which <see cref="ChildrenOf"/> alone cannot support.
     /// </summary>
     public List<int> ChildIndicesOf(int parentIndex, PropertyInfo childLookupField) =>
-        [.. this.links
+        [.. this._links
             .Where(link => link.ParentIndex == parentIndex && link.Field == childLookupField)
             .Select(link => link.ChildIndex)];
 
     /// <summary>The generated record at this flat index - pairs with <see cref="ChildIndicesOf"/> for a multi-hop walk.</summary>
-    public object RecordAt(int index) => this.records[index];
+    public object RecordAt(int index) => this._records[index];
 }

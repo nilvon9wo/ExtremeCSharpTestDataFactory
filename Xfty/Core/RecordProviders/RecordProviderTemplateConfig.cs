@@ -15,7 +15,7 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// </summary>
 internal sealed class RecordProviderTemplateConfig(Func<MasterTemplate> resolveBaseTemplate)
 {
-    private MasterTemplate? ownTemplate;
+    private MasterTemplate? _ownTemplate;
 
     public bool HasCustomTemplate { get; private set; }
 
@@ -24,7 +24,7 @@ internal sealed class RecordProviderTemplateConfig(Func<MasterTemplate> resolveB
     public List<PathValue> PathValues { get; } = [];
 
     public MasterTemplate ResolveTemplate() =>
-        this.ownTemplate ??= resolveBaseTemplate();
+        this._ownTemplate ??= resolveBaseTemplate();
 
     public void Put(PropertyInfo field, object? value) =>
         this.Mutate(() => this.ResolveTemplate().Put(field, value));
@@ -43,11 +43,11 @@ internal sealed class RecordProviderTemplateConfig(Func<MasterTemplate> resolveB
 
     public void IncludeOptional(List<PropertyInfo> relationshipPath)
     {
-        this.AssertValidPath(relationshipPath);
+        AssertValidPath(relationshipPath);
         this.ForcedRelationshipPaths.Add(relationshipPath);
     }
 
-    private void AssertValidPath(List<PropertyInfo> relationshipPath)
+    private static void AssertValidPath(List<PropertyInfo> relationshipPath)
     {
         bool isValid = relationshipPath is { Count: > 0 } && relationshipPath.TrueForAll(step => step is not null);
         if (!isValid)

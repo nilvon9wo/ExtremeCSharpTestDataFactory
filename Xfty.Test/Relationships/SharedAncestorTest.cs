@@ -459,29 +459,25 @@ public class SharedAncestorTest
 
 file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Loop"))
             .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(loopSharedName));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
 /// <summary>An Account Provider whose ParentId is the named shared ancestor - for the cycle tests.</summary>
 file sealed class ParentedAccountProvider(string parentSharedName) : IRecordProvider
 {
-    private MasterTemplate _template { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Ring"))
             .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(parentSharedName));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
-    public MasterTemplate MasterTemplate => this._template;
-
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
-        RecordFactory.CreateBundle(context, this._template, templateRecords);
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

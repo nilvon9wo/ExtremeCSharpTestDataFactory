@@ -23,28 +23,28 @@ namespace Net.NowhereAtAll.Xfty.Core.Children;
 /// </summary>
 public sealed partial class ChildProvider<TChild>
 {
-    private readonly ChildProvider inner;
+    private readonly ChildProvider _inner;
 
     public ChildProvider(Expression<Func<TChild, object?>> relationshipField) =>
-        this.inner = new ChildProvider(Field.Of(relationshipField));
+        this._inner = new ChildProvider(Field.Of(relationshipField));
 
     public ChildProvider(Expression<Func<TChild, object?>> relationshipField, TChild template) =>
-        this.inner = new ChildProvider(Field.Of(relationshipField), template);
+        this._inner = new ChildProvider(Field.Of(relationshipField), template);
 
     /// <summary>Object-initializer field configuration, mirroring <see cref="RecordProvider{TRecord}"/>'s own indexer.</summary>
     public object? this[Expression<Func<TChild, object?>> field]
     {
-        set => _ = this.inner.Put(Field.Of(field), value);
+        set => _ = this._inner.Put(Field.Of(field), value);
     }
 
-    public static implicit operator ChildProvider(ChildProvider<TChild> typed) => typed.inner;
+    public static implicit operator ChildProvider(ChildProvider<TChild> typed) => typed._inner;
 
-    public PropertyInfo RelationshipField => this.inner.RelationshipField;
+    public PropertyInfo RelationshipField => this._inner.RelationshipField;
 
-    public Type ChildType => this.inner.ChildType;
+    public Type ChildType => this._inner.ChildType;
 
     /// <summary>
-    /// Runs one configuration call against <see cref="inner"/> and returns this
+    /// Runs one configuration call against <see cref="_inner"/> and returns this
     /// wrapper - never the <see cref="ChildProvider"/> the inner call hands back -
     /// so the fluent chain stays typed as <see cref="ChildProvider{TChild}"/>.
     /// Every fluent forwarder in the other partials is one of these.

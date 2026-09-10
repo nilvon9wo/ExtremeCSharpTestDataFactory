@@ -15,7 +15,7 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 ///
 /// Flyweight - state is static, and safe under concurrent access:
 /// <see cref="ByName"/>/<see cref="Disabled"/> are concurrent collections,
-/// <see cref="_manualResolution"/> is <c>volatile</c>, and the actual
+/// <see cref="s_manualResolution"/> is <c>volatile</c>, and the actual
 /// resolve-and-mutate work is serialized through <see cref="SharedAncestorResolver"/>'s
 /// own lock (not this class's concern - every entry point that can trigger
 /// resolution ends up calling into that resolver). This matters because
@@ -34,20 +34,20 @@ public sealed partial class SharedAncestor : ISharedRelationship
 {
     private static readonly ConcurrentDictionary<string, SharedAncestor> ByName = new();
     private static readonly ConcurrentDictionary<string, byte> Disabled = new();
-    private static volatile bool _manualResolution;
+    private static volatile bool s_manualResolution;
 
     private const string ConventionalIdFieldName = "Id";
 
-    private string _name { get; }
+    public string SharedName { get; }
 
-    private SharedAncestorProvider? source;
-    private object? resolvedRecord;
-    private Bundle? resolvedBundle;
-    private PropertyInfo? resolvedPrimaryField;
-    private Persistence.IMockIdGenerator? resolvedMockIdGenerator;
-    private bool _resolvedRecordIsPersisted { get; set; }
+    private SharedAncestorProvider? _source;
+    private object? _resolvedRecord;
+    private Bundle? _resolvedBundle;
+    private PropertyInfo? _resolvedPrimaryField;
+    private Persistence.IMockIdGenerator? _resolvedMockIdGenerator;
+    public bool IsResolvedRecordPersisted { get; private set; }
 
-    private SharedAncestor(string name) => this._name = name;
+    private SharedAncestor(string name) => this.SharedName = name;
 
     /// <summary>The interned instance for name - the token for PutRequired(field, ...). Creates it on first use.</summary>
     public static SharedAncestor Get(string name)
@@ -68,12 +68,12 @@ public sealed partial class SharedAncestor : ISharedRelationship
     {
         AssertNotDisabled(name);
         SharedAncestor ancestor = Get(name);
-        return ancestor.resolvedRecord is null ? throw NotYetResolved(name) : ancestor.PrimaryKeyValue()!;
+        return ancestor._resolvedRecord is null ? throw NotYetResolved(name) : ancestor.PrimaryKeyValue()!;
     }
 
-    /// <summary>The resolved record's primary-key value, read through the field the Provider declares (see <see cref="resolvedPrimaryField"/>).</summary>
+    /// <summary>The resolved record's primary-key value, read through the field the Provider declares (see <see cref="_resolvedPrimaryField"/>).</summary>
     private object? PrimaryKeyValue() =>
-        (this.resolvedPrimaryField ?? this.resolvedRecord?.GetType().GetProperty(ConventionalIdFieldName))?.GetValue(this.resolvedRecord);
+        (this._resolvedPrimaryField ?? this._resolvedRecord?.GetType().GetProperty(ConventionalIdFieldName))?.GetValue(this._resolvedRecord);
 
     private static void AssertNotDisabled(string name)
     {
@@ -109,6 +109,6 @@ public sealed partial class SharedAncestor : ISharedRelationship
     {
         ByName.Clear();
         Disabled.Clear();
-        _manualResolution = false;
+        s_manualResolution = false;
     }
 }
