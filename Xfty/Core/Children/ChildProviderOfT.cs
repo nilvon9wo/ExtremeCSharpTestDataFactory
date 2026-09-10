@@ -1,9 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
-using Net.NowhereAtAll.Xfty.Lookup;
-using Net.NowhereAtAll.Xfty.Relationships;
-using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Core.Children;
 
@@ -21,13 +18,15 @@ namespace Net.NowhereAtAll.Xfty.Core.Children;
 ///
 /// Converts implicitly to the plain <see cref="ChildProvider"/> everything
 /// else (<see cref="RecordProvider.With(ChildProvider)"/> included) already
-/// works with.
+/// works with. The forwarders are split across files by the same concern as
+/// <see cref="RecordProvider{TRecord}"/>'s partials: FieldConfig, Setters.
 /// </summary>
-public sealed class ChildProvider<TChild>
+public sealed partial class ChildProvider<TChild>
 {
     private readonly ChildProvider inner;
 
-    public ChildProvider(Expression<Func<TChild, object?>> relationshipField) => this.inner = new ChildProvider(Field.Of(relationshipField));
+    public ChildProvider(Expression<Func<TChild, object?>> relationshipField) =>
+        this.inner = new ChildProvider(Field.Of(relationshipField));
 
     public ChildProvider(Expression<Func<TChild, object?>> relationshipField, TChild template) =>
         this.inner = new ChildProvider(Field.Of(relationshipField), template);
@@ -44,99 +43,15 @@ public sealed class ChildProvider<TChild>
 
     public Type ChildType => this.inner.ChildType;
 
-    public ChildProvider<TChild> SetQuantity(int quantity)
+    /// <summary>
+    /// Runs one configuration call against <see cref="inner"/> and returns this
+    /// wrapper - never the <see cref="ChildProvider"/> the inner call hands back -
+    /// so the fluent chain stays typed as <see cref="ChildProvider{TChild}"/>.
+    /// Every fluent forwarder in the other partials is one of these.
+    /// </summary>
+    private ChildProvider<TChild> Forwarding(Func<ChildProvider> innerCall)
     {
-        _ = this.inner.SetQuantity(quantity);
-        return this;
-    }
-
-    public ChildProvider<TChild> Put(PropertyInfo field, IValueExpression valueExpression)
-    {
-        _ = this.inner.Put(field, valueExpression);
-        return this;
-    }
-
-    public ChildProvider<TChild> Put(PropertyInfo field, IContextAwareExpression contextAwareExpression)
-    {
-        _ = this.inner.Put(field, contextAwareExpression);
-        return this;
-    }
-
-    public ChildProvider<TChild> Put(PropertyInfo field, object? value)
-    {
-        _ = this.inner.Put(field, value);
-        return this;
-    }
-
-    public ChildProvider<TChild> PutRequired(PropertyInfo field, IDefaultRelationship relationship)
-    {
-        _ = this.inner.PutRequired(field, relationship);
-        return this;
-    }
-
-    public ChildProvider<TChild> PutOptional(PropertyInfo field, IDefaultRelationship relationship)
-    {
-        _ = this.inner.PutOptional(field, relationship);
-        return this;
-    }
-
-    // Resolved to a PropertyInfo at this boundary (Field.Of(field)), exactly
-    // as RecordProvider<TRecord> does and for the same reason: TChild is
-    // already fixed by this wrapper's own type parameter, so a same-named
-    // TField method type parameter could never be inferred from an
-    // implicitly-typed lambda.
-
-    public ChildProvider<TChild> Put(Expression<Func<TChild, object?>> field, IValueExpression valueExpression)
-    {
-        _ = this.inner.Put(Field.Of(field), valueExpression);
-        return this;
-    }
-
-    public ChildProvider<TChild> Put(Expression<Func<TChild, object?>> field, IContextAwareExpression contextAwareExpression)
-    {
-        _ = this.inner.Put(Field.Of(field), contextAwareExpression);
-        return this;
-    }
-
-    public ChildProvider<TChild> Put(Expression<Func<TChild, object?>> field, object? value)
-    {
-        _ = this.inner.Put(Field.Of(field), value);
-        return this;
-    }
-
-    public ChildProvider<TChild> PutRequired(Expression<Func<TChild, object?>> field, IDefaultRelationship relationship)
-    {
-        _ = this.inner.PutRequired(Field.Of(field), relationship);
-        return this;
-    }
-
-    public ChildProvider<TChild> PutOptional(Expression<Func<TChild, object?>> field, IDefaultRelationship relationship)
-    {
-        _ = this.inner.PutOptional(Field.Of(field), relationship);
-        return this;
-    }
-
-    public ChildProvider<TChild> SetInsertMode(InsertMode insertMode)
-    {
-        _ = this.inner.SetInsertMode(insertMode);
-        return this;
-    }
-
-    public ChildProvider<TChild> SetInclusivity(InsertInclusivity inclusivity)
-    {
-        _ = this.inner.SetInclusivity(inclusivity);
-        return this;
-    }
-
-    public ChildProvider<TChild> WithVariant(ILookupKey variantKey)
-    {
-        _ = this.inner.WithVariant(variantKey);
-        return this;
-    }
-
-    public ChildProvider<TChild> With(ChildProvider? grandchildProvider)
-    {
-        _ = this.inner.With(grandchildProvider);
+        _ = innerCall();
         return this;
     }
 }
