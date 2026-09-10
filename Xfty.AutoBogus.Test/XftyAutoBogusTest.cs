@@ -12,7 +12,7 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus.Test;
 /// </summary>
 public class XftyAutoBogusTest
 {
-    private static IProviderLookup Lookup() =>
+    private static readonly IProviderLookup Lookup =
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
@@ -23,7 +23,7 @@ public class XftyAutoBogusTest
     public void Generate_ForATypeWithARegisteredProvider_ReturnsAnXftyGeneratedRecord()
     {
         // Arrange
-        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup());
+        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup);
 
         // Act
         Account account = faker.Generate<Account>();
@@ -36,7 +36,7 @@ public class XftyAutoBogusTest
     public void Generate_ForARecordWithARequiredRelationship_ResolvesItViaXftyToo()
     {
         // Arrange
-        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup());
+        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup);
 
         // Act
         Contact contact = faker.Generate<Contact>();
@@ -49,7 +49,7 @@ public class XftyAutoBogusTest
     public void Generate_ForATypeWithNoRegisteredProvider_FallsThroughToAutoBogussOwnGeneration()
     {
         // Arrange
-        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup());
+        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup);
 
         // Act
         string generated = faker.Generate<string>();
@@ -62,20 +62,20 @@ public class XftyAutoBogusTest
     public void Generate_Many_ForATypeWithARegisteredProvider_GeneratesADistinctRecordEachTime()
     {
         // Arrange
-        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup());
+        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup);
 
         // Act
-        List<Account> accounts = faker.Generate<Account>(3);
+        List<Contact> contacts = faker.Generate<Contact>(3);
 
         // Assert - each Supply() call mints its own mocked Id
-        Assert.Equal(3, accounts.Select(account => account.Id).Distinct().Count());
+        Assert.Equal(3, contacts.Select(contact => contact.Id).Distinct().Count());
     }
 
     [Fact]
     public void Generate_DefaultsToMockInsertMode_SoEveryRecordHasAnId()
     {
         // Arrange
-        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup());
+        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup);
 
         // Act
         Account account = faker.Generate<Account>();
@@ -88,7 +88,7 @@ public class XftyAutoBogusTest
     public void Generate_WithInclusivityOverriddenToNone_LeavesTheRelationshipUngenerated()
     {
         // Arrange - overriding back to RecordProvider's own defaults, explicitly
-        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup(), InsertMode.Mock, InsertInclusivity.None);
+        IAutoFaker faker = XftyAutoBogus.CreateFaker(Lookup, InsertMode.Mock, InsertInclusivity.None);
 
         // Act
         Contact contact = faker.Generate<Contact>();

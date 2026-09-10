@@ -1,7 +1,10 @@
 # Test Organization
 
-`Xfty.Test/` mirrors `Xfty/`'s folder structure one-for-one — `Xfty/Core/Bundle.cs`
-→ `Xfty.Test/Core/BundleTest.cs` — rather than Apex's `ApexTestSuite` grouping.
+`Xfty.Test/` mirrors `Xfty/`'s top-level folders — `Xfty/Engine/RecordFactory.cs`
+→ `Xfty.Test/Engine/RecordFactoryTest.cs` — rather than Apex's `ApexTestSuite`
+grouping. (`Xfty/Core/` was later split into per-concern subfolders —
+`RecordProviders/`, `MasterTemplates/`, `Children/`, `Bundles/`, `PathValues/` —
+that `Xfty.Test/Core/` does not mirror; its tests sit flat.)
 xUnit's own filter syntax (`dotnet test --filter "..."`) covers what suites
 covered in Apex: run everything, run one class, run one namespace.
 

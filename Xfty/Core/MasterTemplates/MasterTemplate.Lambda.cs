@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 
 /// <summary>MasterTemplate - naming a field by lambda instead of Field.Of&lt;TRecord&gt;(...).</summary>
 public sealed partial class MasterTemplate

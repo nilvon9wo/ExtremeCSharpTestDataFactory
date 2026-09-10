@@ -36,6 +36,8 @@ public sealed partial class SharedAncestor : ISharedRelationship
     private static readonly ConcurrentDictionary<string, byte> Disabled = new();
     private static volatile bool _manualResolution;
 
+    private const string ConventionalIdFieldName = "Id";
+
     private string _name { get; }
 
     private SharedAncestorProvider? source;
@@ -71,7 +73,7 @@ public sealed partial class SharedAncestor : ISharedRelationship
 
     /// <summary>The resolved record's primary-key value, read through the field the Provider declares (see <see cref="resolvedPrimaryField"/>).</summary>
     private object? PrimaryKeyValue() =>
-        (this.resolvedPrimaryField ?? this.resolvedRecord?.GetType().GetProperty("Id"))?.GetValue(this.resolvedRecord);
+        (this.resolvedPrimaryField ?? this.resolvedRecord?.GetType().GetProperty(ConventionalIdFieldName))?.GetValue(this.resolvedRecord);
 
     private static void AssertNotDisabled(string name)
     {
@@ -90,7 +92,7 @@ public sealed partial class SharedAncestor : ISharedRelationship
     // so it disambiguates "already-saved value" from "override template" by a property literally named "Id".
     // A record whose key is named otherwise: use PutAsValue(...) / PutAsTemplate(...) explicitly. Once a
     // lookup is in play (ResolveNow), the real key field takes over - see SharedAncestor.Resolution.
-    private static object? IdOf(object? record) => record?.GetType().GetProperty("Id")?.GetValue(record);
+    private static object? IdOf(object? record) => record?.GetType().GetProperty(ConventionalIdFieldName)?.GetValue(record);
 
     /// <summary>
     /// Clears every registered/disabled shared ancestor and the manual-

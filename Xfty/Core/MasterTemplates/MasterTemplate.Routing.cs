@@ -2,7 +2,7 @@ using System.Reflection;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 
 /// <summary>MasterTemplate - the untyped Put(field, object) overload, routed to the right typed overload by runtime type.</summary>
 public sealed partial class MasterTemplate

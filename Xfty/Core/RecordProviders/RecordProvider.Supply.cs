@@ -1,9 +1,8 @@
 using Net.NowhereAtAll.Xfty.Core.Bundles;
-using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Persistence;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 /// <summary>RecordProvider - the Supply*() pipeline: build the context, generate, then children and persistence.</summary>
 public sealed partial class RecordProvider

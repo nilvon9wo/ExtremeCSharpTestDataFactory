@@ -1,8 +1,7 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core.Children;
-using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 /// <summary>RecordProvider - downward generation (child collections), delegated to <see cref="RecordProviderChildConfig"/>.</summary>
 public sealed partial class RecordProvider

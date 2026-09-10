@@ -12,14 +12,14 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture.Test;
 /// </summary>
 public class XftyCustomizationTest
 {
-    private static IProviderLookup Lookup() =>
+    private static readonly IProviderLookup Lookup =
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
         });
 
-    private static IFixture Fixture() => new Fixture().Customize(new XftyCustomization(Lookup()));
+    private static IFixture Fixture() => new Fixture().Customize(new XftyCustomization(Lookup));
 
     [Fact]
     public void Create_ForATypeWithARegisteredProvider_ReturnsAnXftyGeneratedRecord()
@@ -67,10 +67,10 @@ public class XftyCustomizationTest
         IFixture fixture = Fixture();
 
         // Act
-        List<Account> accounts = [.. fixture.CreateMany<Account>(3)];
+        List<Contact> contacts = [.. fixture.CreateMany<Contact>(3)];
 
         // Assert - each Supply() call mints its own mocked Id
-        Assert.Equal(3, accounts.Select(account => account.Id).Distinct().Count());
+        Assert.Equal(3, contacts.Select(contact => contact.Id).Distinct().Count());
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class XftyCustomizationTest
     public void Create_WithInclusivityOverriddenToNone_LeavesTheRelationshipUngenerated()
     {
         // Arrange - overriding back to RecordProvider's own defaults, explicitly
-        IFixture fixture = new Fixture().Customize(new XftyCustomization(Lookup(), InsertMode.Mock, InsertInclusivity.None));
+        IFixture fixture = new Fixture().Customize(new XftyCustomization(Lookup, InsertMode.Mock, InsertInclusivity.None));
 
         // Act
         Contact contact = fixture.Create<Contact>();

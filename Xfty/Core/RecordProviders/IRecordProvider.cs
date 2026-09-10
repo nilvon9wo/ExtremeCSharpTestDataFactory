@@ -1,5 +1,6 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 
 namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 

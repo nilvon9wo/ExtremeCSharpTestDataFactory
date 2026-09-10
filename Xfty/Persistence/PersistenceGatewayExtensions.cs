@@ -12,6 +12,8 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 /// </summary>
 public static class PersistenceGatewayExtensions
 {
+    private const string ConventionalIdFieldName = "Id";
+
     /// <summary>
     /// One Insert call per type in records, awaited sequentially - not
     /// in parallel, since a real gateway typically wraps a single
@@ -45,5 +47,5 @@ public static class PersistenceGatewayExtensions
     private static PropertyInfo IdFieldOf(Type recordType, IReadOnlyDictionary<Type, PropertyInfo> idFieldByType) =>
         idFieldByType.TryGetValue(recordType, out PropertyInfo? idField)
             ? idField
-            : recordType.GetProperty("Id")!;
+            : recordType.GetProperty(ConventionalIdFieldName)!;
 }

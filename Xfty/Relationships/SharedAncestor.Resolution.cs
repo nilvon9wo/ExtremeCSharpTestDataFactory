@@ -86,7 +86,7 @@ public sealed partial class SharedAncestor
 
     private Bundle SingleRecordBundle()
     {
-        PropertyInfo idField = this.resolvedPrimaryField ?? this.resolvedRecord!.GetType().GetProperty("Id")!;
+        PropertyInfo idField = this.resolvedPrimaryField ?? this.resolvedRecord!.GetType().GetProperty(ConventionalIdFieldName)!;
         Bundle bundle = new();
         bundle.PutPrimaries(idField, [this.resolvedRecord!], this.resolvedMockIdGenerator);
         return bundle;

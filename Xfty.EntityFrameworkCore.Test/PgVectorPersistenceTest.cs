@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Testcontainers.PostgreSql;
 
 namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;

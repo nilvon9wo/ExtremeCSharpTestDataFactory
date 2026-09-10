@@ -6,7 +6,12 @@ directories, no namespace.
 ```text
 Xfty.slnx
 Xfty/            - the library (Net.NowhereAtAll.Xfty)
-  Core/          - the public types (RecordProvider, Bundle, MasterTemplate, ...)
+  Core/          - the public types, grouped by concern into subfolders:
+    RecordProviders/  - RecordProvider, RecordProvider<TRecord>, IRecordProvider
+    MasterTemplates/  - MasterTemplate, MasterTemplate<TRecord>
+    Children/         - ChildProvider, ChildProvider<TChild>
+    Bundles/          - Bundle
+    PathValues/       - the Put(path, ...) ancestor-targeted overrides
   Engine/        - the generation pipeline
   Persistence/   - Id assignment, deferred / depth-batched resolution
   Values/        - the bundled value expressions

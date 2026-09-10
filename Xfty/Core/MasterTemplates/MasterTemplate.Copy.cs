@@ -2,7 +2,7 @@ using System.Reflection;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
-namespace Net.NowhereAtAll.Xfty.Core;
+namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 
 /// <summary>MasterTemplate - copying, removing a field, and the value-field ordering that copy preserves.</summary>
 public sealed partial class MasterTemplate

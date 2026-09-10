@@ -9,7 +9,7 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture.Test;
 /// <summary>Proves AutoFixtureUnsetFieldFiller - the bundled IUnsetFieldFiller. See UnsetFieldFillerTest (Xfty.Test) for the core contract it relies on.</summary>
 public class AutoFixtureUnsetFieldFillerTest
 {
-    private static IProviderLookup Lookup() =>
+    private static readonly IProviderLookup Lookup =
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
@@ -21,7 +21,7 @@ public class AutoFixtureUnsetFieldFillerTest
     {
         // Arrange
         IFixture fixture = new Fixture();
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
@@ -39,7 +39,7 @@ public class AutoFixtureUnsetFieldFillerTest
     {
         // Arrange
         IFixture fixture = new Fixture();
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
@@ -58,7 +58,7 @@ public class AutoFixtureUnsetFieldFillerTest
         IFixture fixture = new Fixture();
         AutoFixtureUnsetFieldFiller filler = new AutoFixtureUnsetFieldFiller(fixture)
             .Excluding(Field.Of<Account>(x => x.Site));
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(filler);
 
@@ -79,7 +79,7 @@ public class AutoFixtureUnsetFieldFillerTest
             .Excluding(Field.Of<Account>(x => x.Contacts))
             .Excluding(Field.Of<Account>(x => x.Parent))
             .Excluding(Field.Of<Account>(x => x.ChildAccounts));
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(filler);
 
@@ -97,9 +97,9 @@ public class AutoFixtureUnsetFieldFillerTest
     {
         // Arrange - the documented alternative to relying on this filler's own catch
         IFixture fixture = new Fixture();
-        _ = fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().First());
+        _ = fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().Single());
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
@@ -116,7 +116,7 @@ public class AutoFixtureUnsetFieldFillerTest
         // Arrange - Account.Parent is Account itself; a plain Fixture's default
         // ThrowingRecursionBehavior would raise ObjectCreationException resolving it
         IFixture fixture = new Fixture();
-        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));
 
@@ -132,8 +132,8 @@ public class AutoFixtureUnsetFieldFillerTest
     {
         // Arrange - the two features compose: XFTY resolves the required Account
         // relationship; AutoFixture fills whatever scalar fields are left over.
-        IFixture fixture = new Fixture().Customize(new XftyCustomization(Lookup()));
-        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup())
+        IFixture fixture = new Fixture().Customize(new XftyCustomization(Lookup));
+        RecordProvider provider = new RecordProvider(typeof(Contact), Lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)
             .SetUnsetFieldFiller(new AutoFixtureUnsetFieldFiller(fixture));

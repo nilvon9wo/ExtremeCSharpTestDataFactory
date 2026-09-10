@@ -2,6 +2,7 @@ namespace Net.NowhereAtAll.Xfty.FSharpAsync
 
 open Net.NowhereAtAll.Xfty.Core
 open Net.NowhereAtAll.Xfty.Core.Bundles
+open Net.NowhereAtAll.Xfty.Core.RecordProviders
 
 /// <summary>
 /// F#-idiomatic Async&lt;'T&gt; equivalents of the plain <see cref="RecordProvider"/>'s

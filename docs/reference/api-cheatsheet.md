@@ -8,10 +8,13 @@ under `Net.NowhereAtAll.Xfty.*`; field tokens throughout are
 
 ## Generating — `RecordProvider`
 
+Both forms live in `Net.NowhereAtAll.Xfty.Core.RecordProviders`, alongside
+`IRecordProvider`.
+
 | Constructor | |
 |-------------|--|
-| `new RecordProvider<TRecord>(IProviderLookup)` | **typed** (in `Net.NowhereAtAll.Xfty.Core.RecordProviders`) — `Supply()` returns `TRecord`, `SupplyList()` returns `List<TRecord>`, no cast; same fluent surface, plus a `[x => x.Field] = value` indexer |
-| `new RecordProvider(Type, IProviderLookup)` | non-generic base form (in `Net.NowhereAtAll.Xfty.Core`) — `Supply()` returns `object` |
+| `new RecordProvider<TRecord>(IProviderLookup)` | **typed** — `Supply()` returns `TRecord`, `SupplyList()` returns `List<TRecord>`, no cast; same fluent surface, plus a `[x => x.Field] = value` indexer |
+| `new RecordProvider(Type, IProviderLookup)` | non-generic base form — `Supply()` returns `object` |
 | `new RecordProvider(object template, IProviderLookup)` | derives type + variant from the template |
 | `new RecordProvider(List<object> templates, IProviderLookup)` | derives type from the first |
 | `new RecordProvider(ILookupKey key, IProviderLookup)` | derives type from the key, pins that variant |
