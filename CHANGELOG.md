@@ -12,6 +12,16 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+## [1.0.0-beta.12] – 2026-09-18
+
+> **Theme: multi-targeting reaches every package, plus classic EF6.** Every
+> package now builds for `netstandard2.0;net8.0;net10.0` (or as close to that
+> as its own dependencies allow), not just core `Xfty`; `Xfty.EntityFramework6`
+> adds the same real persistence convenience as `Xfty.EntityFrameworkCore` for
+> a project on classic EF6 instead. One real correctness fix along the way:
+> `UniqueAcrossRunsExpression`'s per-run token no longer has a genuine,
+> nonzero collision window.
+
 ### Added
 
 - **`Xfty.EntityFramework6`** — the same `IPersistenceGateway` convenience as
