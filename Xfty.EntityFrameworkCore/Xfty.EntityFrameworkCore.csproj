@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Net.NowhereAtAll.Xfty.EntityFrameworkCore</RootNamespace>
@@ -22,7 +22,33 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!--
+    EF Core's own package versions track a specific .NET major each, so each
+    TFM here rides whichever EF Core line actually ships an asset for it:
+    10.x for net10.0, 9.x (the last line with a net8.0 asset) for net8.0, and
+    3.1.x (the last line with any netstandard2.0 asset at all - EF Core 5.0
+    moved to netstandard2.1, and 6.0+ dropped netstandard entirely for
+    runtime-specific TFMs) for netstandard2.0. 9.x and 10.x are both current,
+    supported EF Core lines; 3.1.x reached its own end of support in Dec
+    2022. That's a real, accepted trade for reaching a netstandard2.0
+    consumer at all (.NET Framework 4.6.1+, older Mono/Xamarin, or a project
+    mid-upgrade using XFTY to make that upgrade safer) - XFTY doesn't chase
+    EF Core 3.1-specific defects, but offering the TFM is a statement about
+    what a consumer can target, not a promise to backport every fix Microsoft
+    no longer will. `DbContext.Add`/`SaveChangesAsync` - the entire surface
+    EfPersistenceGateway.cs actually uses - have been stable since EF Core's
+    first release, so this needed no source changes at all; proven for real,
+    not just compiled, by Xfty.NetStandardCompat.Test's SqliteNowPersistenceSmokeTest.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.32" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.20" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
   </ItemGroup>
 

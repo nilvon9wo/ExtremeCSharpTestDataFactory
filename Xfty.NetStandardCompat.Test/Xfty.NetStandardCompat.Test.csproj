@@ -2,19 +2,58 @@
 
   <!--
     Exists for one reason: netstandard2.0 isn't itself runnable (it's a
-    contract, not a platform), so the netstandard2.0-only compatibility
-    polyfills in Xfty/Internal/NetStandardCompat.cs - GetValueOrDefault/
-    ToHashSet/SharedRandom, none of which exist under net8.0/net10.0 - have
-    never actually executed anywhere else in this solution, only compiled.
-    net472 is the one real, already-installed-locally runtime that consumes
-    the netstandard2.0 build (net8.0/net10.0-targeted assemblies can't be
-    referenced from net472 at all), so this project's ProjectReference below
-    resolves to Xfty's netstandard2.0 output specifically - proving those
-    three polyfills genuinely run, not just compile.
+    contract, not a platform), so nothing netstandard2.0-specific about any
+    package's build has ever actually executed anywhere else in this
+    solution, only compiled. net472 is the one real, already-installed-locally
+    runtime that consumes the netstandard2.0 build (net8.0/net10.0-targeted
+    assemblies can't be referenced from net472 at all), so this project's
+    ProjectReferences below resolve to each package's netstandard2.0 output
+    specifically. Three different reasons a package ends up referenced here:
+
+    1. A real netstandard2.0-only code branch of its own - Xfty
+       (GetValueOrDefault/ToHashSet in Internal/CollectionCompatExtensions.cs)
+       and Xfty.VectorDatabases (its own `<Compile Include>` of Xfty's
+       Internal/SharedRandom.cs into its own assembly - a separate assembly
+       has no access to Xfty's internal type at the IL level, so compiling
+       the same physical file again is the actual fix, not a copy of it).
+    2. A real external dependency pinned at an unusually old version to reach
+       netstandard2.0 at all, where "compiles" is a much weaker guarantee
+       than usual - Xfty.EntityFrameworkCore rides EF Core 3.1.x for its
+       netstandard2.0 build (see its own csproj comment for why), old enough
+       that an actual round-trip through a real database is worth proving,
+       not assuming from a clean compile.
+    3. A package whose classic-.NET-Framework asset is a genuinely different
+       physical build from its modern one, not a netstandard2.0 build at all
+       - Xfty.EntityFramework6 ships a `net461` asset directly (classic EF6
+       has no netstandard2.0 of its own to ride - see that package's own
+       csproj comment); its modern `netstandard2.1` asset is already proven
+       for real by Xfty.EntityFramework6.Test on net10.0, so this project's
+       job is only the other, classic-Framework asset - proven here via this
+       project's own net472 host (net472 > net461, so it resolves the same
+       net461 asset a net461 host would), not because the asset itself is
+       net472.
+
+    Every other now-multi-targeted package (Bogus, AutoBogus, AutoFixture,
+    Xunit, the two vector-database preview packages) has none of the above -
+    current dependencies, no netstandard2.0-only branch, no separate classic
+    asset - so `dotnet build`'s ordinary per-TFM compile is already the whole
+    of its netstandard2.0 proof; nothing for this project to add for those.
   -->
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
+    <!--
+      Without an explicit RID, MSBuild can't tell which of SQLitePCLRaw's
+      per-architecture native e_sqlite3.dll assets to flatten into the output
+      folder for a classic (non-RID-qualified) net472 build, and silently
+      picks the wrong one for whatever bitness the test host actually runs
+      as - "%1 is not a valid Win32 application" at Microsoft.Data.Sqlite's
+      DllImport, not a real code defect. win-x64/PlatformTarget both pinned
+      so the one native binary that gets copied is the one the process can
+      actually load.
+    -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -29,10 +68,22 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="xunit.v3" Version="4.0.0" />
+    <!-- Pinned to match Xfty.EntityFrameworkCore's own netstandard2.0 build (EF Core 3.1.x) -
+         a newer Sqlite provider paired with that old a DbContext line isn't a combination
+         any real consumer would end up with, and isn't what this smoke test is proving. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.32" />
+    <!-- EF6's own SQLite story - see Xfty.EntityFramework6.Test's own csproj/test comments
+         for why both of these are needed (System.Data.SQLite.dll P/Invokes a native binary
+         it doesn't itself bring along) and pinned at these exact versions. -->
+    <PackageReference Include="System.Data.SQLite.EF6" Version="2.0.3" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Xfty\Xfty.csproj" />
+    <ProjectReference Include="..\Xfty.VectorDatabases\Xfty.VectorDatabases.csproj" />
+    <ProjectReference Include="..\Xfty.EntityFrameworkCore\Xfty.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\Xfty.EntityFramework6\Xfty.EntityFramework6.csproj" />
   </ItemGroup>
 
   <ItemGroup>

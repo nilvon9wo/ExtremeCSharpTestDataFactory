@@ -5,7 +5,7 @@
 #   1. reads the newest `## [x.y.z]` heading from CHANGELOG.md
 #   2. if a `vx.y.z` tag already exists -> exits, nothing to do
 #   3. otherwise stamps x.y.z into every mainline package (via Directory.Build.props),
-#      builds + tests, packs all ten publishable packages, and pushes them to
+#      builds + tests, packs all eleven publishable packages, and pushes them to
 #      nuget.org with --skip-duplicate
 #   4. tags the commit `vx.y.z` and opens a GitHub Release with that CHANGELOG
 #      section as the notes
@@ -143,6 +143,7 @@ jobs:
           for proj in \
             Xfty/Xfty.csproj \
             Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj \
+            Xfty.EntityFramework6/Xfty.EntityFramework6.csproj \
             Xfty.Bogus/Xfty.Bogus.csproj \
             Xfty.VectorDatabases/Xfty.VectorDatabases.csproj \
             Xfty.Xunit/Xfty.Xunit.csproj \
@@ -161,10 +162,11 @@ jobs:
         run: |
           $version = "${{ steps.resolve.outputs.version }}"
 
-          # The eight mainline packages must all have packed at the resolved version.
+          # The nine mainline packages must all have packed at the resolved version.
           $mainline = @(
-              "Xfty", "Xfty.EntityFrameworkCore", "Xfty.Bogus", "Xfty.VectorDatabases",
-              "Xfty.Xunit", "Xfty.AutoFixture", "Xfty.AutoBogus", "Xfty.FSharpAsync"
+              "Xfty", "Xfty.EntityFrameworkCore", "Xfty.EntityFramework6", "Xfty.Bogus",
+              "Xfty.VectorDatabases", "Xfty.Xunit", "Xfty.AutoFixture", "Xfty.AutoBogus",
+              "Xfty.FSharpAsync"
           )
           $failed = $false
           foreach ($id in $mainline) {

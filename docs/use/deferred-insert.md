@@ -76,8 +76,9 @@ await new RecordProvider<Case>(lookup)
 > place it genuinely runs one `gateway.Insert(...)` call per dependency depth
 > instead of one per Provider - see
 > `Xfty.Test/Persistence/PersistenceGatewayTest.cs` and
-> `Xfty.EntityFrameworkCore.Test/SqliteNowPersistenceTest.cs` for the proof
-> against a mock and a real database respectively. The underlying layering
+> `Xfty.EntityFrameworkCore.Test/SqliteNowPersistenceTest.cs` (or
+> `Xfty.EntityFramework6.Test/SqliteNowPersistenceTest.cs` for classic EF6)
+> for the proof against a mock and a real database respectively. The underlying layering
 > algorithm is also proven directly against
 > `DepthBatchedInserter.ResolveAll(records, parentLinks, InsertMode.Mock)` -
 > see `Xfty.Test/Persistence/DepthBatchedInserterTest.cs`.

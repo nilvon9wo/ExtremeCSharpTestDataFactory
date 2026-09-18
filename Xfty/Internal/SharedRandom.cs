@@ -8,6 +8,14 @@ namespace Net.NowhereAtAll.Xfty.Internal;
 /// itself isn't thread-safe on the older runtimes netstandard2.0 targets, not
 /// just its call syntax). One name, used unconditionally everywhere else in
 /// this codebase - the #if lives here, once, not at every call site.
+///
+/// Split into its own file (separate from the netstandard2.0-only
+/// DictionaryCompatExtensions/EnumerableCompatExtensions in
+/// CollectionCompatExtensions.cs) so another package with the same gap can
+/// link this one file directly via `&lt;Compile Include&gt;` - see
+/// Xfty.VectorDatabases.csproj - without also pulling in polyfills it
+/// doesn't use. One physical file, compiled again into each assembly that
+/// links it; still internal to each, so no cross-assembly coupling.
 /// </summary>
 internal static class SharedRandom
 {
@@ -25,27 +33,3 @@ internal static class SharedRandom
     public static Random Instance => Random.Shared;
 #endif
 }
-
-#if NETSTANDARD2_0
-/// <summary>
-/// Polyfills for netstandard2.0's own gaps against BCL members added later
-/// (GetValueOrDefault/ToHashSet, both .NET Core 2.0+) - exists on
-/// netstandard2.0 only, via the #if above, so it never collides with the
-/// real members on net8.0/net10.0. Each polyfill preserves the same call
-/// syntax the rest of the codebase already uses, so no other file needs to
-/// change to support netstandard2.0.
-/// </summary>
-internal static class DictionaryCompatExtensions
-{
-    public static TValue? GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key) =>
-        dictionary.TryGetValue(key, out TValue? value) ? value : default;
-}
-
-/// <summary>
-/// See <see cref="DictionaryCompatExtensions"/> - same reasoning, for <c>IEnumerable&lt;T&gt;.ToHashSet()</c>.
-/// </summary>
-internal static class EnumerableCompatExtensions
-{
-    public static HashSet<T> ToHashSet<T>(this IEnumerable<T> source) => [.. source];
-}
-#endif

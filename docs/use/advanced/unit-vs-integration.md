@@ -33,7 +33,8 @@ The integration-test version of the same test:
 - `Now` + `Required` (with a gateway configured) — the same graph, actually
   persisted through it. See `Xfty.EntityFrameworkCore.Test` for this proven
   against a real SQLite database and (when Docker is available) a real
-  Postgres container.
+  Postgres container, or `Xfty.EntityFramework6.Test` for the same against
+  classic EF6.
 
 Because the data *description* does not change, a test built this way is
 promotable from unit to integration (or the reverse) without touching its

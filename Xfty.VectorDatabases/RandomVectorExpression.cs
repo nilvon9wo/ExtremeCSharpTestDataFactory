@@ -35,7 +35,7 @@ public sealed class RandomVectorExpression(
             : vector;
     }
 
-    private float NextComponent() => this._min + ((float)Random.Shared.NextDouble() * (this._max - this._min));
+    private float NextComponent() => this._min + ((float)SharedRandom.Instance.NextDouble() * (this._max - this._min));
 
     private static float[] Normalize(float[] vector)
     {

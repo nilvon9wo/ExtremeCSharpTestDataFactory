@@ -20,9 +20,11 @@ Xfty/            - the library (Net.NowhereAtAll.Xfty)
   Predicates/    - the reusable IRecordPredicate conditions
   Demo/          - this port's own bundled Account/Contact Providers + demo record types
 Xfty.Test/       - the xUnit test suite (Net.NowhereAtAll.Xfty.Test), mirroring Xfty/'s folders
-Xfty.NetStandardCompat.Test/    - proves the netstandard2.0-only compatibility polyfills actually run (net472 - see ci.md)
+Xfty.NetStandardCompat.Test/    - proves each package's netstandard2.0 (or, for Xfty.EntityFramework6, classic-Framework) build actually runs, not just compiles (net472 - see ci.md)
 Xfty.EntityFrameworkCore/       - optional: IPersistenceGateway via EF Core
 Xfty.EntityFrameworkCore.Test/  - proven against SQLite + a real Postgres container
+Xfty.EntityFramework6/          - optional: IPersistenceGateway via classic EF6 (System.Data.Entity), for a project not on EF Core
+Xfty.EntityFramework6.Test/     - proven against a real (file-backed) SQLite database
 Xfty.Bogus/                     - optional: realistic-value IValueExpressions wrapping Bogus
 Xfty.Bogus.Test/
 Xfty.VectorDatabases/           - optional: a random-vector IValueExpression
@@ -60,13 +62,14 @@ Read each package's own README before depending on either.
 
 ## Consuming XFTY
 
-`Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`, `Xfty.VectorDatabases`,
-`Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`, and `Xfty.FSharpAsync`
-are all published on nuget.org. Only `Xfty` is required; the other seven are
-independent, opt-in add-ons a project references only if it wants that
-specific convenience (EF Core persistence, Bogus-backed realistic values, a
-random-vector expression, the `[IsolatesSharedAncestor]` xUnit attribute,
-pairing with AutoFixture, pairing with AutoBogus, F#'s `Async<'T>`).
+`Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.EntityFramework6`, `Xfty.Bogus`,
+`Xfty.VectorDatabases`, `Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`,
+and `Xfty.FSharpAsync` are all published on nuget.org. Only `Xfty` is
+required; the other eight are independent, opt-in add-ons a project
+references only if it wants that specific convenience (EF Core persistence,
+classic EF6 persistence, Bogus-backed realistic values, a random-vector
+expression, the `[IsolatesSharedAncestor]` xUnit attribute, pairing with
+AutoFixture, pairing with AutoBogus, F#'s `Async<'T>`).
 
 ```bash
 dotnet add package Xfty
@@ -104,17 +107,17 @@ by default) — no separate listing step.
 
 ### Versioning: one number, lockstep, from the CHANGELOG
 
-The **eight mainline packages** (`Xfty`, `Xfty.EntityFrameworkCore`,
-`Xfty.Bogus`, `Xfty.VectorDatabases`, `Xfty.Xunit`, `Xfty.AutoFixture`,
-`Xfty.AutoBogus`, `Xfty.FSharpAsync`) share one version and always release
-together, even when a given package had no code change that cycle. This is
-the standard pattern for a package family from one repo (EF Core, the
-`Microsoft.Extensions.*` set, Roslyn's `Microsoft.CodeAnalysis.*`, xUnit) —
-nuget.org has no policy against it, and it spares consumers a
+The **nine mainline packages** (`Xfty`, `Xfty.EntityFrameworkCore`,
+`Xfty.EntityFramework6`, `Xfty.Bogus`, `Xfty.VectorDatabases`, `Xfty.Xunit`,
+`Xfty.AutoFixture`, `Xfty.AutoBogus`, `Xfty.FSharpAsync`) share one version
+and always release together, even when a given package had no code change
+that cycle. This is the standard pattern for a package family from one repo
+(EF Core, the `Microsoft.Extensions.*` set, Roslyn's `Microsoft.CodeAnalysis.*`,
+xUnit) — nuget.org has no policy against it, and it spares consumers a
 which-version-works-with-which compatibility matrix. The add-ons all depend
 on a specific `Xfty` version anyway.
 
-None of those eight carries a `<Version>` in its `.csproj` anymore — they
+None of those nine carries a `<Version>` in its `.csproj` anymore — they
 inherit `<Version>` from [`Directory.Build.props`](../../Directory.Build.props),
 which holds only the `0.0.0-dev` local-build fallback. **The real release
 version lives in exactly one place: the newest `## [x.y.z]` heading in
@@ -139,8 +142,8 @@ That's it. On the push to `master`, `publish.yml`:
 
 - reads `x.y.z` from that heading; if a `vx.y.z` tag already exists it stops
   here (so ordinary merges that don't cut a release are no-ops)
-- stamps `x.y.z` into `Directory.Build.props`, builds + tests, packs all ten
-  packages, and `dotnet nuget push --skip-duplicate`
+- stamps `x.y.z` into `Directory.Build.props`, builds + tests, packs all
+  eleven packages, and `dotnet nuget push --skip-duplicate`
 - tags the commit `vx.y.z` and opens a GitHub Release with that CHANGELOG
   section as the notes
 

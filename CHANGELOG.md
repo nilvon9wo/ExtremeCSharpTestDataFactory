@@ -12,6 +12,62 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+### Added
+
+- **`Xfty.EntityFramework6`** — the same `IPersistenceGateway` convenience as
+  `Xfty.EntityFrameworkCore` (`Ef6PersistenceGateway`), for a project on
+  classic Entity Framework 6 (`System.Data.Entity.DbContext`, the
+  `EntityFramework` NuGet package) rather than EF Core. The two `DbContext`
+  types are unrelated, so this is a separate package, not a variant of the
+  EF Core one. `net461;netstandard2.1` - EF6 itself ships no `netstandard2.0`
+  asset, so neither does this package; `netstandard2.1` covers everything
+  modern. The classic side isn't `net472` despite this repo's other net472
+  usage elsewhere - EF6 itself reaches back to `net40`/`net45`, but this
+  package's own `Xfty` dependency (`netstandard2.0`) can't be consumed below
+  .NET Framework 4.6.1 at all, which is the real wall here, not EF6's; net461
+  reaches every EF6 consumer this package *can* reach, one full Framework
+  generation lower than net472. Needed no source changes beyond EF6's own API
+  shape (`DbContext.Set(Type).Add(object)` instead of EF Core's
+  `DbContext.Add(object)` convenience overload, `SaveChangesAsync()` on
+  both) - proven against a real, file-backed SQLite database on both
+  `net10.0` (`Xfty.EntityFramework6.Test`, the `netstandard2.1` asset) and
+  a real net472 host (`Ef6SmokeTest`, `Xfty.NetStandardCompat.Test` -
+  net472 rather than net461 itself only because that's what's
+  already-installed-locally for this repo's own net472 proof venue; a
+  net461+ host resolves the same `net461` asset either way).
+
+### Changed
+
+- **Every package multi-targets now, matching core `Xfty`.** `Xfty.Bogus`,
+  `Xfty.AutoBogus`, `Xfty.AutoFixture`, `Xfty.Xunit`, `Xfty.VectorDatabases`,
+  `Xfty.VectorDatabases.Qdrant`, `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`,
+  and `Xfty.FSharpAsync` now build for `netstandard2.0;net8.0;net10.0` - the
+  same range core `Xfty` already did - instead of `net10.0` only. A
+  `netstandard2.0`-only consumer (.NET Framework 4.6.1+, older Mono/Xamarin,
+  or a project mid-upgrade using XFTY to make that upgrade safer) could
+  previously depend on `Xfty` itself but none of its add-ons; now it can
+  depend on any of them. `Xfty.EntityFrameworkCore` reaches `netstandard2.0`
+  too, riding EF Core 3.1.x for that build (9.x for `net8.0`, 10.x for
+  `net10.0` - EF Core ships no single line spanning all three); 3.1.x is long
+  past its own end of support, but `DbContext.Add`/`SaveChangesAsync` - the
+  entire surface `EfPersistenceGateway` uses - has been stable since EF
+  Core's first release, so this needed no source changes, and it's proven
+  against a real SQLite database on net472, not just compiled. Offering a
+  TFM is a statement about what a consumer can target, not a commitment to
+  backport fixes for defects specific to that old a runtime or dependency.
+
+### Fixed
+
+- **`UniqueAcrossRunsExpression`'s per-run token no longer has a real,
+  nonzero collision window.** It previously mixed a Unix-millisecond
+  timestamp truncated to 9 digits (which wraps every ~11.6 days) with 5
+  decimal digits of `System.Random` output (under 17 bits of actual
+  entropy) - two per-run tokens *could* collide, which is a much worse
+  failure mode for something named "unique" than almost anything else it
+  could get wrong. The token is now 16 hex characters sliced from a single
+  `Guid.NewGuid()` call - the same collision-resistant primitive a real
+  Guid's own uniqueness already rests on. No public API change.
+
 ## [1.0.0-beta.11] – 2026-09-10
 
 > **Theme: beta code-quality pass.** Naming is standard modern C# throughout

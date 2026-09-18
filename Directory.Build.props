@@ -27,10 +27,11 @@
 
   <!--
     Single source of truth for the version of every mainline (non-preview)
-    publishable package - `Xfty`, `Xfty.EntityFrameworkCore`, `Xfty.Bogus`,
-    `Xfty.VectorDatabases`, `Xfty.Xunit`, `Xfty.AutoFixture`, `Xfty.AutoBogus`,
-    `Xfty.FSharpAsync`. They no longer carry their own <Version>; they inherit
-    this one, so they stay in lockstep automatically.
+    publishable package - `Xfty`, `Xfty.EntityFrameworkCore`,
+    `Xfty.EntityFramework6`, `Xfty.Bogus`, `Xfty.VectorDatabases`, `Xfty.Xunit`,
+    `Xfty.AutoFixture`, `Xfty.AutoBogus`, `Xfty.FSharpAsync`. They no longer
+    carry their own <Version>; they inherit this one, so they stay in
+    lockstep automatically.
 
     `0.0.0-dev` is only the LOCAL-build fallback (a `dotnet pack` on a dev
     machine produces `*.0.0.0-dev.nupkg`, obviously not a release). The real

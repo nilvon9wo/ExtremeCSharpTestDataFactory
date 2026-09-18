@@ -3,7 +3,9 @@
 Status: **done.** `IPersistenceGateway` (`Xfty.Persistence`) is the seam every
 insert path runs through; `Xfty.EntityFrameworkCore` ships a real
 implementation, proven against SQLite and (when Docker is available) a real
-Postgres container in `Xfty.EntityFrameworkCore.Test`.
+Postgres container in `Xfty.EntityFrameworkCore.Test`. `Xfty.EntityFramework6`
+ships the same convenience for classic EF6, proven against SQLite in
+`Xfty.EntityFramework6.Test`.
 
 Two related ways to move persistence out of the per-Provider recursion:
 
@@ -43,8 +45,10 @@ Neither required rewriting `RecordFactory` — both are a structural build
   depth-batched path; with any other mode, or no gateway, it is a no-op.
 
 See `Xfty.Test/Persistence/PersistenceGatewayTest.cs` for the proof against a
-mock gateway, and `Xfty.EntityFrameworkCore.Test/SqliteNowPersistenceTest.cs`
-/ `PostgresNowPersistenceTest.cs` for the real-database proof.
+mock gateway, `Xfty.EntityFrameworkCore.Test/SqliteNowPersistenceTest.cs` /
+`PostgresNowPersistenceTest.cs` for the EF Core real-database proof, and
+`Xfty.EntityFramework6.Test/SqliteNowPersistenceTest.cs` for the same against
+classic EF6.
 
 ---
 

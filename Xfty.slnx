@@ -15,6 +15,8 @@
   <Project Path="Xfty.AutoFixture/Xfty.AutoFixture.csproj" />
   <Project Path="Xfty.Bogus.Test/Xfty.Bogus.Test.csproj" />
   <Project Path="Xfty.Bogus/Xfty.Bogus.csproj" />
+  <Project Path="Xfty.EntityFramework6.Test/Xfty.EntityFramework6.Test.csproj" />
+  <Project Path="Xfty.EntityFramework6/Xfty.EntityFramework6.csproj" />
   <Project Path="Xfty.EntityFrameworkCore.Test/Xfty.EntityFrameworkCore.Test.csproj" />
   <Project Path="Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj" />
   <Project Path="Xfty.FSharpAsync.Test/Xfty.FSharpAsync.Test.fsproj" />
