@@ -125,5 +125,10 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
     }
 
     private static Dictionary<string, object?> ToRow(object record, Type recordType) =>
-        recordType.GetProperties().ToDictionary(property => property.Name, property => property.GetValue(record));
+        // Explicit type arguments, not inferred: netstandard2.0's reference assemblies predate
+        // nullable annotations, so PropertyInfo.GetValue's return type comes through unannotated
+        // there and inference alone lands on Dictionary<string, object> - a mismatch against this
+        // method's declared Dictionary<string, object?> return type on that TFM only.
+        recordType.GetProperties()
+            .ToDictionary<PropertyInfo, string, object?>(property => property.Name, property => property.GetValue(record));
 }

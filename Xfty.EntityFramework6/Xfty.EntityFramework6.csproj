@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    net461;netstandard2.1 - not the netstandard2.0;net8.0;net10.0 triple every
+    other package here uses. EF6 (the `EntityFramework` NuGet package) ships
+    no netstandard2.0 asset at all: `net40`/`net45` for classic .NET
+    Framework directly (net45 chosen here, not net40 - see below), and
+    `netstandard2.1` for everything modern (net5.0+, netcoreapp3.0+) - .NET
+    Framework can't implement netstandard2.1 at all, which is exactly why EF6
+    ships separate classic-Framework assets instead of just
+    netstandard2.0/2.1 alone.
+
+    The real floor here isn't EF6's own net40/net45 assets, though - it's
+    this package's own ProjectReference to `Xfty` (netstandard2.0), which
+    .NET Framework can't consume below 4.6.1 at all (the netstandard2.0
+    compatibility table's own stated minimum) - one full .NET Framework
+    generation above EF6's net45 asset. net461 is that actual wall, so it's
+    the floor targeted here, not net45 or net40 (EF6 could reach either, this
+    package can't, regardless); it also matches the rest of this solution's
+    own stated floor ("reaching .NET Framework 4.6.1+" - see
+    docs/roadmap/README.md). A net461+ consumer resolves to EF6's own net45
+    asset automatically (NuGet's normal nearest-compatible-or-older rule
+    within the .NET Framework family) - nothing to configure for that here.
+  -->
+  <PropertyGroup>
+    <TargetFrameworks>net461;netstandard2.1</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Net.NowhereAtAll.Xfty.EntityFramework6</RootNamespace>
+    <AssemblyName>Net.NowhereAtAll.Xfty.EntityFramework6</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Xfty.EntityFramework6</PackageId>
+    <Authors>Brian Kessler</Authors>
+    <Description>An IPersistenceGateway implementation for XFTY that inserts generated records through classic Entity Framework 6 (System.Data.Entity.DbContext), for a project still on EF6 rather than EF Core - see Xfty.EntityFrameworkCore for the EF Core equivalent.</Description>
+    <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;entity-framework;ef6</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EntityFramework" Version="6.5.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Xfty\Xfty.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

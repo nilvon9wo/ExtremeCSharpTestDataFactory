@@ -12,14 +12,19 @@ using Net.NowhereAtAll.Xfty.Values;
 namespace Net.NowhereAtAll.Xfty.NetStandardCompat.Test;
 
 /// <summary>
-/// Proves the three netstandard2.0-only compatibility polyfills in
-/// Xfty/Internal/NetStandardCompat.cs (GetValueOrDefault, ToHashSet,
-/// SharedRandom) actually run correctly under a real down-level runtime -
-/// not just compile. netstandard2.0 isn't itself runnable (a contract, not a
-/// platform), so net472 - the one real, already-installed-locally runtime
-/// that implements it - is what actually executes them here, through public
-/// XFTY behavior that happens to depend on each one, rather than reaching
-/// into the internal polyfill types directly.
+/// Proves netstandard2.0-only branches of core Xfty actually run correctly
+/// under a real down-level runtime, not just compile: the
+/// GetValueOrDefault/ToHashSet polyfills in
+/// Xfty/Internal/CollectionCompatExtensions.cs, and BlankInstances.Of's
+/// FormatterServices.GetUninitializedObject fallback. netstandard2.0 isn't
+/// itself runnable (a contract, not a platform), so net472 - the one real,
+/// already-installed-locally runtime that implements it - is what actually
+/// executes them here, through public XFTY behavior that happens to depend
+/// on each one, rather than reaching into the internal polyfill types
+/// directly. Xfty/Internal/SharedRandom.cs is proven separately, in
+/// VectorDatabasesSmokeTest - nothing in core Xfty itself calls it any more
+/// (see UniqueAcrossRunsExpression's own docstring for why it moved off
+/// SharedRandom entirely).
 /// </summary>
 public class SmokeTest
 {
@@ -41,23 +46,6 @@ public class SmokeTest
         Assert.Equal("AAA", first);
         Assert.Equal("BAA", second);
         Assert.Equal("CAA", third);
-    }
-
-    // UniqueAcrossRunsExpression.Get() -> SharedRandom.Instance ---------------
-
-    [Fact]
-    public void UniqueAcrossRunsExpression_ProducesANonEmptyToken()
-    {
-        // Arrange
-        UniqueAcrossRunsExpression expression = new("prefix-", "-suffix");
-
-        // Act
-        object result = expression.Get();
-
-        // Assert - SharedRandom.Instance.Next() ran without throwing and fed a real value into the token
-        string text = Assert.IsType<string>(result);
-        Assert.StartsWith("prefix-", text);
-        Assert.EndsWith("-suffix", text);
     }
 
     // DefaultProviderLookup.KeysFor(...) -> IEnumerable<T>.ToHashSet() -------

@@ -35,8 +35,16 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus;
 /// </summary>
 public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFiller
 {
+    // Type.GetMethod(string, int, Type[]) - the direct way to select this one overload by
+    // generic arity - isn't available on netstandard2.0, so this filters GetMethods() by hand
+    // instead; the same selection, just spelled portably across every TFM this package targets.
     private static readonly MethodInfo GenerateOfT = typeof(IAutoFaker)
-        .GetMethod(nameof(IAutoFaker.Generate), 1, [typeof(Action<IAutoGenerateConfigBuilder>)])!;
+        .GetMethods()
+        .Single(method =>
+            method.Name == nameof(IAutoFaker.Generate)
+            && method.IsGenericMethodDefinition
+            && method.GetGenericArguments().Length == 1
+            && HasSoleParameterOfType(method, typeof(Action<IAutoGenerateConfigBuilder>)));
 
     private static readonly Action<IAutoGenerateConfigBuilder> NoConfiguration = static _ => { };
 
@@ -70,5 +78,11 @@ public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFil
         }
 
         return method.Invoke(faker, [NoConfiguration]);
+    }
+
+    private static bool HasSoleParameterOfType(MethodInfo method, Type parameterType)
+    {
+        ParameterInfo[] parameters = method.GetParameters();
+        return parameters.Length == 1 && parameters[0].ParameterType == parameterType;
     }
 }

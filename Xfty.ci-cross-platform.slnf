@@ -7,6 +7,8 @@
       "Xfty/Xfty.csproj",
       "Xfty.EntityFrameworkCore/Xfty.EntityFrameworkCore.csproj",
       "Xfty.EntityFrameworkCore.Test/Xfty.EntityFrameworkCore.Test.csproj",
+      "Xfty.EntityFramework6/Xfty.EntityFramework6.csproj",
+      "Xfty.EntityFramework6.Test/Xfty.EntityFramework6.Test.csproj",
       "Xfty.Bogus/Xfty.Bogus.csproj",
       "Xfty.Bogus.Test/Xfty.Bogus.Test.csproj",
       "Xfty.VectorDatabases/Xfty.VectorDatabases.csproj",

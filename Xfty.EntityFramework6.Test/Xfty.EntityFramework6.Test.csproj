@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Net.NowhereAtAll.Xfty.EntityFramework6.Test</RootNamespace>
+    <AssemblyName>Net.NowhereAtAll.Xfty.EntityFramework6.Test</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Data.SQLite.EF6" Version="2.0.3" />
+    <!-- System.Data.SQLite.dll P/Invokes a raw "e_sqlite3" native library internally
+         (it shares that native build with the SQLitePCLRaw ecosystem) but does not
+         itself pull in a bundle that provides it - without this, every SQLiteConnection
+         fails at the native sqlite3_config call. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Xfty\Xfty.csproj" />
+    <ProjectReference Include="..\Xfty.EntityFramework6\Xfty.EntityFramework6.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

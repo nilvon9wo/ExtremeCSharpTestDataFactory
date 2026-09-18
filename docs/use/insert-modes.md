@@ -10,7 +10,8 @@ controls how much of the graph is generated. The two are independent.
 
 > `InsertMode.Now` inserts every generated record for real, through an
 > `IPersistenceGateway` you supply with `.SetPersistenceGateway(...)`
-> (`Xfty.EntityFrameworkCore` ships one backed by EF Core - see
+> (`Xfty.EntityFrameworkCore` ships one backed by EF Core, `Xfty.EntityFramework6`
+> the same for classic EF6 - see
 > [PersistenceGatewayTest](../../Xfty.Test/Persistence/PersistenceGatewayTest.cs)
 > for the proof, including a real SQLite/Postgres round trip). With no gateway
 > configured, `Now` throws `NotSupportedException` rather than silently

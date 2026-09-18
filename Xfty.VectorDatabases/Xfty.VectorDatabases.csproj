@@ -1,12 +1,37 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Net.NowhereAtAll.Xfty.VectorDatabases</RootNamespace>
     <AssemblyName>Net.NowhereAtAll.Xfty.VectorDatabases</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Links (not copies) Xfty's own Internal/SharedRandom.cs - the one
+      netstandard2.0-gap shim this package also needs (Random.Shared, .NET
+      6+ only). This package is a separate assembly from Xfty, so it can't
+      reach Xfty's own internal type at the IL level; compiling the same
+      physical source file again into this assembly is the actual fix - see
+      that file's own docstring. Unconditional (not netstandard2.0-only),
+      matching how the file is already built inside Xfty itself: the #if
+      lives inside the file, picking Random.Shared directly on net8.0/net10.0
+      and the ThreadStatic-backed fallback on netstandard2.0 - not in this
+      csproj, so there's exactly one place that decision is made.
+    -->
+    <Compile Include="..\Xfty\Internal\SharedRandom.cs" Link="Internal\SharedRandom.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Makes SharedRandom visible project-wide without a per-file `using` -
+      harmless on net8.0/net10.0, where the polyfill branch inside it doesn't
+      exist at all (guarded out by #if), so there's nothing to collide with.
+    -->
+    <Using Include="Net.NowhereAtAll.Xfty.Internal" />
+  </ItemGroup>
 
   <PropertyGroup>
     <PackageId>Xfty.VectorDatabases</PackageId>
