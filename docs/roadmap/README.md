@@ -49,6 +49,7 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 | Idea | Status | Detail |
 |------|--------|--------|
 | Embedded/denormalized document relationships (a document database's native nested-array shape, distinct from the FK-reference relationships XFTY models today) | 💡 | [embedded-documents.md](embedded-documents.md) |
+| A `netstandard1.x` floor for core `Xfty` (lower than today's `netstandard2.0`) | 💡 | [netstandard1x-support.md](netstandard1x-support.md) - scoped and measured (~16 call sites, a day or two), but the remaining addressable platforms (Windows Phone 8.1-era) are effectively extinct and nothing has asked for it - not worth building against zero known demand. |
 
 ---
 
