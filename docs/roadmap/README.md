@@ -50,6 +50,7 @@ Apex original · ❌ not ported (see [reference/known-issues](../reference/known
 |------|--------|--------|
 | Embedded/denormalized document relationships (a document database's native nested-array shape, distinct from the FK-reference relationships XFTY models today) | 💡 | [embedded-documents.md](embedded-documents.md) |
 | A `netstandard1.x` floor for core `Xfty` (lower than today's `netstandard2.0`) | 💡 | [netstandard1x-support.md](netstandard1x-support.md) - scoped and measured (~16 call sites, a day or two), but the remaining addressable platforms (Windows Phone 8.1-era) are effectively extinct and nothing has asked for it - not worth building against zero known demand. |
+| A persistence gateway for pre-Code-First EF (`ObjectContext`, EF 1.0-4.0) | 💡 | [ef-objectcontext-support.md](ef-objectcontext-support.md) - a genuinely different API (no `Type`-keyed entity access, no async at all - predates C# 5), not a variant of `Xfty.EntityFramework6`; a narrower, even-less-asked-for audience than the netstandard1.x idea above. EF 4.1-5.0 isn't a gap at all - `Xfty.EntityFramework6` already reaches it via ordinary NuGet version resolution. |
 
 ---
 
