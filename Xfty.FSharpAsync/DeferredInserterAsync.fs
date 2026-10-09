@@ -15,7 +15,7 @@ module DeferredInserterAsync =
     /// gateway configured (throwing, same as the C# default parameter would),
     /// <c>Some gateway</c> flushes through it.
     /// </summary>
-    let flush (gateway: IPersistenceGateway option) : Async<unit> =
+    let flush (gateway: IPersisting option) : Async<unit> =
         (match gateway with
          | Some g -> DeferredInserter.Flush(g)
          | None -> DeferredInserter.Flush())

@@ -33,7 +33,7 @@
   <PropertyGroup>
     <PackageId>Xfty.EntityFramework6</PackageId>
     <Authors>Brian Kessler</Authors>
-    <Description>An IPersistenceGateway implementation for XFTY that inserts generated records through classic Entity Framework 6 (System.Data.Entity.DbContext), for a project still on EF6 rather than EF Core - see Xfty.EntityFrameworkCore for the EF Core equivalent.</Description>
+    <Description>An IPersisting implementation for XFTY that inserts generated records through classic Entity Framework 6 (System.Data.Entity.DbContext), for a project still on EF6 rather than EF Core - see Xfty.EntityFrameworkCore for the EF Core equivalent.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;entity-framework;ef6</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory</PackageProjectUrl>

@@ -6,16 +6,16 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
 public sealed partial class RecordProvider
 {
-    public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression valueTemplate) =>
+    public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueYielding valueTemplate) =>
         this.Put(Field.Of(field), valueTemplate);
 
     public RecordProvider Put<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IContextAwareExpression contextAwareExpression
+        IContextAware contextAwareExpression
     ) =>
         this.Put(Field.Of(field), contextAwareExpression);
 
-    public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IDeferredExpression deferredValue) =>
+    public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IDeferred deferredValue) =>
         this.Put(Field.Of(field), deferredValue);
 
     public RecordProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, object? value) =>
@@ -23,13 +23,13 @@ public sealed partial class RecordProvider
 
     public RecordProvider PutRequired<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationshipTemplate
+        IRelatable relationshipTemplate
     ) =>
         this.PutRequired(Field.Of(field), relationshipTemplate);
 
     public RecordProvider PutOptional<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationshipTemplate
+        IRelatable relationshipTemplate
     ) =>
         this.PutOptional(Field.Of(field), relationshipTemplate);
 

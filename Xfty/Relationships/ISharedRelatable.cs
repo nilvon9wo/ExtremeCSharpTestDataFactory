@@ -10,7 +10,7 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 /// The factory branches on this interface: instead of generating one parent
 /// per child it resolves the shared record once and points every child at it.
 /// </summary>
-public interface ISharedRelationship : IDefaultRelationship
+public interface ISharedRelatable : IRelatable
 {
     /// <summary>The name this shared record is interned under.</summary>
     string SharedName { get; }

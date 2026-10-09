@@ -8,10 +8,10 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// Wires a shared ancestor into a bundle: one record stands in for every child at its field, resolved once per test,
 /// then repeated quantity times.
 /// </summary>
-public sealed class SharedRelationshipWiring(GenerationContext context, ISharedRelationship shared)
+public sealed class SharedRelationshipWiring(GenerationContext context, ISharedRelatable shared)
 {
     private readonly GenerationContext _context = context;
-    private readonly ISharedRelationship _shared = shared;
+    private readonly ISharedRelatable _shared = shared;
 
     public async Task Wire(Bundle bundle, PropertyInfo field, int quantity)
     {

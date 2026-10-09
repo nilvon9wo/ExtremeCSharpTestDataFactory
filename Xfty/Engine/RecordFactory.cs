@@ -108,7 +108,7 @@ public sealed class RecordFactory
 
     private Task MockIds(List<object> records)
     {
-        IMockIdGenerator generator = this._template.MockIdGenerator ?? DefaultMockIdGenerator.Instance;
+        IMockIdGenerating generator = this._template.MockIdGenerator ?? DefaultMockIdGenerator.Instance;
         PropertyInfo idField = this._template.PrimaryTargetField;
         List<object> needingIds = [.. records.Where(record => FieldState.IsUnset(idField, record))];
         _ = IdMocker.AddIds(needingIds, idField, generator);

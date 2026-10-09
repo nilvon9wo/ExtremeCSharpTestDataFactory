@@ -27,7 +27,7 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 /// identity and the flyweight registry; the other partials are named for the
 /// surface they carry.
 /// </summary>
-public sealed partial class SharedAncestor : ISharedRelationship
+public sealed partial class SharedAncestor : ISharedRelatable
 {
     private static readonly ConcurrentDictionary<string, SharedAncestor> ByName = new();
     private static readonly ConcurrentDictionary<string, byte> Disabled = new();
@@ -41,7 +41,7 @@ public sealed partial class SharedAncestor : ISharedRelationship
     private object? _resolvedRecord;
     private Bundle? _resolvedBundle;
     private PropertyInfo? _resolvedPrimaryField;
-    private Persistence.IMockIdGenerator? _resolvedMockIdGenerator;
+    private Persistence.IMockIdGenerating? _resolvedMockIdGenerator;
     public bool IsResolvedRecordPersisted { get; private set; }
 
     private SharedAncestor(string name) => this.SharedName = name;

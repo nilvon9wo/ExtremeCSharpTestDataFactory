@@ -4,7 +4,7 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Core.PathValues;
 
-public record ValueExpressionPathTarget(IValueExpression Expression) : IPathTargetValue
+public record ValueExpressionPathTarget(IValueYielding Expression) : IPathApplicable
 {
     public bool IsRelationship()
         => false;

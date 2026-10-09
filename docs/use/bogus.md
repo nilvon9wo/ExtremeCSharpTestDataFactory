@@ -1,7 +1,7 @@
 # Realistic Fake Data with Bogus
 
 `Xfty.Bogus` is a separate, opt-in package - core `Xfty` has no built-in
-realistic-data generation, and never will. Four `IValueExpression`s backed by
+realistic-data generation, and never will. Four `IValueYielding`s backed by
 [Bogus](https://github.com/bchavez/Bogus), for a field that needs to *look*
 like real data rather than merely be present.
 
@@ -36,7 +36,7 @@ interfere with each other.
 
 See also: [reference/comparison.md](../reference/comparison.md) - why
 realistic fake data lives in this separate package instead of core `Xfty`;
-[value-expressions](value-expressions.md) - how `IValueExpression` and a
+[value-expressions](value-expressions.md) - how `IValueYielding` and a
 Master Template fit together generally.
 
 Runnable: `BogusReadmeExampleTest`

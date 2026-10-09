@@ -7,7 +7,7 @@ directories, no namespace.
 Xfty.slnx
 Xfty/            - the library (Net.NowhereAtAll.Xfty)
   Core/          - the public types, grouped by concern into subfolders:
-    RecordProviders/  - RecordProvider, RecordProvider<TRecord>, IRecordProvider
+    RecordProviders/  - RecordProvider, RecordProvider<TRecord>, IRecordProviding
     MasterTemplates/  - MasterTemplate, MasterTemplate<TRecord>
     Children/         - ChildProvider, ChildProvider<TChild>
     Bundles/          - Bundle
@@ -17,21 +17,21 @@ Xfty/            - the library (Net.NowhereAtAll.Xfty)
   Values/        - the bundled value expressions
   Relationships/ - DefaultRelationship, SharedAncestor
   Lookup/        - LookupKey, FlavouredLookupKey, ProviderLookups
-  Predicates/    - the reusable IRecordPredicate conditions
+  Predicates/    - the reusable IRecordMatching conditions
   Demo/          - this port's own bundled Account/Contact Providers + demo record types
 Xfty.Test/       - the xUnit test suite (Net.NowhereAtAll.Xfty.Test), mirroring Xfty/'s folders
 Xfty.NetStandardCompat.Test/    - proves each package's netstandard2.0 (or, for Xfty.EntityFramework6, classic-Framework) build actually runs, not just compiles (net472 - see ci.md)
-Xfty.EntityFrameworkCore/       - optional: IPersistenceGateway via EF Core
+Xfty.EntityFrameworkCore/       - optional: IPersisting via EF Core
 Xfty.EntityFrameworkCore.Test/  - proven against SQLite + a real Postgres container
-Xfty.EntityFramework6/          - optional: IPersistenceGateway via classic EF6 (System.Data.Entity), for a project not on EF Core
+Xfty.EntityFramework6/          - optional: IPersisting via classic EF6 (System.Data.Entity), for a project not on EF Core
 Xfty.EntityFramework6.Test/     - proven against a real (file-backed) SQLite database
 Xfty.Bogus/                     - optional: realistic-value IValueExpressions wrapping Bogus
 Xfty.Bogus.Test/
-Xfty.VectorDatabases/           - optional: a random-vector IValueExpression
+Xfty.VectorDatabases/           - optional: a random-vector IValueYielding
 Xfty.VectorDatabases.Test/
-Xfty.VectorDatabases.Qdrant/      - PREVIEW: a Qdrant IPersistenceGateway via Qdrant's own client - see its own README first
+Xfty.VectorDatabases.Qdrant/      - PREVIEW: a Qdrant IPersisting via Qdrant's own client - see its own README first
 Xfty.VectorDatabases.Qdrant.Test/
-Xfty.VectorDatabases.MicrosoftExtensionsVectorData/      - PREVIEW: a generic IPersistenceGateway for any Microsoft.Extensions.VectorData connector
+Xfty.VectorDatabases.MicrosoftExtensionsVectorData/      - PREVIEW: a generic IPersisting for any Microsoft.Extensions.VectorData connector
 Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test/
 Xfty.Xunit/                     - optional: [IsolatesSharedAncestor] xUnit attribute
 Xfty.Xunit.Test/

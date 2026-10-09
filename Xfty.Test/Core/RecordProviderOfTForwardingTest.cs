@@ -344,8 +344,8 @@ public class RecordProviderOfTForwardingTest : IDisposable
     public async Task WithVariant_PinsTheProviderVariant()
     {
         // Arrange
-        ILookupKey enterprise = FlavouredLookupKey.Get<Account>("enterprise");
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IRecordIdentifying enterprise = FlavouredLookupKey.Get<Account>("enterprise");
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new NamedIndustryAccountProvider("Default"),
             [enterprise] = new NamedIndustryAccountProvider("Enterprise"),
@@ -380,7 +380,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
     public async Task SetPersistenceGateway_RoutesInsertsThroughTheGivenGateway()
     {
         // Arrange - NSubstitute returns a completed Task for Insert(...) by default
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
             .SetInsertMode(InsertMode.Now)
             .SetPersistenceGateway(gateway);
@@ -396,7 +396,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
     public async Task SetUnsetFieldFiller_RunsTheGivenFillerOverEachGeneratedRecord()
     {
         // Arrange
-        IUnsetFieldFiller filler = Substitute.For<IUnsetFieldFiller>();
+        IUnsetFieldFilling filler = Substitute.For<IUnsetFieldFilling>();
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
             .SetUnsetFieldFiller(filler)
             .SetInsertMode(InsertMode.Mock);
@@ -462,23 +462,23 @@ public class RecordProviderOfTForwardingTest : IDisposable
 
     // Helpers --------------------------------------------------------
 
-    private static IProviderLookup OwnerAwareLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating OwnerAwareLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
             [LookupKey.Get<User>()] = new PlainUserProvider(),
         });
 
-    private static IProviderLookup DepartmentChildLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating DepartmentChildLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new DepartmentedContactProvider(),
         });
 }
 
-file abstract class TemplateProvider : IRecordProvider
+file abstract class TemplateProvider : IRecordProviding
 {
     protected MasterTemplate Template { get; init; } = null!;
 
@@ -517,7 +517,7 @@ file sealed class NamedIndustryAccountProvider : TemplateProvider
         };
 }
 
-file sealed class PrefixedIdGenerator(string prefix) : IMockIdGenerator
+file sealed class PrefixedIdGenerator(string prefix) : IMockIdGenerating
 {
     private int _count;
 

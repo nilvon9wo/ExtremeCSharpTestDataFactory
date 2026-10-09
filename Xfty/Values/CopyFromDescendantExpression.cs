@@ -25,7 +25,7 @@ namespace Net.NowhereAtAll.Xfty.Values;
 /// Needs the DEFERRED insert mode - a descendant must exist before it can be
 /// read - and resolves when the deferred flush runs.
 /// </summary>
-public sealed class CopyFromDescendantExpression : IDeferredExpression
+public sealed class CopyFromDescendantExpression : IDeferred
 {
     // path = [hop1, hop2, ..., hopK, sourceField] - K >= 1 child-lookup hops then the field to read.
     private readonly List<PropertyInfo> _path;

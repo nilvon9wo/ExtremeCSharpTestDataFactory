@@ -43,7 +43,7 @@ public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> p
 
     public MasterTemplate<TRecord> PutRequired(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationship
+        IRelatable relationship
     )
     {
         _ = this._inner.PutRequired(Field.Of(field), relationship);
@@ -52,7 +52,7 @@ public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> p
 
     public MasterTemplate<TRecord> PutOptional(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationship
+        IRelatable relationship
     )
     {
         _ = this._inner.PutOptional(Field.Of(field), relationship);
@@ -60,7 +60,7 @@ public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> p
     }
 
     /// <summary>Set this record type's placeholder-Id generator for <see cref="InsertMode.Mock"/>.</summary>
-    public MasterTemplate<TRecord> WithMockIdGenerator(IMockIdGenerator generator)
+    public MasterTemplate<TRecord> WithMockIdGenerator(IMockIdGenerating generator)
     {
         _ = this._inner.WithMockIdGenerator(generator);
         return this;

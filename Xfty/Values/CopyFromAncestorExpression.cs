@@ -20,7 +20,7 @@ namespace Net.NowhereAtAll.Xfty.Values;
 /// relationship was not generated (e.g. an optional one skipped by the
 /// current inclusivity).
 /// </summary>
-public sealed class CopyFromAncestorExpression : IContextAwareExpression
+public sealed class CopyFromAncestorExpression : IContextAware
 {
     // path = [hop1, hop2, ..., hopK, sourceField] - K >= 1 relationship hops then the field to read.
     private readonly List<PropertyInfo> _path;

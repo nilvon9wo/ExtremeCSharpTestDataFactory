@@ -11,25 +11,25 @@ namespace Net.NowhereAtAll.Xfty.Demo;
 /// entries for your own Providers, and pass your class to
 /// <c>new RecordProvider(type, new MyProjectLookup())</c>.
 /// </summary>
-public sealed class DefaultProviderLookup : IProviderLookup
+public sealed class DefaultProviderLookup : IProviderLocating
 {
-    private static readonly Dictionary<ILookupKey, Type> ProviderTypeByKey = new()
+    private static readonly Dictionary<IRecordIdentifying, Type> ProviderTypeByKey = new()
     {
         [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
         [LookupKey.Get<Contact>()] = typeof(ContactDataProvider),
     };
 
-    private readonly Dictionary<ILookupKey, IRecordProvider> _instanceCache = [];
+    private readonly Dictionary<IRecordIdentifying, IRecordProviding> _instanceCache = [];
 
-    public IRecordProvider Get(Type recordType) => this.Get(LookupKey.Get(recordType));
+    public IRecordProviding Get(Type recordType) => this.Get(LookupKey.Get(recordType));
 
-    public IRecordProvider Get(ILookupKey lookupKey) =>
+    public IRecordProviding Get(IRecordIdentifying lookupKey) =>
         ProviderLookups.Get(
             ProviderTypeByKey,
             this._instanceCache,
             lookupKey
         );
 
-    public ISet<ILookupKey> KeysFor(object? record) =>
+    public ISet<IRecordIdentifying> KeysFor(object? record) =>
         ProviderLookups.KeysFor(ProviderTypeByKey.Keys.ToHashSet(), record);
 }

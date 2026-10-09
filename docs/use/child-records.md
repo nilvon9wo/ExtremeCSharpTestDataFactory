@@ -36,7 +36,7 @@ ChildProvider.For<Contact>(x => x.AccountId, new Contact { Department = "Buyer" 
 | `.PutRequired(field, relationship)` / `.PutOptional(field, relationship)` | the child's own relationships |
 | `.SetInsertMode(InsertMode)` | default: the parent Provider's. **Cannot mix mock Ids with real DML** either way (`Now`+`Mock` or `Mock`+`Now` throws); ignored under `Deferred`. |
 | `.SetInclusivity(InsertInclusivity)` | default: the parent Provider's. Governs the child's **own other** relationships only. |
-| `.WithVariant(ILookupKey)` | pin the child Provider variant |
+| `.WithVariant(IRecordIdentifying)` | pin the child Provider variant |
 | `.With(ChildProvider)` | nest grandchildren (below) |
 
 > There is no runtime metadata for "what type does this foreign-key-shaped
@@ -127,7 +127,7 @@ level unless a child overrides them.
 
 | Parent mode | Children |
 |---|---|
-| `Now` | inserted through the configured `IPersistenceGateway`; throws if none is configured (see [insert-modes](insert-modes.md)). |
+| `Now` | inserted through the configured `IPersisting`; throws if none is configured (see [insert-modes](insert-modes.md)). |
 | `Mock` | everything gets mock Ids; FKs wired |
 | `Never` | nothing persisted; children have a `null` back-reference (no primary Id to point at) — a child can still `SetInsertMode(Mock)` to get its own Ids |
 | `Later` | identical to `Never` — the children are generated, nothing is persisted, the back-reference is `null` |

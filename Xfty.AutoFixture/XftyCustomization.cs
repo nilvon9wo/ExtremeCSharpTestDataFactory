@@ -31,7 +31,7 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture;
 /// surprising anyone used to AutoFixture always producing a complete object.
 /// </summary>
 public sealed class XftyCustomization(
-    IProviderLookup lookup,
+    IProviderLocating lookup,
     InsertMode insertMode = InsertMode.Mock,
     InsertInclusivity inclusivity = InsertInclusivity.Required
 ) : ICustomization

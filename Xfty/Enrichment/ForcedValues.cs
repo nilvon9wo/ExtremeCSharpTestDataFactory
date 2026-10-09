@@ -12,7 +12,7 @@ namespace Net.NowhereAtAll.Xfty.Enrichment;
 /// recursion; just value placement.
 ///
 /// Each value may be a literal (every record at the position gets it), a
-/// List&lt;object&gt; (one per record, in position order), or an IValueExpression
+/// List&lt;object&gt; (one per record, in position order), or an IValueYielding
 /// (resolved fresh per record - so an incrementing expression gives each child
 /// a distinct value).
 ///
@@ -100,10 +100,10 @@ public sealed class ForcedValues(InjectConfig config)
         _ = value switch
         {
             List<object?> perRow => injector.ValuePerRow(field, perRow),
-            IValueExpression expression => injector.ValuePerRow(field, ResolvedPerRow(expression, rowCount)),
+            IValueYielding expression => injector.ValuePerRow(field, ResolvedPerRow(expression, rowCount)),
             _ => injector.Value(field, value),
         };
 
-    private static List<object?> ResolvedPerRow(IValueExpression expression, int rowCount) =>
+    private static List<object?> ResolvedPerRow(IValueYielding expression, int rowCount) =>
         [.. Enumerable.Range(0, rowCount).Select(_ => expression.Get())];
 }

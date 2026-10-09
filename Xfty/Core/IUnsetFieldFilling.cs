@@ -11,7 +11,7 @@ namespace Net.NowhereAtAll.Xfty.Core;
 ///
 /// Runs once per generated record, after every other value/relationship
 /// pass has completed but before <see cref="InsertMode.Now"/> hands the
-/// record to <see cref="Persistence.IPersistenceGateway"/> - late enough
+/// record to <see cref="Persistence.IPersisting"/> - late enough
 /// that a filler never fights XFTY for a field XFTY actually cares about,
 /// early enough that a real database's NOT NULL columns still see a value.
 ///
@@ -19,7 +19,7 @@ namespace Net.NowhereAtAll.Xfty.Core;
 /// this interface has no dependency on AutoFixture (or anything else) so
 /// the base package never needs one.
 /// </summary>
-public interface IUnsetFieldFiller
+public interface IUnsetFieldFilling
 {
     /// <summary>
     /// Fill in as many of unsetFields on record as this filler can/wants to

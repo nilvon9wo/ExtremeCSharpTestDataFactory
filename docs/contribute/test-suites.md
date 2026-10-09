@@ -16,8 +16,8 @@ covered in Apex: run everything, run one class, run one namespace.
 | `Relationships/` | `DefaultRelationship`, `SharedAncestor`, `SharedAncestorHierarchy`. |
 | `Lookup/` | `LookupKey`, `FlavouredLookupKey`, variant resolution. |
 | `Persistence/` | `IdMocker`, `DepthBatchedInserter`, `DeferredInserter`, `DeferredInsertBuffer`. |
-| `Predicates/` | The `IRecordPredicate` implementations and factories. |
-| `Values/` | The bundled `IValueExpression`/`IContextAwareExpression`/`IDeferredExpression` implementations. |
+| `Predicates/` | The `IRecordMatching` implementations and factories. |
+| `Values/` | The bundled `IValueYielding`/`IContextAware`/`IDeferred` implementations. |
 | `Demo/` | Tests for this port's own bundled `AccountDataProvider`/`ContactDataProvider`/`DefaultProviderLookup`. |
 | `PerformanceTest.cs` (top level) | Volume/wall-clock tests — see below. |
 

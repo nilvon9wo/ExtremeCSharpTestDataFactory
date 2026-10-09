@@ -16,14 +16,14 @@ public sealed partial class MasterTemplate(PropertyInfo primaryTargetField)
 {
     public PropertyInfo PrimaryTargetField { get; } = primaryTargetField;
 
-    /// <summary>Plain values - <see cref="IValueExpression.Get()"/> needs no context.</summary>
-    internal OrderedFieldMap<IValueExpression> DefaultByField { get; } = new();
+    /// <summary>Plain values - <see cref="IValueYielding.Get()"/> needs no context.</summary>
+    internal OrderedFieldMap<IValueYielding> DefaultByField { get; } = new();
 
     /// <summary>Values resolved once siblings, ancestors and lookups are in place.</summary>
-    internal OrderedFieldMap<IContextAwareExpression> ContextAwareByField { get; } = new();
+    internal OrderedFieldMap<IContextAware> ContextAwareByField { get; } = new();
 
     /// <summary>Up-flowing values resolved during the DEFERRED flush.</summary>
-    internal OrderedFieldMap<IDeferredExpression> DeferredExpressionByField { get; } = new();
+    internal OrderedFieldMap<IDeferred> DeferredExpressionByField { get; } = new();
 
     /// <summary>
     /// Every relationship on this template, required or optional - see
@@ -38,7 +38,7 @@ public sealed partial class MasterTemplate(PropertyInfo primaryTargetField)
     /// a per-call override lands on the copy via
     /// <c>RecordProvider.SetMockIdGenerator(...)</c>.
     /// </summary>
-    public IMockIdGenerator? MockIdGenerator { get; private set; }
+    public IMockIdGenerating? MockIdGenerator { get; private set; }
 
     /// <summary>
     /// An independent copy: the field maps are recreated so a caller can add or
@@ -65,7 +65,7 @@ public sealed partial class MasterTemplate(PropertyInfo primaryTargetField)
     // relationship slot, then Set their own - which keeps the field's existing
     // order position if it is being re-Put with the same kind.
 
-    public MasterTemplate Put(PropertyInfo field, IValueExpression valueTemplate)
+    public MasterTemplate Put(PropertyInfo field, IValueYielding valueTemplate)
     {
         _ = this.ContextAwareByField.Remove(field);
         _ = this.DeferredExpressionByField.Remove(field);
@@ -74,7 +74,7 @@ public sealed partial class MasterTemplate(PropertyInfo primaryTargetField)
         return this;
     }
 
-    public MasterTemplate Put(PropertyInfo field, IContextAwareExpression contextAwareExpression)
+    public MasterTemplate Put(PropertyInfo field, IContextAware contextAwareExpression)
     {
         _ = this.DefaultByField.Remove(field);
         _ = this.DeferredExpressionByField.Remove(field);
@@ -84,7 +84,7 @@ public sealed partial class MasterTemplate(PropertyInfo primaryTargetField)
     }
 
     /// <summary>An up-flowing value - resolved during the DEFERRED flush.</summary>
-    public MasterTemplate Put(PropertyInfo field, IDeferredExpression deferredValue)
+    public MasterTemplate Put(PropertyInfo field, IDeferred deferredValue)
     {
         _ = this.DefaultByField.Remove(field);
         _ = this.ContextAwareByField.Remove(field);
@@ -101,23 +101,23 @@ public sealed partial class MasterTemplate(PropertyInfo primaryTargetField)
     public MasterTemplate Put(PropertyInfo field, object? value) =>
         value switch
         {
-            IDeferredExpression deferred => this.Put(field, deferred),
-            IContextAwareExpression contextAware => this.Put(field, contextAware),
-            IValueExpression valueExpression => this.Put(field, valueExpression),
-            IDefaultRelationship => throw RelationshipsNeedPutRequiredOrOptional(),
+            IDeferred deferred => this.Put(field, deferred),
+            IContextAware contextAware => this.Put(field, contextAware),
+            IValueYielding valueExpression => this.Put(field, valueExpression),
+            IRelatable => throw RelationshipsNeedPutRequiredOrOptional(),
             _ => this.Put(field, new LiteralExpression(value)),
         };
 
     private static XftyConfigurationException RelationshipsNeedPutRequiredOrOptional() =>
         new("Relationships must be added with PutRequired(...) or PutOptional(...), not Put(...).");
 
-    public MasterTemplate PutRequired(PropertyInfo field, IDefaultRelationship relationshipTemplate) =>
+    public MasterTemplate PutRequired(PropertyInfo field, IRelatable relationshipTemplate) =>
         this.PutRelationship(field, relationshipTemplate, isRequired: true);
 
-    public MasterTemplate PutOptional(PropertyInfo field, IDefaultRelationship relationshipTemplate) =>
+    public MasterTemplate PutOptional(PropertyInfo field, IRelatable relationshipTemplate) =>
         this.PutRelationship(field, relationshipTemplate, isRequired: false);
 
-    private MasterTemplate PutRelationship(PropertyInfo field, IDefaultRelationship relationship, bool isRequired)
+    private MasterTemplate PutRelationship(PropertyInfo field, IRelatable relationship, bool isRequired)
     {
         this.ClearField(field);
         this.RelationshipByField[field] = new RelationshipConfig(relationship, isRequired);
@@ -127,7 +127,7 @@ public sealed partial class MasterTemplate(PropertyInfo primaryTargetField)
     /// <summary>
     /// The placeholder-Id generator under <see cref="InsertMode.Mock"/> - see <see cref="MockIdGenerator"/>.
     /// </summary>
-    public MasterTemplate WithMockIdGenerator(IMockIdGenerator generator)
+    public MasterTemplate WithMockIdGenerator(IMockIdGenerating generator)
     {
         this.MockIdGenerator = generator;
         return this;
@@ -151,7 +151,7 @@ public sealed partial class MasterTemplate(PropertyInfo primaryTargetField)
     /// <summary>
     /// Whether field has a value (plain, context-aware, or deferred), a
     /// relationship, or is the primary target field itself - i.e. whether this
-    /// template touches it at all. See <see cref="IUnsetFieldFiller"/>, the one
+    /// template touches it at all. See <see cref="IUnsetFieldFilling"/>, the one
     /// consumer of the negation.
     /// </summary>
     public bool IsConfigured(PropertyInfo field) =>

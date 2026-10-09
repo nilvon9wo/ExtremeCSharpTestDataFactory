@@ -172,8 +172,8 @@ public class ChildProviderOfTForwardingTest
     public async Task WithVariant_PinsTheChildProviderVariant()
     {
         // Arrange
-        ILookupKey enterprise = FlavouredLookupKey.Get<Contact>("enterprise");
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IRecordIdentifying enterprise = FlavouredLookupKey.Get<Contact>("enterprise");
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new NamedLastNameContactProvider("Default"),
@@ -211,7 +211,7 @@ public class ChildProviderOfTForwardingTest
     }
 }
 
-file sealed class NamedLastNameContactProvider : IRecordProvider
+file sealed class NamedLastNameContactProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; }
 

@@ -56,8 +56,8 @@ public class DiscriminatorLookupKeyTest
     public async Task Get_ResolvesTheRightProviderThroughAProviderLookup()
     {
         // Arrange
-        ILookupKey personKey = DiscriminatorLookupKey.Get<Account>(x => x.Type, "PersonAcct");
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IRecordIdentifying personKey = DiscriminatorLookupKey.Get<Account>(x => x.Type, "PersonAcct");
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [personKey] = new PersonAccountProvider(),
         });
@@ -71,7 +71,7 @@ public class DiscriminatorLookupKeyTest
     }
 }
 
-file sealed class PersonAccountProvider : IRecordProvider
+file sealed class PersonAccountProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id)
     {

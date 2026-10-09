@@ -7,13 +7,13 @@ using Net.NowhereAtAll.Xfty.Lookup;
 namespace Net.NowhereAtAll.Xfty.AutoBogus.Test;
 
 /// <summary>
-/// Proves AutoBogusUnsetFieldFiller - the AutoBogus-backed IUnsetFieldFiller. See UnsetFieldFillerTest (Xfty.Test) for
+/// Proves AutoBogusUnsetFieldFiller - the AutoBogus-backed IUnsetFieldFilling. See UnsetFieldFillerTest (Xfty.Test) for
 /// the core contract it relies on.
 /// </summary>
 public class AutoBogusUnsetFieldFillerTest
 {
-    private static readonly IProviderLookup Lookup =
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static readonly IProviderLocating Lookup =
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),

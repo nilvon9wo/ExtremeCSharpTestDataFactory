@@ -14,7 +14,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// </summary>
 public class GenerationContextTest
 {
-    private static readonly IProviderLookup Lookup = Substitute.For<IProviderLookup>();
+    private static readonly IProviderLocating Lookup = Substitute.For<IProviderLocating>();
     private static readonly PropertyInfo SiteField = Field.Of<Account>(x => x.Site);
     private static readonly PropertyInfo TypeField = Field.Of<Account>(x => x.Type);
     private static readonly PropertyInfo DescriptionField = Field.Of<Account>(x => x.Description);

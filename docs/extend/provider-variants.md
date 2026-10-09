@@ -17,7 +17,7 @@ This page is about **registering** variants; selecting one as a consumer is
 |-----|-----------|-------------|
 | `LookupKey.Get(type)` | record type only (the default) | 0 |
 | `FlavouredLookupKey.Get(type, flavour).Matching(predicate)…` | record type + arbitrary conditions on the record | 20 + predicate count |
-| your own `ILookupKey` | anything | you choose |
+| your own `IRecordIdentifying` | anything | you choose |
 
 All keys are flyweights — obtain with `.Get(...)`, never `new`. A
 `FlavouredLookupKey` is interned by type + flavour (its predicates are *not*
@@ -27,7 +27,7 @@ part of its identity); add its predicates with `.Matching(...)` **once**.
 
 ## Predicates on a flavoured key
 
-`.Matching(...)` takes any `IRecordPredicate` — a one-method interface
+`.Matching(...)` takes any `IRecordMatching` — a one-method interface
 (`bool IsSatisfiedBy(object? record)`). Repeated `.Matching(...)` calls are an
 **AND**.
 
@@ -57,7 +57,7 @@ FlavouredLookupKey.Get<Account>("strategic")
     .Matching(PredicateFactory.Negate(FieldPredicateFactory.EqualTo<Account>(x => x.Type, "Prospect")));
 ```
 
-`AllOf(list)` / `AnyOf(list)` / `Negate(one)` return an `IRecordPredicate`, so
+`AllOf(list)` / `AnyOf(list)` / `Negate(one)` return an `IRecordMatching`, so
 they nest. An empty `AllOf` is vacuously true; an empty `AnyOf` is never
 satisfied.
 
@@ -66,7 +66,7 @@ condition, implement the interface. No base class, no registration:
 
 <!-- sketch -->
 ```csharp
-public sealed class CreatedThisYearPredicate : IRecordPredicate
+public sealed class CreatedThisYearPredicate : IRecordMatching
 {
     public bool IsSatisfiedBy(object? record) =>
         record?.GetType().GetProperty("CreatedDate")?.GetValue(record) is DateTime created
@@ -86,7 +86,7 @@ constants class:
 ```csharp
 public static class MyProjectLookupKeys
 {
-    public static readonly ILookupKey EnterpriseAccount =
+    public static readonly IRecordIdentifying EnterpriseAccount =
         FlavouredLookupKey.Get<Account>("enterprise")
             .Matching(FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 1000));
 }
@@ -94,7 +94,7 @@ public static class MyProjectLookupKeys
 
 <!-- sketch -->
 ```csharp
-private static readonly Dictionary<ILookupKey, Type> Providers = new()
+private static readonly Dictionary<IRecordIdentifying, Type> Providers = new()
 {
     [LookupKey.Get<Account>()]          = typeof(BusinessAccountProvider),
     [MyProjectLookupKeys.EnterpriseAccount]   = typeof(EnterpriseAccountProvider),
@@ -127,7 +127,7 @@ produces one variant.
 
 ## Your own lookup key
 
-`ILookupKey` is four members — implement it directly when a variant is chosen
+`IRecordIdentifying` is four members — implement it directly when a variant is chosen
 by something the shipped keys don't model. `IsInstanceOf(object?)` is what
 template-derived resolution calls; `Specificity` decides who wins when several
 keys match (return more than `20` to outrank a flavoured key). Register the
@@ -135,7 +135,7 @@ instance in the Provider map like any other key.
 
 <!-- sketch -->
 ```csharp
-public sealed class WholesaleAccountKey : ILookupKey
+public sealed class WholesaleAccountKey : IRecordIdentifying
 {
     public Type RecordType => typeof(Account);
 

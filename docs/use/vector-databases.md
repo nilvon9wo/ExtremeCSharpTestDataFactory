@@ -1,7 +1,7 @@
 # Vector Database Fields
 
 `Xfty.VectorDatabases` is a separate, opt-in package: one bundled
-`IValueExpression` for a vector-database record's embedding field - a
+`IValueYielding` for a vector-database record's embedding field - a
 fixed-length `float[]` of independent random values, structurally a vector
 but **not** a semantically meaningful embedding (see
 [Deliberately out of scope](#deliberately-out-of-scope) below).

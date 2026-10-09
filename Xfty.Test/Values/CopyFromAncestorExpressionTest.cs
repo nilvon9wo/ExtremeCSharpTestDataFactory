@@ -16,7 +16,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Values;
 /// </summary>
 public class CopyFromAncestorExpressionTest
 {
-    private static readonly IProviderLookup Lookup = Substitute.For<IProviderLookup>();
+    private static readonly IProviderLocating Lookup = Substitute.For<IProviderLocating>();
 
     [Fact]
     public void Get_WhenHandedABaseContextWithNoAncestors_IsNull()

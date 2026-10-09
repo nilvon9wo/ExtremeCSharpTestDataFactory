@@ -13,7 +13,7 @@ After reading this guide you should be comfortable:
 
 More advanced topics such as implementing Providers and writing custom value expressions are covered in later guides.
 
-> `InsertMode.Now` inserts for real, through whatever `IPersistenceGateway`
+> `InsertMode.Now` inserts for real, through whatever `IPersisting`
 > you configure (see [insert-modes](insert-modes.md)); with none configured
 > it throws rather than silently doing nothing. Everything below uses `Mock`
 > instead — realistic-looking Ids, nothing persisted — since that's what a
@@ -27,7 +27,7 @@ The simplest way to use XFTY is to request an object from a Provider.
 
 ```csharp
 using Net.NowhereAtAll.Xfty.Core;                 // InsertMode, InsertInclusivity, …
-using Net.NowhereAtAll.Xfty.Core.RecordProviders; // RecordProvider, RecordProvider<TRecord>, IRecordProvider
+using Net.NowhereAtAll.Xfty.Core.RecordProviders; // RecordProvider, RecordProvider<TRecord>, IRecordProviding
 using Net.NowhereAtAll.Xfty.Demo;
 
 DefaultProviderLookup lookup = new();
@@ -239,7 +239,7 @@ with any of them.
 |------|-------------|
 | `Never` | Generate records without Ids. |
 | `Mock` | Generate realistic-looking Ids without any persistence. |
-| `Now` | Insert every generated record through the configured `IPersistenceGateway`. **Throws if none is configured.** |
+| `Now` | Insert every generated record through the configured `IPersisting`. **Throws if none is configured.** |
 | `Later` | Behaves like `Never` while documenting that insertion will happen later. |
 | `Deferred` | Generate like `Never` over many calls, registering everything for a single later flush; see [deferred-insert](deferred-insert.md). |
 

@@ -28,14 +28,14 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// same reason <see cref="MasterTemplate{TRecord}"/> wraps rather than
 /// extends <see cref="MasterTemplate"/>.
 /// </summary>
-public sealed partial class RecordProvider<TRecord>(IProviderLookup providerLookup)
+public sealed partial class RecordProvider<TRecord>(IProviderLocating providerLookup)
 {
     private readonly RecordProvider _inner = new(typeof(TRecord), providerLookup);
 
     /// <summary>
     /// Object-initializer field configuration, mirroring <see cref="MasterTemplate{TRecord}"/>'s
-    /// own indexer: routed by the value's runtime type (an <see cref="IValueExpression"/>,
-    /// an <see cref="IContextAwareExpression"/>, an <see cref="IDeferredExpression"/>, or
+    /// own indexer: routed by the value's runtime type (an <see cref="IValueYielding"/>,
+    /// an <see cref="IContextAware"/>, an <see cref="IDeferred"/>, or
     /// an exact literal). A relationship throws, naming <c>PutRequired</c>/<c>PutOptional</c>
     /// instead - its requiredness can't be inferred from the value alone.
     /// </summary>

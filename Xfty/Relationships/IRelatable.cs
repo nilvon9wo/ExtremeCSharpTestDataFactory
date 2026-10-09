@@ -10,7 +10,7 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 /// contract - that is decided by which slot it occupies on the Master
 /// Template (PutRequired vs PutOptional).
 /// </summary>
-public interface IDefaultRelationship
+public interface IRelatable
 {
     /// <summary>Override template for the generated parent; also identifies its record type.</summary>
     object? OverrideTemplate { get; }
@@ -26,5 +26,5 @@ public interface IDefaultRelationship
     /// derives one from the override template. The result is memoised on
     /// first call.
     /// </summary>
-    ILookupKey? ResolveLookupKey(IProviderLookup providerLookup);
+    IRecordIdentifying? ResolveLookupKey(IProviderLocating providerLookup);
 }

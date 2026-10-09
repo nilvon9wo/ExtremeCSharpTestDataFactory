@@ -12,6 +12,30 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+### Changed (breaking)
+
+- **Every public interface is renamed to an adjective** (coding standard
+  rule 11: an interface names what implementers are able to do; nouns
+  name the classes). Members and namespaces are unchanged. See
+  [docs/reference/migration.md](docs/reference/migration.md):
+
+  | Before | After |
+  |---|---|
+  | `IRecordProvider` | `IRecordProviding` |
+  | `IProviderLookup` | `IProviderLocating` |
+  | `ILookupKey` | `IRecordIdentifying` |
+  | `IPersistenceGateway` | `IPersisting` |
+  | `IMockIdGenerator` | `IMockIdGenerating` |
+  | `IValueExpression` | `IValueYielding` |
+  | `IContextAwareExpression` | `IContextAware` |
+  | `IDeferredExpression` | `IDeferred` |
+  | `IRecordPredicate` | `IRecordMatching` |
+  | `IUnsetFieldFiller` | `IUnsetFieldFilling` |
+  | `IPathTargetValue` | `IPathApplicable` |
+  | `ISharedAncestorDefaults` | `ISharedAncestorRegistering` |
+  | `IDefaultRelationship` | `IRelatable` |
+  | `ISharedRelationship` | `ISharedRelatable` |
+
 ## [1.0.0-beta.12] – 2026-09-18
 
 > **Theme: multi-targeting reaches every package, plus classic EF6.** Every

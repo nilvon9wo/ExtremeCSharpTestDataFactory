@@ -24,11 +24,11 @@ public class RecordFactoryTest
 {
     private static readonly DefaultProviderLookup DefaultLookup = new();
 
-    private static IProviderLookup LookupOf(Dictionary<ILookupKey, IRecordProvider> providers) =>
+    private static IProviderLocating LookupOf(Dictionary<IRecordIdentifying, IRecordProviding> providers) =>
         ProviderLookups.Of(providers);
 
-    private static IProviderLookup OptionalChainLookup() =>
-        LookupOf(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating OptionalChainLookup() =>
+        LookupOf(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new OptionalParentContactProvider(),
             [LookupKey.Get<Account>()] = new OptionalOwnerAccountProvider(),
@@ -135,7 +135,7 @@ public class RecordFactoryTest
         // Arrange
         RecordProvider provider = new RecordProvider(
             typeof(Contact),
-            LookupOf(new Dictionary<ILookupKey, IRecordProvider>
+            LookupOf(new Dictionary<IRecordIdentifying, IRecordProviding>
             {
                 [LookupKey.Get<Contact>()] = new RelatedFieldContactProvider(),
                 [LookupKey.Get<Account>()] = new LeafAccountProvider(),
@@ -308,11 +308,11 @@ public class RecordFactoryTest
 
     // Runners + helpers -------------------------------------
 
-    private static RecordProvider ContactProvider(IProviderLookup lookup) =>
+    private static RecordProvider ContactProvider(IProviderLocating lookup) =>
         new RecordProvider(typeof(Contact), lookup).SetOverrideTemplate(new Contact { LastName = "Factory Test" });
 
-    private static IProviderLookup DeepChainLookup() =>
-        LookupOf(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating DeepChainLookup() =>
+        LookupOf(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new DeepContactProvider(),
             [LookupKey.Get<Account>()] = new DeepAccountProvider(),
@@ -320,7 +320,7 @@ public class RecordFactoryTest
         });
 
     private static RecordProvider OptionalParentContactProvider(InsertInclusivity inclusivity) =>
-        ContactProvider(LookupOf(new Dictionary<ILookupKey, IRecordProvider>
+        ContactProvider(LookupOf(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new OptionalParentContactProvider(),
             [LookupKey.Get<Account>()] = new LeafAccountProvider(),
@@ -354,7 +354,7 @@ public class RecordFactoryTest
     }
 }
 
-file abstract class BaseProvider : IRecordProvider
+file abstract class BaseProvider : IRecordProviding
 {
     protected MasterTemplate Template { get; init; } = null!;
 

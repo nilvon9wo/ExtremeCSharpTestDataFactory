@@ -5,7 +5,7 @@ using Net.NowhereAtAll.Xfty.Persistence;
 namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore;
 
 /// <summary>
-/// The real, database-backed <see cref="IPersistenceGateway"/> - the piece
+/// The real, database-backed <see cref="IPersisting"/> - the piece
 /// that makes <c>InsertMode.Now</c> and <c>.DepthBatched()</c> actually
 /// persist, proven against a real Entity Framework Core <see cref="DbContext"/>
 /// rather than a mock. Register it with
@@ -19,7 +19,7 @@ namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore;
 /// depth-batched layer, matching <see cref="Persistence.DepthBatchedInserter"/>'s
 /// one-call-per-type-per-layer contract.
 /// </summary>
-public sealed class EfPersistenceGateway(DbContext dbContext) : IPersistenceGateway
+public sealed class EfPersistenceGateway(DbContext dbContext) : IPersisting
 {
     public async Task Insert(List<object> records, PropertyInfo idField)
     {

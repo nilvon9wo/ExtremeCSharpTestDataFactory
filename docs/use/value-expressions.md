@@ -126,9 +126,9 @@ values that will never be used. Most tests should prefer readability.
 
 ## Custom expressions
 
-Anything with real logic is a small `IContextAwareExpression` (reads other
+Anything with real logic is a small `IContextAware` (reads other
 fields — see [context-aware-values](context-aware-values.md)) or a plain
-`IValueExpression`. Shipping one as a reusable extension:
+`IValueYielding`. Shipping one as a reusable extension:
 [extend/custom-value-expressions.md](../extend/custom-value-expressions.md).
 
 See also: [override-templates](override-templates.md) · [context-aware-values](context-aware-values.md) · [per-call-relationships](per-call-relationships.md)

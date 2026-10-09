@@ -16,7 +16,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Values;
 /// </summary>
 public class CopyFromSiblingExpressionTest
 {
-    private static readonly IProviderLookup Lookup = Substitute.For<IProviderLookup>();
+    private static readonly IProviderLocating Lookup = Substitute.For<IProviderLocating>();
 
     [Fact]
     public void Get_TakesTheSiblingsPlainValue()
@@ -74,8 +74,8 @@ public class CopyFromSiblingExpressionTest
         object expression = CopyFromSiblingExpression.From<Account>(x => x.Name);
 
         // Assert - a context-aware value, not a plain one: no misleading no-arg Get() to call
-        Assert.False(expression is IValueExpression);
-        Assert.True(expression is IContextAwareExpression);
+        Assert.False(expression is IValueYielding);
+        Assert.True(expression is IContextAware);
     }
 
     [Fact]

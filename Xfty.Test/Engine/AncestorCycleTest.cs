@@ -18,8 +18,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Engine;
 /// </summary>
 public class AncestorCycleTest
 {
-    private static IProviderLookup SelfReferringLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating SelfReferringLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new SelfReferringContactProvider(),
         });
@@ -81,7 +81,7 @@ public class AncestorCycleTest
     }
 }
 
-file sealed class SelfReferringContactProvider : IRecordProvider
+file sealed class SelfReferringContactProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
         .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Mgr"))

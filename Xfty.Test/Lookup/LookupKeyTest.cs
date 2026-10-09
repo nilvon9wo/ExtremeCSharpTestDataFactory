@@ -219,7 +219,7 @@ public class LookupKeyTest
     public void Get_OnADictionaryKeyedByLookupKey_FindsTheEntryByValueEquality()
     {
         // Arrange
-        Dictionary<ILookupKey, string> byKey = new()
+        Dictionary<IRecordIdentifying, string> byKey = new()
         {
             [LookupKey.Get<Account>()] = "plain",
             [FlavouredLookupKey.Get<Account>("hashkey-map")] = "flavoured",
@@ -240,13 +240,13 @@ public class LookupKeyTest
     public void Get_ForARegisteredKey_ReturnsTheProviderAndCachesTheInstance()
     {
         // Arrange
-        IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
+        IProviderLocating lookup = ProviderLookups.OfTypes(new Dictionary<IRecordIdentifying, Type>
         {
             [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
         });
 
         // Act
-        IRecordProvider first = lookup.Get(LookupKey.Get<Account>());
+        IRecordProviding first = lookup.Get(LookupKey.Get<Account>());
 
         // Assert
         _ = Assert.IsType<AccountDataProvider>(first);
@@ -257,12 +257,13 @@ public class LookupKeyTest
     public void GetOfTRecord_OnAnInstanceMapLookup_ReturnsTheRegisteredProvider()
     {
         // Arrange
-        IRecordProvider provider = new AccountDataProvider();
-        IProviderLookup lookup =
-            ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Account>()] = provider });
+        IRecordProviding provider = new AccountDataProvider();
+        IProviderLocating lookup = ProviderLookups.Of(
+            new Dictionary<IRecordIdentifying, IRecordProviding> { [LookupKey.Get<Account>()] = provider }
+        );
 
         // Act
-        IRecordProvider resolved = lookup.Get<Account>();
+        IRecordProviding resolved = lookup.Get<Account>();
 
         // Assert
         Assert.Same(provider, resolved);
@@ -272,12 +273,13 @@ public class LookupKeyTest
     public void Get_OnAnInstanceMapLookup_ReturnsTheRegisteredProvider()
     {
         // Arrange
-        IRecordProvider provider = new AccountDataProvider();
-        IProviderLookup lookup =
-            ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider> { [LookupKey.Get<Account>()] = provider });
+        IRecordProviding provider = new AccountDataProvider();
+        IProviderLocating lookup = ProviderLookups.Of(
+            new Dictionary<IRecordIdentifying, IRecordProviding> { [LookupKey.Get<Account>()] = provider }
+        );
 
         // Act
-        IRecordProvider resolved = lookup.Get(typeof(Account));
+        IRecordProviding resolved = lookup.Get(typeof(Account));
 
         // Assert
         Assert.Same(provider, resolved);
@@ -287,7 +289,7 @@ public class LookupKeyTest
     public void Get_ForAnUnregisteredKeyOnATypeMapLookup_Throws()
     {
         // Arrange
-        IProviderLookup lookup = ProviderLookups.OfTypes([]);
+        IProviderLocating lookup = ProviderLookups.OfTypes([]);
 
         // Act
         LookupException thrown =
@@ -301,7 +303,7 @@ public class LookupKeyTest
     public void Get_ForAnUnregisteredKeyOnAnInstanceMapLookup_Throws()
     {
         // Arrange
-        IProviderLookup lookup = ProviderLookups.Of([]);
+        IProviderLocating lookup = ProviderLookups.Of([]);
 
         // Act
         LookupException thrown = Assert.Throws<LookupException>(() => lookup.Get(typeof(Contact)));
@@ -314,7 +316,7 @@ public class LookupKeyTest
     public void Get_WhenTheKeyIsNull_Throws()
     {
         // Arrange
-        Dictionary<ILookupKey, IRecordProvider> instances = [];
+        Dictionary<IRecordIdentifying, IRecordProviding> instances = [];
 
         // Act
         LookupException thrown = Assert.Throws<LookupException>(() => ProviderLookups.Get(instances, null!));
@@ -327,8 +329,8 @@ public class LookupKeyTest
     public void Get_OnACachingTypeMapLookupWhenTheKeyIsNull_Throws()
     {
         // Arrange
-        Dictionary<ILookupKey, Type> types = [];
-        Dictionary<ILookupKey, IRecordProvider> cache = [];
+        Dictionary<IRecordIdentifying, Type> types = [];
+        Dictionary<IRecordIdentifying, IRecordProviding> cache = [];
 
         // Act
         LookupException thrown = Assert.Throws<LookupException>(() => ProviderLookups.Get(types, cache, null!));
@@ -344,7 +346,7 @@ public class LookupKeyTest
 
         // Act
         LookupException thrown =
-            Assert.Throws<LookupException>(() => ProviderLookups.KeysFor(new HashSet<ILookupKey>(), null));
+            Assert.Throws<LookupException>(() => ProviderLookups.KeysFor(new HashSet<IRecordIdentifying>(), null));
 
         // Assert
         Assert.Contains("record is required", thrown.Message);
@@ -355,13 +357,13 @@ public class LookupKeyTest
     public void KeysFor_SkipsKeysRegisteredForOtherRecordTypes()
     {
         // Arrange
-        HashSet<ILookupKey> registered = [LookupKey.Get<Account>(), LookupKey.Get<Contact>()];
+        HashSet<IRecordIdentifying> registered = [LookupKey.Get<Account>(), LookupKey.Get<Contact>()];
 
         // Act
-        ISet<ILookupKey> matches = ProviderLookups.KeysFor(registered, new Account());
+        ISet<IRecordIdentifying> matches = ProviderLookups.KeysFor(registered, new Account());
 
         // Assert
-        ILookupKey match = Assert.Single(matches);
+        IRecordIdentifying match = Assert.Single(matches);
         Assert.Equal(typeof(Account), match.RecordType);
     }
 
@@ -377,14 +379,14 @@ public class LookupKeyTest
     public void Resolve_WhenARefinedKeyMatches_PicksTheMostSpecific()
     {
         // Arrange
-        IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
+        IProviderLocating lookup = ProviderLookups.OfTypes(new Dictionary<IRecordIdentifying, Type>
         {
             [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
             [BigAccount] = typeof(AccountDataProvider),
         });
 
         // Act
-        ILookupKey resolved = ProviderLookups.Resolve(lookup, new Account { NumberOfEmployees = 500 });
+        IRecordIdentifying resolved = ProviderLookups.Resolve(lookup, new Account { NumberOfEmployees = 500 });
 
         // Assert
         Assert.Equal(BigAccount.HashKey, resolved.HashKey);
@@ -394,14 +396,14 @@ public class LookupKeyTest
     public void Resolve_WhenNothingRefinedMatches_PicksThePlainKey()
     {
         // Arrange
-        IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
+        IProviderLocating lookup = ProviderLookups.OfTypes(new Dictionary<IRecordIdentifying, Type>
         {
             [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
             [BigAccount] = typeof(AccountDataProvider),
         });
 
         // Act
-        ILookupKey resolved = ProviderLookups.Resolve(lookup, new Account { NumberOfEmployees = 1 });
+        IRecordIdentifying resolved = ProviderLookups.Resolve(lookup, new Account { NumberOfEmployees = 1 });
 
         // Assert
         Assert.Equal(LookupKey.Get<Account>().HashKey, resolved.HashKey);
@@ -411,7 +413,7 @@ public class LookupKeyTest
     public void Resolve_WhenTwoEquallySpecificKeysMatch_Throws()
     {
         // Arrange
-        IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
+        IProviderLocating lookup = ProviderLookups.OfTypes(new Dictionary<IRecordIdentifying, Type>
         {
             [FlavouredLookupKey.Get<Account>("ambiguous-a")
                 .Matching(FieldPredicateFactory.IsNotNull<Account>(x => x.Name))] =
@@ -464,14 +466,14 @@ public class LookupKeyTest
     private static void AssertKeysForHashes(Account record, int expectedCount)
     {
         // Arrange
-        IProviderLookup lookup = ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
+        IProviderLocating lookup = ProviderLookups.OfTypes(new Dictionary<IRecordIdentifying, Type>
         {
             [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
             [BigAccount] = typeof(AccountDataProvider),
         });
 
         // Act
-        ISet<ILookupKey> matches = lookup.KeysFor(record);
+        ISet<IRecordIdentifying> matches = lookup.KeysFor(record);
 
         // Assert
         Assert.Equal(expectedCount, matches.Count);

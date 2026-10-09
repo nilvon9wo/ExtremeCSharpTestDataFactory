@@ -2,7 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Xfty.Bogus.svg)](https://www.nuget.org/packages/Xfty.Bogus/)
 
-Four [`Xfty`](https://www.nuget.org/packages/Xfty) `IValueExpression`s backed
+Four [`Xfty`](https://www.nuget.org/packages/Xfty) `IValueYielding`s backed
 by [Bogus](https://github.com/bchavez/Bogus), for a field that needs to
 *look* like real data rather than merely be present. Core `Xfty` has no
 built-in realistic-data generation and never will - this is the opt-in for
@@ -40,5 +40,5 @@ interfere with each other.
 ## Full documentation
 
 - [How XFTY compares](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/reference/comparison.md) - why realistic fake data lives in this separate package instead of core `Xfty`
-- [Value expressions](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/value-expressions.md) - how `IValueExpression` and a Master Template fit together
+- [Value expressions](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/value-expressions.md) - how `IValueYielding` and a Master Template fit together
 - [Everything else `Xfty` does](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory#readme)

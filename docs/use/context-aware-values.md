@@ -4,7 +4,7 @@ Most [value expressions](value-expressions.md) generate a field in isolation. A
 **context-aware** value sees the rest of the record — a field copied from a
 sibling, from a generated parent, or (under `Deferred`) from a generated child.
 
-`IContextAwareExpression` is a separate interface from `IValueExpression` (a
+`IContextAware` is a separate interface from `IValueYielding` (a
 context-aware value has no meaningful no-argument `Get()`), but `Put(...)`
 accepts it directly.
 
@@ -45,10 +45,10 @@ not generated (e.g. an optional one skipped by the current inclusivity).
 
 ## Your own logic
 
-Implement `IContextAwareExpression` — one method:
+Implement `IContextAware` — one method:
 
 ```csharp
-public class IsMinorFlag : IContextAwareExpression
+public class IsMinorFlag : IContextAware
 {
     public object? Get(GenerationContext context)
     {
@@ -115,7 +115,7 @@ these in any other insert mode **throws** — it does not silently leave the fie
 `null`.
 
 > `DeferredInserter.Flush(gateway)` and a `.DepthBatched()` `Now` call both
-> insert for real through a configured `IPersistenceGateway`; with none
+> insert for real through a configured `IPersisting`; with none
 > configured, both throw `NotSupportedException` instead. Also always
 > available, with or without a gateway: building the whole deferred graph in
 > memory and reading the resolved up-flow value straight
@@ -141,7 +141,7 @@ Reads the `Subject` of the first generated Case belonging to the first
 generated Contact under this Account - two hops down. `null` if either hop
 has no match. Reading an aggregate across many children at one hop (not just
 the first) is not built as a bundled expression, but a custom
-`IDeferredExpression` can already do it: `DeferredGraph.ChildIndicesOf`/
+`IDeferred` can already do it: `DeferredGraph.ChildIndicesOf`/
 `ChildrenOf` both return every match, not just the first.
 
 ---

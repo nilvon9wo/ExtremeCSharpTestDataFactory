@@ -7,7 +7,7 @@ using Net.NowhereAtAll.Xfty.Lookup;
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
 /// <summary>
-/// Proves the IUnsetFieldFiller hook RecordProvider/RecordFactory expose:
+/// Proves the IUnsetFieldFilling hook RecordProvider/RecordFactory expose:
 /// which fields count as "unset" (see also MasterTemplateTest.IsConfigured),
 /// when the hook fires, and that it reaches generated ancestors too. The
 /// bundled AutoFixture-backed implementation is proven separately, in
@@ -17,8 +17,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// </summary>
 public class UnsetFieldFillerTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -112,7 +112,7 @@ public class UnsetFieldFillerTest
 
     // Test doubles -----------------------------------------------------
 
-    private sealed class RecordingFiller : IUnsetFieldFiller
+    private sealed class RecordingFiller : IUnsetFieldFilling
     {
         public List<Type> RecordTypesSeen { get; } = [];
 
@@ -125,7 +125,7 @@ public class UnsetFieldFillerTest
         }
     }
 
-    private sealed class SettingFiller(string fieldName, object? value) : IUnsetFieldFiller
+    private sealed class SettingFiller(string fieldName, object? value) : IUnsetFieldFilling
     {
         public void Fill(object record, IReadOnlyCollection<PropertyInfo> unsetFields)
         {

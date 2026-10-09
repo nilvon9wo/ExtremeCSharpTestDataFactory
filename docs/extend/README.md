@@ -6,11 +6,11 @@ to *use* XFTY to write tests, go to [../use/](../use/).)
 
 | Page | Covers |
 |------|--------|
-| [providers](providers.md) | Implement `IRecordProvider` for a new record type — Master Template, primary target field, relationship design, testing. |
-| [provider-lookups](provider-lookups.md) | Write your project's `IProviderLookup` over a `Dictionary` + `ProviderLookups`. |
-| [provider-variants](provider-variants.md) | Register more than one Provider per type — `FlavouredLookupKey`, `IRecordPredicate`, a `*LookupKeys` constants class, resolution and specificity. |
-| [custom-value-expressions](custom-value-expressions.md) | Implement `IValueExpression`, `IContextAwareExpression`, or `IDeferredExpression`. |
-| [mock-id-generators](mock-id-generators.md) | Implement `IMockIdGenerator` — the placeholder-Id shape under `InsertMode.Mock`, for non-string keys or a project-specific Id format. |
+| [providers](providers.md) | Implement `IRecordProviding` for a new record type — Master Template, primary target field, relationship design, testing. |
+| [provider-lookups](provider-lookups.md) | Write your project's `IProviderLocating` over a `Dictionary` + `ProviderLookups`. |
+| [provider-variants](provider-variants.md) | Register more than one Provider per type — `FlavouredLookupKey`, `IRecordMatching`, a `*LookupKeys` constants class, resolution and specificity. |
+| [custom-value-expressions](custom-value-expressions.md) | Implement `IValueYielding`, `IContextAware`, or `IDeferred`. |
+| [mock-id-generators](mock-id-generators.md) | Implement `IMockIdGenerating` — the placeholder-Id shape under `InsertMode.Mock`, for non-string keys or a project-specific Id format. |
 | [shared-ancestors-in-templates](shared-ancestors-in-templates.md) | Put a `SharedAncestor` in a *shipped* Master Template — and when not to. |
 | [bundled-providers](bundled-providers.md) | The two shipped Providers + `DefaultProviderLookup` — copy-and-adjust, don't depend on. |
 

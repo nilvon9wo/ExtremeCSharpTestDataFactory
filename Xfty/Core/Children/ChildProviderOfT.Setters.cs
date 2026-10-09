@@ -26,7 +26,7 @@ public sealed partial class ChildProvider<TChild>
         return this;
     }
 
-    public ChildProvider<TChild> WithVariant(ILookupKey variantKey)
+    public ChildProvider<TChild> WithVariant(IRecordIdentifying variantKey)
     {
         _ = this._inner.WithVariant(variantKey);
         return this;

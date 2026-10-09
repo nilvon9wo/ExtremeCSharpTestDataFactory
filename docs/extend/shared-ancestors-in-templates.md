@@ -10,7 +10,7 @@ new MasterTemplate(Field.Of<Contact>(x => x.Id))
     .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get("primary-account"));
 ```
 
-`SharedAncestor` implements the relationship interface (`IDefaultRelationship`),
+`SharedAncestor` implements the relationship interface (`IRelatable`),
 so `PutRequired` / `PutOptional` accept it unchanged. Configure it once,
 centrally — the same way a project defines its
 [flavoured lookup keys](provider-variants.md):
@@ -42,7 +42,7 @@ XFTY decides which by inspecting the ancestor's Provider's Master Template.
 **Ship the default with the lookup, not the test.** A Provider that references
 a shared ancestor should work out of the box: put the default on the lookup
 that ships alongside it — the `ProviderLookups.Of(providerMap, defaults)`
-overload, or implement `ISharedAncestorDefaults` on a hand-written lookup and
+overload, or implement `ISharedAncestorRegistering` on a hand-written lookup and
 call `SharedAncestor.PutIfAbsent(...)` in its
 `RegisterSharedAncestorDefaults()`. See
 [use/shared-ancestors → Packaged defaults](../use/shared-ancestors.md#packaged-defaults).

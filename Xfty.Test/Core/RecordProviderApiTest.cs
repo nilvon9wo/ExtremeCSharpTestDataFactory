@@ -61,7 +61,7 @@ public class RecordProviderApiTest
 
         // Act
         XftyConfigurationException thrown =
-            Assert.Throws<XftyConfigurationException>(() => new RecordProvider((ILookupKey)null!, Lookup));
+            Assert.Throws<XftyConfigurationException>(() => new RecordProvider((IRecordIdentifying)null!, Lookup));
 
         // Assert
         Assert.Contains("lookup key", thrown.Message);

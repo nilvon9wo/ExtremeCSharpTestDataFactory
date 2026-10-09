@@ -1,6 +1,6 @@
-using Qdrant.Client;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
+using Qdrant.Client;
 using Testcontainers.Qdrant;
 
 namespace Net.NowhereAtAll.Xfty.VectorDatabases.Qdrant.Test;

@@ -26,19 +26,19 @@ public sealed class DepthBatchedInserter
     private readonly List<List<DepthBatchedInserterParentLink>> _linksByChild;
     private readonly List<object> _records;
     private readonly InsertMode _mode;
-    private readonly IPersistenceGateway? _gateway;
+    private readonly IPersisting? _gateway;
     private readonly HashSet<int> _excludedIndices;
     private readonly IReadOnlyDictionary<Type, PropertyInfo> _idFieldByType;
-    private readonly IReadOnlyDictionary<Type, IMockIdGenerator> _mockIdGeneratorByType;
+    private readonly IReadOnlyDictionary<Type, IMockIdGenerating> _mockIdGeneratorByType;
 
     private DepthBatchedInserter(
         List<object> records,
         List<DepthBatchedInserterParentLink>? links,
         InsertMode mode,
-        IPersistenceGateway? gateway,
+        IPersisting? gateway,
         HashSet<int>? excludedIndices,
         IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType,
-        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType
+        IReadOnlyDictionary<Type, IMockIdGenerating>? mockIdGeneratorByType
     )
     {
         this._records = records;
@@ -46,7 +46,7 @@ public sealed class DepthBatchedInserter
         this._gateway = gateway;
         this._excludedIndices = excludedIndices ?? [];
         this._idFieldByType = idFieldByType ?? new Dictionary<Type, PropertyInfo>();
-        this._mockIdGeneratorByType = mockIdGeneratorByType ?? new Dictionary<Type, IMockIdGenerator>();
+        this._mockIdGeneratorByType = mockIdGeneratorByType ?? new Dictionary<Type, IMockIdGenerating>();
         this._linksByChild = GroupLinksByChild(records.Count, links);
     }
 
@@ -54,10 +54,10 @@ public sealed class DepthBatchedInserter
     public static Task InsertAll(
         List<object> records,
         List<DepthBatchedInserterParentLink>? links,
-        IPersistenceGateway? gateway = null,
+        IPersisting? gateway = null,
         HashSet<int>? excludedIndices = null,
         IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType = null,
-        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType = null
+        IReadOnlyDictionary<Type, IMockIdGenerating>? mockIdGeneratorByType = null
     ) =>
         ResolveAll(records, links, InsertMode.Now, gateway, excludedIndices, idFieldByType, mockIdGeneratorByType);
 
@@ -74,10 +74,10 @@ public sealed class DepthBatchedInserter
         List<object> records,
         List<DepthBatchedInserterParentLink>? links,
         InsertMode mode,
-        IPersistenceGateway? gateway = null,
+        IPersisting? gateway = null,
         HashSet<int>? excludedIndices = null,
         IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType = null,
-        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType = null
+        IReadOnlyDictionary<Type, IMockIdGenerating>? mockIdGeneratorByType = null
     )
     {
         bool nothingToDo = records.Count == 0 || mode == InsertMode.Never;
@@ -138,8 +138,8 @@ public sealed class DepthBatchedInserter
         return Task.CompletedTask;
     }
 
-    private IMockIdGenerator MockIdGeneratorFor(object record) =>
-        this._mockIdGeneratorByType.TryGetValue(record.GetType(), out IMockIdGenerator? generator)
+    private IMockIdGenerating MockIdGeneratorFor(object record) =>
+        this._mockIdGeneratorByType.TryGetValue(record.GetType(), out IMockIdGenerating? generator)
             ? generator
             : DefaultMockIdGenerator.Instance;
 

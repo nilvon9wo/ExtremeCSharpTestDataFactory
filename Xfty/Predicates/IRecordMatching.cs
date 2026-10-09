@@ -9,7 +9,7 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 /// does not express - a one-method interface, no base class, no registration:
 ///
 /// <code>
-/// public sealed class WasCreatedOnAWeekday : IRecordPredicate
+/// public sealed class WasCreatedOnAWeekday : IRecordMatching
 /// {
 ///     public bool IsSatisfiedBy(object? record) =>
 ///         Field.Of&lt;Account&gt;(nameof(Account.CreatedDate)).GetValue(record)
@@ -21,7 +21,7 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 /// conditions and <see cref="PredicateFactory"/> for AND / OR / NOT
 /// combinators.
 /// </summary>
-public interface IRecordPredicate
+public interface IRecordMatching
 {
     bool IsSatisfiedBy(object? record);
 }

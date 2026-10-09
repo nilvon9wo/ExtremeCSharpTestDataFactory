@@ -7,7 +7,7 @@ usage in [../use/context-aware-values.md](../use/context-aware-values.md#reading
 
 Implemented:
 
-- `IDeferredExpression` — a value read up from a descendant; its own template
+- `IDeferred` — a value read up from a descendant; its own template
   slot (`DeferredExpressionByField`), so the normal value passes ignore it.
 - `CopyFromDescendantExpression(childLookupField, sourceField)` — copies a
   field from the child that references this record through
@@ -18,7 +18,7 @@ Implemented:
   every step, `null` if any hop has no match. Needed `DeferredGraph` to
   expose a child's own flat index (`ChildIndicesOf` + `RecordAt`), not just
   the child record itself (`ChildrenOf`) - without that, not even a custom
-  `IDeferredExpression` could walk a second hop, since there was no way to
+  `IDeferred` could walk a second hop, since there was no way to
   ask "what are *this* child's children."
 - `RecordFactory` leaves the field unresolved and calls `bundle.DeferValues(...)`;
   **in any mode but `Deferred` / `.DepthBatched()` it throws** — not a silent
@@ -31,7 +31,7 @@ Implemented:
   parent reading one of its `WithChildren` rows.
 
 Not built: reading an **aggregate** across many children at one hop (only
-the first is read at each step) - a custom `IDeferredExpression` can already
+the first is read at each step) - a custom `IDeferred` can already
 do this today, since `DeferredGraph.ChildIndicesOf`/`ChildrenOf` return
 every match, not just the first; a loud error when a deferred build
 registers one but the graph is never flattened (the value stays `null`).

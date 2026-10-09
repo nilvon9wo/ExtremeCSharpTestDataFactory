@@ -51,7 +51,7 @@ public class MasterTemplateTest
     public void Put_ForAContextAwareExpression_RoutesItToTheContextAwareMap(bool passAsObject)
     {
         // Arrange
-        IContextAwareExpression contextAware = CopyFromSiblingExpression.From<Contact>(x => x.FirstName);
+        IContextAware contextAware = CopyFromSiblingExpression.From<Contact>(x => x.FirstName);
         MasterTemplate template = new(Field.Of<Contact>(x => x.Id));
 
         // Act
@@ -101,7 +101,7 @@ public class MasterTemplateTest
     public void Put_ForAnExistingExpressionPassedAsObject_DoesNotDoubleWrapIt()
     {
         // Arrange
-        IValueExpression expression = new IncrementingStringExpression("Acct");
+        IValueYielding expression = new IncrementingStringExpression("Acct");
 
         // Act
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))

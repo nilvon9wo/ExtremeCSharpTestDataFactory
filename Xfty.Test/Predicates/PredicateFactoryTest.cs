@@ -30,7 +30,7 @@ public class PredicateFactoryTest
             new Account { Type = "Customer" }, true
         );
 
-    private static void AssertIsSatisfiedBy(IRecordPredicate predicate, Account? record, bool expectedResult)
+    private static void AssertIsSatisfiedBy(IRecordMatching predicate, Account? record, bool expectedResult)
     {
         // Arrange - the caller supplies the facade-built predicate and the record
 

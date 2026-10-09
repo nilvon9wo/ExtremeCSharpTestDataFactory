@@ -23,7 +23,7 @@ parent" instead of "generate this as a separate, FK-wired list."
 
 ## Why the existing seam doesn't fully cover it
 
-`IPersistenceGateway.Insert(records, idField)` is free to do anything with
+`IPersisting.Insert(records, idField)` is free to do anything with
 the flat, FK-wired lists XFTY already produces - including grouping children
 by their FK and nesting them into the parent document before writing. That
 covers a consumer willing to write that reshaping once per relationship, in
@@ -45,7 +45,7 @@ their own gateway, today, with zero engine changes. It does not cover:
 
 Sketched, not committed to:
 
-- A third relationship kind alongside `IDefaultRelationship` (reference) and
+- A third relationship kind alongside `IRelatable` (reference) and
   the `ChildProvider` collection - something like `IEmbeddedRelationship` -
   that `AncestorGenerator`/a new `EmbeddedGenerator` materializes as a
   property *value* on the parent (a `List<Contact>` or similar) rather than

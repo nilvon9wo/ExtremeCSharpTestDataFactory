@@ -4,7 +4,7 @@ using Net.NowhereAtAll.Xfty.Core;
 namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
-/// The built-in <see cref="IMockIdGenerator"/>: one process-wide incrementing
+/// The built-in <see cref="IMockIdGenerating"/>: one process-wide incrementing
 /// sequence, rendered as the Id field's own type - <c>"mock-N"</c> for a
 /// <c>string</c>, <c>N</c> for <c>int</c>/<c>long</c>, a fresh
 /// <see cref="Guid"/> for <see cref="Guid"/>. Any other Id type throws
@@ -14,7 +14,7 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 /// The sequence is <c>static</c>, so every instance shares it and no mocked
 /// Id repeats for the life of the process.
 /// </summary>
-public sealed class DefaultMockIdGenerator : IMockIdGenerator
+public sealed class DefaultMockIdGenerator : IMockIdGenerating
 {
     /// <summary>The shared instance - what XFTY uses when nothing else is configured.</summary>
     public static DefaultMockIdGenerator Instance { get; } = new();
@@ -49,7 +49,7 @@ public sealed class DefaultMockIdGenerator : IMockIdGenerator
     private static XftyConfigurationException NoBuiltInGenerator(Type idType, MockIdContext context) =>
         new(
             $"InsertMode.Mock has no built-in Id generator for a {idType.Name} Id on {context.RecordType.Name}. "
-            + "Supply an IMockIdGenerator via MasterTemplate<T>.WithMockIdGenerator(...) or "
+            + "Supply an IMockIdGenerating via MasterTemplate<T>.WithMockIdGenerator(...) or "
             + "RecordProvider.SetMockIdGenerator(...)."
         );
 }

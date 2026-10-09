@@ -17,7 +17,7 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 /// implementation is free to use Entity Framework Core, Dapper, raw ADO.NET,
 /// or an in-memory fake for tests.
 /// </summary>
-public interface IPersistenceGateway
+public interface IPersisting
 {
     /// <summary>
     /// Persist every record in <paramref name="records"/> - all the same

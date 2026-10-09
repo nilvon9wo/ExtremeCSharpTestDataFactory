@@ -11,19 +11,19 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// </summary>
 public sealed partial class RecordProvider<TRecord>
 {
-    public RecordProvider<TRecord> Put(PropertyInfo field, IValueExpression valueTemplate)
+    public RecordProvider<TRecord> Put(PropertyInfo field, IValueYielding valueTemplate)
     {
         _ = this._inner.Put(field, valueTemplate);
         return this;
     }
 
-    public RecordProvider<TRecord> Put(PropertyInfo field, IContextAwareExpression contextAwareExpression)
+    public RecordProvider<TRecord> Put(PropertyInfo field, IContextAware contextAwareExpression)
     {
         _ = this._inner.Put(field, contextAwareExpression);
         return this;
     }
 
-    public RecordProvider<TRecord> Put(PropertyInfo field, IDeferredExpression deferredValue)
+    public RecordProvider<TRecord> Put(PropertyInfo field, IDeferred deferredValue)
     {
         _ = this._inner.Put(field, deferredValue);
         return this;
@@ -35,13 +35,13 @@ public sealed partial class RecordProvider<TRecord>
         return this;
     }
 
-    public RecordProvider<TRecord> PutRequired(PropertyInfo field, IDefaultRelationship relationshipTemplate)
+    public RecordProvider<TRecord> PutRequired(PropertyInfo field, IRelatable relationshipTemplate)
     {
         _ = this._inner.PutRequired(field, relationshipTemplate);
         return this;
     }
 
-    public RecordProvider<TRecord> PutOptional(PropertyInfo field, IDefaultRelationship relationshipTemplate)
+    public RecordProvider<TRecord> PutOptional(PropertyInfo field, IRelatable relationshipTemplate)
     {
         _ = this._inner.PutOptional(field, relationshipTemplate);
         return this;
@@ -81,13 +81,13 @@ public sealed partial class RecordProvider<TRecord>
 
     // Path-scoped value overrides -----------------------------------------
 
-    public RecordProvider<TRecord> Put(List<PropertyInfo> path, IValueExpression valueExpression)
+    public RecordProvider<TRecord> Put(List<PropertyInfo> path, IValueYielding valueExpression)
     {
         _ = this._inner.Put(path, valueExpression);
         return this;
     }
 
-    public RecordProvider<TRecord> Put(List<PropertyInfo> path, IContextAwareExpression contextAwareExpression)
+    public RecordProvider<TRecord> Put(List<PropertyInfo> path, IContextAware contextAwareExpression)
     {
         _ = this._inner.Put(path, contextAwareExpression);
         return this;
@@ -99,13 +99,13 @@ public sealed partial class RecordProvider<TRecord>
         return this;
     }
 
-    public RecordProvider<TRecord> PutRequired(List<PropertyInfo> path, IDefaultRelationship relationship)
+    public RecordProvider<TRecord> PutRequired(List<PropertyInfo> path, IRelatable relationship)
     {
         _ = this._inner.PutRequired(path, relationship);
         return this;
     }
 
-    public RecordProvider<TRecord> PutOptional(List<PropertyInfo> path, IDefaultRelationship relationship)
+    public RecordProvider<TRecord> PutOptional(List<PropertyInfo> path, IRelatable relationship)
     {
         _ = this._inner.PutOptional(path, relationship);
         return this;

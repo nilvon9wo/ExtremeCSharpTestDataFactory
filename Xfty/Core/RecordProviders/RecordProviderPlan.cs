@@ -12,15 +12,15 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// one and hands it to <see cref="RecordProviderExecution"/>.
 /// </summary>
 internal sealed record RecordProviderPlan(
-    IProviderLookup ProviderLookup,
+    IProviderLocating ProviderLookup,
     Type RecordType,
-    IRecordProvider Outlet,
+    IRecordProviding Outlet,
     InsertMode InsertMode,
     InsertInclusivity Inclusivity,
     int QuantityPerTemplate,
     List<object>? OverrideTemplates,
-    IPersistenceGateway? PersistenceGateway,
-    IUnsetFieldFiller? UnsetFieldFiller,
+    IPersisting? PersistenceGateway,
+    IUnsetFieldFilling? UnsetFieldFiller,
     bool AncestorCyclesAllowed,
     bool ExcludePrimaryIds,
     bool DepthBatched,

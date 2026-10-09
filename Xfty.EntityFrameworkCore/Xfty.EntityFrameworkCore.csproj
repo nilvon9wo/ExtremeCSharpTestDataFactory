@@ -11,7 +11,7 @@
   <PropertyGroup>
     <PackageId>Xfty.EntityFrameworkCore</PackageId>
     <Authors>Brian Kessler</Authors>
-    <Description>An IPersistenceGateway implementation for XFTY that inserts generated records through Entity Framework Core, instead of mocking them.</Description>
+    <Description>An IPersisting implementation for XFTY that inserts generated records through Entity Framework Core, instead of mocking them.</Description>
     <PackageTags>testing;test-data;test-data-builder;fixtures;xunit;entity-framework-core;ef-core</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory</PackageProjectUrl>

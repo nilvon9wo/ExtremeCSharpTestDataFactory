@@ -10,7 +10,7 @@ constant:
 
 <!-- sketch -->
 ```csharp
-MyProjectLookupKeys.VipAccount   // an ILookupKey
+MyProjectLookupKeys.VipAccount   // an IRecordIdentifying
 ```
 
 > A discriminator-field variant - matching a Provider by a field's value, e.g.

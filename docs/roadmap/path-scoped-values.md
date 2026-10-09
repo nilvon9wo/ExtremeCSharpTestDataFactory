@@ -26,10 +26,10 @@ Every kind plain `Put` / `PutRequired` / `PutOptional` accept:
 | Call | Effect on the ancestor's field |
 |---|---|
 | `Put(path, object literal)` | a constant |
-| `Put(path, IValueExpression)` | a value expression (runs once per generated ancestor) |
-| `Put(path, IContextAwareExpression)` | evaluated against the ancestor as `RecordBeingBuilt` |
-| `PutRequired(path, IDefaultRelationship)` | the ancestor's own lookup gets a generated parent |
-| `PutOptional(path, IDefaultRelationship)` | …optional on the ancestor |
+| `Put(path, IValueYielding)` | a value expression (runs once per generated ancestor) |
+| `Put(path, IContextAware)` | evaluated against the ancestor as `RecordBeingBuilt` |
+| `PutRequired(path, IRelatable)` | the ancestor's own lookup gets a generated parent |
+| `PutOptional(path, IRelatable)` | …optional on the ancestor |
 
 ## Semantics
 

@@ -10,7 +10,7 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 /// or per call via <c>RecordProvider.SetMockIdGenerator(...)</c>, which
 /// overrides the template's for that call's own primary records.
 /// </summary>
-public interface IMockIdGenerator
+public interface IMockIdGenerating
 {
     /// <summary>
     /// The next placeholder Id. Called once per record that needs one; keep

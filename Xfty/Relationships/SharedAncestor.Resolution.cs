@@ -10,7 +10,7 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 public sealed partial class SharedAncestor
 {
     /// <summary>Resolve now - e.g. to read GetId(name) before any Supply*() call.</summary>
-    public async Task<SharedAncestor> ResolveNow(IProviderLookup lookup, InsertMode insertMode)
+    public async Task<SharedAncestor> ResolveNow(IProviderLocating lookup, InsertMode insertMode)
     {
         if (this._resolvedRecord is null)
         {
@@ -27,7 +27,7 @@ public sealed partial class SharedAncestor
     /// resolved bundle if one was built, otherwise from the Provider - so
     /// GetId(name) and the single-record bundle never fall back to guessing "Id".
     /// </summary>
-    private void LearnPrimaryFieldFrom(IProviderLookup lookup)
+    private void LearnPrimaryFieldFrom(IProviderLocating lookup)
     {
         this._resolvedPrimaryField ??=
             this._resolvedBundle?.PrimaryTargetField
@@ -45,7 +45,7 @@ public sealed partial class SharedAncestor
     /// The Provider's primary-key field, when the source has a template or variant key to resolve one from; null for a
     /// bare PutAsValue registration.
     /// </summary>
-    private PropertyInfo? PrimaryFieldFromProvider(IProviderLookup lookup) =>
+    private PropertyInfo? PrimaryFieldFromProvider(IProviderLocating lookup) =>
         this._source is { CanResolvePrimaryField: true } theSource
             ? theSource.PrimaryField(lookup)
             : null;

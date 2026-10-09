@@ -19,11 +19,11 @@ public class MultiVariantProviderTest
 {
     // Shared keys - in a real project these live in a *LookupKeys constants class
     // that both the Provider Lookup and the pinning relationships reference.
-    private static readonly ILookupKey Enterprise = FlavouredLookupKey.Get<Account>("enterprise");
-    private static readonly ILookupKey Smb = FlavouredLookupKey.Get<Account>("smb");
+    private static readonly IRecordIdentifying Enterprise = FlavouredLookupKey.Get<Account>("enterprise");
+    private static readonly IRecordIdentifying Smb = FlavouredLookupKey.Get<Account>("smb");
 
-    private static IProviderLookup NewLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating NewLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new NamedAccountProvider("SMB"),
             [Enterprise] = new NamedAccountProvider("Enterprise"),
@@ -98,7 +98,7 @@ public class MultiVariantProviderTest
 
     // Runner -------------------------------------------------------
 
-    private static async Task AssertGetIndustry(ILookupKey key, string expectedIndustry)
+    private static async Task AssertGetIndustry(IRecordIdentifying key, string expectedIndustry)
     {
         // Arrange
         RecordProvider provider = new RecordProvider(key, NewLookup()).SetInsertMode(InsertMode.Mock);
@@ -111,7 +111,7 @@ public class MultiVariantProviderTest
     }
 }
 
-file abstract class BaseProvider : IRecordProvider
+file abstract class BaseProvider : IRecordProviding
 {
     protected MasterTemplate Template { get; init; } = null!;
 
@@ -133,7 +133,7 @@ file sealed class NamedAccountProvider : BaseProvider
 
 file sealed class EnterpriseParentedContactProvider : BaseProvider
 {
-    public EnterpriseParentedContactProvider(ILookupKey enterpriseKey) =>
+    public EnterpriseParentedContactProvider(IRecordIdentifying enterpriseKey) =>
         this.Template = new MasterTemplate(Field.Of<Contact>(x => x.Id))
             .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Variant Contact"))
             // The relationship pins the same shared key the lookup registers.

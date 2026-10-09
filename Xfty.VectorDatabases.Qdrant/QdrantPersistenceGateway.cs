@@ -10,7 +10,7 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.Qdrant;
 /// of known assumptions and accepted risks before relying on this in a real
 /// test suite.
 ///
-/// An <see cref="IPersistenceGateway"/> that inserts XFTY-generated records
+/// An <see cref="IPersisting"/> that inserts XFTY-generated records
 /// into a real Qdrant collection through <see cref="QdrantClient"/>
 /// directly - no Microsoft.Extensions.VectorData, no Semantic Kernel
 /// connector. Depends only on Qdrant's own stable client (1.19.0), at the
@@ -22,7 +22,7 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.Qdrant;
 /// one, so depending on this gateway never pulls in MEVD or a
 /// Semantic-Kernel-branded connector this class doesn't use.
 /// </summary>
-public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistenceGateway
+public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersisting
 {
     public Task Insert(List<object> records, PropertyInfo idField) =>
         InsertGroups(this, [.. records.GroupBy(record => record.GetType())], idField);

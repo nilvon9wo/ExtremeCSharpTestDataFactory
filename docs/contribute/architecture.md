@@ -43,7 +43,7 @@ RecordProvider
 Provider Lookup
    │
    ▼
-IRecordProvider
+IRecordProviding
    │
    ▼
 MasterTemplate
@@ -60,19 +60,19 @@ Each component has a single responsibility.
 | Component | Namespace | Responsibility |
 |-----------|-----------|-----------------|
 | `RecordProvider` / `RecordProvider<TRecord>` | `Core.RecordProviders` | Public fluent API used by tests. |
-| `IProviderLookup` | `Lookup` | Resolves which Provider should generate a particular record. |
+| `IProviderLocating` | `Lookup` | Resolves which Provider should generate a particular record. |
 | `DefaultProviderLookup` | `Demo` | Copy-me starter implementation (also this port's own self-test lookup). |
 | `ProviderLookups` | `Lookup` | Reusable lookup mechanics, so a project's lookup stays a few one-liners over a `Dictionary`. |
-| `ILookupKey` / `LookupKey` / `FlavouredLookupKey` | `Lookup` | Identifies a Provider variant (record type, optionally + predicate-matched flavour). |
-| `IRecordProvider` | `Core.RecordProviders` | Describes how one record type should be generated. |
+| `IRecordIdentifying` / `LookupKey` / `FlavouredLookupKey` | `Lookup` | Identifies a Provider variant (record type, optionally + predicate-matched flavour). |
+| `IRecordProviding` | `Core.RecordProviders` | Describes how one record type should be generated. |
 | `MasterTemplate` / `MasterTemplate<TRecord>` | `Core.MasterTemplates` | Declarative description of default values and relationships. |
 | `GenerationContext` | `Core` | The per-run state the engine threads everywhere: Provider Lookup, insert mode, inclusivity, forced-relationship paths, `BatchedInsertPending`, and — during the value pass — the record being built, its ancestor bundle, and the field currently being generated (`ValueFieldPass`). |
 | `RecordFactory` | `Engine` | Thin coordinator — drives the phase classes below. |
 | `AncestorGenerator` | `Engine` | Phase: generate one level of related (ancestor) records. |
 | `LookupWiring` | `Engine` | Phase: point each record's lookup fields at its generated parents. |
-| `PlainValueFiller` | `Engine` | Phase: fill the plain (`IValueExpression`) values. |
-| `ContextAwareValuePass` | `Engine` | Phase: run the `IContextAwareExpression` values, one field at a time. |
-| `DescendantValuePass` / `DeferredGraph` | `Engine` | Up-flow value pass at the top of a deferred flatten: fill each `IDeferredExpression` (`CopyFromDescendantExpression`) from that record's now-generated children, read through the collected parent links. |
+| `PlainValueFiller` | `Engine` | Phase: fill the plain (`IValueYielding`) values. |
+| `ContextAwareValuePass` | `Engine` | Phase: run the `IContextAware` values, one field at a time. |
+| `DescendantValuePass` / `DeferredGraph` | `Engine` | Up-flow value pass at the top of a deferred flatten: fill each `IDeferred` (`CopyFromDescendantExpression`) from that record's now-generated children, read through the collected parent links. |
 | `ValueFieldPass` | `Engine` | The narrowest scope — one context-aware field + the set of sibling context-aware fields not yet generated (drives `context.SiblingValue`'s loud guard). |
 | `RelationshipForcer` | `Engine` | Applies `IncludeOptional(...)` / `Put(path,...)` relationship-prefix paths to a per-call copy of the Master Template. |
 | `PathValue` / `PathValueApplier` | `Core.PathValues` / `Engine` | A `Put(List<PropertyInfo>, value)` override targeted at a generated ancestor; the applier lands the at-target ones on the level's template. |
@@ -83,11 +83,11 @@ Each component has a single responsibility.
 | `RecordCloneFactory` | `Engine` | Deep-clones templates so no two generated records share an instance. |
 | `IndexedRecord` | `Persistence` | An `(index, record)` pair — records are identified by position, since two generated records can be equal by value. |
 | `DepthBatchedInserter` | `Persistence` | Kahn-style layered resolution: one pass per dependency depth. |
-| `DeferredInserter` / `DeferredInsertBuffer` | `Persistence` | The `Deferred` registry and its bundle-walk; `Flush(gateway)` runs `DepthBatchedInserter` over the union through the given `IPersistenceGateway`. |
+| `DeferredInserter` / `DeferredInsertBuffer` | `Persistence` | The `Deferred` registry and its bundle-walk; `Flush(gateway)` runs `DepthBatchedInserter` over the union through the given `IPersisting`. |
 | `Bundle` | `Core.Bundles` | Represents the generated graph. |
-| `IValueExpression` / `IContextAwareExpression` / `IDeferredExpression` | `Values` | Expression interfaces for generating field values (plain / context-aware / up-flow). |
-| `IDefaultRelationship` / `DefaultRelationship` / `ISharedRelationship` / `SharedAncestor` | `Relationships` | Interfaces + implementations for generating related records. |
-| `IRecordPredicate` + `Field{EqualTo,GreaterThan,LessThan,InSet}Predicate` / `ValueComparison` / `{AllOf,AnyOf,Negation}Predicate` / `FieldPredicateFactory` + `PredicateFactory` (facades) | `Predicates` | Conditions a flavoured key matches a record against — one small class per operator, no branching. |
+| `IValueYielding` / `IContextAware` / `IDeferred` | `Values` | Expression interfaces for generating field values (plain / context-aware / up-flow). |
+| `IRelatable` / `DefaultRelationship` / `ISharedRelatable` / `SharedAncestor` | `Relationships` | Interfaces + implementations for generating related records. |
+| `IRecordMatching` + `Field{EqualTo,GreaterThan,LessThan,InSet}Predicate` / `ValueComparison` / `{AllOf,AnyOf,Negation}Predicate` / `FieldPredicateFactory` + `PredicateFactory` (facades) | `Predicates` | Conditions a flavoured key matches a record against — one small class per operator, no branching. |
 | `IdMocker` | `Persistence` | Generates unique placeholder Ids without persistence. |
 
 Keeping these responsibilities separate makes each component relatively small
@@ -190,14 +190,14 @@ Provider's records:
    *fully formed*.
 2. **Id assignment** — depending on the insert mode the records are given mock
    Ids (`Mock`), left Id-less, or inserted here for real (`Now`, one operation
-   per level, through the configured `IPersistenceGateway` - throws without
+   per level, through the configured `IPersisting` - throws without
    one).
 3. **Lookup wiring** (`LookupWiring`) — once parents have Ids, point each
    child's lookup fields at them.
 4. **Plain value pass** (`PlainValueFiller`).
 5. **Context-aware value pass** (`ContextAwareValuePass`) — below.
 6. **Up-flow value pass** (`DescendantValuePass`) — only when a deferred graph
-   is flattened, once every record exists. Fields with an `IDeferredExpression`
+   is flattened, once every record exists. Fields with an `IDeferred`
    are left unresolved by phase 5 and filled here from that record's collected
    children. A non-batched build that carries one throws in phase 5 instead.
 
@@ -206,9 +206,9 @@ Provider's records:
 Field values are filled in **two in-line passes plus one deferred pass**, so an
 expression can be aware of the rest of the record:
 
-1. **Plain values** — the `IValueExpression`s, in the order the fields were
+1. **Plain values** — the `IValueYielding`s, in the order the fields were
    `Put`.
-2. **Context-aware values** — the `IContextAwareExpression`s, after the
+2. **Context-aware values** — the `IContextAware`s, after the
    ancestor records exist and lookups are wired. Each is handed a
    `GenerationContext` scoped to its record (`RecordBeingBuilt`, `BundleSoFar`,
    `RowIndex`) and to the one field being generated (`ValueFieldPass`, which
@@ -219,7 +219,7 @@ any context-aware value `Put` before it. Reading a *later* context-aware
 value, or a circular pair, throws from `context.SiblingValue(field)` — naming
 both fields and the `Put` order that fixes it.
 
-3. **Up-flow values** — the `IDeferredExpression`s. A field on a generated
+3. **Up-flow values** — the `IDeferred`s. A field on a generated
    *child* cannot be read in-line — the child does not exist yet — so these
    are left unresolved and filled by `DescendantValuePass` when a deferred
    graph is flattened, reading the child through
@@ -267,7 +267,7 @@ shared objects, avoiding accidental sharing between generated records.
 
 Under `InsertMode.Mock`, `IdMocker` assigns each record a placeholder
 identifier with no persistence step. The value's shape is an
-`IMockIdGenerator`: `DefaultMockIdGenerator` renders one process-wide
+`IMockIdGenerating`: `DefaultMockIdGenerator` renders one process-wide
 incrementing sequence as the key field's own type (`"mock-N"` for a string,
 `N` for int/long, a fresh `Guid` for Guid; anything else throws, pointing at
 `WithMockIdGenerator`). A project overrides it per record type on the Master
@@ -275,7 +275,7 @@ Template (`WithMockIdGenerator`) or per call (`RecordProvider.SetMockIdGenerator
 
 The key field itself is never assumed to be named `Id` — it is the Provider's
 `PrimaryTargetField`, carried on every `Bundle` and threaded through the
-depth-batched insert path. `IMockIdGenerator` and `MockIdContext` live in
+depth-batched insert path. `IMockIdGenerating` and `MockIdContext` live in
 `Xfty/Persistence/`; see [extend/mock-id-generators](../extend/mock-id-generators.md).
 
 ---

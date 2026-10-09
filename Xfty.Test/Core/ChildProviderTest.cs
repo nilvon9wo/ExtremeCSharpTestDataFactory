@@ -29,8 +29,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// </summary>
 public class ChildProviderTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -416,7 +416,7 @@ public class ChildProviderTest
 /// <summary>
 /// Case that needs a Contact (which in turn needs its own Account) - an in-test Provider only used here.
 /// </summary>
-file sealed class CaseProvider : IRecordProvider
+file sealed class CaseProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
         .Put<Case>(x => x.Subject, new IncrementingStringExpression("Case"))

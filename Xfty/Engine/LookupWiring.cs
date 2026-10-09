@@ -9,7 +9,7 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 public sealed class LookupWiring(Bundle bundle, MasterTemplate template)
 {
     private readonly Bundle _bundle = bundle;
-    private readonly Dictionary<PropertyInfo, IDefaultRelationship> _relationships = AllRelationships(template);
+    private readonly Dictionary<PropertyInfo, IRelatable> _relationships = AllRelationships(template);
 
     /// <summary>
     /// Wires whatever ancestors are actually present in the bundle. There is no
@@ -47,7 +47,7 @@ public sealed class LookupWiring(Bundle bundle, MasterTemplate template)
 
     private void PointToParent(object record, PropertyInfo field, object parent)
     {
-        IDefaultRelationship relationship = this._relationships[field];
+        IRelatable relationship = this._relationships[field];
         PropertyInfo? parentSourceField =
             relationship.RelatedField ?? this._bundle.GetBundle(field)?.PrimaryTargetField;
         field.SetValue(record, parentSourceField?.GetValue(parent));
@@ -62,6 +62,6 @@ public sealed class LookupWiring(Bundle bundle, MasterTemplate template)
             : parents![row];
     }
 
-    private static Dictionary<PropertyInfo, IDefaultRelationship> AllRelationships(MasterTemplate template) =>
+    private static Dictionary<PropertyInfo, IRelatable> AllRelationships(MasterTemplate template) =>
         template.RelationshipByField.ToDictionary(pair => pair.Key, pair => pair.Value.Relationship);
 }

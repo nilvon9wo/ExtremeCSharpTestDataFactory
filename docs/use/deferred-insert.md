@@ -20,7 +20,7 @@ Bundle contacts = await new RecordProvider<Contact>(lookup)
     .SetInsertMode(InsertMode.Deferred)
     .SupplyBundle();
 
-await DeferredInserter.Flush(gateway);   // one pass, in dependency order, through the given IPersistenceGateway
+await DeferredInserter.Flush(gateway);   // one pass, in dependency order, through the given IPersisting
 ```
 
 `Deferred` generates exactly like `Never` — no Ids — but registers every

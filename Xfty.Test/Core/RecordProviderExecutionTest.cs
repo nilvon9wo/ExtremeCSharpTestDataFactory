@@ -91,7 +91,7 @@ public sealed class RecordProviderExecutionTest : IDisposable
     public async Task SupplyBundle_InNowModeWithDepthBatching_InsertsThroughTheGateway()
     {
         // Arrange
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         RecordProviderPlan plan = PlanFor(InsertMode.Now) with
         {
             DepthBatched = true,

@@ -19,7 +19,7 @@ that arrived at it.
    references reuse the resolved record.
 4. **Cross-template, cross-type.** The same `SharedAncestor.Get("john")` can
    sit in more than one Master Template's relationship slot.
-5. **Fills either slot.** It implements `IDefaultRelationship`, so it goes in
+5. **Fills either slot.** It implements `IRelatable`, so it goes in
    `PutRequired(...)` or `PutOptional(...)` like any relationship.
 6. **Resolution-frugal.** Resolving N shared ancestors must not cost N
    separate resolution passes when they share a dependency chain.
@@ -99,7 +99,7 @@ for just that ancestor (and its chain), ahead of schedule.
 
 ## Interface shape
 
-`ISharedRelationship` (extends `IDefaultRelationship`) adds `SharedName`,
+`ISharedRelatable` (extends `IRelatable`) adds `SharedName`,
 `IsResolved`, `IsResolvedRecordPersisted`, `ResolveSharedRecord(context)`,
 and `GetResolvedBundle()`. The factory branches on this interface: a shared
 relationship contributes 0 records to generate — just wire the one resolved

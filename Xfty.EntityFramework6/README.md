@@ -2,7 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Xfty.EntityFramework6.svg)](https://www.nuget.org/packages/Xfty.EntityFramework6/)
 
-A database-backed `IPersistenceGateway` for
+A database-backed `IPersisting` for
 [`Xfty`](https://www.nuget.org/packages/Xfty), for a project still on classic
 Entity Framework 6 (`System.Data.Entity.DbContext`, the `EntityFramework`
 NuGet package) rather than EF Core - see
@@ -51,7 +51,7 @@ than a newer, more conservative Framework version. Any .NET Framework
 
 ## Full documentation
 
-- [Insert modes](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/insert-modes.md) - `Mock` vs `Now`, and what a configured `IPersistenceGateway` changes
+- [Insert modes](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/insert-modes.md) - `Mock` vs `Now`, and what a configured `IPersisting` changes
 - [Deferred insert](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/deferred-insert.md) - `.DepthBatched()`, dependency-ordered inserts across mixed record types
 - [Unit vs. integration tests](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/advanced/unit-vs-integration.md) - the same Provider definitions serving both
 - [Everything else `Xfty` does](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory#readme)

@@ -17,7 +17,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Persistence;
 /// project-specific shape - a type prefix, a datestamp, a zero-padded
 /// sequence, a value read off the record. Proves the whole chain: XFTY reads
 /// every key from the Provider's <c>PrimaryTargetField</c>, mocks each in its
-/// own type/shape via that type's <see cref="IMockIdGenerator"/>, and wires
+/// own type/shape via that type's <see cref="IMockIdGenerating"/>, and wires
 /// each level's foreign key from its parent's real key - `Mock` mode, no
 /// database, over `RecordFactory` and the depth-batched shared-ancestor
 /// resolver alike.
@@ -36,8 +36,8 @@ public class DeepMixedKeyHierarchyTest : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private static IProviderLookup DeepChainLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating DeepChainLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<L0Order>()] = new L0OrderProvider(),
             [LookupKey.Get<L1Batch>()] = new L1BatchProvider(),
@@ -216,14 +216,14 @@ file sealed record L9Tenant   // Guid key (built-in)
     public Guid Uuid { get; init; }
 }
 
-file sealed class PrefixSequenceIdGenerator(string prefix) : IMockIdGenerator
+file sealed class PrefixSequenceIdGenerator(string prefix) : IMockIdGenerating
 {
     private int _count;
 
     public object NextId(MockIdContext context) => $"{prefix}{++this._count}";
 }
 
-file sealed class ShipmentKeyGenerator : IMockIdGenerator
+file sealed class ShipmentKeyGenerator : IMockIdGenerating
 {
     private int _count;
 
@@ -231,7 +231,7 @@ file sealed class ShipmentKeyGenerator : IMockIdGenerator
 }
 
 /// <summary>Reads the record's own Region field to build the id - the "any weird requirement" case.</summary>
-file sealed class DepotIdGenerator : IMockIdGenerator
+file sealed class DepotIdGenerator : IMockIdGenerating
 {
     private int _count;
 
@@ -242,21 +242,21 @@ file sealed class DepotIdGenerator : IMockIdGenerator
     }
 }
 
-file sealed class DatestampedIdGenerator(string prefix) : IMockIdGenerator
+file sealed class DatestampedIdGenerator(string prefix) : IMockIdGenerating
 {
     private int _count;
 
     public object NextId(MockIdContext context) => $"{prefix}-{new DateTime(2024, 3, 9):yyyyMMdd}-{++this._count}";
 }
 
-file sealed class ZeroPaddedSlugGenerator : IMockIdGenerator
+file sealed class ZeroPaddedSlugGenerator : IMockIdGenerating
 {
     private int _count;
 
     public object NextId(MockIdContext context) => $"rgn_{++this._count:D6}";
 }
 
-file abstract class DeepChainProviderBase : IRecordProvider
+file abstract class DeepChainProviderBase : IRecordProviding
 {
     protected MasterTemplate Template { get; init; } = null!;
 

@@ -19,13 +19,13 @@ namespace Net.NowhereAtAll.Xfty.Core.Children;
 /// </summary>
 public sealed partial class ChildProvider<TChild>
 {
-    public ChildProvider<TChild> Put(PropertyInfo field, IValueExpression valueExpression)
+    public ChildProvider<TChild> Put(PropertyInfo field, IValueYielding valueExpression)
     {
         _ = this._inner.Put(field, valueExpression);
         return this;
     }
 
-    public ChildProvider<TChild> Put(PropertyInfo field, IContextAwareExpression contextAwareExpression)
+    public ChildProvider<TChild> Put(PropertyInfo field, IContextAware contextAwareExpression)
     {
         _ = this._inner.Put(field, contextAwareExpression);
         return this;
@@ -37,19 +37,19 @@ public sealed partial class ChildProvider<TChild>
         return this;
     }
 
-    public ChildProvider<TChild> PutRequired(PropertyInfo field, IDefaultRelationship relationship)
+    public ChildProvider<TChild> PutRequired(PropertyInfo field, IRelatable relationship)
     {
         _ = this._inner.PutRequired(field, relationship);
         return this;
     }
 
-    public ChildProvider<TChild> PutOptional(PropertyInfo field, IDefaultRelationship relationship)
+    public ChildProvider<TChild> PutOptional(PropertyInfo field, IRelatable relationship)
     {
         _ = this._inner.PutOptional(field, relationship);
         return this;
     }
 
-    public ChildProvider<TChild> Put(Expression<Func<TChild, object?>> field, IValueExpression valueExpression)
+    public ChildProvider<TChild> Put(Expression<Func<TChild, object?>> field, IValueYielding valueExpression)
     {
         _ = this._inner.Put(Field.Of(field), valueExpression);
         return this;
@@ -57,7 +57,7 @@ public sealed partial class ChildProvider<TChild>
 
     public ChildProvider<TChild> Put(
         Expression<Func<TChild, object?>> field,
-        IContextAwareExpression contextAwareExpression
+        IContextAware contextAwareExpression
     )
     {
         _ = this._inner.Put(Field.Of(field), contextAwareExpression);
@@ -70,13 +70,13 @@ public sealed partial class ChildProvider<TChild>
         return this;
     }
 
-    public ChildProvider<TChild> PutRequired(Expression<Func<TChild, object?>> field, IDefaultRelationship relationship)
+    public ChildProvider<TChild> PutRequired(Expression<Func<TChild, object?>> field, IRelatable relationship)
     {
         _ = this._inner.PutRequired(Field.Of(field), relationship);
         return this;
     }
 
-    public ChildProvider<TChild> PutOptional(Expression<Func<TChild, object?>> field, IDefaultRelationship relationship)
+    public ChildProvider<TChild> PutOptional(Expression<Func<TChild, object?>> field, IRelatable relationship)
     {
         _ = this._inner.PutOptional(Field.Of(field), relationship);
         return this;

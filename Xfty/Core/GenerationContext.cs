@@ -20,7 +20,7 @@ namespace Net.NowhereAtAll.Xfty.Core;
 /// </summary>
 public sealed class GenerationContext
 {
-    public IProviderLookup ProviderLookup { get; init; }
+    public IProviderLocating ProviderLookup { get; init; }
 
     public InsertMode InsertMode { get; init; }
 
@@ -29,12 +29,12 @@ public sealed class GenerationContext
     /// <summary>
     /// The real backing store for InsertMode.Now, if one is configured. Null throws at the point of use.
     /// </summary>
-    public IPersistenceGateway? PersistenceGateway { get; init; }
+    public IPersisting? PersistenceGateway { get; init; }
 
     /// <summary>
     /// The optional collaborator that fills in fields the Master Template never configured. Null: nothing does.
     /// </summary>
-    public IUnsetFieldFiller? UnsetFieldFiller { get; init; }
+    public IUnsetFieldFilling? UnsetFieldFiller { get; init; }
 
     /// <summary>The record whose value is being generated - only set during the context-aware pass.</summary>
     public object? RecordBeingBuilt { get; init; }
@@ -74,7 +74,7 @@ public sealed class GenerationContext
     public AncestorCycleGuard CycleGuard { get; init; }
 
     public GenerationContext(
-        IProviderLookup providerLookup,
+        IProviderLocating providerLookup,
         InsertMode? insertMode,
         InsertInclusivity? inclusivity
     )
@@ -110,11 +110,11 @@ public sealed class GenerationContext
     }
 
     /// <summary>A copy carrying the given persistence gateway (top-level entry point).</summary>
-    public GenerationContext WithPersistenceGateway(IPersistenceGateway? gateway) =>
+    public GenerationContext WithPersistenceGateway(IPersisting? gateway) =>
         new(this) { PersistenceGateway = gateway };
 
     /// <summary>A copy carrying the given unset-field filler (top-level entry point).</summary>
-    public GenerationContext WithUnsetFieldFiller(IUnsetFieldFiller? filler) =>
+    public GenerationContext WithUnsetFieldFiller(IUnsetFieldFilling? filler) =>
         new(this) { UnsetFieldFiller = filler };
 
     /// <summary>A copy carrying the given IncludeOptional(...) paths (top-level entry point).</summary>

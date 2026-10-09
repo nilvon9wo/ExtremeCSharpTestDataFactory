@@ -17,21 +17,21 @@ and relationships in a way a generic starter kit cannot.
 
 <!-- sketch -->
 ```csharp
-public sealed class MyProjectLookup : IProviderLookup
+public sealed class MyProjectLookup : IProviderLocating
 {
-    private static readonly Dictionary<ILookupKey, Type> Providers = new()
+    private static readonly Dictionary<IRecordIdentifying, Type> Providers = new()
     {
         [LookupKey.Get<Account>()] = typeof(MyAccountProvider),
         [LookupKey.Get<Contact>()] = typeof(MyContactProvider),
     };
 
-    private readonly Dictionary<ILookupKey, IRecordProvider> cache = [];
+    private readonly Dictionary<IRecordIdentifying, IRecordProviding> cache = [];
 
-    public IRecordProvider Get(Type recordType) => this.Get(LookupKey.Get(recordType));
+    public IRecordProviding Get(Type recordType) => this.Get(LookupKey.Get(recordType));
 
-    public IRecordProvider Get(ILookupKey key) => ProviderLookups.Get(Providers, this.cache, key);
+    public IRecordProviding Get(IRecordIdentifying key) => ProviderLookups.Get(Providers, this.cache, key);
 
-    public ISet<ILookupKey> KeysFor(object? record) => ProviderLookups.KeysFor(Providers.Keys.ToHashSet(), record);
+    public ISet<IRecordIdentifying> KeysFor(object? record) => ProviderLookups.KeysFor(Providers.Keys.ToHashSet(), record);
 }
 ```
 
@@ -39,7 +39,7 @@ public sealed class MyProjectLookup : IProviderLookup
   that need constructor arguments, use
   `ProviderLookups.Of(Dictionary<key, providerInstance>)`.
 - `ProviderLookups.OfTypes(map)` / `Of(map)` also wrap a complete map directly
-  for quick or in-test use, returning a ready-made `IProviderLookup`.
+  for quick or in-test use, returning a ready-made `IProviderLocating`.
 - Lookup keys compare by value (`HashKey`), so they work as dictionary keys
   directly. Obtain them with `LookupKey.Get(...)`, never `new`.
 
@@ -54,7 +54,7 @@ self-tests, and it is the class to copy as a starting point.
 | Method | Returns |
 |--------|---------|
 | `Get(Type)` | the Provider for the plain type |
-| `Get(ILookupKey)` | the Provider for a specific variant |
+| `Get(IRecordIdentifying)` | the Provider for a specific variant |
 | `KeysFor(object? record)` | every registered key the record matches (a record can match more than one) |
 
 `ProviderLookups.Resolve(lookup, record)` turns a `KeysFor` match set into the

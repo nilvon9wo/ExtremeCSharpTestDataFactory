@@ -2,11 +2,11 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
 /// Discoverable factory for the boolean combinators over
-/// <see cref="IRecordPredicate"/>. Each result is itself an
-/// <see cref="IRecordPredicate"/>, so they nest:
+/// <see cref="IRecordMatching"/>. Each result is itself an
+/// <see cref="IRecordMatching"/>, so they nest:
 ///
 /// <code>
-/// PredicateFactory.AnyOf(new IRecordPredicate[] {
+/// PredicateFactory.AnyOf(new IRecordMatching[] {
 ///     FieldPredicateFactory.GreaterThan(Field.Of&lt;Account&gt;(nameof(Account.AnnualRevenue)), 1_000_000m),
 ///     FieldPredicateFactory.GreaterThan(Field.Of&lt;Account&gt;(nameof(Account.NumberOfEmployees)), 5000)
 /// });
@@ -19,14 +19,14 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 public static class PredicateFactory
 {
     /// <summary>Satisfied only when every member predicate is. An empty list is vacuously satisfied.</summary>
-    public static IRecordPredicate AllOf(IReadOnlyList<IRecordPredicate> predicates) =>
+    public static IRecordMatching AllOf(IReadOnlyList<IRecordMatching> predicates) =>
         AllOfPredicate.Of(predicates);
 
     /// <summary>Satisfied when at least one member predicate is. An empty list is never satisfied.</summary>
-    public static IRecordPredicate AnyOf(IReadOnlyList<IRecordPredicate> predicates) =>
+    public static IRecordMatching AnyOf(IReadOnlyList<IRecordMatching> predicates) =>
         AnyOfPredicate.Of(predicates);
 
     /// <summary>Satisfied exactly when <paramref name="predicate"/> is not.</summary>
-    public static IRecordPredicate Negate(IRecordPredicate predicate) =>
+    public static IRecordMatching Negate(IRecordMatching predicate) =>
         NegationPredicate.Of(predicate);
 }

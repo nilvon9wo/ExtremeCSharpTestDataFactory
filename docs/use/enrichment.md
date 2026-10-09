@@ -131,7 +131,7 @@ A forced `value` — record, ancestor or child — may be:
 
 - a **literal** (every record at that position gets it);
 - a **`List<object>`** (one per record, in `GetChildList` order; length-checked);
-- an **`IValueExpression`**, resolved *fresh per record*.
+- an **`IValueYielding`**, resolved *fresh per record*.
 
 It **cannot** be a context-aware expression — the pass has no generation
 context. A path that never reaches a record the graph produced (a typo, an

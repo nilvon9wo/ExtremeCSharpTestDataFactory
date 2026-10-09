@@ -24,7 +24,7 @@ public sealed partial class RecordProvider<TRecord>
         return this;
     }
 
-    public RecordProvider<TRecord> WithVariant(ILookupKey variantKey)
+    public RecordProvider<TRecord> WithVariant(IRecordIdentifying variantKey)
     {
         _ = this._inner.WithVariant(variantKey);
         return this;
@@ -36,7 +36,7 @@ public sealed partial class RecordProvider<TRecord>
         return this;
     }
 
-    public RecordProvider<TRecord> SetMockIdGenerator(IMockIdGenerator mockIdGenerator)
+    public RecordProvider<TRecord> SetMockIdGenerator(IMockIdGenerating mockIdGenerator)
     {
         _ = this._inner.SetMockIdGenerator(mockIdGenerator);
         return this;
@@ -48,13 +48,13 @@ public sealed partial class RecordProvider<TRecord>
         return this;
     }
 
-    public RecordProvider<TRecord> SetPersistenceGateway(IPersistenceGateway gateway)
+    public RecordProvider<TRecord> SetPersistenceGateway(IPersisting gateway)
     {
         _ = this._inner.SetPersistenceGateway(gateway);
         return this;
     }
 
-    public RecordProvider<TRecord> SetUnsetFieldFiller(IUnsetFieldFiller filler)
+    public RecordProvider<TRecord> SetUnsetFieldFiller(IUnsetFieldFilling filler)
     {
         _ = this._inner.SetUnsetFieldFiller(filler);
         return this;

@@ -57,7 +57,7 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
             return;
         }
 
-        IContextAwareExpression expression = this._template.ContextAwareByField[field];
+        IContextAware expression = this._template.ContextAwareByField[field];
         field.SetValue(record, expression.Get(scoped));
     }
 }

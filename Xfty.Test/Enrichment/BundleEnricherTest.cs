@@ -20,8 +20,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Enrichment;
 /// </summary>
 public class BundleEnricherTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountWithParentProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -449,7 +449,7 @@ public class BundleEnricherTest
     }
 }
 
-file sealed class CaseProvider : IRecordProvider
+file sealed class CaseProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
         .Put<Case>(x => x.Subject, new IncrementingStringExpression("Enricher Case"));
@@ -460,7 +460,7 @@ file sealed class CaseProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-file sealed class AccountWithParentProvider : IRecordProvider
+file sealed class AccountWithParentProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
         .Put<Account>(x => x.Name, new IncrementingStringExpression("Enricher Account"))

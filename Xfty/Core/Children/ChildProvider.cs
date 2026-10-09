@@ -28,7 +28,7 @@ public sealed class ChildProvider
     private int _quantity = 1;
     private InsertMode? _insertModeOverride;
     private InsertInclusivity? _inclusivityOverride;
-    private ILookupKey? _variantKey;
+    private IRecordIdentifying? _variantKey;
 
     public ChildProvider(PropertyInfo relationshipField) : this(relationshipField, null)
     {
@@ -71,10 +71,10 @@ public sealed class ChildProvider
         return this;
     }
 
-    public ChildProvider Put(PropertyInfo field, IValueExpression valueExpression) =>
+    public ChildProvider Put(PropertyInfo field, IValueYielding valueExpression) =>
         this.AddPendingPut(ChildProviderPendingPut.OfValue(field, valueExpression));
 
-    public ChildProvider Put(PropertyInfo field, IContextAwareExpression contextAwareExpression) =>
+    public ChildProvider Put(PropertyInfo field, IContextAware contextAwareExpression) =>
         this.AddPendingPut(ChildProviderPendingPut.OfContextAware(field, contextAwareExpression));
 
     /// <summary>
@@ -85,27 +85,27 @@ public sealed class ChildProvider
     public ChildProvider Put(PropertyInfo field, object? value) =>
         value switch
         {
-            IContextAwareExpression contextAware => this.Put(field, contextAware),
-            IValueExpression valueExpression => this.Put(field, valueExpression),
-            IDefaultRelationship => throw RelationshipsNeedPutRequiredOrOptional(),
+            IContextAware contextAware => this.Put(field, contextAware),
+            IValueYielding valueExpression => this.Put(field, valueExpression),
+            IRelatable => throw RelationshipsNeedPutRequiredOrOptional(),
             _ => this.AddPendingPut(ChildProviderPendingPut.OfLiteral(field, value)),
         };
 
     private static XftyConfigurationException RelationshipsNeedPutRequiredOrOptional() =>
         new("Relationships must be added with PutRequired(...) or PutOptional(...), not Put(...).");
 
-    public ChildProvider PutRequired(PropertyInfo field, IDefaultRelationship relationship) =>
+    public ChildProvider PutRequired(PropertyInfo field, IRelatable relationship) =>
         this.AddPendingPut(ChildProviderPendingPut.OfRequiredRelationship(field, relationship));
 
-    public ChildProvider PutOptional(PropertyInfo field, IDefaultRelationship relationship) =>
+    public ChildProvider PutOptional(PropertyInfo field, IRelatable relationship) =>
         this.AddPendingPut(ChildProviderPendingPut.OfOptionalRelationship(field, relationship));
 
-    public ChildProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression valueExpression) =>
+    public ChildProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueYielding valueExpression) =>
         this.Put(Field.Of(field), valueExpression);
 
     public ChildProvider Put<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IContextAwareExpression contextAwareExpression
+        IContextAware contextAwareExpression
     ) =>
         this.Put(Field.Of(field), contextAwareExpression);
 
@@ -114,13 +114,13 @@ public sealed class ChildProvider
 
     public ChildProvider PutRequired<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationship
+        IRelatable relationship
     ) =>
         this.PutRequired(Field.Of(field), relationship);
 
     public ChildProvider PutOptional<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationship
+        IRelatable relationship
     ) =>
         this.PutOptional(Field.Of(field), relationship);
 
@@ -147,7 +147,7 @@ public sealed class ChildProvider
     }
 
     /// <summary>Pin the child Provider variant (otherwise derived from the template's type).</summary>
-    public ChildProvider WithVariant(ILookupKey variantKey)
+    public ChildProvider WithVariant(IRecordIdentifying variantKey)
     {
         this._variantKey = variantKey;
         return this;
@@ -189,7 +189,7 @@ public sealed class ChildProvider
     /// <summary>
     /// A fresh Provider for these children, with this child provider's puts/variant/nested children applied.
     /// </summary>
-    public RecordProvider NewProvider(IProviderLookup lookup)
+    public RecordProvider NewProvider(IProviderLocating lookup)
     {
         RecordProvider provider = this._variantKey is null
             ? new RecordProvider(this.ChildType, lookup)

@@ -76,8 +76,8 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
 
     private Task AddAncestor(Bundle bundle, PropertyInfo field, bool isForced)
     {
-        IDefaultRelationship relationship = this.RelationshipOn(field)!;
-        if (relationship is ISharedRelationship shared)
+        IRelatable relationship = this.RelationshipOn(field)!;
+        if (relationship is ISharedRelatable shared)
         {
             this.AssertNoPathValueInto(field);
             return this.WireSharedAncestor(bundle, field, shared);
@@ -105,19 +105,19 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         }
     }
 
-    private Task WireSharedAncestor(Bundle bundle, PropertyInfo field, ISharedRelationship shared) =>
+    private Task WireSharedAncestor(Bundle bundle, PropertyInfo field, ISharedRelatable shared) =>
         new SharedRelationshipWiring(this._context, shared).Wire(bundle, field, this._quantity);
 
     private async Task GenerateAncestor(
         Bundle bundle,
         PropertyInfo field,
-        IDefaultRelationship relationship,
+        IRelatable relationship,
         bool isForced
     )
     {
-        ILookupKey childKey = relationship.ResolveLookupKey(this._context.ProviderLookup)!;
+        IRecordIdentifying childKey = relationship.ResolveLookupKey(this._context.ProviderLookup)!;
         this.AssertNoAncestorCycle(field, childKey);
-        IRecordProvider provider = this._context.ProviderLookup.Get(childKey);
+        IRecordProviding provider = this._context.ProviderLookup.Get(childKey);
         GenerationContext childContext = ForcedChildContext(this._context.ForRelated(field), isForced)
             .EnteringProviderFor(childKey.HashKey);
         List<object> templates = ClonedTemplatesFor(relationship, this._quantity);
@@ -141,7 +141,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
             : childContext;
     }
 
-    private void AssertNoAncestorCycle(PropertyInfo field, ILookupKey childKey)
+    private void AssertNoAncestorCycle(PropertyInfo field, IRecordIdentifying childKey)
     {
         if (!this._context.CycleGuard.WouldCycleOn(childKey.HashKey))
         {
@@ -155,9 +155,9 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         );
     }
 
-    private static List<object> ClonedTemplatesFor(IDefaultRelationship relationship, int quantity) =>
+    private static List<object> ClonedTemplatesFor(IRelatable relationship, int quantity) =>
         RecordCloneFactory.DeepClones(relationship.OverrideTemplate!, quantity);
 
-    private IDefaultRelationship? RelationshipOn(PropertyInfo field) =>
+    private IRelatable? RelationshipOn(PropertyInfo field) =>
         this._template.RelationshipByField.GetValueOrDefault(field)?.Relationship;
 }

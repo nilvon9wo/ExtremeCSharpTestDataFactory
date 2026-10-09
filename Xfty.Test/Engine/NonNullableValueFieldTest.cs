@@ -223,33 +223,33 @@ public class NonNullableValueFieldTest
     private static RecordProvider WidgetProvider() =>
         new RecordProvider(typeof(Widget), WidgetLookup()).SetInsertMode(InsertMode.Never);
 
-    private static IProviderLookup WidgetLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating WidgetLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Widget>()] = new WidgetProviderImpl(),
         });
 
-    private static IProviderLookup CrateLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating CrateLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Crate>()] = new PlainCrateProvider(),
         });
 
-    private static IProviderLookup ParcelLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating ParcelLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Parcel>()] = new ParcelProvider(),
         });
 
-    private static IProviderLookup DepotChainLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating DepotChainLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Crate>()] = new DepotCrateProvider(),
             [LookupKey.Get<Depot>()] = new DepotProvider(),
         });
 
-    private static IProviderLookup ToteLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating ToteLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Tote>()] = new ToteProvider(),
         });
@@ -309,7 +309,7 @@ file sealed class Depot
     public int Code { get; init; }
 }
 
-file abstract class ValueFieldProviderBase : IRecordProvider
+file abstract class ValueFieldProviderBase : IRecordProviding
 {
     protected MasterTemplate Template { get; init; } = null!;
 

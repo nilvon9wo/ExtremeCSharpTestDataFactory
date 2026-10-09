@@ -18,22 +18,22 @@ public sealed class PathValue
 {
     public List<PropertyInfo> Path { get; }
 
-    public IPathTargetValue Value { get; }
+    public IPathApplicable Value { get; }
 
-    private PathValue(List<PropertyInfo> path, IPathTargetValue value)
+    private PathValue(List<PropertyInfo> path, IPathApplicable value)
     {
         AssertPath(path);
         this.Path = path;
         this.Value = value;
     }
 
-    public static PathValue OfExpression(List<PropertyInfo> path, IValueExpression expression)
+    public static PathValue OfExpression(List<PropertyInfo> path, IValueYielding expression)
     {
         AssertUsablePath(path);
         return new PathValue(path, new ValueExpressionPathTarget(expression));
     }
 
-    public static PathValue OfContextAware(List<PropertyInfo> path, IContextAwareExpression contextAware)
+    public static PathValue OfContextAware(List<PropertyInfo> path, IContextAware contextAware)
     {
         AssertUsablePath(path);
         return new PathValue(path, new ContextAwarePathTarget(contextAware));
@@ -45,13 +45,13 @@ public sealed class PathValue
         return new PathValue(path, new LiteralPathTarget(literal));
     }
 
-    public static PathValue OfRequiredRelationship(List<PropertyInfo> path, IDefaultRelationship relationship)
+    public static PathValue OfRequiredRelationship(List<PropertyInfo> path, IRelatable relationship)
     {
         AssertUsablePath(path);
         return new PathValue(path, new RequiredRelationPathTarget(relationship));
     }
 
-    public static PathValue OfOptionalRelationship(List<PropertyInfo> path, IDefaultRelationship relationship)
+    public static PathValue OfOptionalRelationship(List<PropertyInfo> path, IRelatable relationship)
     {
         AssertUsablePath(path);
         return new PathValue(path, new OptionalRelationPathTarget(relationship));

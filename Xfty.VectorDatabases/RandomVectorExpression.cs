@@ -3,7 +3,7 @@ using Net.NowhereAtAll.Xfty.Values;
 namespace Net.NowhereAtAll.Xfty.VectorDatabases;
 
 /// <summary>
-/// An <see cref="IValueExpression"/> filling a vector-database record's
+/// An <see cref="IValueYielding"/> filling a vector-database record's
 /// embedding field with a fixed-length <see cref="float"/> array of
 /// independent random values - structurally a vector, not a semantically
 /// meaningful embedding. A test asserting a real nearest-neighbor
@@ -15,7 +15,7 @@ public sealed class RandomVectorExpression(
     float min = RandomVectorExpression.DefaultMin,
     float max = RandomVectorExpression.DefaultMax,
     bool normalize = false
-) : IValueExpression
+) : IValueYielding
 {
     private const float DefaultMin = -1f;
     private const float DefaultMax = 1f;

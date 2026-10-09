@@ -5,7 +5,7 @@
 
 XFTY is a declarative test data factory for C#.
 
-Instead of manually constructing complete object graphs for every test, you describe only the values your test actually cares about. XFTY supplies sensible defaults, automatically creates related records, and can either mock persistence entirely or actually insert through a pluggable `IPersistenceGateway`.
+Instead of manually constructing complete object graphs for every test, you describe only the values your test actually cares about. XFTY supplies sensible defaults, automatically creates related records, and can either mock persistence entirely or actually insert through a pluggable `IPersisting`.
 
 The same Provider definitions can therefore be used in a pure in-memory unit test or a real database integration test.
 
@@ -107,7 +107,7 @@ XFTY detects an attempt to read a value before the corresponding part of the gra
 
 ### Persistence
 
-XFTY separates test-data generation from persistence through `IPersistenceGateway`.
+XFTY separates test-data generation from persistence through `IPersisting`.
 
 A Provider can therefore be used with:
 
@@ -148,7 +148,7 @@ For example:
 
 **Xfty.EntityFrameworkCore**
 
-EF Core persistence through `IPersistenceGateway`.
+EF Core persistence through `IPersisting`.
 
 [NuGet](https://www.nuget.org/packages/Xfty.EntityFrameworkCore/) · [Documentation](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/tree/master/Xfty.EntityFrameworkCore)
 
@@ -162,7 +162,7 @@ Some examples include:
 
 | Package                                                                                                                                    | Purpose                                                                |
 | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| [`Xfty.EntityFrameworkCore`](https://www.nuget.org/packages/Xfty.EntityFrameworkCore/)                                                     | EF Core persistence through `IPersistenceGateway`                      |
+| [`Xfty.EntityFrameworkCore`](https://www.nuget.org/packages/Xfty.EntityFrameworkCore/)                                                     | EF Core persistence through `IPersisting`                      |
 | [`Xfty.Bogus`](https://www.nuget.org/packages/Xfty.Bogus/)                                                                                 | Realistic fake-data value generation using Bogus                       |
 | [`Xfty.VectorDatabases`](https://www.nuget.org/packages/Xfty.VectorDatabases/)                                                             | Random-vector value generation for embedding fields                    |
 | [`Xfty.AutoFixture`](https://www.nuget.org/packages/Xfty.AutoFixture/)                                                                     | Integration between XFTY and AutoFixture                               |

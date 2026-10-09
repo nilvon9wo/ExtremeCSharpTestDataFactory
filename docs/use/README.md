@@ -7,7 +7,7 @@ the per-feature pages as you need them. Each feature page opens with the
 simplest example and builds up.
 
 > `InsertMode.Now` inserts for real through a configured
-> `IPersistenceGateway`, and throws without one (see
+> `IPersisting`, and throws without one (see
 > [insert-modes](insert-modes.md)). Every example on these pages uses `Mock`
 > unless the page says otherwise — the practical default for a unit test
 > that doesn't need a real database.
@@ -64,7 +64,7 @@ Every consumer-facing capability and its page.
 | the 7 bundled `*Expression` classes | [value-expressions](value-expressions.md) |
 | `CopyFromSiblingExpression` / `CopyFromAncestorExpression` | [context-aware-values](context-aware-values.md) |
 | `CopyFromDescendantExpression` — up-flow, `Deferred` only | [context-aware-values](context-aware-values.md) |
-| custom `IContextAwareExpression` + `context.SiblingValue` | [context-aware-values](context-aware-values.md) |
+| custom `IContextAware` + `context.SiblingValue` | [context-aware-values](context-aware-values.md) |
 | `PutRequired` / `PutOptional`, `SetInclusivity` | [relationships](relationships.md) |
 | `PreventCascade`, self-referential cycle guard | [relationships](relationships.md) |
 | `IncludeOptional(field)` / `IncludeOptional(path)` / `ExcludeRelationship` | [per-call-relationships](per-call-relationships.md) |
@@ -77,7 +77,7 @@ Every consumer-facing capability and its page.
 | `RecordInjector` — standalone graft (parents, children, values) | [record-injector](record-injector.md) |
 | insert modes `Never` / `Mock` / `Now` / `Later` / `Deferred`, plus the orthogonal `.ExcludePrimaryIds()` / `.IncludePrimaryIds()` | [insert-modes](insert-modes.md) |
 | `Deferred` registry, `.DepthBatched()` | [deferred-insert](deferred-insert.md) |
-| `SetMockIdGenerator` / `IMockIdGenerator` — non-string or project-shaped keys under `Mock` | [extend/mock-id-generators](../extend/mock-id-generators.md) |
+| `SetMockIdGenerator` / `IMockIdGenerating` — non-string or project-shaped keys under `Mock` | [extend/mock-id-generators](../extend/mock-id-generators.md) |
 | `WithVariant` / lookup-key ctor (flavour keys) | [provider-variants](provider-variants.md) |
 
 See [extend/](../extend/README.md) to teach XFTY about a new record type, and

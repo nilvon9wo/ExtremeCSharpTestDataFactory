@@ -27,7 +27,7 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus;
 public static class XftyAutoBogus
 {
     public static IAutoFaker CreateFaker(
-        IProviderLookup lookup,
+        IProviderLocating lookup,
         InsertMode insertMode = InsertMode.Mock,
         InsertInclusivity inclusivity = InsertInclusivity.Required
     ) =>

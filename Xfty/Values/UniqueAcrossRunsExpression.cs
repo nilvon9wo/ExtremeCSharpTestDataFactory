@@ -1,7 +1,7 @@
 namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
-/// An <see cref="IValueExpression"/> unique across processes, machines, and
+/// An <see cref="IValueYielding"/> unique across processes, machines, and
 /// persisted runs - not just within one process's lifetime like
 /// <see cref="UniqueStringExpression"/> (whose s_counter starts fresh every run).
 ///
@@ -23,7 +23,7 @@ namespace Net.NowhereAtAll.Xfty.Values;
 /// uniqueness, it only needs values that *look* like independent vector
 /// components. Keep `prefix`/`suffix` short - the token adds 16 characters.
 /// </summary>
-public sealed class UniqueAcrossRunsExpression(string? prefix, string? suffix) : IValueExpression
+public sealed class UniqueAcrossRunsExpression(string? prefix, string? suffix) : IValueYielding
 {
     private static readonly string RunToken = Guid.NewGuid().ToString("N")[..16];
     private static int s_counter = 1;

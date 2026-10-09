@@ -23,11 +23,11 @@ public sealed class DeferredInsertBuffer
     private readonly List<PendingDeferredValue> _pendingDeferredValues = [];
     private readonly HashSet<int> _excludedIndices = [];
     private readonly Dictionary<Type, PropertyInfo> _idFieldByType = [];
-    private readonly Dictionary<Type, IMockIdGenerator> _mockIdGeneratorByType = [];
+    private readonly Dictionary<Type, IMockIdGenerating> _mockIdGeneratorByType = [];
 
     public static async Task InsertGraph(
         Bundle? bundle,
-        IPersistenceGateway? gateway = null,
+        IPersisting? gateway = null,
         bool excludePrimaryIds = false
     )
     {
@@ -79,7 +79,7 @@ public sealed class DeferredInsertBuffer
     /// </summary>
     public IReadOnlyDictionary<Type, PropertyInfo> IdFieldByType() => this._idFieldByType;
 
-    public Task InsertAll(IPersistenceGateway? gateway = null)
+    public Task InsertAll(IPersisting? gateway = null)
     {
         this.ResolveUpFlowValues();
         return DepthBatchedInserter.InsertAll(
@@ -93,7 +93,7 @@ public sealed class DeferredInsertBuffer
     }
 
     /// <summary>Depth-batched resolution of every buffered bundle honouring mode (Now/Mock/Never).</summary>
-    public Task ResolveAll(InsertMode mode, IPersistenceGateway? gateway = null)
+    public Task ResolveAll(InsertMode mode, IPersisting? gateway = null)
     {
         this.ResolveUpFlowValues();
         return DepthBatchedInserter.ResolveAll(

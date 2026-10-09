@@ -11,19 +11,19 @@ need to see":
 
 | Interface | The value depends on | Runs |
 |---|---|---|
-| `IValueExpression` | nothing but itself | first value pass |
-| `IContextAwareExpression` | other fields on the same record (**siblings**), or a generated **ancestor** | second value pass, per record |
-| `IDeferredExpression` | a generated **child / descendant** | when a deferred graph is flattened (`Deferred` / `.DepthBatched()` only) |
+| `IValueYielding` | nothing but itself | first value pass |
+| `IContextAware` | other fields on the same record (**siblings**), or a generated **ancestor** | second value pass, per record |
+| `IDeferred` | a generated **child / descendant** | when a deferred graph is flattened (`Deferred` / `.DepthBatched()` only) |
 
 ---
 
-## A plain value expression — `IValueExpression`
+## A plain value expression — `IValueYielding`
 
 One no-argument method:
 
 <!-- sketch -->
 ```csharp
-public sealed class NextWeekday : IValueExpression
+public sealed class NextWeekday : IValueYielding
 {
     public object? Get()
     {
@@ -53,7 +53,7 @@ field, it is a context-aware value, not this.
 
 ---
 
-## Reading a sibling — `IContextAwareExpression`
+## Reading a sibling — `IContextAware`
 
 A **separate** interface (a context-aware value genuinely cannot produce
 anything without a context, so it does not pretend to satisfy the no-argument
@@ -61,7 +61,7 @@ contract):
 
 <!-- sketch -->
 ```csharp
-public sealed class IsAdultFlag : IContextAwareExpression
+public sealed class IsAdultFlag : IContextAware
 {
     public object? Get(GenerationContext context)
     {
@@ -87,7 +87,7 @@ yet, rather than returning a misleading `null`.
 
 ---
 
-## Reading a generated ancestor — `IContextAwareExpression`
+## Reading a generated ancestor — `IContextAware`
 
 The context carries the graph generated so far. `context.BundleSoFar.GetList(relationshipField)`
 is the parent for each primary, aligned 1:1 — pick this record's with
@@ -95,7 +95,7 @@ is the parent for each primary, aligned 1:1 — pick this record's with
 
 <!-- sketch -->
 ```csharp
-public sealed class AccountNamePlusCountry : IContextAwareExpression
+public sealed class AccountNamePlusCountry : IContextAware
 {
     public object? Get(GenerationContext context)
     {
@@ -143,7 +143,7 @@ copy.
 
 ---
 
-## Reading a generated child / descendant — `IDeferredExpression`
+## Reading a generated child / descendant — `IDeferred`
 
 A child does not exist when its parent is built, so an up-flowing value cannot
 run in either in-line pass. It gets its own interface and runs when a deferred
@@ -151,7 +151,7 @@ graph is flattened, over the whole forest:
 
 <!-- sketch -->
 ```csharp
-public sealed class HasAnyWebOriginCase : IDeferredExpression
+public sealed class HasAnyWebOriginCase : IDeferred
 {
     public object? Get(DeferredGraph graph, int recordIndex) =>
         graph.ChildrenOf(recordIndex, Field.Of<Case>(x => x.AccountId))

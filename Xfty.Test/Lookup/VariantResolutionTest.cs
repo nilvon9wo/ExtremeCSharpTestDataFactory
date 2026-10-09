@@ -21,8 +21,8 @@ public class VariantResolutionTest
         FlavouredLookupKey.Get<Account>("reconcile-small")
             .Matching(FieldPredicateFactory.LessThan<Account>(x => x.NumberOfEmployees, 10));
 
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.OfTypes(new Dictionary<ILookupKey, Type>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.OfTypes(new Dictionary<IRecordIdentifying, Type>
         {
             [LookupKey.Get<Account>()] = typeof(AccountDataProvider),
             [Big] = typeof(AccountDataProvider),
@@ -50,7 +50,7 @@ public class VariantResolutionTest
     public void Reconcile_WhenTheTemplateMatchesADifferentRefinedVariant_Throws()
     {
         // Arrange
-        IProviderLookup providerLookup = Lookup();
+        IProviderLocating providerLookup = Lookup();
 
         // Act
         LookupException thrown = Assert.Throws<LookupException>(() =>
@@ -97,13 +97,13 @@ public class VariantResolutionTest
 
     // Helpers -----------------------------------------------------------
 
-    private static void AssertReconcile(ILookupKey? explicitKey, object? template, string? expectedHash)
+    private static void AssertReconcile(IRecordIdentifying? explicitKey, object? template, string? expectedHash)
     {
         // Arrange
-        IProviderLookup providerLookup = Lookup();
+        IProviderLocating providerLookup = Lookup();
 
         // Act
-        ILookupKey? resolved = ProviderLookups.Reconcile(providerLookup, explicitKey, template);
+        IRecordIdentifying? resolved = ProviderLookups.Reconcile(providerLookup, explicitKey, template);
 
         // Assert
         Assert.Equal(expectedHash, resolved?.HashKey);

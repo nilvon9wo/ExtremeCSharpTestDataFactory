@@ -198,26 +198,26 @@ public class ValueTypeRecordSupportTest
 
     // Helpers -----------------------------------------------------------
 
-    private static IProviderLookup GeoPointLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating GeoPointLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<GeoPoint>()] = new GeoPointProvider(),
         });
 
-    private static IProviderLookup FrozenPointLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating FrozenPointLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<FrozenPoint>()] = new FrozenPointProvider(),
         });
 
-    private static IProviderLookup PositionalContactLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating PositionalContactLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<PositionalContact>()] = new PositionalContactProvider(),
         });
 
-    private static IProviderLookup RelatedGeoPointLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating RelatedGeoPointLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<GeoPoint>()] = new RelatedGeoPointProvider(),
             [LookupKey.Get<PointOwner>()] = new PointOwnerProvider(),
@@ -250,7 +250,7 @@ file sealed record PositionalContact(string? Id, string? Label);
 
 file record struct PositionalReading(string? Id, string? Note);
 
-file abstract class ValueTypeProviderBase : IRecordProvider
+file abstract class ValueTypeProviderBase : IRecordProviding
 {
     protected MasterTemplate Template { get; init; } = null!;
 

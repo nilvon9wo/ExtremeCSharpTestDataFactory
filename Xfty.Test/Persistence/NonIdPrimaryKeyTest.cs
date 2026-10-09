@@ -39,7 +39,7 @@ public class NonIdPrimaryKeyTest : IDisposable
     {
         // Arrange
         LedgerProvider ledgerProvider = new();
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get(ledgerProvider.PrimaryTargetField.DeclaringType!)] = ledgerProvider,
         });
@@ -171,8 +171,8 @@ public class NonIdPrimaryKeyTest : IDisposable
 
     // Helpers ---------------------------------------------------------
 
-    private static IProviderLookup RelatedLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating RelatedLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Entry>()] = new EntryProvider(),
             [LookupKey.Get<Ledger>()] = new LedgerProvider(),
@@ -193,14 +193,14 @@ file sealed record Entry
     public string? LedgerRef { get; init; }
 }
 
-file sealed class LedgerIdGenerator : IMockIdGenerator
+file sealed class LedgerIdGenerator : IMockIdGenerating
 {
     private int _count;
 
     public object NextId(MockIdContext context) => $"LDG-{++this._count}";
 }
 
-file abstract class NonIdProviderBase : IRecordProvider
+file abstract class NonIdProviderBase : IRecordProviding
 {
     protected MasterTemplate Template { get; init; } = null!;
 

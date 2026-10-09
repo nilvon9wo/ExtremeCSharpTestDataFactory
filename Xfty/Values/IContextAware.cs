@@ -6,12 +6,12 @@ namespace Net.NowhereAtAll.Xfty.Values;
 /// sibling fields on the record being built, or (once ported) fields on a
 /// generated ancestor.
 ///
-/// This is a **separate** interface from <see cref="IValueExpression"/>, not
+/// This is a **separate** interface from <see cref="IValueYielding"/>, not
 /// a subtype of it: a context-aware value genuinely cannot produce anything
 /// without a context, so making it satisfy the no-argument Get() contract
 /// would be a lie. See docs/roadmap/context-aware-values.md.
 /// </summary>
-public interface IContextAwareExpression
+public interface IContextAware
 {
     object? Get(GenerationContext context);
 }

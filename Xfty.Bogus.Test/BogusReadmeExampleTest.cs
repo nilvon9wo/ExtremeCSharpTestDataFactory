@@ -15,7 +15,7 @@ namespace Net.NowhereAtAll.Xfty.Bogus.Test;
 /// Bogus expression, not just the expression in isolation (see
 /// FakeFullNameExpressionTest and its siblings for that).
 /// </summary>
-file sealed class ContactWithFakeDataProvider : IRecordProvider
+file sealed class ContactWithFakeDataProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Contact>(x => x.Id)
     {
@@ -31,8 +31,8 @@ file sealed class ContactWithFakeDataProvider : IRecordProvider
 
 public class BogusReadmeExampleTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new ContactWithFakeDataProvider(),
         });
@@ -41,7 +41,7 @@ public class BogusReadmeExampleTest
     public async Task Supply_UsingBogusExpressionsInAMasterTemplate_ProducesRealisticLookingFields()
     {
         // Arrange
-        IProviderLookup lookup = Lookup();
+        IProviderLocating lookup = Lookup();
 
         // Act
         Contact result = (Contact)await new RecordProvider(typeof(Contact), lookup).Supply().ConfigureAwait(true);

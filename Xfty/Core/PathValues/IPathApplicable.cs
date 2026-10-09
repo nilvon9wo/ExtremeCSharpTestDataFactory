@@ -3,7 +3,7 @@ using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 
 namespace Net.NowhereAtAll.Xfty.Core.PathValues;
 
-public interface IPathTargetValue
+public interface IPathApplicable
 {
     void ApplyTo(MasterTemplate template, PropertyInfo targetField);
     bool IsRelationship();

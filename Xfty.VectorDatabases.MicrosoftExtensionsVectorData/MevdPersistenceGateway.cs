@@ -9,7 +9,7 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData;
 /// of known assumptions and accepted risks before relying on this in a real
 /// test suite.
 ///
-/// An <see cref="IPersistenceGateway"/> that inserts XFTY-generated records
+/// An <see cref="IPersisting"/> that inserts XFTY-generated records
 /// into any <see cref="VectorStore"/> Microsoft.Extensions.VectorData has a
 /// connector for (Qdrant, Redis, Azure AI Search, pgvector, and more) - this
 /// class has no dependency on, or knowledge of, which one. It uses MEVD's
@@ -24,7 +24,7 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData;
 /// from an unsupported field shape surface from whatever concrete
 /// <see cref="VectorStore"/> is plugged in, not from this class.
 /// </summary>
-public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersistenceGateway
+public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisting
 {
     public Task Insert(List<object> records, PropertyInfo idField) =>
         InsertGroups(this, [.. records.GroupBy(record => record.GetType())], idField);

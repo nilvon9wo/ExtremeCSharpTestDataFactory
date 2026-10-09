@@ -18,7 +18,7 @@ dotnet add package Xfty.AutoBogus
 `faker.Generate<T>()` normally builds `T` from AutoBogus's own recursive
 auto-property population. `XftyAutoBogus.CreateFaker(...)` returns an
 `IAutoFaker` whose generation for any type with a Provider registered in
-your `IProviderLookup` is answered by a real, fully-formed XFTY-generated
+your `IProviderLocating` is answered by a real, fully-formed XFTY-generated
 record instead:
 
 ```csharp
@@ -98,7 +98,7 @@ override template value, no `Put(...)`, and no required/optional
 relationship - never a field XFTY resolved *to* something on purpose. See
 [use/autofixture.md](autofixture.md#2-let-autofixture-fill-in-what-a-provider-left-unset)
 for the full explanation (it applies here unchanged - both fillers
-implement the same core `IUnsetFieldFiller`, proven independent of either
+implement the same core `IUnsetFieldFilling`, proven independent of either
 in `Xfty.Test/Core/UnsetFieldFillerTest`).
 
 ### Excluding specific fields

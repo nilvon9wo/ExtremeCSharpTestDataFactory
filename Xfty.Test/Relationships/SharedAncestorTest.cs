@@ -30,8 +30,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Relationships;
 /// </summary>
 public class SharedAncestorTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -383,7 +383,7 @@ public class SharedAncestorTest
         // Arrange - the 'loop' Account's own ParentId is the 'loop' shared ancestor
         const string name = "shared-ancestor-test-loop";
         _ = SharedAncestor.Put(name, new Account { Name = "Loop" });
-        IProviderLookup loopy = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating loopy = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new SelfReferencingAccountProvider(name),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -409,13 +409,13 @@ public class SharedAncestorTest
     public async Task Supply_WhenThreeSharedAncestorsFormAnIndirectCycle_Throws()
     {
         // Arrange - tom -> dick -> harry -> tom
-        ILookupKey tomKey = FlavouredLookupKey.Get<Account>("tom");
-        ILookupKey dickKey = FlavouredLookupKey.Get<Account>("dick");
-        ILookupKey harryKey = FlavouredLookupKey.Get<Account>("harry");
+        IRecordIdentifying tomKey = FlavouredLookupKey.Get<Account>("tom");
+        IRecordIdentifying dickKey = FlavouredLookupKey.Get<Account>("dick");
+        IRecordIdentifying harryKey = FlavouredLookupKey.Get<Account>("harry");
         _ = SharedAncestor.Put("tom", new Account { Name = "Tom" }).FromVariant(tomKey);
         _ = SharedAncestor.Put("dick", new Account { Name = "Dick" }).FromVariant(dickKey);
         _ = SharedAncestor.Put("harry", new Account { Name = "Harry" }).FromVariant(harryKey);
-        IProviderLookup ring = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating ring = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [tomKey] = new ParentedAccountProvider("dick"),
             [dickKey] = new ParentedAccountProvider("harry"),
@@ -466,7 +466,7 @@ public class SharedAncestorTest
             .Supply().ConfigureAwait(false);
 }
 
-file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecordProvider
+file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Loop"))
@@ -479,7 +479,7 @@ file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecor
 }
 
 /// <summary>An Account Provider whose ParentId is the named shared ancestor - for the cycle tests.</summary>
-file sealed class ParentedAccountProvider(string parentSharedName) : IRecordProvider
+file sealed class ParentedAccountProvider(string parentSharedName) : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Ring"))

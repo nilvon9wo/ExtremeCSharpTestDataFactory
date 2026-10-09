@@ -43,11 +43,11 @@ public class DefaultRelationshipTest
     public void ResolveLookupKey_WhenAnExplicitKeyWasGiven_ReturnsItAsIs()
     {
         // Arrange
-        ILookupKey explicitKey = FlavouredLookupKey.Get<Account>("big");
+        IRecordIdentifying explicitKey = FlavouredLookupKey.Get<Account>("big");
         DefaultRelationship relationship = new(explicitKey, new Account());
 
         // Act
-        ILookupKey? resolved = relationship.ResolveLookupKey(new CountingLookup());
+        IRecordIdentifying? resolved = relationship.ResolveLookupKey(new CountingLookup());
 
         // Assert
         Assert.Equal(explicitKey, resolved);
@@ -61,8 +61,8 @@ public class DefaultRelationshipTest
         CountingLookup lookup = new();
 
         // Act
-        ILookupKey? firstCall = relationship.ResolveLookupKey(lookup);
-        ILookupKey? secondCall = relationship.ResolveLookupKey(lookup);
+        IRecordIdentifying? firstCall = relationship.ResolveLookupKey(lookup);
+        IRecordIdentifying? secondCall = relationship.ResolveLookupKey(lookup);
 
         // Assert
         Assert.Equal(1, lookup.KeysForCalls); // derivation happens only once
@@ -71,17 +71,17 @@ public class DefaultRelationshipTest
     }
 }
 
-file sealed class CountingLookup : IProviderLookup
+file sealed class CountingLookup : IProviderLocating
 {
     public int KeysForCalls { get; private set; }
 
-    public IRecordProvider Get(Type recordType) => null!;
+    public IRecordProviding Get(Type recordType) => null!;
 
-    public IRecordProvider Get(ILookupKey lookupKey) => null!;
+    public IRecordProviding Get(IRecordIdentifying lookupKey) => null!;
 
-    public ISet<ILookupKey> KeysFor(object? record)
+    public ISet<IRecordIdentifying> KeysFor(object? record)
     {
         this.KeysForCalls++;
-        return new HashSet<ILookupKey>();
+        return new HashSet<IRecordIdentifying>();
     }
 }

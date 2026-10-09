@@ -35,7 +35,11 @@ repo — human or AI. When a change is reviewed, this is the checklist.
      intentions — never a single letter or abbreviation.
   9. Always use nouns to name objects.
   10. Always use verbs to name methods.
-  11. Always use adjectives to name interfaces.
+  11. Always use adjectives to name interfaces, prefixed with `I` as C#
+      convention requires (`IDisposable`, `IComparable`): an interface says
+      what its implementers are *able to do* (`IRecordProviding`,
+      `IPersisting`, `IContextAware`); nouns name the classes that do it
+      (`RecordProvider`, `EfPersistenceGateway`).
   12. Always name booleans like `isSomething`, `wasSomething`, `hasSomething`,
       etc.
   13. Always use the keyword `this`, except to reference static members.
@@ -265,6 +269,6 @@ Run the same checks locally before pushing — see
   throw: `Assert.Throws<TheSpecificException>(() => act())` — the *exact*
   type, never a bare `Exception`.
 - **Test doubles are code too.** Don't paste near-identical
-  `IRecordProvider`/`IProviderLookup` implementations across test files — a
+  `IRecordProviding`/`IProviderLocating` implementations across test files — a
   `file sealed class` fixture per file is fine, but reuse a shared helper
   method for anything reused within one file.

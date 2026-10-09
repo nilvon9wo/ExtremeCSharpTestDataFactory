@@ -16,12 +16,12 @@ namespace Net.NowhereAtAll.Xfty.Lookup;
 /// or use <see cref="DiscriminatorLookupKey"/> for the common "match one
 /// field's value" case, which enforces that for you.
 /// </summary>
-public sealed class FlavouredLookupKey : ILookupKey
+public sealed class FlavouredLookupKey : IRecordIdentifying
 {
     private static readonly Dictionary<string, FlavouredLookupKey> InstanceByHash = [];
 
     private readonly LookupKey _baseKey;
-    private readonly List<IRecordPredicate> _predicates = [];
+    private readonly List<IRecordMatching> _predicates = [];
 
     private string Flavour { get; }
 
@@ -47,7 +47,7 @@ public sealed class FlavouredLookupKey : ILookupKey
     public static FlavouredLookupKey Get<TRecord>(string flavour) => Get(typeof(TRecord), flavour);
 
     /// <summary>Add a condition the record must satisfy to belong to this flavour. Chainable.</summary>
-    public FlavouredLookupKey Matching(IRecordPredicate predicate)
+    public FlavouredLookupKey Matching(IRecordMatching predicate)
     {
         this._predicates.Add(predicate);
         return this;
@@ -66,7 +66,7 @@ public sealed class FlavouredLookupKey : ILookupKey
     public int Specificity => 20 + this._predicates.Count;
 
     public override bool Equals(object? other) =>
-        other is ILookupKey otherKey && otherKey.HashKey == this.HashKey;
+        other is IRecordIdentifying otherKey && otherKey.HashKey == this.HashKey;
 
     public override int GetHashCode() => this.HashKey.GetHashCode();
 
