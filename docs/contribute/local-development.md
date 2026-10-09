@@ -17,8 +17,8 @@ dotnet build Xfty.slnx                                              # .editorcon
 dotnet format Xfty.slnx --verify-no-changes --severity info         # the pre-push check: whitespace/formatting
 python3 scripts/check-line-layout.py                                # 120-char ceiling + wrapped ')' on its own line
 dotnet tool restore && python3 scripts/inspect-code.py              # ReSharper inspections: unnecessary usings and what else Roslyn misses
-dotnet test Xfty.slnx --filter "Category!=Performance"              # the normal suite
-dotnet test --project Xfty.Test/Xfty.Test.csproj -p:XftyCoverage=false --filter "Category=Performance"   # the informational performance suite (see test-suites.md)
+python3 scripts/run-tests.py --solution Xfty.slnx --filter "Category!=Performance"   # the normal suite (dotnet test + an INCONCLUSIVE verdict for modules that never ran)
+python3 scripts/run-tests.py --project Xfty.Test/Xfty.Test.csproj -p:XftyCoverage=false --filter "Category=Performance"   # the informational performance suite (see test-suites.md)
 ```
 
 `dotnet format --verify-no-changes`, `check-line-layout.py` and
@@ -32,7 +32,7 @@ are hand edits.
 Run a single test class or method with xUnit's standard filter syntax:
 
 ```bash
-dotnet test --solution Xfty.slnx -p:XftyCoverage=false --filter "FullyQualifiedName~ContextAwareExpressionTest"
+python3 scripts/run-tests.py --solution Xfty.slnx -p:XftyCoverage=false --filter "FullyQualifiedName~ContextAwareExpressionTest"
 ```
 
 `-p:XftyCoverage=false` because every test run otherwise enforces 100%
@@ -72,6 +72,11 @@ Smart App Control block before assuming a code bug — it has been observed to
 intermittently interfere with the test host process on some machines,
 reporting `0x800711C7` ("An Application Control policy has blocked this
 file") for a freshly built test DLL. Coverage instrumentation makes it more
-frequent. Running the suite from WSL avoids it - from a separate clone or
+frequent. A module blocked before it can even start is the worst case:
+`dotnet test` still prints "Test run summary: Passed!" for the modules that
+did run, so `scripts/run-tests.py` (a pass-through wrapper around
+`dotnet test`, the one CI uses) ends such a run with
+`Test run summary: INCONCLUSIVE - N test module(s) did not run: ...` and
+exit code 3 instead. Running the suite from WSL avoids it - from a separate clone or
 copy, since a WSL `dotnet restore` rewrites `obj/project.assets.json` with
 Linux paths that Visual Studio on Windows then cannot use.

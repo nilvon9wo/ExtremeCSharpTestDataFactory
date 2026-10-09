@@ -5,7 +5,7 @@ namespace Net.NowhereAtAll.Xfty.Elsewhere; // expect: build:IDE0130
 
 public sealed class Violations
 {
-    private int count; // expect: build:IDE1006
+    private int count; // expect: build:IDE1006 // expect: build:CS0649
 
     public int Next(int amount)
     {

@@ -13,6 +13,16 @@
   </PropertyGroup>
 
   <!--
+    .editorconfig makes every analyzer diagnostic an error, but the compiler's
+    own warnings (nullable CS86xx, unassigned fields, obsolete APIs, ...) and
+    NuGet's stayed warnings - printed, never failing anything. Everything is
+    error (docs/contribute/coding-standards.md), so they are too.
+  -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
     Without this, each multi-targeted TFM's compile pass infers its own
     default C# language version - netstandard2.0 defaults to a much older
     one unless told otherwise, and would reject init accessors, primary

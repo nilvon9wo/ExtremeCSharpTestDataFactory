@@ -64,7 +64,10 @@ testing conventions.
 
 Every diagnostic in `.editorconfig` is `severity = error`, deliberately. A
 diagnostic is *fixed*, never demoted to `warning` or `suggestion` to sit on a
-growing list that then gets ignored. There is no "we'll get to it" tier.
+growing list that then gets ignored. There is no "we'll get to it" tier. The
+compiler's own warnings (nullable `CS86xx`, unassigned fields, obsolete
+APIs) and NuGet's are no exception: `TreatWarningsAsErrors` is on for every
+project (`Directory.Build.props`).
 
 If a rule genuinely cannot be satisfied at one site (a `file`-local type in a
 public signature that CA1859 wants concrete, say), restructure the code so the
@@ -172,14 +175,14 @@ CI (`.github/workflows/ci.yml`) fails the build on any of:
 
 | Gate | Covers |
 |---|---|
-| `dotnet build` (`EnforceCodeStyleInBuild`) | compilation; every `.editorconfig` analyzer that runs in-build (IDE00xx including IDE1006 naming, CA1xxx, …) |
+| `dotnet build` (`EnforceCodeStyleInBuild`, `TreatWarningsAsErrors`) | compilation, with every compiler warning an error; every `.editorconfig` analyzer that runs in-build (IDE00xx including IDE1006 naming, CA1xxx, …) |
 | `dotnet format Xfty.slnx --verify-no-changes --severity info` | whitespace/formatting, plus a second pass over the style analyzers |
 | `scripts/inspect-code.py` (ReSharper `inspectcode`) | what Roslyn misses: **IDE0005-style unnecessary usings never fail `dotnet build`**, plus redundant casts/qualifiers/suppressions and unresolvable doc-comment references. Every finding fails; the few inspections that contradict these standards are switched off, with reasons, in `.editorconfig` |
 | `scripts/check-line-layout.py` | the 120-character ceiling and wrapped-`)` placement, which no Roslyn analyzer reports on |
-| `dotnet test` (cross-platform slnf) | the full suite, all TFMs - and **100% line and branch coverage** of each package, which every test run enforces |
+| `scripts/run-tests.py` (`dotnet test`, cross-platform slnf) | the full suite, all TFMs - and **100% line and branch coverage** of each package, which every test run enforces. A module that never ran makes the run `INCONCLUSIVE`, not "Passed!" |
 | `windows-net472` job | the netstandard2.0 build actually runs (net472) |
 | `verify-doc-examples.py` / `verify-doc-links.py` | every documented code call is exercised by a test; every relative doc link resolves |
-| `verify-gates.py` | every gate above still fires: each must report the tagged violations in `StyleCanary/`, a temporary uncovered class, and a temporary broken doc page - see [ci](ci.md#proving-the-gates-fire) |
+| `verify-gates.py` | every gate above still fires: each must report the tagged violations in `StyleCanary/`, a temporary uncovered class, a test module that cannot start, and a temporary broken doc page - see [ci](ci.md#proving-the-gates-fire) |
 
 Run the same checks locally before pushing — see
 [local-development](local-development.md).

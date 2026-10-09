@@ -13,6 +13,9 @@ unenforced here while the docs said otherwise. So:
 * The coverage gate is proven by adding a throwaway uncovered class to Xfty/
   - Xfty.Test must then fail (with no failing test: the threshold, not a
   test, is what failed).
+* run-tests.py's INCONCLUSIVE verdict is proven by hiding one test module's
+  apphost, so it cannot start - the way Smart App Control blocks one on
+  Windows - and requiring that verdict instead of dotnet test's "Passed!".
 * The doc gates are proven by adding a throwaway page under docs/use/ with a
   broken link and a `Runnable:` example no test exercises - both
   verify-doc-links.py and verify-doc-examples.py must then fail on it.
@@ -38,6 +41,9 @@ EXPECT_MARKER = re.compile(r"// expect: (?P<gate>[\w-]+):(?P<rule>[\w.-]+)")
 MSBUILD_DIAGNOSTIC = re.compile(
     r"(?P<path>[^\s(:]+\.cs)\((?P<line>\d+),\d+\): (?:error|warning|info) (?P<rule>[A-Za-z]+\d*)"
 )
+# The build gate only reports what fails the build: errors. A compiler
+# warning the canary expects (CS0649) therefore proves TreatWarningsAsErrors.
+BUILD_ERROR = re.compile(r"(?P<path>[^\s(:]+\.cs)\((?P<line>\d+),\d+\): error (?P<rule>[A-Za-z]+\d*)")
 # `path:line: rule: message` - the shape check-line-layout.py and
 # inspect-code.py print.
 COLON_DIAGNOSTIC = re.compile(r"^(?P<path>[^\s:]+\.cs):(?P<line>\d+): (?P<rule>[\w.-]+):", re.M)
@@ -50,6 +56,11 @@ public static class GateCanaryUncovered
 {
     public static int Answer() => 42;
 }"""
+UNSTARTABLE_PROJECT = os.path.join("Xfty.Xunit.Test", "Xfty.Xunit.Test.csproj")
+UNSTARTABLE_APPHOST = os.path.join(
+    "Xfty.Xunit.Test", "bin", "Debug", "net10.0",
+    "Net.NowhereAtAll.Xfty.Xunit.Test" + (".exe" if os.name == "nt" else ""),
+)
 STALE_DOC_PATH = os.path.join("docs", "use", "gate-canary.md")
 STALE_DOC_SOURCE = """# Gate canary
 
@@ -85,7 +96,7 @@ def findings(pattern: re.Pattern, output: str) -> set:
 
 STATIC_GATES = {
     "build": lambda: findings(
-        MSBUILD_DIAGNOSTIC, run(["dotnet", "build", CANARY_PROJECT, "-nologo", "--no-incremental"])[1]
+        BUILD_ERROR, run(["dotnet", "build", CANARY_PROJECT, "-nologo", "--no-incremental"])[1]
     ),
     "format": lambda: findings(
         MSBUILD_DIAGNOSTIC,
@@ -146,6 +157,24 @@ def coverage_gate_fails() -> bool:
     return caught
 
 
+def runner_reports_an_unstarted_module() -> bool:
+    """With one module unable to start, run-tests.py must say INCONCLUSIVE, not pass."""
+    build_code, _ = run(["dotnet", "build", UNSTARTABLE_PROJECT, "-nologo"])
+    apphost = os.path.join(ROOT, UNSTARTABLE_APPHOST)
+    hidden = apphost + ".gate-canary"
+    if build_code != 0 or not os.path.exists(apphost):
+        print(f"run-tests.py could not be checked: no apphost at {UNSTARTABLE_APPHOST}")
+        return False
+    os.rename(apphost, hidden)
+    try:
+        code, output = run(python_script("run-tests.py", "--project", UNSTARTABLE_PROJECT, "--no-build"))
+    finally:
+        os.rename(hidden, apphost)
+    caught = code == 3 and "INCONCLUSIVE" in output
+    print(f"run-tests.py reported a module that never started as INCONCLUSIVE: {caught}")
+    return caught
+
+
 def doc_gate_fails(script: str) -> bool:
     def check() -> bool:
         code, output = run(python_script(script))
@@ -160,6 +189,7 @@ def main() -> int:
     results = {
         "static gates": verify_static_gates(),
         "coverage": coverage_gate_fails(),
+        "inconclusive runs": runner_reports_an_unstarted_module(),
         "doc links": doc_gate_fails("verify-doc-links.py"),
         "doc examples": doc_gate_fails("verify-doc-examples.py"),
     }

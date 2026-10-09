@@ -14,7 +14,7 @@ exactly like one that passes; this is what tells them apart.
 
 | Gate | Command `verify-gates.py` runs |
 |---|---|
-| `build` | `dotnet build StyleCanary/StyleCanary.csproj --no-incremental` |
+| `build` | `dotnet build StyleCanary/StyleCanary.csproj --no-incremental` (errors only: the compiler warning `CS0649` must surface as an error, proving `TreatWarningsAsErrors`) |
 | `format` | `dotnet format StyleCanary/StyleCanary.csproj --verify-no-changes --severity info` |
 | `layout` | `python3 scripts/check-line-layout.py StyleCanary/Violations.cs` |
 | `inspect` | `python3 scripts/inspect-code.py StyleCanary/StyleCanary.csproj` |
@@ -24,6 +24,9 @@ temporary change to the real repository, always undone afterwards:
 
 - **coverage** - an uncovered class is added to `Xfty/`; `Xfty.Test` must then
   fail its 100% threshold;
+- **INCONCLUSIVE test runs** - one test module's apphost is hidden so it
+  cannot start; `scripts/run-tests.py` must then report `INCONCLUSIVE`
+  instead of `dotnet test`'s "Passed!";
 - **doc links** and **doc examples** - a page with a broken link and a
   `Runnable:` example no test exercises is added under `docs/use/`; both
   verifiers must then fail.

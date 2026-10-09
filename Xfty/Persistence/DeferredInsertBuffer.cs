@@ -73,6 +73,13 @@ public sealed class DeferredInsertBuffer
     /// <summary>Each record's lookup to another record in Records(), by index.</summary>
     public List<DepthBatchedInserterParentLink> ParentLinks() => this._pendingLinks;
 
+    /// <summary>
+    /// Each buffered record type's primary-key field, taken from the bundle it came from - so nothing here assumes the
+    /// key is called "Id". With <see cref="Records"/> and <see cref="ParentLinks"/>, everything a consumer persisting a
+    /// flattened graph its own way needs.
+    /// </summary>
+    public IReadOnlyDictionary<Type, PropertyInfo> IdFieldByType() => this._idFieldByType;
+
     public Task InsertAll(IPersisting? gateway = null)
     {
         this.ResolveUpFlowValues();
@@ -158,11 +165,10 @@ public sealed class DeferredInsertBuffer
     private void LinkChildEntry(BundleChildEntry entry, List<IndexedRecord> primaries, PropertyInfo childField)
     {
         List<IndexedRecord> childRecords = this.Collect(entry.Bundle);
-        for (int childRow = 0; childRow < childRecords.Count; childRow++)
-        {
-            IndexedRecord parent = primaries[entry.ParentRowByChildRow[childRow]];
-            this.LinkChild(childRecords[childRow], parent, childField);
-        }
+        childRecords
+            .Select((child, childRow) => (child, parent: primaries[entry.ParentRowByChildRow[childRow]]))
+            .ToList()
+            .ForEach(pair => this.LinkChild(pair.child, pair.parent, childField));
     }
 
     private void LinkToParents(Bundle bundle, List<IndexedRecord> children)

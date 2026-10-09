@@ -12,8 +12,8 @@ dotnet build Xfty.ci-cross-platform.slnf --no-restore                        # .
 dotnet format Xfty.slnx --verify-no-changes --severity info                  # whitespace/formatting, plus a second pass over the style analyzers
 dotnet tool restore && python3 scripts/inspect-code.py Xfty.ci-cross-platform.slnf   # ReSharper inspectcode: unnecessary usings and the rest of what Roslyn misses
 python3 scripts/check-line-layout.py                                         # 120-char ceiling + wrapped ')' on its own line, which no analyzer reports
-dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass, at 100% line + branch coverage per package
-dotnet test Xfty.Test/Xfty.Test.csproj --no-build -p:XftyCoverage=false --filter "Category=Performance"   # informational only (continue-on-error)
+python3 scripts/run-tests.py Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass, at 100% line + branch coverage per package
+python3 scripts/run-tests.py Xfty.Test/Xfty.Test.csproj --no-build -p:XftyCoverage=false --filter "Category=Performance"   # informational only (continue-on-error)
 python3 scripts/verify-doc-examples.py                                       # every documented code example is exercised by a real test
 python3 scripts/verify-doc-links.py                                          # every relative doc link and anchor resolves
 python3 scripts/verify-gates.py                                              # proves every gate above still fires - see below
@@ -29,6 +29,13 @@ catches gets its own step: IDE0005 unnecessary usings never fail
 with every finding fatal; line length and wrapped-`)` placement are checked by
 `scripts/check-line-layout.py`. See
 [coding-standards](coding-standards.md#quality-gates).
+
+Every test step runs through `scripts/run-tests.py` rather than bare
+`dotnet test`: same arguments, same output, plus one guarantee. When a test
+module never starts (or runs zero tests), `dotnet test` still prints
+"Test run summary: Passed!" for the modules that did run; the wrapper ends
+the run with an explicit `INCONCLUSIVE` verdict naming the missing modules,
+and exit code 3.
 
 Runs against [`Xfty.ci-cross-platform.slnf`](../../Xfty.ci-cross-platform.slnf)
 (a solution filter: every project in `Xfty.slnx` except
@@ -63,7 +70,7 @@ which is how line length, unnecessary usings and coverage all went
 unenforced while these docs said otherwise. `scripts/verify-gates.py` runs
 last and proves every other gate still catches what it should:
 
-- `build`, `format`, `layout` and `inspect` run against
+- `build` (errors only - a compiler warning in the canary proves `TreatWarningsAsErrors`), `format`, `layout` and `inspect` run against
   [`StyleCanary/`](../../StyleCanary/README.md) - deliberately non-compliant
   code, outside every solution, each violation tagged
   `// expect: <gate>:<rule>`. A marker no gate reports, or a gate no marker
@@ -73,6 +80,8 @@ last and proves every other gate still catches what it should:
   what fails).
 - `verify-doc-links.py` and `verify-doc-examples.py` must both fail on a
   throwaway page with a broken link and an untested `Runnable:` example.
+- `run-tests.py` must report `INCONCLUSIVE` once one test module's apphost is
+  hidden so it cannot start.
 
 Every temporary file is removed again. When you add an `.editorconfig` rule
 or a new gate, add a canary violation for it.
@@ -82,7 +91,7 @@ or a new gate, add a canary violation for it.
 ```yaml
 dotnet restore Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj
 dotnet build Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-restore
-dotnet test Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-build
+python scripts/run-tests.py Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-build
 ```
 
 Every package in this solution multi-targets `netstandard2.0;net8.0;net10.0` -

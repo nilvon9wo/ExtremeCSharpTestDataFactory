@@ -167,6 +167,19 @@ public class DeferredInsertBufferTest
         Assert.Equal(2, links.Select(link => link.ParentIndex).Distinct().Count());
     }
 
+    [Fact]
+    public void IdFieldByType_AfterFlatten_NamesEachRecordTypesRealKeyField()
+    {
+        // Arrange
+        Bundle bundle = BundleOf(Field.Of<Contact>(x => x.Id), new Contact());
+
+        // Act
+        DeferredInsertBuffer buffer = DeferredInsertBuffer.Flatten(bundle);
+
+        // Assert
+        Assert.Equal(Field.Of<Contact>(x => x.Id), buffer.IdFieldByType()[typeof(Contact)]);
+    }
+
     // Helpers -----------------------------------------------
 
     private static Bundle BundleOf(System.Reflection.PropertyInfo primaryField, object record)

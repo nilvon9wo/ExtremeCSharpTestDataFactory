@@ -143,6 +143,7 @@ persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integratio
 | `DeferredInserter.PendingCount()` | registered-but-unresolved record count |
 | `DeferredInserter.Flush(gateway)` | one pass, in dependency order, through the given `IPersisting`; throws with none given |
 | `DeferredInsertBuffer.Flatten(bundle)` → flattened graph + resolved up-flow values | inspect a deferred graph without inserting anything — see [deferred-insert](../use/deferred-insert.md) |
+| `.Records()` / `.ParentLinks()` / `.IdFieldByType()` on the flattened buffer | every flattened record, each lookup as a (child, parent, field) link by index, and each record type's real key field — enough to persist the graph your own way |
 | `DepthBatchedInserter.ResolveAll(records, links, InsertMode.Mock)` | the depth-batching algorithm, provable without a real database |
 
 ## Not ported — see [known-issues](known-issues.md)

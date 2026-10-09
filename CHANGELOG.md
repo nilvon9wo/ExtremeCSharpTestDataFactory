@@ -45,11 +45,7 @@ because those entries describe a change made in *this* repository.
     being built (a `ForValueField` context made without `ForRecord`),
     instead of returning a `null` indistinguishable from a sibling
     genuinely generated to null.
-- `LookupWiring`'s constructor drops its unused `GenerationContext` parameter.
-
-### Removed
-
-- `DeferredInsertBuffer.IdFieldByType()` - nothing called it.
+- `LookupWiring`'s constructor drops its `GenerationContext` parameter, unused since the inclusivity re-check it fed was removed (an engine phase `RecordFactory` constructs, not a consumer API).
 
 ### Fixed
 
@@ -73,6 +69,13 @@ because those entries describe a change made in *this* repository.
   fires: against `StyleCanary/` - deliberately non-compliant code, each
   violation tagged with the gate that must report it - plus a temporary
   uncovered class and a temporary broken doc page.
+- `TreatWarningsAsErrors` is on for every project: compiler and NuGet
+  warnings now fail the build like every analyzer diagnostic already did.
+- Every test step runs through `scripts/run-tests.py`: `dotnet test` plus an
+  explicit `INCONCLUSIVE` verdict (exit code 3) when a test module never
+  started - `dotnet test` itself prints "Passed!" for whatever did run.
+- `DeferredInsertBuffer` links child entries without a `for` loop (house
+  rule 1).
 - `SharedRandom` moves from core `Xfty` (which no longer used it) into
   `Xfty.VectorDatabases`, its only user.
 
