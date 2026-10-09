@@ -51,5 +51,6 @@ public sealed class DefaultMockIdGenerator : IMockIdGenerator
         new(
             $"InsertMode.Mock has no built-in Id generator for a {idType.Name} Id on {context.RecordType.Name}. "
             + "Supply an IMockIdGenerator via MasterTemplate<T>.WithMockIdGenerator(...) or "
-            + "RecordProvider.SetMockIdGenerator(...).");
+            + "RecordProvider.SetMockIdGenerator(...)."
+        );
 }

@@ -86,7 +86,8 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
             ? Guid.NewGuid().ToString()
             : throw new NotSupportedException(
                 $"This PoC can only auto-generate a Guid or string id for a field left unset - "
-                + $"'{underlyingType.Name}' needs to be set by the Provider template itself. See README.md.");
+                + $"'{underlyingType.Name}' needs to be set by the Provider template itself. See README.md."
+            );
 
     private static PropertyInfo FindVectorField(Type recordType)
     {
@@ -102,7 +103,8 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
     }
 
     private static VectorStoreCollectionDefinition BuildDefinition(
-        Type recordType, PropertyInfo idField, PropertyInfo vectorField, object sampleRecord)
+        Type recordType, PropertyInfo idField, PropertyInfo vectorField, object sampleRecord
+    )
     {
         int dimensions = ((float[])vectorField.GetValue(sampleRecord)!).Length;
         Type keyType = Nullable.GetUnderlyingType(idField.PropertyType) ?? idField.PropertyType;
@@ -130,5 +132,8 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
         // there and inference alone lands on Dictionary<string, object> - a mismatch against this
         // method's declared Dictionary<string, object?> return type on that TFM only.
         recordType.GetProperties()
-            .ToDictionary<PropertyInfo, string, object?>(property => property.Name, property => property.GetValue(record));
+            .ToDictionary<PropertyInfo, string, object?>(
+                property => property.Name,
+                property => property.GetValue(record)
+            );
 }

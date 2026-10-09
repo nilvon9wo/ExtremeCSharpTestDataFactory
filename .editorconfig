@@ -13,7 +13,7 @@ tab_width = 4
 
 # Line length: 80 is the target, 120 the hard ceiling. There is always a better
 # way to express a longer line - split declarations, break + concat strings,
-# wrap a signature. IDEs wrap to this; CI enforces it via a scripted check.
+# wrap a signature. IDEs wrap to this; CI enforces it via scripts/check-line-layout.py.
 max_line_length = 120
 
 # New line preferences

@@ -20,9 +20,11 @@ public static class InverseAlignment
         List<object> parents,
         List<object> children,
         PropertyInfo relationshipField,
-        PropertyInfo? parentPrimaryField = null) =>
+        PropertyInfo? parentPrimaryField = null
+    ) =>
         [.. parents.Select((parent, parentRow) =>
-            MatchesFor(parent, children, relationshipField, parentRow, parentPrimaryField ?? IdFieldOf(parent)))];
+            MatchesFor(parent, children, relationshipField, parentRow, parentPrimaryField ?? IdFieldOf(parent))
+        )];
 
     private static List<object> MatchesFor(
         object parent,

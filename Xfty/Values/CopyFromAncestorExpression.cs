@@ -32,7 +32,8 @@ public sealed class CopyFromAncestorExpression : IContextAwareExpression
 
     /// <summary>CopyFromAncestorExpression(relationshipField, sourceField), naming both fields by lambda.</summary>
     public static CopyFromAncestorExpression From<TRelationship, TTarget>(
-        Expression<Func<TRelationship, object?>> relationshipField, Expression<Func<TTarget, object?>> sourceField) =>
+        Expression<Func<TRelationship, object?>> relationshipField, Expression<Func<TTarget, object?>> sourceField
+    ) =>
         new(Field.Of(relationshipField), Field.Of(sourceField));
 
     public CopyFromAncestorExpression(List<PropertyInfo>? pathEndingInSourceField)

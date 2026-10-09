@@ -224,7 +224,8 @@ public class ChildProviderTest
             .SetInsertMode(InsertMode.Mock)
             .With(
                 ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
-                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)));
+                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3))
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -247,7 +248,8 @@ public class ChildProviderTest
             .SetInsertMode(InsertMode.Deferred)
             .With(
                 ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
-                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2)));
+                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2))
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);

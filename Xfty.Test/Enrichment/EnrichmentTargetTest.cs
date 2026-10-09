@@ -71,7 +71,8 @@ public class EnrichmentTargetTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => EnrichmentTarget.Locate(bundle, Field.Of<Account>(x => x.Name)));
+            () => EnrichmentTarget.Locate(bundle, Field.Of<Account>(x => x.Name))
+        );
 
         // Assert
         Assert.NotNull(thrown);

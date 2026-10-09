@@ -50,10 +50,12 @@ public static class InjectionPathResolver
             1 => candidates[0],
             0 => throw BadHop(
                 $"{parentType.Name} has no collection property of {childType.Name} - it cannot be an injected "
-                + $"subquery for {DescribeOf(childLookupField)}."),
+                + $"subquery for {DescribeOf(childLookupField)}."
+            ),
             _ => throw BadHop(
                 $"{parentType.Name} has {candidates.Count} collection properties of {childType.Name} - injection "
-                + $"cannot tell which one {DescribeOf(childLookupField)} means."),
+                + $"cannot tell which one {DescribeOf(childLookupField)} means."
+            ),
         };
     }
 

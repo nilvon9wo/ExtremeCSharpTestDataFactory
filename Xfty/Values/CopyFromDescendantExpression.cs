@@ -37,7 +37,8 @@ public sealed class CopyFromDescendantExpression : IDeferredExpression
 
     /// <summary>CopyFromDescendantExpression(childLookupField, sourceField), naming both fields by lambda.</summary>
     public static CopyFromDescendantExpression From<TChild>(
-        Expression<Func<TChild, object?>> childLookupField, Expression<Func<TChild, object?>> sourceField) =>
+        Expression<Func<TChild, object?>> childLookupField, Expression<Func<TChild, object?>> sourceField
+    ) =>
         new(Field.Of(childLookupField), Field.Of(sourceField));
 
     public CopyFromDescendantExpression(List<PropertyInfo>? pathEndingInSourceField)

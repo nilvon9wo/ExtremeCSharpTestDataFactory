@@ -148,7 +148,9 @@ public sealed class DeferredInsertBuffer
     private void CaptureDeferredValues(Bundle bundle, List<IndexedRecord> primaries) =>
         bundle.DeferredValues().ForEach(deferred =>
             this._pendingDeferredValues.Add(
-                new PendingDeferredValue(primaries[deferred.PrimaryRow].Index, deferred.Field, deferred.Strategy)));
+                new PendingDeferredValue(primaries[deferred.PrimaryRow].Index, deferred.Field, deferred.Strategy)
+            )
+        );
 
     /// <summary>Downward children (With(...)/WithChildren(...)): each child row points at its primary row.</summary>
     private void LinkToChildCollections(Bundle bundle, List<IndexedRecord> primaries)

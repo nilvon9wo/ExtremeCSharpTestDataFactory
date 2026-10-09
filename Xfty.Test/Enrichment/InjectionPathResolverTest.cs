@@ -81,7 +81,8 @@ public class InjectionPathResolverTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => InjectionPathResolver.ChildRelationshipField(typeof(Contact), notAChildLookup));
+            () => InjectionPathResolver.ChildRelationshipField(typeof(Contact), notAChildLookup)
+        );
 
         // Assert
         Assert.NotNull(thrown);

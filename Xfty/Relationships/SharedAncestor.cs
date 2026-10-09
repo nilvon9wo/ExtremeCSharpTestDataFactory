@@ -93,7 +93,8 @@ public sealed partial class SharedAncestor : ISharedRelationship
     private static XftyConfigurationException NotYetResolved(string name) =>
         new(
             $"Shared ancestor \"{name}\" is not resolved yet. Reference it in a Supply*() call first, or call "
-            + $"SharedAncestor.Get(\"{name}\").ResolveNow(lookup, mode).");
+            + $"SharedAncestor.Get(\"{name}\").ResolveNow(lookup, mode)."
+        );
 
     // Registration-time only: Put(name, record) has no Provider/lookup yet to ask for the real key field,
     // so it disambiguates "already-saved value" from "override template" by a property literally named "Id".

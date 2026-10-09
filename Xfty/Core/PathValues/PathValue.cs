@@ -104,7 +104,8 @@ public sealed class PathValue
         {
             throw new XftyConfigurationException(
                 "A path value needs at least one relationship field plus the target field - use plain "
-                + "Put(field, value) for a field on the record itself.");
+                + "Put(field, value) for a field on the record itself."
+            );
         }
     }
 }

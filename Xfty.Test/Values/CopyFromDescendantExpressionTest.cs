@@ -21,7 +21,8 @@ public class CopyFromDescendantExpressionTest
         // Arrange - the up-flow field points at a child relationship nothing generated
         DeferredGraph graph = new([new Account()], []);
         CopyFromDescendantExpression expression = new(
-            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department));
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department)
+        );
 
         // Act
         object? actualResult = expression.Get(graph, 0);
@@ -40,7 +41,8 @@ public class CopyFromDescendantExpressionTest
             [parent, child],
             [new DepthBatchedInserterParentLink(childIndex: 1, parentIndex: 0, Field.Of<Contact>(x => x.AccountId))]);
         CopyFromDescendantExpression expression = new(
-            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department));
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department)
+        );
 
         // Act
         object? actualResult = expression.Get(graph, 0);
@@ -56,7 +58,8 @@ public class CopyFromDescendantExpressionTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => new CopyFromDescendantExpression(null!, Field.Of<Contact>(x => x.Department)));
+            () => new CopyFromDescendantExpression(null!, Field.Of<Contact>(x => x.Department))
+        );
 
         // Assert - a null field must be rejected at construction
         Assert.Contains("cannot be null", thrown.Message);
@@ -69,7 +72,8 @@ public class CopyFromDescendantExpressionTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => new CopyFromDescendantExpression([Field.Of<Contact>(x => x.Department)]));
+            () => new CopyFromDescendantExpression([Field.Of<Contact>(x => x.Department)])
+        );
 
         // Assert
         Assert.Contains("at least one child-lookup field", thrown.Message);

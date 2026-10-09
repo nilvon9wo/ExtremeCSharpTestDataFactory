@@ -43,7 +43,8 @@ public class GenerationContextTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => new GenerationContext(null!, InsertMode.Mock, InsertInclusivity.None));
+            () => new GenerationContext(null!, InsertMode.Mock, InsertInclusivity.None)
+        );
 
         // Assert
         Assert.Contains("Provider Lookup", thrown.Message);

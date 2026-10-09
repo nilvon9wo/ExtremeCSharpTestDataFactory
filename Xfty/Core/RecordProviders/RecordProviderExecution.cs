@@ -57,7 +57,8 @@ internal sealed class RecordProviderExecution(RecordProviderPlan plan)
             plan.Outlet,
             plan.InsertMode,
             plan.Inclusivity,
-            plan.PersistenceGateway);
+            plan.PersistenceGateway
+        );
 
     private Task<Bundle> Generate(GenerationContext context, List<object> templates) =>
         plan.TemplateConfig.HasCustomTemplate
@@ -71,7 +72,8 @@ internal sealed class RecordProviderExecution(RecordProviderPlan plan)
             return DeferredInsertBuffer.InsertGraph(
                 bundle,
                 plan.PersistenceGateway,
-                plan.ExcludePrimaryIds);
+                plan.ExcludePrimaryIds
+            );
         }
 
         if (this.DeferredToRegistry())

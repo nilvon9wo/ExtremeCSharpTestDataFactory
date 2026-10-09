@@ -48,7 +48,8 @@ public sealed class XftySpecimenBuilder(
         Task.Run(() => new RecordProvider(type, lookup)
                 .SetInsertMode(insertMode)
                 .SetInclusivity(inclusivity)
-                .Supply())
+                .Supply()
+        )
             .GetAwaiter()
             .GetResult();
 

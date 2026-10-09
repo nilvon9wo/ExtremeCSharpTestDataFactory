@@ -370,7 +370,8 @@ public class SharedAncestorTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => SharedAncestor.PutAsTemplate(name, new Account { Name = "Second" }));
+            () => SharedAncestor.PutAsTemplate(name, new Account { Name = "Second" })
+        );
 
         // Assert - reconfiguring a resolved shared ancestor must throw
         Assert.Contains("already resolved", thrown.Message);

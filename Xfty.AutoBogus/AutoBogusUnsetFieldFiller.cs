@@ -44,7 +44,8 @@ public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFil
             method.Name == nameof(IAutoFaker.Generate)
             && method.IsGenericMethodDefinition
             && method.GetGenericArguments().Length == 1
-            && HasSoleParameterOfType(method, typeof(Action<IAutoGenerateConfigBuilder>)));
+            && HasSoleParameterOfType(method, typeof(Action<IAutoGenerateConfigBuilder>))
+        );
 
     private static readonly Action<IAutoGenerateConfigBuilder> NoConfiguration = static _ => { };
 

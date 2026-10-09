@@ -9,4 +9,5 @@ internal sealed record RecordProviderExecutionState(
     IRecordProvider FactoryOutlet,
     InsertMode InsertMode,
     InsertInclusivity Inclusivity,
-    IPersistenceGateway? PersistenceGateway);
+    IPersistenceGateway? PersistenceGateway
+);

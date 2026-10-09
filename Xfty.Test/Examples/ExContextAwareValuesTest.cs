@@ -106,7 +106,8 @@ public class ExContextAwareValuesTest
             [parent, child],
             [new DepthBatchedInserterParentLink(childIndex: 1, parentIndex: 0, Field.Of<Contact>(x => x.AccountId))]);
         CopyFromDescendantExpression expression = new(
-            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department));
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department)
+        );
 
         object? actualResult = expression.Get(graph, 0);
 

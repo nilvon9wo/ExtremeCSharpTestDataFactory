@@ -57,7 +57,8 @@ public class RecordProviderScenarioTest
         AssertAccountGenerated(bundle);
         Assert.Equal(
             ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId,
-            ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id); // mock Ids still wire the FK
+            ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id
+        ); // mock Ids still wire the FK
     }
 
     [Fact]

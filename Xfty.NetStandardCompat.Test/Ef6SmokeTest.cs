@@ -24,7 +24,8 @@ internal sealed class Ef6SqliteConfiguration : DbConfiguration
         this.SetProviderFactory("System.Data.SQLite.EF6", SQLiteProviderFactory.Instance);
         this.SetProviderServices(
             "System.Data.SQLite",
-            (DbProviderServices)SQLiteProviderFactory.Instance.GetService(typeof(DbProviderServices)));
+            (DbProviderServices)SQLiteProviderFactory.Instance.GetService(typeof(DbProviderServices))
+        );
     }
 }
 

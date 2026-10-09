@@ -167,7 +167,8 @@ public class RecordProviderApiTest
 
         // Act
         RecordProviderConflictException thrown = Assert.Throws<RecordProviderConflictException>(
-            () => provider.SetOverrideTemplateList([new Contact(), new Account()]));
+            () => provider.SetOverrideTemplateList([new Contact(), new Account()])
+        );
 
         // Assert
         Assert.Contains("Account", thrown.Message);
@@ -181,7 +182,8 @@ public class RecordProviderApiTest
 
         // Act
         RecordProviderConflictException thrown = Assert.Throws<RecordProviderConflictException>(
-            () => provider.SetOverrideTemplateList([new Account()]));
+            () => provider.SetOverrideTemplateList([new Account()])
+        );
 
         // Assert - the constructor asked for Contact
         Assert.Contains("Contact", thrown.Message);
@@ -242,7 +244,8 @@ public class RecordProviderApiTest
 
         // Act
         RecordProviderConflictException thrown = Assert.Throws<RecordProviderConflictException>(
-            () => provider.WithVariant(LookupKey.Get<Account>()));
+            () => provider.WithVariant(LookupKey.Get<Account>())
+        );
 
         // Assert
         Assert.Contains("Account", thrown.Message);
@@ -257,7 +260,8 @@ public class RecordProviderApiTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => provider.WithVariant(LookupKey.Get<Contact>()));
+            () => provider.WithVariant(LookupKey.Get<Contact>())
+        );
 
         // Assert
         Assert.Contains("WithVariant", thrown.Message);
@@ -302,7 +306,8 @@ public class RecordProviderApiTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => provider.Put<Contact>(x => x.AccountId, (object)new DefaultRelationship(new Account())));
+            () => provider.Put<Contact>(x => x.AccountId, (object)new DefaultRelationship(new Account()))
+        );
 
         // Assert
         Assert.Contains("PutRequired", thrown.Message);
@@ -522,7 +527,8 @@ public class RecordProviderApiTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => provider.ExcludeRelationship<Contact>(x => x.FirstName));
+            () => provider.ExcludeRelationship<Contact>(x => x.FirstName)
+        );
 
         // Assert
         Assert.Contains("no relationship", thrown.Message);

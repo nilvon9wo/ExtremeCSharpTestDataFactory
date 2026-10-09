@@ -250,5 +250,6 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
 
     private static XftyConfigurationException Cycle(string name) =>
         new($"Shared ancestors form a cycle involving \"{name}\". Break it by pre-registering one side with "
-            + $"SharedAncestor.Put(\"{name}\", record).");
+            + $"SharedAncestor.Put(\"{name}\", record)."
+        );
 }

@@ -125,7 +125,8 @@ public class EnrichmentSelectionTest
                 Field.Of<Contact>(x => x.Department),
                 "x"),
             RootPath(),
-            true);
+            true
+        );
 
     private static void AssertChildFieldsOnContains(
         InjectConfig config,

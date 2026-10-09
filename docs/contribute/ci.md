@@ -10,6 +10,7 @@ Two jobs, no secrets.
 dotnet restore Xfty.ci-cross-platform.slnf
 dotnet build Xfty.ci-cross-platform.slnf --no-restore                        # .editorconfig analyzers enforced - a style violation fails the build
 dotnet format Xfty.slnx --verify-no-changes --severity info                  # whitespace + IDE1006 naming + IDE0130 namespace-folder, which the build itself does not run
+python3 scripts/check-line-layout.py                                         # 120-char ceiling + wrapped ')' on its own line, which no analyzer reports
 dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass
 dotnet test Xfty.Test/Xfty.Test.csproj --no-build --filter "Category=Performance"     # informational only (continue-on-error)
 python3 scripts/verify-doc-examples.py                                       # every documented code example is exercised by a real test

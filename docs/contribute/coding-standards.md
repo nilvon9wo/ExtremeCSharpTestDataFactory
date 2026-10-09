@@ -101,7 +101,8 @@ for both — see [Quality gates](#quality-gates).
 ## Formatting
 
 - **Line length: 80 soft, 120 hard.** Never over 120 (`.editorconfig`
-  `max_line_length = 120`; CI checks with `awk 'length>120'`). There is
+  `max_line_length = 120`). Roslyn reads that setting but never reports on
+  it, so CI enforces it with `scripts/check-line-layout.py`. There is
   essentially always a clearer way to express a line that long.
 - **One expression per line; one variable declaration per line.**
 - **Long strings** are broken and `+`-concatenated across lines, never left to
@@ -110,7 +111,10 @@ for both — see [Quality gates](#quality-gates).
   the statement that opened it — symmetric with the opener, never dangling after
   the last argument. (`.editorconfig`
   `csharp_wrap_before_invocation_rpar` / `_declaration_rpar`, plus the
-  ReSharper equivalents.)
+  ReSharper equivalents. Only Rider/ReSharper honour those, and
+  `jb cleanupcode` does not fix them, so `scripts/check-line-layout.py`
+  enforces them in CI.) A trailing lambda block or collection expression
+  does not count as wrapping the list: `Foo(x =>` / `{ ... });` is fine.
 
   ```csharp
   // no
@@ -165,6 +169,7 @@ CI (`.github/workflows/ci.yml`) fails the build on any of:
 |---|---|
 | `dotnet build` (`EnforceCodeStyleInBuild`) | compilation; every `.editorconfig` analyzer that runs in-build (IDE00xx, CA1xxx, …) |
 | `dotnet format Xfty.slnx --verify-no-changes --severity info` | whitespace/formatting; **IDE1006 naming and IDE0130 namespace-folder**, which the build does not run |
+| `scripts/check-line-layout.py` | the 120-character ceiling and wrapped-`)` placement, which no Roslyn analyzer reports on |
 | `dotnet test` (cross-platform slnf) | the full suite, all TFMs |
 | `windows-net472` job | the netstandard2.0 build actually runs (net472) |
 | `verify-doc-examples.py` / `verify-doc-links.py` | every documented code call is exercised by a test; every relative doc link resolves |

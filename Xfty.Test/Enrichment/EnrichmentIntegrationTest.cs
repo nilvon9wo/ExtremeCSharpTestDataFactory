@@ -77,7 +77,8 @@ public class EnrichmentIntegrationTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id)));
+            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id))
+        );
 
         // Assert
         Assert.Contains("has no generated ancestor or child collection", thrown.Message);

@@ -29,6 +29,7 @@ public static class XftyAutoBogus
     public static IAutoFaker CreateFaker(
         IProviderLookup lookup,
         InsertMode insertMode = InsertMode.Mock,
-        InsertInclusivity inclusivity = InsertInclusivity.Required) =>
+        InsertInclusivity inclusivity = InsertInclusivity.Required
+    ) =>
         AutoFaker.Create(builder => builder.WithOverride(new XftyAutoBogusOverride(lookup, insertMode, inclusivity)));
 }

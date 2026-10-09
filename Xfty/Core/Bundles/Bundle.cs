@@ -185,7 +185,8 @@ public sealed class Bundle
     public List<object> ChildRecordsOf(int parentRowIndex, PropertyInfo childRelationshipField) =>
         [.. this.ChildEntries(childRelationshipField)
             .SelectMany(entry => (entry.Bundle.PrimaryRecords() ?? [])
-                .Where((_, childRow) => entry.ParentRowByChildRow[childRow] == parentRowIndex))];
+                .Where((_, childRow) => entry.ParentRowByChildRow[childRow] == parentRowIndex)
+            )];
 
     /// <summary>
     /// A single bundle of every child for childRelationshipField - merged primaries plus each child's own generated

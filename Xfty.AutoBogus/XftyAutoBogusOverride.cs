@@ -50,7 +50,8 @@ public sealed class XftyAutoBogusOverride(
 
     public override void Generate(AutoGenerateOverrideContext context) =>
         context.Instance = Task.Run(() => new RecordProvider(context.GenerateType, lookup)
-            .SetInsertMode(insertMode).SetInclusivity(inclusivity).Supply()).GetAwaiter().GetResult();
+            .SetInsertMode(insertMode).SetInclusivity(inclusivity).Supply()
+        ).GetAwaiter().GetResult();
 
     private bool IsRegistered(Type type)
     {

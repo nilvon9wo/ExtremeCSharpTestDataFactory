@@ -54,7 +54,8 @@ public class VariantResolutionTest
 
         // Act
         LookupException thrown = Assert.Throws<LookupException>(() =>
-            ProviderLookups.Reconcile(providerLookup, Big, new Account { NumberOfEmployees = 2 }));
+            ProviderLookups.Reconcile(providerLookup, Big, new Account { NumberOfEmployees = 2 })
+        );
 
         // Assert - a template matching a different variant must be rejected
         Assert.Contains("contradicts", thrown.Message);

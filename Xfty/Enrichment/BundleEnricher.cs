@@ -54,7 +54,8 @@ public sealed class BundleEnricher
             ? Enrich(bundle, field, InjectConfig.Everything())
             : throw new XftyConfigurationException(
                 $"InjectAll({field.Name}): the graph has no generated ancestor or child collection to inject. "
-                + "Generate related records, or use Inject(field, config) with explicit values.");
+                + "Generate related records, or use Inject(field, config) with explicit values."
+            );
 
     private List<object> Run()
     {
@@ -126,7 +127,8 @@ public sealed class BundleEnricher
 
         _ = injector.Relationship(
             InjectionPathResolver.ParentRelationshipField(lookupField),
-            this.EnrichPosition(this.AncestorPosition(pos, lookupField, parents)));
+            this.EnrichPosition(this.AncestorPosition(pos, lookupField, parents))
+        );
     }
 
     private static void GraftInverse(RecordInjector injector, EnrichmentPosition pos)
@@ -138,7 +140,8 @@ public sealed class BundleEnricher
 
         _ = injector.ChildRelationship(
             InjectionPathResolver.ChildRelationshipField(pos.PositionType()!, pos.InverseChildField),
-            pos.InverseChildrenPerRow!);
+            pos.InverseChildrenPerRow!
+        );
     }
 
     private void GraftChildren(RecordInjector injector, EnrichmentPosition pos)
@@ -151,7 +154,9 @@ public sealed class BundleEnricher
         this._selection.ChildFieldsOn(pos.SubBundle, ChildPathOf(pos)).ToList().ForEach(childField =>
             injector.ChildRelationship(
                 InjectionPathResolver.ChildRelationshipField(pos.PositionType()!, childField),
-                this.ChildrenPerRow(pos, childField)));
+                this.ChildrenPerRow(pos, childField)
+            )
+        );
     }
 
     private List<List<object>> ChildrenPerRow(EnrichmentPosition pos, PropertyInfo childField)
@@ -213,7 +218,9 @@ public sealed class BundleEnricher
             up.CarryInverse(
                 lookupField,
                 InverseAlignment.ChildrenPerParent(
-                    parents, pos.Records!, lookupField, pos.SubBundle!.GetBundle(lookupField)?.PrimaryTargetField));
+                    parents, pos.Records!, lookupField, pos.SubBundle!.GetBundle(lookupField)?.PrimaryTargetField
+                )
+            );
         }
 
         return up;

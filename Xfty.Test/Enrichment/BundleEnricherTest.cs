@@ -188,7 +188,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id)));
+            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id))
+        );
 
         // Assert - nothing generated, InjectAll has nothing to inject
         Assert.NotNull(thrown);
@@ -222,7 +223,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Contact>(x => x.Id), config));
+            () => bundle.Inject(Field.Of<Contact>(x => x.Id), config)
+        );
 
         // Assert - the error points at the escape hatch
         Assert.Contains("AllowDeeperGraph", thrown.Message);
@@ -270,7 +272,8 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .With(ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
-                .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)))
+                .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3))
+            )
             .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.AllChildren().ChildDepth(2).AllowDeeperGraph();
 
@@ -293,7 +296,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Account>(x => x.Id), config));
+            () => bundle.Inject(Field.Of<Account>(x => x.Id), config)
+        );
 
         // Assert
         Assert.NotNull(thrown);
@@ -393,7 +397,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Account>(x => x.Id), config));
+            () => bundle.Inject(Field.Of<Account>(x => x.Id), config)
+        );
 
         // Assert - the error names the unreached path
         Assert.Contains("InjectChildValue", thrown.Message);
@@ -418,7 +423,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Account>(x => x.Id), config));
+            () => bundle.Inject(Field.Of<Account>(x => x.Id), config)
+        );
 
         // Assert - the error points at childDepth
         Assert.Contains("childDepth", thrown.Message);

@@ -139,7 +139,8 @@ public class RecordFactoryTest
             {
                 [LookupKey.Get<Contact>()] = new RelatedFieldContactProvider(),
                 [LookupKey.Get<Account>()] = new LeafAccountProvider(),
-            }))
+            })
+        )
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Never);
 
@@ -187,7 +188,8 @@ public class RecordFactoryTest
         Assert.Equal(3, contacts.Count);
         Assert.Equal(3, accounts.Count);
         Assert.All(Enumerable.Range(0, 3), i =>
-            Assert.Equal(accounts[i].Id, contacts[i].AccountId)); // row i wired to its own parent
+            Assert.Equal(accounts[i].Id, contacts[i].AccountId)
+        ); // row i wired to its own parent
         // each Contact gets a distinct Account
         Assert.Equal(3, accounts.Select(account => account.Id).Distinct().Count());
     }
@@ -406,7 +408,8 @@ file sealed class RelatedFieldContactProvider : BaseProvider
             .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Related Field Contact"))
             .PutRequired(
                 Field.Of<Contact>(x => x.Department),
-                new DefaultRelationship(new Account { Name = "Wired From Parent" }, Field.Of<Account>(x => x.Name)));
+                new DefaultRelationship(new Account { Name = "Wired From Parent" }, Field.Of<Account>(x => x.Name))
+            );
 }
 
 file sealed class OptionalOwnerAccountProvider : BaseProvider

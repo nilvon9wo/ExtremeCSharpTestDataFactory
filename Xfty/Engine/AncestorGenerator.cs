@@ -64,8 +64,10 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
             .Select(path => path[0])];
         heads.UnionWith(this._context.PathValues
             .Where(pathValue => this.IsRelationshipHere(pathValue.Head())
-                && (!pathValue.IsAtTarget() || pathValue.IsRelationshipKind()))
-            .Select(pathValue => pathValue.Head()));
+                && (!pathValue.IsAtTarget() || pathValue.IsRelationshipKind())
+            )
+            .Select(pathValue => pathValue.Head())
+        );
         return heads;
     }
 
@@ -98,7 +100,8 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         {
             throw new XftyConfigurationException(
                 $"Put(...) with a path through {field.Name} sets a value on a shared ancestor. Configure the "
-                + "shared record with SharedAncestor.Put(name, ...) instead.");
+                + "shared record with SharedAncestor.Put(name, ...) instead."
+            );
         }
     }
 
@@ -148,7 +151,8 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         throw new XftyConfigurationException(
             $"Relationship {field.Name} would generate another {childKey.RecordType}, but one is already being "
             + "generated further up this graph - a cycle. Use distinct per-level Providers (different lookup "
-            + "keys), PreventCascade, or allow ancestor cycles when the chain terminates on its own.");
+            + "keys), PreventCascade, or allow ancestor cycles when the chain terminates on its own."
+        );
     }
 
     private static List<object> ClonedTemplatesFor(IDefaultRelationship relationship, int quantity) =>

@@ -170,7 +170,8 @@ public class MockIdGeneratorTest
     // Helpers -------------------------------------------------------
 
     private static MockIdContext ContextFor<TRecord>(
-        System.Linq.Expressions.Expression<Func<TRecord, object?>> idField, object record) =>
+        System.Linq.Expressions.Expression<Func<TRecord, object?>> idField, object record
+    ) =>
         new(typeof(TRecord), Field.Of(idField), record);
 
     private static IProviderLookup LookupOf(IRecordProvider provider) =>

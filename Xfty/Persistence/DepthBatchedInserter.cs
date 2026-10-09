@@ -38,7 +38,8 @@ public sealed class DepthBatchedInserter
         IPersistenceGateway? gateway,
         HashSet<int>? excludedIndices,
         IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType,
-        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType)
+        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType
+    )
     {
         this._records = records;
         this._mode = mode;
@@ -56,7 +57,8 @@ public sealed class DepthBatchedInserter
         IPersistenceGateway? gateway = null,
         HashSet<int>? excludedIndices = null,
         IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType = null,
-        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType = null) =>
+        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType = null
+    ) =>
         ResolveAll(records, links, InsertMode.Now, gateway, excludedIndices, idFieldByType, mockIdGeneratorByType);
 
     /// <summary>
@@ -75,7 +77,8 @@ public sealed class DepthBatchedInserter
         IPersistenceGateway? gateway = null,
         HashSet<int>? excludedIndices = null,
         IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType = null,
-        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType = null)
+        IReadOnlyDictionary<Type, IMockIdGenerator>? mockIdGeneratorByType = null
+    )
     {
         bool nothingToDo = records.Count == 0 || mode == InsertMode.Never;
         return nothingToDo
@@ -144,12 +147,14 @@ public sealed class DepthBatchedInserter
         this._gateway is null
             ? throw new NotSupportedException(
                 "InsertMode.Now needs a persistence gateway - pass one to ResolveAll(...)/InsertAll(...), or "
-                + "RecordProvider.SetPersistenceGateway(...) - use Mock or Never when none is configured.")
+                + "RecordProvider.SetPersistenceGateway(...) - use Mock or Never when none is configured."
+            )
             : this._gateway.InsertMixed(layer, this._idFieldByType);
 
     private void PointAtParents(int child) =>
         this._linksByChild[child].ForEach(link =>
-            link.Field.SetValue(this._records[child], this.IdOf(this._records[link.ParentIndex])));
+            link.Field.SetValue(this._records[child], this.IdOf(this._records[link.ParentIndex]))
+        );
 
     private object? IdOf(object record) => this.IdFieldFor(record)?.GetValue(record);
 
@@ -168,7 +173,8 @@ public sealed class DepthBatchedInserter
 
     private static List<List<DepthBatchedInserterParentLink>> GroupLinksByChild(
         int recordCount,
-        List<DepthBatchedInserterParentLink>? links)
+        List<DepthBatchedInserterParentLink>? links
+    )
     {
         List<List<DepthBatchedInserterParentLink>> byChild =
             [.. Enumerable.Range(0, recordCount).Select(_ => new List<DepthBatchedInserterParentLink>())];

@@ -33,7 +33,8 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture;
 public sealed class XftyCustomization(
     IProviderLookup lookup,
     InsertMode insertMode = InsertMode.Mock,
-    InsertInclusivity inclusivity = InsertInclusivity.Required) : ICustomization
+    InsertInclusivity inclusivity = InsertInclusivity.Required
+) : ICustomization
 {
     public void Customize(IFixture fixture) =>
         fixture.Customizations.Insert(0, new XftySpecimenBuilder(lookup, insertMode, inclusivity));

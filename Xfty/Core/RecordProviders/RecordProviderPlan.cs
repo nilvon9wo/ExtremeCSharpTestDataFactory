@@ -26,7 +26,8 @@ internal sealed record RecordProviderPlan(
     bool DepthBatched,
     bool ForceStructuralChildGeneration,
     RecordProviderTemplateConfig TemplateConfig,
-    RecordProviderChildConfig ChildConfig)
+    RecordProviderChildConfig ChildConfig
+)
 {
     public PropertyInfo PrimaryTargetField => this.Outlet.PrimaryTargetField;
 

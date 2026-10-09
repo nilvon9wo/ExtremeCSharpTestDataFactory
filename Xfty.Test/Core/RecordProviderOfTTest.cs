@@ -87,7 +87,8 @@ public class RecordProviderOfTTest
             new RecordProvider<Contact>(Lookup)
             {
                 [x => x.AccountId] = new DefaultRelationship(new Account()),
-            });
+            }
+        );
 
         // Assert
         Assert.Contains("PutRequired", thrown.Message);

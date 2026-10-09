@@ -20,31 +20,36 @@ public class FieldPredicateFactoryTest
     public void EqualTo_WhenTheFieldMatches_ReturnsTrue() =>
         AssertIsSatisfiedBy(
             FieldPredicateFactory.EqualTo(Industry, "Technology"),
-            new Account { Industry = "Technology" }, true);
+            new Account { Industry = "Technology" }, true
+        );
 
     [Fact]
     public void NotEqualTo_WhenTheFieldDiffers_ReturnsTrue() =>
         AssertIsSatisfiedBy(
             FieldPredicateFactory.NotEqualTo(Industry, "Retail"),
-            new Account { Industry = "Technology" }, true);
+            new Account { Industry = "Technology" }, true
+        );
 
     [Fact]
     public void NotEqualTo_WhenTheFieldMatches_ReturnsFalse() =>
         AssertIsSatisfiedBy(
             FieldPredicateFactory.NotEqualTo(Industry, "Retail"),
-            new Account { Industry = "Retail" }, false);
+            new Account { Industry = "Retail" }, false
+        );
 
     [Fact]
     public void GreaterThan_WhenTheFieldExceedsTheValue_ReturnsTrue() =>
         AssertIsSatisfiedBy(
             FieldPredicateFactory.GreaterThan(NumberOfEmployees, 100),
-            new Account { NumberOfEmployees = 900 }, true);
+            new Account { NumberOfEmployees = 900 }, true
+        );
 
     [Fact]
     public void LessThan_WhenTheFieldIsBelowTheValue_ReturnsTrue() =>
         AssertIsSatisfiedBy(
             FieldPredicateFactory.LessThan(NumberOfEmployees, 100),
-            new Account { NumberOfEmployees = 5 }, true);
+            new Account { NumberOfEmployees = 5 }, true
+        );
 
     [Fact]
     public void IsNull_WhenTheFieldIsBlank_ReturnsTrue() =>
@@ -62,7 +67,8 @@ public class FieldPredicateFactoryTest
     public void InSet_WhenTheFieldIsAMember_ReturnsTrue() =>
         AssertIsSatisfiedBy(
             FieldPredicateFactory.InSet(Industry, ["Technology"]),
-            new Account { Industry = "Technology" }, true);
+            new Account { Industry = "Technology" }, true
+        );
 
     private static void AssertIsSatisfiedBy(IRecordPredicate predicate, Account? record, bool expectedResult)
     {

@@ -34,7 +34,8 @@ public static class PersistenceGatewayExtensions
     private static Task InsertGroups(
         IPersistenceGateway gateway,
         List<IGrouping<Type, object>> groups,
-        IReadOnlyDictionary<Type, PropertyInfo> idFieldByType) =>
+        IReadOnlyDictionary<Type, PropertyInfo> idFieldByType
+    ) =>
         groups.Count == 0
             ? Task.CompletedTask
             : InsertRemainingGroups(gateway, groups, idFieldByType);
@@ -42,7 +43,8 @@ public static class PersistenceGatewayExtensions
     private static async Task InsertRemainingGroups(
         IPersistenceGateway gateway,
         List<IGrouping<Type, object>> groups,
-        IReadOnlyDictionary<Type, PropertyInfo> idFieldByType)
+        IReadOnlyDictionary<Type, PropertyInfo> idFieldByType
+    )
     {
         IGrouping<Type, object> group = groups[0];
         await gateway.Insert([.. group], IdFieldOf(group.Key, idFieldByType)).ConfigureAwait(false);

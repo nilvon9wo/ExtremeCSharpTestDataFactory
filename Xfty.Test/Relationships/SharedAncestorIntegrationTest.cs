@@ -89,7 +89,8 @@ public class SharedAncestorIntegrationTest
                 [LookupKey.Get<Account>()] = new AccountDataProvider(),
                 [LookupKey.Get<Contact>()] = new ContactDataProvider(),
             },
-            new Dictionary<string, object> { [sharedName] = new Account { Name = "Lookup-Default HQ" } });
+            new Dictionary<string, object> { [sharedName] = new Account { Name = "Lookup-Default HQ" } }
+        );
         RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)

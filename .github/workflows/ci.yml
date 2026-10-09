@@ -35,6 +35,12 @@ jobs:
       - name: Verify code style, naming, and formatting (dotnet format)
         run: dotnet format Xfty.slnx --verify-no-changes --severity info
 
+      # Roslyn reads max_line_length but never reports on it, and only
+      # Rider/ReSharper honour the wrapped-')' rules - so neither the build nor
+      # dotnet format above enforces them. This scripted check does.
+      - name: Verify line length and wrapped ')' placement
+        run: python3 scripts/check-line-layout.py
+
       - name: Test (excluding the informational performance suite)
         run: dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"
 

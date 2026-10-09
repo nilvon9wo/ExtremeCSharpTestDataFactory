@@ -33,7 +33,8 @@ public sealed class SharedRelationshipWiring(GenerationContext context, ISharedR
         throw new XftyConfigurationException(
             $"Shared ancestor \"{this.Name()}\" was resolved without being inserted, but this NOW run would carry "
             + $"its Id onto inserted records. Use a consistent insert mode across the test, or register a saved "
-            + $"record with SharedAncestor.Put(\"{this.Name()}\", record).");
+            + $"record with SharedAncestor.Put(\"{this.Name()}\", record)."
+        );
     }
 
     private static List<object> Repeat(object record, int times) =>

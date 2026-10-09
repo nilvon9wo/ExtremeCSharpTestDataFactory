@@ -8,7 +8,8 @@ namespace Net.NowhereAtAll.Xfty.Lookup;
 public sealed class MapBackedLookup(
     Dictionary<ILookupKey, Type>? providerTypeByKey,
     Dictionary<ILookupKey, IRecordProvider>? providerByKey,
-    Dictionary<string, object>? sharedAncestorDefaults) : IProviderLookup, ISharedAncestorDefaults
+    Dictionary<string, object>? sharedAncestorDefaults
+) : IProviderLookup, ISharedAncestorDefaults
 {
     private readonly Dictionary<ILookupKey, Type>? _providerTypeByKey = providerTypeByKey;
     private readonly Dictionary<ILookupKey, IRecordProvider>? _providerByKey = providerByKey;

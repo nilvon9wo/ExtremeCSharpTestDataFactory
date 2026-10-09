@@ -80,7 +80,8 @@ public sealed partial class RecordProvider
     private static XftyConfigurationException NoTemplateToDeriveTypeFrom() =>
         new(
             "Cannot derive a record type from an empty or null template list - supply at least one concrete "
-            + "template, or use the (Type, lookup) constructor.");
+            + "template, or use the (Type, lookup) constructor."
+        );
 
     private IRecordProvider ResolveFactoryOutlet() =>
         this._factoryOutlet ??= this._providerLookup.Get(this.ResolveVariantKey());

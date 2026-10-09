@@ -18,7 +18,8 @@ public static class ProviderLookups
     public static IRecordProvider Get(
         Dictionary<ILookupKey, Type> providerTypeByKey,
         Dictionary<ILookupKey, IRecordProvider> instanceCache,
-        ILookupKey key)
+        ILookupKey key
+    )
     {
         RequireKey(key);
         if (!instanceCache.TryGetValue(key, out IRecordProvider? cached))
@@ -125,7 +126,8 @@ public static class ProviderLookups
         ILookupKey fromTemplate = Resolve(providerLookup, overrideTemplate);
         return new LookupException(
             $"Explicit variant {explicitKey.HashKey} contradicts the override template, which matches "
-            + $"{fromTemplate.HashKey}. Supply only one.");
+            + $"{fromTemplate.HashKey}. Supply only one."
+        );
     }
 
     // Ready-made map-backed lookups ---------------------------------------
@@ -137,7 +139,8 @@ public static class ProviderLookups
     /// <summary>As Of(Map), plus the shared-ancestor defaults the Providers rely on.</summary>
     public static IProviderLookup Of(
         Dictionary<ILookupKey, IRecordProvider> providerByKey,
-        Dictionary<string, object> sharedAncestorDefaults) =>
+        Dictionary<string, object> sharedAncestorDefaults
+    ) =>
         new MapBackedLookup(null, providerByKey, sharedAncestorDefaults);
 
     /// <summary>A lookup over a complete map of Provider types (instantiated lazily).</summary>

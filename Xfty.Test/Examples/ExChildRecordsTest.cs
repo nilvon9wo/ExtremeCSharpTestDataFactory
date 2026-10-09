@@ -79,7 +79,8 @@ public class ExChildRecordsTest
             .SetInsertMode(InsertMode.Mock)
             .With(
                 ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(3)
-                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2)))
+                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2))
+            )
             .SupplyBundle().ConfigureAwait(true);
 
         List<object> cases = bundle.GetChildBundle<Contact>(x => x.AccountId)!

@@ -292,7 +292,8 @@ public class SharedAncestorHierarchyTest
 
         // Act
         Contact leaf = (Contact)await new RecordProvider(
-            typeof(Contact), CycleLookup(keyA, keyB, "hierarchy-broken-cycle-a", "hierarchy-broken-cycle-b"))
+            typeof(Contact), CycleLookup(keyA, keyB, "hierarchy-broken-cycle-a", "hierarchy-broken-cycle-b")
+        )
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply().ConfigureAwait(true);
@@ -552,7 +553,8 @@ public class SharedAncestorHierarchyTest
                     sharedName
                 ),
             },
-            new Dictionary<string, object> { [sharedName] = theDefault });
+            new Dictionary<string, object> { [sharedName] = theDefault }
+        );
 
     private static IProviderLookup CycleLookup(ILookupKey keyA, ILookupKey keyB, string nameA, string nameB) =>
         ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>

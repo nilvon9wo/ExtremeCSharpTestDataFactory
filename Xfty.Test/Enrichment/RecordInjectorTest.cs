@@ -176,7 +176,8 @@ public class RecordInjectorTest
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() =>
             RecordInjector.Inject(contacts)
                 .Relationship(Field.Of<Contact>(x => x.Account), onlyOneAccount)
-                .Result());
+                .Result()
+        );
 
         // Assert - the message names the misaligned graft
         Assert.NotNull(thrown);
@@ -193,7 +194,8 @@ public class RecordInjectorTest
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
             () =>
-                RecordInjector.Inject(accounts).ValuePerRow(Field.Of<Account>(x => x.AnnualRevenue), tooFew).Result());
+                RecordInjector.Inject(accounts).ValuePerRow(Field.Of<Account>(x => x.AnnualRevenue), tooFew).Result()
+        );
 
         // Assert
         Assert.NotNull(thrown);

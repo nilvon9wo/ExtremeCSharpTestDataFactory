@@ -59,7 +59,8 @@ public sealed class RecordFactory
             .Where(field =>
                 field.CanWrite
                 && field.GetIndexParameters().Length == 0
-                && !this._template.IsConfigured(field))];
+                && !this._template.IsConfigured(field)
+            )];
         if (unsetFields.Count > 0)
         {
             records.ForEach(record => filler.Fill(record, unsetFields));
@@ -82,7 +83,8 @@ public sealed class RecordFactory
         {
             throw new XftyConfigurationException(
                 "A value that reads up from a generated child needs the DEFERRED insert mode - the child must "
-                + "exist before it can be read. Use InsertMode.Deferred and flush the deferred buffer.");
+                + "exist before it can be read. Use InsertMode.Deferred and flush the deferred buffer."
+            );
         }
 
         bundle.DeferValues(this._template.DeferredExpressionByField);
@@ -117,6 +119,7 @@ public sealed class RecordFactory
         this._context.PersistenceGateway is null
             ? throw new NotSupportedException(
                 "InsertMode.Now needs a persistence gateway - RecordProvider.SetPersistenceGateway(...) - use "
-                + "Mock or Never when none is configured.")
+                + "Mock or Never when none is configured."
+            )
             : this._context.PersistenceGateway.Insert(records, this._template.PrimaryTargetField);
 }

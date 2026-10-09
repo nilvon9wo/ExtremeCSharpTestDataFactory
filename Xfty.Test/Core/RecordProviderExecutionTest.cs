@@ -139,5 +139,6 @@ public sealed class RecordProviderExecutionTest : IDisposable
             DepthBatched: false,
             ForceStructuralChildGeneration: false,
             new RecordProviderTemplateConfig(AccountOutlet.MasterTemplate.Copy),
-            new RecordProviderChildConfig());
+            new RecordProviderChildConfig()
+        );
 }

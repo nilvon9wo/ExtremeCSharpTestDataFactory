@@ -184,7 +184,8 @@ public sealed class GenerationContext
             .Where(each =>
                 relationshipField is not null
                 && !each.IsAtTarget()
-                && each.Head() == relationshipField)
+                && each.Head() == relationshipField
+            )
             .Select(each => each.Tail())];
         return new GenerationContext(this)
         {
@@ -243,7 +244,8 @@ public sealed class GenerationContext
                 $"The context-aware value for {pass.FieldBeingBuilt.Name} reads sibling field {siblingField.Name}, "
                 + "which is itself a context-aware value that has not been generated yet. Context-aware values are "
                 + $"generated in the order they are put, so .Put({siblingField.Name}, ...) must come before "
-                + $".Put({pass.FieldBeingBuilt.Name}, ...)."),
+                + $".Put({pass.FieldBeingBuilt.Name}, ...)."
+            ),
             _ => this.RecordBeingBuilt is null
                 ? null
                 : siblingField.GetValue(this.RecordBeingBuilt),

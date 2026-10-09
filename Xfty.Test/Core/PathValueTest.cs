@@ -74,7 +74,8 @@ public class PathValueTest
             .SetInclusivity(InsertInclusivity.Required)
             .Put(
                 [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)],
-                new IncrementingStringExpression("Path Account"));
+                new IncrementingStringExpression("Path Account")
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -95,7 +96,8 @@ public class PathValueTest
             .SetInsertMode(InsertMode.Mock)
             .Put(
                 [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Site)],
-                CopyFromSiblingExpression.From<Account>(x => x.Name));
+                CopyFromSiblingExpression.From<Account>(x => x.Name)
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -114,7 +116,8 @@ public class PathValueTest
             .SetInsertMode(InsertMode.Mock)
             .PutRequired(
                 [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)],
-                new DefaultRelationship(new User()));
+                new DefaultRelationship(new User())
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -189,7 +192,8 @@ public class PathValueTest
             .SetInsertMode(InsertMode.Mock)
             .PutRequired(
                 [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)],
-                new DefaultRelationship(new User()));
+                new DefaultRelationship(new User())
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -270,7 +274,8 @@ public class PathValueTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => provider.Put([Field.Of<Account>(x => x.Industry)], "x"));
+            () => provider.Put([Field.Of<Account>(x => x.Industry)], "x")
+        );
 
         // Assert - a one-element path has no relationship to walk
         Assert.Contains("at least one relationship", thrown.Message);

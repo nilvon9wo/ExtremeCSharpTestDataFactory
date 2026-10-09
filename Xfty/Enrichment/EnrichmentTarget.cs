@@ -36,7 +36,8 @@ public sealed class EnrichmentTarget
                     : throw new XftyConfigurationException(
                         $"Inject: {field.Name} is not this bundle's primary field, a generated ancestor field "
                         + $"[{string.Join(", ", bundle.RelationshipFields().Select(f => f.Name))}], or a child field "
-                        + $"[{string.Join(", ", bundle.ChildRelationshipFields().Select(f => f.Name))}].");
+                        + $"[{string.Join(", ", bundle.ChildRelationshipFields().Select(f => f.Name))}]."
+                    );
 
     /// <summary>True when the graph has any generated ancestor or child collection to inject.</summary>
     public bool HasAnythingToInject()

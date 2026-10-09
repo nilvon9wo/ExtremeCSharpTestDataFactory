@@ -27,7 +27,8 @@ internal sealed class RecordProviderChildConfig
             : Task.CompletedTask;
 
     private static async Task GenerateRemainingCollections(
-        Bundle bundle, List<ChildProvider> childProviders, bool structural, RecordProviderExecutionState state)
+        Bundle bundle, List<ChildProvider> childProviders, bool structural, RecordProviderExecutionState state
+    )
     {
         if (childProviders.Count == 0)
         {
@@ -72,7 +73,8 @@ internal sealed class RecordProviderChildConfig
         return [.. primaries
             .SelectMany((primary, parentRow) => childProvider
                 .TemplatesForParent(structural ? null : primaryField.GetValue(primary))
-                .Select(template => (Template: template, ParentRow: parentRow)))];
+                .Select(template => (Template: template, ParentRow: parentRow))
+            )];
     }
 
     private static RecordProvider BuildChildInstance(

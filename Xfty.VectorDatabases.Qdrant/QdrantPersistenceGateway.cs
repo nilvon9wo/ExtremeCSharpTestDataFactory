@@ -112,7 +112,8 @@ public sealed class QdrantPersistenceGateway(QdrantClient client) : IPersistence
             default:
                 throw new NotSupportedException(
                     $"This PoC's payload mapping only supports string/bool/int/long/float/double - "
-                    + $"'{property.Name}' is {property.PropertyType.Name}. See README.md.");
+                    + $"'{property.Name}' is {property.PropertyType.Name}. See README.md."
+                );
         }
     }
 }

@@ -42,7 +42,8 @@ public sealed class ContextAwareValuePass(Bundle bundle, GenerationContext conte
         object record,
         GenerationContext rowContext,
         PropertyInfo field,
-        HashSet<PropertyInfo> pendingContextAwareValues)
+        HashSet<PropertyInfo> pendingContextAwareValues
+    )
     {
         GenerationContext scoped = rowContext.ForValueField(field, pendingContextAwareValues);
         this.CompleteField(record, scoped, field);
