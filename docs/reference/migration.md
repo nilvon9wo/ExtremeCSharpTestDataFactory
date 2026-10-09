@@ -17,7 +17,7 @@ Breaking changes between this port's own releases are listed below.
 
 ---
 
-## Interfaces renamed to adjectives (after 1.0.0-beta.12)
+## Interfaces renamed to adjectives (1.0.0-beta.13)
 
 Coding standard rule 11 names interfaces with adjectives describing what
 implementers are able to do; every public interface was a noun. They were
