@@ -16,6 +16,7 @@ dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performan
 dotnet test Xfty.Test/Xfty.Test.csproj --no-build -p:XftyCoverage=false --filter "Category=Performance"   # informational only (continue-on-error)
 python3 scripts/verify-doc-examples.py                                       # every documented code example is exercised by a real test
 python3 scripts/verify-doc-links.py                                          # every relative doc link and anchor resolves
+python3 scripts/verify-gates.py                                              # proves every gate above still fires - see below
 ```
 
 `dotnet build` with `EnforceCodeStyleInBuild` runs almost all of
@@ -54,6 +55,27 @@ The normal-suite step is not persistence-free: `PersistenceGatewayTest` proves
 and (Docker is preinstalled on `ubuntu-latest`) a real, ephemeral Postgres
 container via Testcontainers - no secrets or external service needed, since
 the container is created and torn down within the job.
+
+#### Proving the gates fire
+
+A gate that silently stops running looks exactly like a gate that passes -
+which is how line length, unnecessary usings and coverage all went
+unenforced while these docs said otherwise. `scripts/verify-gates.py` runs
+last and proves every other gate still catches what it should:
+
+- `build`, `format`, `layout` and `inspect` run against
+  [`StyleCanary/`](../../StyleCanary/README.md) - deliberately non-compliant
+  code, outside every solution, each violation tagged
+  `// expect: <gate>:<rule>`. A marker no gate reports, or a gate no marker
+  exercises, fails the step.
+- The coverage gate must fail once a throwaway uncovered class is added to
+  `Xfty/` (with every test still passing - the threshold, not a test, is
+  what fails).
+- `verify-doc-links.py` and `verify-doc-examples.py` must both fail on a
+  throwaway page with a broken link and an untested `Runnable:` example.
+
+Every temporary file is removed again. When you add an `.editorconfig` rule
+or a new gate, add a canary violation for it.
 
 ### `windows-net472` (`windows-latest`)
 

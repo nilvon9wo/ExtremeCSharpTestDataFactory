@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Deliberately non-compliant code - see README.md. Not part of Xfty.slnx or
+    any solution filter, so no ordinary gate ever sees it; only
+    scripts/verify-gates.py builds, formats, lays out and inspects it, to
+    prove each gate still reports what it is supposed to.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Net.NowhereAtAll.Xfty.StyleCanary</RootNamespace>
+  </PropertyGroup>
+
+</Project>

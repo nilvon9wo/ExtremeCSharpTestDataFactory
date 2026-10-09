@@ -179,6 +179,7 @@ CI (`.github/workflows/ci.yml`) fails the build on any of:
 | `dotnet test` (cross-platform slnf) | the full suite, all TFMs - and **100% line and branch coverage** of each package, which every test run enforces |
 | `windows-net472` job | the netstandard2.0 build actually runs (net472) |
 | `verify-doc-examples.py` / `verify-doc-links.py` | every documented code call is exercised by a test; every relative doc link resolves |
+| `verify-gates.py` | every gate above still fires: each must report the tagged violations in `StyleCanary/`, a temporary uncovered class, and a temporary broken doc page - see [ci](ci.md#proving-the-gates-fire) |
 
 Run the same checks locally before pushing — see
 [local-development](local-development.md).

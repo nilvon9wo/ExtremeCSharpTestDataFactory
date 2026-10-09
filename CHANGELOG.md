@@ -62,13 +62,17 @@ because those entries describe a change made in *this* repository.
 
 ### Internal
 
-- **Every quality gate now provably runs** (#3, #4, #5): a line-length /
+- **Every quality gate now provably runs** (#3, #4, #5, #6): a line-length /
   wrapped-`)` check (`scripts/check-line-layout.py`), ReSharper `inspectcode`
   with every finding fatal (`scripts/inspect-code.py` - IDE0005 unnecessary
   usings never failed `dotnet build`), and 100% line **and** branch coverage
   enforced on every `dotnet test` via `coverlet.MTP` (`coverlet.collector`
   silently measured nothing under the Microsoft Testing Platform runner).
   Reaching 100% removed a dozen unreachable branches and added ~130 tests.
+  `scripts/verify-gates.py` (last CI step) then proves each gate still
+  fires: against `StyleCanary/` - deliberately non-compliant code, each
+  violation tagged with the gate that must report it - plus a temporary
+  uncovered class and a temporary broken doc page.
 - `SharedRandom` moves from core `Xfty` (which no longer used it) into
   `Xfty.VectorDatabases`, its only user.
 
