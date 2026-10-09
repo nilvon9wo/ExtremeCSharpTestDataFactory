@@ -134,7 +134,7 @@ jobs:
 
       - name: Test (excluding the informational performance suite)
         if: steps.resolve.outputs.should_release == 'true'
-        run: dotnet test Xfty.ci-cross-platform.slnf -c Release --no-build --filter "Category!=Performance"
+        run: python3 scripts/run-tests.py Xfty.ci-cross-platform.slnf -c Release --no-build --filter "Category!=Performance"
 
       - name: Pack every publishable package
         if: steps.resolve.outputs.should_release == 'true'

@@ -63,6 +63,13 @@ public class ValueComparisonTest
     public void FieldToValue_WhenBothSidesArePresent_ReturnsTheirOrdering() =>
         AssertFieldToValue(new Account { NumberOfEmployees = 900 }, 100, 1);
 
+    [Theory]
+    [InlineData(5L, 3, 1)]
+    [InlineData(2.5d, 3, -1)]
+    [InlineData(2.5f, 2.5d, 0)]
+    public void Compare_WhenGivenMixedNumericTypes_OrdersThemNumerically(object left, object right, int expectedSign) =>
+        AssertCompare(left, right, expectedSign);
+
     [Fact]
     public void Compare_WhenAValuesTextIsNull_TreatsItAsEmpty() =>
         AssertCompare(new TextlessValue(), "a", -1);

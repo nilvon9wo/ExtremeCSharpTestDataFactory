@@ -13,6 +13,8 @@ dotnet format Xfty.slnx --verify-no-changes --severity info                  # w
 dotnet tool restore && python3 scripts/inspect-code.py Xfty.ci-cross-platform.slnf   # ReSharper inspectcode: unnecessary usings and the rest of what Roslyn misses
 python3 scripts/check-line-layout.py                                         # 120-char ceiling + wrapped ')' on its own line, which no analyzer reports
 python3 scripts/run-tests.py Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass, at 100% line + branch coverage per package
+dotnet build Xfty.ci-cross-platform.slnf -c Release --no-restore             # Release too: publish.yml packs Release, and optimized IL branches differently
+python3 scripts/run-tests.py Xfty.ci-cross-platform.slnf -c Release --no-build --filter "Category!=Performance"   # so 100% coverage is checked in the configuration that ships
 python3 scripts/run-tests.py Xfty.Test/Xfty.Test.csproj --no-build -p:XftyCoverage=false --filter "Category=Performance"   # informational only (continue-on-error)
 python3 scripts/verify-doc-examples.py                                       # every documented code example is exercised by a real test
 python3 scripts/verify-doc-links.py                                          # every relative doc link and anchor resolves

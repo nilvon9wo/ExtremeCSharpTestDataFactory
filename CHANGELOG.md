@@ -83,6 +83,10 @@ because those entries describe a change made in *this* repository.
   uncovered class and a temporary broken doc page.
 - `TreatWarningsAsErrors` is on for every project: compiler and NuGet
   warnings now fail the build like every analyzer diagnostic already did.
+- CI also builds and tests in **Release**, the configuration `publish.yml`
+  packs: optimized IL branches differently, so 100% coverage in Debug did not
+  guarantee it in Release (this release's first publish attempt stopped on
+  exactly that, before pushing anything).
 - Every test step runs through `scripts/run-tests.py`: `dotnet test` plus an
   explicit `INCONCLUSIVE` verdict (exit code 3) when a test module never
   started - `dotnet test` itself prints "Passed!" for whatever did run.

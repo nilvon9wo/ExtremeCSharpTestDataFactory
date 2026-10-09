@@ -671,6 +671,24 @@ public sealed class SharedAncestorTest : IDisposable
         Assert.Contains("has a sub-graph of its own and auto-resolution is off", thrown.Message);
     }
 
+    [Fact]
+    public async Task Supply_UnderManualResolution_WhenTheAncestorHasAnOptionalRelationship_Throws()
+    {
+        // Arrange - an optional relationship alone is enough of a sub-graph to need resolving up front
+        const string name = "shared-ancestor-test-manual-optional-relationship";
+        _ = SharedAncestor.Put(name, new Account())
+            .PutOptional<Account>(x => x.OwnerId, new DefaultRelationship(new User()));
+        SharedAncestor.ManualResolutionOnly();
+
+        // Act
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(
+            () => SupplySharedAccount(name)
+        ).ConfigureAwait(true);
+
+        // Assert
+        Assert.Contains("has a sub-graph of its own and auto-resolution is off", thrown.Message);
+    }
+
     private static IProviderLocating IndirectOwnerLookup() =>
         ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
