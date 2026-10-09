@@ -187,7 +187,7 @@ public class SharedAncestorTest
         // Assert - GetBundle is populated even for a Put(...) record
         Bundle? accountBundle = bundle.GetBundle<Contact>(x => x.AccountId);
         Assert.NotNull(accountBundle);
-        Assert.Equal("Supplied HQ", ((Account)accountBundle!.GetList<Account>(x => x.Id)![0]).Name);
+        Assert.Equal("Supplied HQ", ((Account)accountBundle.GetList<Account>(x => x.Id)![0]).Name);
         // GetList and GetBundle expose the same shared instance
         Assert.Same(bundle.GetList<Contact>(x => x.AccountId)![0], accountBundle.GetList<Account>(x => x.Id)![0]);
     }

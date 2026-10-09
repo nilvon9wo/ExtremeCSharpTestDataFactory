@@ -1,4 +1,4 @@
-using global::Qdrant.Client;
+using Qdrant.Client;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Testcontainers.Qdrant;

@@ -46,7 +46,7 @@ public sealed partial class SharedAncestor
     /// bare PutAsValue registration.
     /// </summary>
     private PropertyInfo? PrimaryFieldFromProvider(IProviderLookup lookup) =>
-        this._source is { } theSource && theSource.CanResolvePrimaryField
+        this._source is { CanResolvePrimaryField: true } theSource
             ? theSource.PrimaryField(lookup)
             : null;
 

@@ -4,7 +4,7 @@ using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Core.PathValues;
 
-public record class ContextAwarePathTarget(IContextAwareExpression Expression) : IPathTargetValue
+public record ContextAwarePathTarget(IContextAwareExpression Expression) : IPathTargetValue
 {
     public bool IsRelationship()
         => false;

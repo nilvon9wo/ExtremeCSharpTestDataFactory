@@ -252,7 +252,7 @@ file record struct PositionalReading(string? Id, string? Note);
 
 file abstract class ValueTypeProviderBase : IRecordProvider
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 

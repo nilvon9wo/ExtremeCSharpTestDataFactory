@@ -257,8 +257,6 @@ public class NonNullableValueFieldTest
 
 file enum WidgetKind
 {
-    Unknown = 0,
-    Standard = 1,
     Premium = 2,
 }
 
@@ -313,7 +311,7 @@ file sealed class Depot
 
 file abstract class ValueFieldProviderBase : IRecordProvider
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 

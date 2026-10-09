@@ -63,7 +63,7 @@ public sealed class DepthBatchedInserter
 
     /// <summary>
     /// Depth-batched resolution honouring the mode: Now inserts each depth
-    /// layer through <paramref name="_gateway"/>, Mock gives it mock Ids -
+    /// layer through <paramref name="gateway"/>, Mock gives it mock Ids -
     /// either way the child lookups are pointed at the layer above as it
     /// lands. Never does nothing. excludedIndices never receive an Id no
     /// matter the mode (see DeferredInsertBuffer.Add's excludePrimaryIds) -

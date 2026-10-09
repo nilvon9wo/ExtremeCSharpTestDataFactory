@@ -117,6 +117,6 @@ public sealed class Ef6SmokeTest : IDisposable
         Assert.NotNull(result.Id);
         Account? reread = this._dbContext.Accounts.AsNoTracking().FirstOrDefault(a => a.Id == result.Id);
         Assert.NotNull(reread);
-        Assert.Equal(result.Name, reread!.Name);
+        Assert.Equal(result.Name, reread.Name);
     }
 }

@@ -52,7 +52,7 @@ public sealed class SqliteNowPersistenceTest : IDisposable
         Assert.NotNull(result.Id);
         Account? reread = this._dbContext.Accounts.AsNoTracking().FirstOrDefault(a => a.Id == result.Id);
         Assert.NotNull(reread);
-        Assert.Equal(result.Name, reread!.Name);
+        Assert.Equal(result.Name, reread.Name);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public sealed class SqliteNowPersistenceTest : IDisposable
         Account account = (Account)bundle.GetList<Contact>(x => x.AccountId)![0];
         Assert.Equal(1, this._dbContext.Accounts.Count());
         Assert.Equal(1, this._dbContext.Contacts.Count());
-        Contact? rereadContact = this._dbContext.Contacts.AsNoTracking().First();
+        Contact rereadContact = this._dbContext.Contacts.AsNoTracking().First();
         Assert.Equal(account.Id, rereadContact.AccountId);
         Assert.Equal(contact.Id, rereadContact.Id);
     }

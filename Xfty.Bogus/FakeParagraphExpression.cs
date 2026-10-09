@@ -1,4 +1,4 @@
-using global::Bogus;
+using Bogus;
 using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Bogus;

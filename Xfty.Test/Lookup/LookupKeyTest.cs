@@ -115,7 +115,7 @@ public class LookupKeyTest
         // Arrange - nothing to arrange
 
         // Act
-        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => LookupKey.Get((Type?)null));
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => LookupKey.Get(null));
 
         // Assert - a null type must be rejected
         Assert.Contains("requires a record type", thrown.Message);

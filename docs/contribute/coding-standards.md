@@ -7,9 +7,10 @@ repo — human or AI. When a change is reviewed, this is the checklist.
 
 - **`.editorconfig`**, at the repo root. Every rule in it is `severity = error`
   on purpose — see [Everything is `error`](#everything-is-error) below.
-  `EnforceCodeStyleInBuild=true`, so `dotnet build` fails on most of them;
-  the two it does not run (IDE1006 naming, IDE0130 namespace-folder) are caught
-  by `dotnet format` in CI — see [Quality gates](#quality-gates). Notable rules:
+  `EnforceCodeStyleInBuild=true`, so `dotnet build` fails on almost all of
+  them — IDE1006 naming included. What it misses (IDE0005 unnecessary usings,
+  line length, wrapped-`)` placement) has its own CI gate — see
+  [Quality gates](#quality-gates). Notable rules:
   IDE0058 (discard unused fluent-return values with `_ =`), IDE0032 (where a
   private field is exposed by a *trivial* public property, collapse the pair to
   a public auto-property), IDE0022 (expression-bodied members where possible),
@@ -91,10 +92,10 @@ have. The exception is IDE0032's own fix: where a *trivial* public property
 already exposes the field (`public string Name => this._name;`), collapse the
 pair to `public string Name { get; }`.
 
-`dotnet build` does **not** run the naming analyzer (IDE1006) even with
-`EnforceCodeStyleInBuild`; nor IDE0130 (namespace matches folder), which only
-fires for `partial` types split across files. `dotnet format` in CI is the gate
-for both — see [Quality gates](#quality-gates).
+`dotnet build` reports the naming analyzer (IDE1006) and IDE0130 (namespace
+matches folder) with `EnforceCodeStyleInBuild` — verified on the .NET 10 SDK;
+older SDKs did not, which is why `dotnet format` in CI checks them too. See
+[Quality gates](#quality-gates).
 
 ---
 
@@ -167,14 +168,15 @@ CI (`.github/workflows/ci.yml`) fails the build on any of:
 
 | Gate | Covers |
 |---|---|
-| `dotnet build` (`EnforceCodeStyleInBuild`) | compilation; every `.editorconfig` analyzer that runs in-build (IDE00xx, CA1xxx, …) |
-| `dotnet format Xfty.slnx --verify-no-changes --severity info` | whitespace/formatting; **IDE1006 naming and IDE0130 namespace-folder**, which the build does not run |
+| `dotnet build` (`EnforceCodeStyleInBuild`) | compilation; every `.editorconfig` analyzer that runs in-build (IDE00xx including IDE1006 naming, CA1xxx, …) |
+| `dotnet format Xfty.slnx --verify-no-changes --severity info` | whitespace/formatting, plus a second pass over the style analyzers |
+| `scripts/inspect-code.py` (ReSharper `inspectcode`) | what Roslyn misses: **IDE0005-style unnecessary usings never fail `dotnet build`**, plus redundant casts/qualifiers/suppressions and unresolvable doc-comment references. Every finding fails; the few inspections that contradict these standards are switched off, with reasons, in `.editorconfig` |
 | `scripts/check-line-layout.py` | the 120-character ceiling and wrapped-`)` placement, which no Roslyn analyzer reports on |
 | `dotnet test` (cross-platform slnf) | the full suite, all TFMs |
 | `windows-net472` job | the netstandard2.0 build actually runs (net472) |
 | `verify-doc-examples.py` / `verify-doc-links.py` | every documented code call is exercised by a test; every relative doc link resolves |
 
-Run the same `dotnet format` check locally before pushing — see
+Run the same checks locally before pushing — see
 [local-development](local-development.md).
 
 ---

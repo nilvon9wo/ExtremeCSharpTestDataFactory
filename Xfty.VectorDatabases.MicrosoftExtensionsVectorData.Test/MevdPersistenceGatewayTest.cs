@@ -1,4 +1,4 @@
-using global::Qdrant.Client;
+using Qdrant.Client;
 using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel.Connectors.Qdrant;
 using Net.NowhereAtAll.Xfty.Core;

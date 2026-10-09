@@ -12,7 +12,7 @@ public class RandomVectorExpressionTest
         RandomVectorExpression expression = new(dimensions: 128);
 
         // Act
-        float[] vector = (float[])expression.Get()!;
+        float[] vector = (float[])expression.Get();
 
         // Assert
         Assert.Equal(128, vector.Length);
@@ -25,7 +25,7 @@ public class RandomVectorExpressionTest
         RandomVectorExpression expression = new(dimensions: 64);
 
         // Act
-        float[] vector = (float[])expression.Get()!;
+        float[] vector = (float[])expression.Get();
 
         // Assert
         Assert.All(vector, component => Assert.InRange(component, -1f, 1f));
@@ -38,7 +38,7 @@ public class RandomVectorExpressionTest
         RandomVectorExpression expression = new(dimensions: 64, min: 10f, max: 20f);
 
         // Act
-        float[] vector = (float[])expression.Get()!;
+        float[] vector = (float[])expression.Get();
 
         // Assert
         Assert.All(vector, component => Assert.InRange(component, 10f, 20f));
@@ -51,7 +51,7 @@ public class RandomVectorExpressionTest
         RandomVectorExpression expression = new(dimensions: 8);
 
         // Act
-        List<float[]> produced = [.. Enumerable.Range(0, 10).Select(_ => (float[])expression.Get()!)];
+        List<float[]> produced = [.. Enumerable.Range(0, 10).Select(_ => (float[])expression.Get())];
 
         // Assert
         Assert.True(
@@ -67,7 +67,7 @@ public class RandomVectorExpressionTest
         RandomVectorExpression expression = new(dimensions: 32, normalize: true);
 
         // Act
-        float[] vector = (float[])expression.Get()!;
+        float[] vector = (float[])expression.Get();
 
         // Assert
         double magnitude = Math.Sqrt(vector.Sum(component => (double)component * component));
@@ -81,7 +81,7 @@ public class RandomVectorExpressionTest
         RandomVectorExpression expression = new(KnownEmbeddingDimensions.OpenAiTextEmbedding3Small);
 
         // Act
-        float[] vector = (float[])expression.Get()!;
+        float[] vector = (float[])expression.Get();
 
         // Assert
         Assert.Equal(1536, vector.Length);

@@ -28,7 +28,7 @@ public sealed partial class SharedAncestor
     /// generation. Its "already persisted?" flag is a best guess from an
     /// <c>Id</c>-named property until the ancestor is first referenced in a
     /// Supply*() call, at which point the Provider's real key field corrects
-    /// it (<see cref="Resolution"/>).
+    /// it (<c>SharedAncestor.Resolution.cs</c>).
     /// </summary>
     public static SharedAncestorProvider PutAsValue(string name, object record)
     {

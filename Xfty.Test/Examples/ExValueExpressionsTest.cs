@@ -1,4 +1,3 @@
-using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Values;
@@ -24,7 +23,7 @@ public class ExValueExpressionsTest
 
         Assert.Equal(
             ["Test Contact 1", "Test Contact 2", "Test Contact 3"],
-            results.Cast<Contact>().Select(c => c.FirstName)
+            results.Select(c => c.FirstName)
         );
     }
 

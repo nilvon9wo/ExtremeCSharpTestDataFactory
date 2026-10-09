@@ -8,7 +8,7 @@ namespace Net.NowhereAtAll.Xfty.Core;
 /// records whose foreign key points at it. Matched on the parent's primary
 /// key when the parents carry a value for it, otherwise position for position
 /// (the NEVER / pre-flush case). The parent's key field comes from the
-/// Provider (<paramref name="parentPrimaryField"/>); it falls back to a
+/// Provider (<c>parentPrimaryField</c>); it falls back to a
 /// property literally named "Id" only when a caller cannot supply one. Behind
 /// <see cref="Bundle.PrimariesResolvingTo"/>.
 /// </summary>

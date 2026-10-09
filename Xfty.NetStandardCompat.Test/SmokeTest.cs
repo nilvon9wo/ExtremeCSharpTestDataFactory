@@ -58,12 +58,12 @@ public class SmokeTest
         DefaultProviderLookup lookup = new();
 
         // Act
-        ISet<Lookup.ILookupKey> keys = lookup.KeysFor(new Account());
+        ISet<ILookupKey> keys = lookup.KeysFor(new Account());
 
         // Assert - ToHashSet's polyfill produced a real set, correctly populated with every registered key,
         // for ProviderLookups.KeysFor to then filter down to the one matching Account
         _ = Assert.Single(keys);
-        Assert.Contains(Lookup.LookupKey.Get<Account>(), keys);
+        Assert.Contains(LookupKey.Get<Account>(), keys);
     }
 
     // BlankInstances.Of -> FormatterServices.GetUninitializedObject (netstandard2.0 branch) --
@@ -73,9 +73,9 @@ public class SmokeTest
     {
         // Arrange - Voucher has only a parameterized constructor, so BlankInstances.Of must fall back
         // to FormatterServices.GetUninitializedObject, the netstandard2.0-only branch #if'd out on net8.0+
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<Lookup.ILookupKey, IRecordProvider>
+        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
         {
-            [Lookup.LookupKey.Get<Voucher>()] = new VoucherProvider(),
+            [LookupKey.Get<Voucher>()] = new VoucherProvider(),
         });
 
         // Act

@@ -120,7 +120,7 @@ public class MasterTemplateTest
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() =>
             new MasterTemplate(Field.Of<Contact>(x => x.Id))
-                .Put<Contact>(x => x.AccountId, (object)new DefaultRelationship(new Account()))
+                .Put<Contact>(x => x.AccountId, new DefaultRelationship(new Account()))
         );
 
         // Assert

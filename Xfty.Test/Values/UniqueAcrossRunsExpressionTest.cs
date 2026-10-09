@@ -31,7 +31,7 @@ public class UniqueAcrossRunsExpressionTest
         UniqueAcrossRunsExpression expression = new("User Federation Id ", "");
 
         // Act
-        object? value = expression.Get();
+        object value = expression.Get();
 
         // Assert - prefix, then digits from the token + counter (no "User Federation Id 1" literal)
         string stringValue = Assert.IsType<string>(value);

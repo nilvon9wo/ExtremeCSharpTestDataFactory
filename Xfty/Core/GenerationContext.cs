@@ -66,7 +66,7 @@ public sealed class GenerationContext
     /// never for an ancestor, regardless of how it was set. Excludes those
     /// specific records from persistence (Mock-Id assignment or a real
     /// insert) however the rest of the graph is being persisted; see
-    /// <see cref="RecordProvider.ExcludePrimaryIds"/>.
+    /// <see cref="RecordProviders.RecordProvider.ExcludePrimaryIds"/>.
     /// </summary>
     public bool ExcludePrimaryIds { get; init; }
 

@@ -1,5 +1,5 @@
 using System.Reflection;
-using global::AutoBogus;
+using AutoBogus;
 using Net.NowhereAtAll.Xfty.Core;
 
 namespace Net.NowhereAtAll.Xfty.AutoBogus;
@@ -41,8 +41,7 @@ public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFil
     private static readonly MethodInfo GenerateOfT = typeof(IAutoFaker)
         .GetMethods()
         .Single(method =>
-            method.Name == nameof(IAutoFaker.Generate)
-            && method.IsGenericMethodDefinition
+            method is { Name: nameof(IAutoFaker.Generate), IsGenericMethodDefinition: true }
             && method.GetGenericArguments().Length == 1
             && HasSoleParameterOfType(method, typeof(Action<IAutoGenerateConfigBuilder>))
         );

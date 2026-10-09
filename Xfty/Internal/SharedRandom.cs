@@ -2,7 +2,7 @@ namespace Net.NowhereAtAll.Xfty.Internal;
 
 /// <summary>
 /// Stands in for <c>System.Random.Shared</c> (.NET 6+), which netstandard2.0
-/// doesn't have - <see cref="Random.Shared"/> directly on net8.0/net10.0, a
+/// doesn't have - <c>Random.Shared</c> directly on net8.0/net10.0, a
 /// per-thread <see cref="Random"/> instance on netstandard2.0 (matching
 /// Random.Shared's actual thread-safety guarantee - plain <see cref="Random"/>
 /// itself isn't thread-safe on the older runtimes netstandard2.0 targets, not

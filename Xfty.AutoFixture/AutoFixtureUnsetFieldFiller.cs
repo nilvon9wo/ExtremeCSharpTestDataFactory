@@ -1,6 +1,6 @@
 using System.Reflection;
-using global::AutoFixture;
-using global::AutoFixture.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
 using Net.NowhereAtAll.Xfty.Core;
 
 namespace Net.NowhereAtAll.Xfty.AutoFixture;

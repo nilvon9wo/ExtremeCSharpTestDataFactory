@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
@@ -90,7 +89,7 @@ public class DeepMixedKeyHierarchyTest : IDisposable
         Assert.NotEqual(Guid.Empty, l3.CartonId);
         Assert.True(l4.PalletNumber > 0);
         Assert.StartsWith("DEPOT-EMEA-", l5.DepotId!); // prefix taken off the record's own Region field
-        Assert.Matches(@"^MAN-[0-9]{8}-[0-9]+$", l6.ManifestId!);
+        Assert.Matches("^MAN-[0-9]{8}-[0-9]+$", l6.ManifestId!);
         Assert.True(l7.TicketNo > 0);
         Assert.Matches("^rgn_[0-9]{6}$", l8.Slug!);
         Assert.NotEqual(Guid.Empty, l9.Uuid);
@@ -259,7 +258,7 @@ file sealed class ZeroPaddedSlugGenerator : IMockIdGenerator
 
 file abstract class DeepChainProviderBase : IRecordProvider
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 

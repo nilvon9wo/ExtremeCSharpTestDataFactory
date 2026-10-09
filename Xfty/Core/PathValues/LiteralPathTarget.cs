@@ -4,7 +4,7 @@ using Net.NowhereAtAll.Xfty.Relationships;
 
 namespace Net.NowhereAtAll.Xfty.Core.PathValues;
 
-public record class LiteralPathTarget(object? Literal) : IPathTargetValue
+public record LiteralPathTarget(object? Literal) : IPathTargetValue
 {
     public bool IsRelationship()
         => false;

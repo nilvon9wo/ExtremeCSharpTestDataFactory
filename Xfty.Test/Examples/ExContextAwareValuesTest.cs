@@ -152,7 +152,7 @@ public class ExContextAwareValuesTest
 
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
         DeferredInsertBuffer graph = DeferredInsertBuffer.Flatten(bundle);
-        Account account = (Account)graph.Records().OfType<Account>().First();
+        Account account = graph.Records().OfType<Account>().First();
 
         Assert.Equal("Field Ops", account.Site);
 
@@ -164,7 +164,7 @@ public class ExContextAwareValuesTest
 
 file sealed class IsMinorFlag : IContextAwareExpression
 {
-    public object? Get(GenerationContext context)
+    public object Get(GenerationContext context)
     {
         DateTime? birthdate = (DateTime?)context.SiblingValue(Field.Of<Contact>(x => x.Birthdate));
         return birthdate is not null && birthdate.Value.AddYears(18) > DateTime.Today ? "MINOR" : "ADULT";
@@ -241,7 +241,7 @@ file sealed class AccountReadingChildDepartmentProvider : IRecordProvider
         .Put<Account>(x => x.Name, new IncrementingStringExpression("Acct"))
         .Put<Account>(x => x.Site, CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department));
 
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
+    public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);

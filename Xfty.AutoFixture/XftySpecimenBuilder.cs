@@ -1,4 +1,4 @@
-using global::AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Lookup;

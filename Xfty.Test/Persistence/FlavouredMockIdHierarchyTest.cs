@@ -66,7 +66,7 @@ public class FlavouredMockIdHierarchyTest
         Assert.Matches("^mock-[0-9]+$", beta.NodeRef!);        // discriminated variant, no custom generator
         Assert.Matches("^g:EMEA:[0-9]+$", gamma.NodeRef!);     // built from the record's own Region
         Assert.Matches("^mock-[0-9]+$", delta.NodeRef!);
-        Assert.Matches(@"^EPS-[0-9]{8}-[0-9]+$", epsilon.NodeRef!);
+        Assert.Matches("^EPS-[0-9]{8}-[0-9]+$", epsilon.NodeRef!);
         Assert.Matches("^z_[0-9]{6}$", zeta.NodeRef!);
         Assert.Matches("^end-[0-9]+$", terminal.NodeRef!);
 
@@ -159,7 +159,7 @@ file sealed class RegionScopedIdGenerator : IMockIdGenerator
 
 file abstract class NodeProviderBase : IRecordProvider
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 

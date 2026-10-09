@@ -45,7 +45,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
         // Arrange
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
             .Put(Field.Of<Contact>(x => x.FirstName), new LiteralExpression("Alice"))
-            .Put(Field.Of<Contact>(x => x.LastName), (object?)"Smith")
+            .Put(Field.Of<Contact>(x => x.LastName), "Smith")
             .Put(Field.Of<Contact>(x => x.Department), CopyFromSiblingExpression.From<Contact>(x => x.FirstName))
             .SetInsertMode(InsertMode.Mock);
 
@@ -72,7 +72,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
-        Account account = (Account)DeferredInsertBuffer.Flatten(bundle).Records().OfType<Account>().First();
+        Account account = DeferredInsertBuffer.Flatten(bundle).Records().OfType<Account>().First();
         Assert.Equal("Engineering", account.Site); // read up from the generated child Contact's Department
     }
 
@@ -213,7 +213,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
         List<PropertyInfo> numberOfAccount =
             [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AccountNumber)];
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
-            .Put(siteOfAccount, (object?)"HQ")
+            .Put(siteOfAccount, "HQ")
             .Put(numberOfAccount, new LiteralExpression("AN-42"))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
@@ -235,7 +235,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
         List<PropertyInfo> billingCityOfAccount =
             [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.BillingCity)];
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
-            .Put(siteOfAccount, (object?)"Berlin")
+            .Put(siteOfAccount, "Berlin")
             .Put(billingCityOfAccount, CopyFromSiblingExpression.From<Account>(x => x.Site))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
@@ -480,7 +480,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
 
 file abstract class TemplateProvider : IRecordProvider
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 

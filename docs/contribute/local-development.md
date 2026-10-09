@@ -14,14 +14,18 @@ Prerequisites: the [.NET SDK](https://dotnet.microsoft.com/download) matching
 ```bash
 dotnet restore Xfty.slnx
 dotnet build Xfty.slnx                                              # .editorconfig analyzers enforced - a style violation fails the build
-dotnet format Xfty.slnx --verify-no-changes --severity info         # the pre-push check: whitespace + IDE1006 naming + IDE0130, which the build does not run
+dotnet format Xfty.slnx --verify-no-changes --severity info         # the pre-push check: whitespace/formatting
+python3 scripts/check-line-layout.py                                # 120-char ceiling + wrapped ')' on its own line
+dotnet tool restore && python3 scripts/inspect-code.py              # ReSharper inspections: unnecessary usings and what else Roslyn misses
 dotnet test Xfty.slnx --filter "Category!=Performance"              # the normal suite
 dotnet test Xfty.slnx --filter "Category=Performance"                # the informational performance suite (see test-suites.md)
 ```
 
-`dotnet format --verify-no-changes` is the same gate CI runs (see
-[ci.md](ci.md)) and the one most easily forgotten locally — the build passes
-without it but CI will not. `dotnet format Xfty.slnx` (no `--verify-no-changes`)
+`dotnet format --verify-no-changes`, `check-line-layout.py` and
+`inspect-code.py` are the same gates CI runs (see [ci.md](ci.md)) and the ones
+most easily forgotten locally — the build passes without them but CI will not.
+`inspect-code.py` needs a prior `dotnet build` (it runs inspectcode with
+`--no-build`; the script's docstring says why). `dotnet format Xfty.slnx` (no `--verify-no-changes`)
 applies the fixes it can; IDE1006 naming it flags but cannot auto-fix, so those
 are hand edits.
 

@@ -6,10 +6,9 @@ using Net.NowhereAtAll.Xfty.Relationships;
 namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>Points each primary record's lookup at the matching generated ancestor.</summary>
-public sealed class LookupWiring(Bundle bundle, GenerationContext context, MasterTemplate template)
+public sealed class LookupWiring(Bundle bundle, MasterTemplate template)
 {
     private readonly Bundle _bundle = bundle;
-    private readonly GenerationContext _context = context;
     private readonly Dictionary<PropertyInfo, IDefaultRelationship> _relationships = AllRelationships(template);
 
     /// <summary>

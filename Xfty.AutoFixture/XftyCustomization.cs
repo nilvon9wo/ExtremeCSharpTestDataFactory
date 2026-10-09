@@ -1,4 +1,4 @@
-using global::AutoFixture;
+using AutoFixture;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -19,7 +19,7 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture;
 ///
 /// insertMode defaults to <see cref="InsertMode.Mock"/> - in-memory Ids, no
 /// real DML - matching AutoFixture's own scope. Pass a different mode (with
-/// <see cref="RecordProvider.SetPersistenceGateway"/> configured on the
+/// <see cref="Core.RecordProviders.RecordProvider.SetPersistenceGateway"/> configured on the
 /// Providers involved, where relevant) for a customization that should
 /// insert for real.
 ///

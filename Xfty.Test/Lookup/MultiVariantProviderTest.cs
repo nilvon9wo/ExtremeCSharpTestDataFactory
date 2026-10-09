@@ -113,7 +113,7 @@ public class MultiVariantProviderTest
 
 file abstract class BaseProvider : IRecordProvider
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 

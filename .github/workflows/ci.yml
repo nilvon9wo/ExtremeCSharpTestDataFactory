@@ -28,12 +28,20 @@ jobs:
       - name: Build (strict .editorconfig analyzers enforced)
         run: dotnet build Xfty.ci-cross-platform.slnf --no-restore
 
-      # The build enforces most of .editorconfig, but a few style/naming analyzers
-      # (IDE1006 naming, IDE0130 namespace-folder for partial types) do not run
-      # under `dotnet build` even with EnforceCodeStyleInBuild. This is the gate
-      # that runs them - and every whitespace/formatting rule - so they stay fixed.
+      # Every whitespace/formatting rule, and a second pass over the style and
+      # naming analyzers the build already runs.
       - name: Verify code style, naming, and formatting (dotnet format)
         run: dotnet format Xfty.slnx --verify-no-changes --severity info
+
+      # IDE0005 (unnecessary using) never fails `dotnet build`, even with
+      # EnforceCodeStyleInBuild. ReSharper's inspectcode catches it and more;
+      # every finding fails. --no-build is deliberate (see the script): the
+      # build step above owns compilation.
+      - name: Restore local tools
+        run: dotnet tool restore
+
+      - name: ReSharper inspections (inspectcode)
+        run: python3 scripts/inspect-code.py Xfty.ci-cross-platform.slnf
 
       # Roslyn reads max_line_length but never reports on it, and only
       # Rider/ReSharper honour the wrapped-')' rules - so neither the build nor
@@ -81,6 +89,12 @@ jobs:
 
       - name: Build
         run: dotnet build Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-restore
+
+      # The Linux job inspects everything else; this project only restores here.
+      - name: ReSharper inspections (inspectcode)
+        run: |
+          dotnet tool restore
+          python scripts/inspect-code.py Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj
 
       - name: Test
         run: dotnet test Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-build

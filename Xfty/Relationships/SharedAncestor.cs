@@ -16,13 +16,13 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 /// Flyweight - state is static, and safe under concurrent access:
 /// <see cref="ByName"/>/<see cref="Disabled"/> are concurrent collections,
 /// <see cref="s_manualResolution"/> is <c>volatile</c>, and the actual
-/// resolve-and-mutate work is serialized through <see cref="SharedAncestorResolver"/>'s
+/// resolve-and-mutate work is serialized through <see cref="Engine.SharedAncestorResolver"/>'s
 /// own lock (not this class's concern - every entry point that can trigger
 /// resolution ends up calling into that resolver). This matters because
 /// xUnit's *default* behaviour (unlike this port's own test suite, which
 /// opts out) is to run different test classes in parallel - a real,
 /// previously-uncaught crash risk, not a theoretical one; see
-/// reference/known-issues.md. <see cref="SharedAncestorResolver"/> resolves
+/// reference/known-issues.md. <see cref="Engine.SharedAncestorResolver"/> resolves
 /// every registered ancestor before the first Supply*() call. This file is
 /// identity and the flyweight registry; the other partials are named for the
 /// surface they carry.

@@ -261,9 +261,9 @@ file sealed class LeafUserProvider : IRecordProvider
 /// <summary>
 /// Derives a MINOR / ADULT flag from a Birthdate sibling - the kind of logic XFTY leaves to consumers.
 /// </summary>
-file sealed class IsMinorFlag(System.Reflection.PropertyInfo birthdateField) : IContextAwareExpression
+file sealed class IsMinorFlag(PropertyInfo birthdateField) : IContextAwareExpression
 {
-    public object? Get(GenerationContext context)
+    public object Get(GenerationContext context)
     {
         DateTime? birthdate = (DateTime?)birthdateField.GetValue(context.RecordBeingBuilt);
         return birthdate is not null && birthdate.Value.AddYears(18) > DateTime.Today ? "MINOR" : "ADULT";
@@ -273,7 +273,7 @@ file sealed class IsMinorFlag(System.Reflection.PropertyInfo birthdateField) : I
 /// <summary>Reads the whole batch of sibling primary records out of BundleSoFar.</summary>
 file sealed class SiblingCountLabel : IContextAwareExpression
 {
-    public object? Get(GenerationContext context)
+    public object Get(GenerationContext context)
     {
         int siblingCount = context.BundleSoFar!.GetList<Account>(x => x.Id)!.Count;
         return $"{context.RowIndex + 1} of {siblingCount}";

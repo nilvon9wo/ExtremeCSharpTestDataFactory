@@ -1,4 +1,3 @@
-using System.Threading;
 
 using Net.NowhereAtAll.Xfty.Core;
 

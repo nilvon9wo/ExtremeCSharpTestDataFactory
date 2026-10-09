@@ -1,4 +1,3 @@
-using System.Data.Entity;
 using System.Data.SQLite;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
@@ -95,7 +94,7 @@ public sealed class SqliteNowPersistenceTest : IDisposable
         Assert.NotNull(result.Id);
         Account? reread = this._dbContext.Accounts.AsNoTracking().FirstOrDefault(a => a.Id == result.Id);
         Assert.NotNull(reread);
-        Assert.Equal(result.Name, reread!.Name);
+        Assert.Equal(result.Name, reread.Name);
     }
 
     [Fact]

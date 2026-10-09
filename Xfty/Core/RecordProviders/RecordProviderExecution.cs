@@ -104,7 +104,7 @@ internal sealed class RecordProviderExecution(RecordProviderPlan plan)
         this.FlushesGraphWhenThisCallEnds() || this.DeferredToRegistry();
 
     private bool FlushesGraphWhenThisCallEnds() =>
-        plan.DepthBatched && plan.InsertMode == InsertMode.Now;
+        plan is { DepthBatched: true, InsertMode: InsertMode.Now };
 
     private bool DeferredToRegistry() => plan.InsertMode == InsertMode.Deferred;
 

@@ -14,7 +14,7 @@ public sealed partial class SharedAncestor
 
     public PropertyInfo? RelatedField => this._source?.RelatedField();
 
-    public ILookupKey? ResolveLookupKey(IProviderLookup providerLookup) => this.Source().LookupKey(providerLookup);
+    public ILookupKey ResolveLookupKey(IProviderLookup providerLookup) => this.Source().LookupKey(providerLookup);
 
     public bool IsResolved => this._resolvedRecord is not null;
 

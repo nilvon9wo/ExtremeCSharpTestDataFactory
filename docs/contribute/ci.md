@@ -9,7 +9,8 @@ Two jobs, no secrets.
 ```yaml
 dotnet restore Xfty.ci-cross-platform.slnf
 dotnet build Xfty.ci-cross-platform.slnf --no-restore                        # .editorconfig analyzers enforced - a style violation fails the build
-dotnet format Xfty.slnx --verify-no-changes --severity info                  # whitespace + IDE1006 naming + IDE0130 namespace-folder, which the build itself does not run
+dotnet format Xfty.slnx --verify-no-changes --severity info                  # whitespace/formatting, plus a second pass over the style analyzers
+dotnet tool restore && python3 scripts/inspect-code.py Xfty.ci-cross-platform.slnf   # ReSharper inspectcode: unnecessary usings and the rest of what Roslyn misses
 python3 scripts/check-line-layout.py                                         # 120-char ceiling + wrapped ')' on its own line, which no analyzer reports
 dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass
 dotnet test Xfty.Test/Xfty.Test.csproj --no-build --filter "Category=Performance"     # informational only (continue-on-error)
@@ -17,12 +18,16 @@ python3 scripts/verify-doc-examples.py                                       # e
 python3 scripts/verify-doc-links.py                                          # every relative doc link and anchor resolves
 ```
 
-`dotnet build` with `EnforceCodeStyleInBuild` runs most of `.editorconfig`, but
-not the naming analyzer (IDE1006) or IDE0130 (namespace-matches-folder, which
-only fires for `partial` types). `dotnet format --verify-no-changes` is the gate
-for those two and for every whitespace/formatting rule; it runs against the raw
-`Xfty.slnx` (it only reads source, so the `net472` project is not a problem
-here). See [coding-standards](coding-standards.md#quality-gates).
+`dotnet build` with `EnforceCodeStyleInBuild` runs almost all of
+`.editorconfig` (IDE1006 naming and IDE0130 namespace-folder included, on the
+.NET 10 SDK). `dotnet format --verify-no-changes` is the gate for every
+whitespace/formatting rule; it runs against the raw `Xfty.slnx` (it only reads
+source, so the `net472` project is not a problem here). What no Roslyn gate
+catches gets its own step: IDE0005 unnecessary usings never fail
+`dotnet build`, so ReSharper's `inspectcode` (`scripts/inspect-code.py`) runs
+with every finding fatal; line length and wrapped-`)` placement are checked by
+`scripts/check-line-layout.py`. See
+[coding-standards](coding-standards.md#quality-gates).
 
 Runs against [`Xfty.ci-cross-platform.slnf`](../../Xfty.ci-cross-platform.slnf)
 (a solution filter: every project in `Xfty.slnx` except

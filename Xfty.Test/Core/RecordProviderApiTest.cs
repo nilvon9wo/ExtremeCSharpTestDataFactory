@@ -306,7 +306,7 @@ public class RecordProviderApiTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => provider.Put<Contact>(x => x.AccountId, (object)new DefaultRelationship(new Account()))
+            () => provider.Put<Contact>(x => x.AccountId, new DefaultRelationship(new Account()))
         );
 
         // Assert

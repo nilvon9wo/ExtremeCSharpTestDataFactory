@@ -32,7 +32,7 @@ public sealed class RecordFactory
             .ConfigureAwait(false);
         List<object> records = PlainValueFiller.CloneAndCompletePlainValues(this._template, testTemplates);
         bundle.PutPrimaries(this._template.PrimaryTargetField, records, this._template.MockIdGenerator);
-        new LookupWiring(bundle, this._context, this._template).Wire();
+        new LookupWiring(bundle, this._template).Wire();
         new ContextAwareValuePass(bundle, this._context, this._template).Complete();
         this.RegisterDeferredValues(bundle);
         this.FillUnsetFields(records);

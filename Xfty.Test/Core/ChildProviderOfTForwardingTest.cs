@@ -33,7 +33,7 @@ public class ChildProviderOfTForwardingTest
         RecordProvider<Account> provider = new RecordProvider<Account>(Lookup)
             .With(new ChildProvider<Contact>(x => x.AccountId)
                 .Put(Field.Of<Contact>(x => x.FirstName), new LiteralExpression("Alice"))
-                .Put(Field.Of<Contact>(x => x.LastName), (object?)"Smith")
+                .Put(Field.Of<Contact>(x => x.LastName), "Smith")
                 .Put(Field.Of<Contact>(x => x.Department), CopyFromSiblingExpression.From<Contact>(x => x.FirstName))
             )
             .SetInsertMode(InsertMode.Mock);
