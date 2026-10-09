@@ -50,10 +50,12 @@ public static class InjectionPathResolver
             1 => candidates[0],
             0 => throw BadHop(
                 $"{parentType.Name} has no collection property of {childType.Name} - it cannot be an injected "
-                + $"subquery for {DescribeOf(childLookupField)}."),
+                + $"subquery for {DescribeOf(childLookupField)}."
+            ),
             _ => throw BadHop(
                 $"{parentType.Name} has {candidates.Count} collection properties of {childType.Name} - injection "
-                + $"cannot tell which one {DescribeOf(childLookupField)} means."),
+                + $"cannot tell which one {DescribeOf(childLookupField)} means."
+            ),
         };
     }
 
@@ -62,10 +64,10 @@ public static class InjectionPathResolver
             ? propertyType.GetGenericArguments().FirstOrDefault()
             : null;
 
-    private static Type DeclaringTypeOf(PropertyInfo field) =>
-        field.DeclaringType ?? throw BadHop($"{field.Name} has no declaring type.");
+    /// <summary>A property reflected off a type - every field XFTY is handed - always has one.</summary>
+    private static Type DeclaringTypeOf(PropertyInfo field) => field.DeclaringType!;
 
-    private static string DescribeOf(PropertyInfo field) => $"{field.DeclaringType?.Name}.{field.Name}";
+    private static string DescribeOf(PropertyInfo field) => $"{DeclaringTypeOf(field).Name}.{field.Name}";
 
     private static XftyConfigurationException BadHop(string detail) => new($"Injection path: {detail}");
 }

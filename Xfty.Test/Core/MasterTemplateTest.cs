@@ -51,7 +51,7 @@ public class MasterTemplateTest
     public void Put_ForAContextAwareExpression_RoutesItToTheContextAwareMap(bool passAsObject)
     {
         // Arrange
-        IContextAwareExpression contextAware = CopyFromSiblingExpression.From<Contact>(x => x.FirstName);
+        IContextAware contextAware = CopyFromSiblingExpression.From<Contact>(x => x.FirstName);
         MasterTemplate template = new(Field.Of<Contact>(x => x.Id));
 
         // Act
@@ -101,7 +101,7 @@ public class MasterTemplateTest
     public void Put_ForAnExistingExpressionPassedAsObject_DoesNotDoubleWrapIt()
     {
         // Arrange
-        IValueExpression expression = new IncrementingStringExpression("Acct");
+        IValueYielding expression = new IncrementingStringExpression("Acct");
 
         // Act
         MasterTemplate template = new MasterTemplate(Field.Of<Account>(x => x.Id))
@@ -120,7 +120,8 @@ public class MasterTemplateTest
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() =>
             new MasterTemplate(Field.Of<Contact>(x => x.Id))
-                .Put<Contact>(x => x.AccountId, (object)new DefaultRelationship(new Account())));
+                .Put<Contact>(x => x.AccountId, new DefaultRelationship(new Account()))
+        );
 
         // Assert
         Assert.Contains("PutRequired", thrown.Message);
@@ -214,7 +215,8 @@ public class MasterTemplateTest
         // Assert
         Assert.Equal(
             [Field.Of<Account>(x => x.Name), Field.Of<Account>(x => x.Industry), Field.Of<Account>(x => x.Type)],
-            ordered);
+            ordered
+        );
     }
 
     [Fact]
@@ -233,7 +235,8 @@ public class MasterTemplateTest
         // Assert
         Assert.Equal(
             [Field.Of<Account>(x => x.Name), Field.Of<Account>(x => x.Type)],
-            template.DefaultByField.Keys);
+            template.DefaultByField.Keys
+        );
     }
 
     [Fact]
@@ -251,7 +254,8 @@ public class MasterTemplateTest
         // Assert - the position it held before Remove is forgotten
         Assert.Equal(
             [Field.Of<Account>(x => x.Industry), Field.Of<Account>(x => x.Name)],
-            template.DefaultByField.Keys);
+            template.DefaultByField.Keys
+        );
     }
 
     // Copy() -------------------------------------------------

@@ -1,4 +1,4 @@
-using global::AutoFixture;
+using AutoFixture;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -19,7 +19,7 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture;
 ///
 /// insertMode defaults to <see cref="InsertMode.Mock"/> - in-memory Ids, no
 /// real DML - matching AutoFixture's own scope. Pass a different mode (with
-/// <see cref="RecordProvider.SetPersistenceGateway"/> configured on the
+/// <see cref="Core.RecordProviders.RecordProvider.SetPersistenceGateway"/> configured on the
 /// Providers involved, where relevant) for a customization that should
 /// insert for real.
 ///
@@ -31,9 +31,10 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture;
 /// surprising anyone used to AutoFixture always producing a complete object.
 /// </summary>
 public sealed class XftyCustomization(
-    IProviderLookup lookup,
+    IProviderLocating lookup,
     InsertMode insertMode = InsertMode.Mock,
-    InsertInclusivity inclusivity = InsertInclusivity.Required) : ICustomization
+    InsertInclusivity inclusivity = InsertInclusivity.Required
+) : ICustomization
 {
     public void Customize(IFixture fixture) =>
         fixture.Customizations.Insert(0, new XftySpecimenBuilder(lookup, insertMode, inclusivity));

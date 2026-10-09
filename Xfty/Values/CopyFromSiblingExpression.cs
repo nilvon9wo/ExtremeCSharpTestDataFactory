@@ -18,7 +18,7 @@ namespace Net.NowhereAtAll.Xfty.Values;
 /// pair) throws loudly from <see cref="GenerationContext.SiblingValue"/> -
 /// it is never a silent null.
 /// </summary>
-public sealed class CopyFromSiblingExpression(PropertyInfo sourceField) : IContextAwareExpression
+public sealed class CopyFromSiblingExpression(PropertyInfo sourceField) : IContextAware
 {
     private readonly PropertyInfo _sourceField = sourceField ?? throw new XftyConfigurationException(
         "CopyFromSiblingExpression needs a source field."

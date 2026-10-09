@@ -3,8 +3,8 @@ using System.Reflection;
 namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
-/// records[ChildIndex].Field should end up pointing at records[ParentIndex]. Also used by <see cref="DeferredGraph"/> -
-/// the same link shape either way.
+/// records[ChildIndex].Field should end up pointing at records[ParentIndex]. Also used by
+/// <see cref="Engine.DeferredGraph"/> - the same link shape either way.
 /// </summary>
 public sealed class DepthBatchedInserterParentLink(int childIndex, int parentIndex, PropertyInfo field)
 {

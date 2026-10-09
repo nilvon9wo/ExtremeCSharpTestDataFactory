@@ -40,7 +40,7 @@ tight budget.
 | `Mock`, 3,000 primaries with a required parent (6,000 records total) | well under 5 seconds |
 | `Never`, 5,000 primaries with a generated parent each, held in memory | well under 512 MB allocated |
 | `Mock`, 15 Accounts × 10 `WithChildren` Contacts each (165 records) | well under 2 seconds |
-| `Mock`, 3,000 primaries each with two context-aware value expressions (a sibling copy + a custom `IContextAwareExpression`) | well under 5 seconds — the value pass stays cheap at volume |
+| `Mock`, 3,000 primaries each with two context-aware value expressions (a sibling copy + a custom `IContextAware`) | well under 5 seconds — the value pass stays cheap at volume |
 
 There is no equivalent yet for a `Now`-mode insert-count scenario, a
 `.DepthBatched()` DML-statement-count scenario, org seeding, or

@@ -57,13 +57,18 @@ internal sealed class RecordProviderExecution(RecordProviderPlan plan)
             plan.Outlet,
             plan.InsertMode,
             plan.Inclusivity,
-            plan.PersistenceGateway);
+            plan.PersistenceGateway
+        );
 
     private Task<Bundle> Generate(GenerationContext context, List<object> templates) =>
         plan.TemplateConfig.HasCustomTemplate
             ? RecordFactory.CreateBundle(context, plan.TemplateConfig.ResolveTemplate(), templates)
             : plan.Outlet.CreateBundle(context, templates);
 
+    /// <summary>
+    /// Only called for a batched build (<see cref="BuildsStructurallyForBatchedInsert"/>): either this call flushes
+    /// the graph itself, or it defers it to the registry.
+    /// </summary>
     private Task Persist(Bundle bundle)
     {
         if (this.FlushesGraphWhenThisCallEnds())
@@ -71,14 +76,11 @@ internal sealed class RecordProviderExecution(RecordProviderPlan plan)
             return DeferredInsertBuffer.InsertGraph(
                 bundle,
                 plan.PersistenceGateway,
-                plan.ExcludePrimaryIds);
+                plan.ExcludePrimaryIds
+            );
         }
 
-        if (this.DeferredToRegistry())
-        {
-            DeferredInserter.Register(bundle, plan.ExcludePrimaryIds);
-        }
-
+        DeferredInserter.Register(bundle, plan.ExcludePrimaryIds);
         return Task.CompletedTask;
     }
 
@@ -102,7 +104,7 @@ internal sealed class RecordProviderExecution(RecordProviderPlan plan)
         this.FlushesGraphWhenThisCallEnds() || this.DeferredToRegistry();
 
     private bool FlushesGraphWhenThisCallEnds() =>
-        plan.DepthBatched && plan.InsertMode == InsertMode.Now;
+        plan is { DepthBatched: true, InsertMode: InsertMode.Now };
 
     private bool DeferredToRegistry() => plan.InsertMode == InsertMode.Deferred;
 

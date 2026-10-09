@@ -14,7 +14,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// </summary>
 public class GenerationContextTest
 {
-    private static readonly IProviderLookup Lookup = Substitute.For<IProviderLookup>();
+    private static readonly IProviderLocating Lookup = Substitute.For<IProviderLocating>();
     private static readonly PropertyInfo SiteField = Field.Of<Account>(x => x.Site);
     private static readonly PropertyInfo TypeField = Field.Of<Account>(x => x.Type);
     private static readonly PropertyInfo DescriptionField = Field.Of<Account>(x => x.Description);
@@ -43,7 +43,8 @@ public class GenerationContextTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => new GenerationContext(null!, InsertMode.Mock, InsertInclusivity.None));
+            () => new GenerationContext(null!, InsertMode.Mock, InsertInclusivity.None)
+        );
 
         // Assert
         Assert.Contains("Provider Lookup", thrown.Message);
@@ -132,6 +133,21 @@ public class GenerationContextTest
             Assert.Throws<XftyConfigurationException>(() => baseContext.SiblingValue(SiteField));
 
         // Assert
+        Assert.Contains("context-aware value is being generated", thrown.Message);
+    }
+
+    [Fact]
+    public void SiblingValue_WhenTheValuePassHasNoRecord_Throws()
+    {
+        // Arrange - ForValueField straight off a base context, skipping ForRecord
+        GenerationContext atField = Context(InsertMode.Mock, InsertInclusivity.None)
+            .ForValueField(DescriptionField, new HashSet<PropertyInfo>());
+
+        // Act
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => atField.SiblingValue(SiteField));
+
+        // Assert - not a null that would read as "the sibling was generated to null"
         Assert.Contains("context-aware value is being generated", thrown.Message);
     }
 

@@ -8,7 +8,7 @@ namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 /// The ergonomic, strongly-typed way to build a <see cref="MasterTemplate"/> for
 /// one record type - a thin lambda-based wrapper, not a second implementation.
 /// The indexer accepts an object-initializer entry per field, routed by the
-/// value's runtime type exactly like <see cref="MasterTemplate.Put(PropertyInfo,object)"/>:
+/// value's runtime type exactly like <see cref="MasterTemplate.Put(System.Reflection.PropertyInfo,object)"/>:
 ///
 /// <code>
 /// private static readonly MasterTemplate Template = new MasterTemplate&lt;Account&gt;(x => x.Id)
@@ -43,7 +43,7 @@ public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> p
 
     public MasterTemplate<TRecord> PutRequired(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationship
+        IRelatable relationship
     )
     {
         _ = this._inner.PutRequired(Field.Of(field), relationship);
@@ -52,7 +52,7 @@ public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> p
 
     public MasterTemplate<TRecord> PutOptional(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationship
+        IRelatable relationship
     )
     {
         _ = this._inner.PutOptional(Field.Of(field), relationship);
@@ -60,7 +60,7 @@ public sealed class MasterTemplate<TRecord>(Expression<Func<TRecord, object?>> p
     }
 
     /// <summary>Set this record type's placeholder-Id generator for <see cref="InsertMode.Mock"/>.</summary>
-    public MasterTemplate<TRecord> WithMockIdGenerator(IMockIdGenerator generator)
+    public MasterTemplate<TRecord> WithMockIdGenerator(IMockIdGenerating generator)
     {
         _ = this._inner.WithMockIdGenerator(generator);
         return this;

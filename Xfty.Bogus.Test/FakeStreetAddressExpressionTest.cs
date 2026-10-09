@@ -10,7 +10,7 @@ public class FakeStreetAddressExpressionTest
         FakeStreetAddressExpression expression = new();
 
         // Act
-        List<string> produced = [.. Enumerable.Range(0, 25).Select(_ => (string)expression.Get()!)];
+        List<string> produced = [.. Enumerable.Range(0, 25).Select(_ => (string)expression.Get())];
 
         // Assert
         Assert.All(produced, address => Assert.False(string.IsNullOrWhiteSpace(address)));

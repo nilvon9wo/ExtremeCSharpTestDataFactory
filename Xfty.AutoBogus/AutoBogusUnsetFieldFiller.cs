@@ -1,11 +1,11 @@
 using System.Reflection;
-using global::AutoBogus;
+using AutoBogus;
 using Net.NowhereAtAll.Xfty.Core;
 
 namespace Net.NowhereAtAll.Xfty.AutoBogus;
 
 /// <summary>
-/// The AutoBogus-backed <see cref="IUnsetFieldFiller"/>: resolves each field
+/// The AutoBogus-backed <see cref="IUnsetFieldFilling"/>: resolves each field
 /// XFTY's Master Template never configured through the given
 /// <see cref="IAutoFaker"/>, via the same generation pipeline
 /// <c>faker.Generate&lt;T&gt;()</c> itself uses - so the faker's own
@@ -33,7 +33,7 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus;
 /// <c>Bundle.Inject(...)</c>/<c>InjectAll</c> rather than by any Master
 /// Template) is the case that comes up in practice.
 /// </summary>
-public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFiller
+public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFilling
 {
     // Type.GetMethod(string, int, Type[]) - the direct way to select this one overload by
     // generic arity - isn't available on netstandard2.0, so this filters GetMethods() by hand
@@ -41,10 +41,10 @@ public sealed class AutoBogusUnsetFieldFiller(IAutoFaker faker) : IUnsetFieldFil
     private static readonly MethodInfo GenerateOfT = typeof(IAutoFaker)
         .GetMethods()
         .Single(method =>
-            method.Name == nameof(IAutoFaker.Generate)
-            && method.IsGenericMethodDefinition
+            method is { Name: nameof(IAutoFaker.Generate), IsGenericMethodDefinition: true }
             && method.GetGenericArguments().Length == 1
-            && HasSoleParameterOfType(method, typeof(Action<IAutoGenerateConfigBuilder>)));
+            && HasSoleParameterOfType(method, typeof(Action<IAutoGenerateConfigBuilder>))
+        );
 
     private static readonly Action<IAutoGenerateConfigBuilder> NoConfiguration = static _ => { };
 

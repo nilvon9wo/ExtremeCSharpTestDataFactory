@@ -5,7 +5,7 @@ child — must match, or one must be **derived** from the other. XFTY defines th
 relationship **once**, in the Provider or on the call.
 
 The `CopyFrom*` classes below are just the bundled, straight-copy
-implementations of [`IContextAwareExpression`](../../extend/custom-value-expressions.md).
+implementations of [`IContextAware`](../../extend/custom-value-expressions.md).
 When the second field is a *transformation* — a boolean from a date, a code
 concatenated from a parent's fields, a status mirrored from a child's stage —
 write your own small class against the same interface.
@@ -32,7 +32,7 @@ Set `ShippingCountry` in one place (Provider default or override template);
 
 <!-- sketch -->
 ```csharp
-public sealed class SiblingCountryLabel : IContextAwareExpression
+public sealed class SiblingCountryLabel : IContextAware
 {
     public object? Get(GenerationContext context)
     {

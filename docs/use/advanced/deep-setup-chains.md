@@ -79,7 +79,7 @@ public void TheWholeGraphRegistersBeforeAnyFlushAttempt()
 
     // Act / Assert - both bundles registered as one pending set before any flush
     Assert.True(pendingBeforeFlush >= 12); // 3 Accounts + 9 Contacts (their own Accounts too, if Required)
-    await DeferredInserter.Flush(gateway); // one pass, in dependency order, through the given IPersistenceGateway
+    await DeferredInserter.Flush(gateway); // one pass, in dependency order, through the given IPersisting
 }
 ```
 

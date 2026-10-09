@@ -13,6 +13,16 @@
   </PropertyGroup>
 
   <!--
+    .editorconfig makes every analyzer diagnostic an error, but the compiler's
+    own warnings (nullable CS86xx, unassigned fields, obsolete APIs, ...) and
+    NuGet's stayed warnings - printed, never failing anything. Everything is
+    error (docs/contribute/coding-standards.md), so they are too.
+  -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
     Without this, each multi-targeted TFM's compile pass infers its own
     default C# language version - netstandard2.0 defaults to a much older
     one unless told otherwise, and would reject init accessors, primary
@@ -49,5 +59,39 @@
   <PropertyGroup>
     <Version>0.0.0-dev</Version>
   </PropertyGroup>
+
+  <!--
+    Coverage is not an optional extra: every `dotnet test` of a `*.Test`
+    project, local or CI, measures the one package that project tests and
+    fails below 100% line AND branch coverage. XFTY must never be the cause of
+    a consumer's test failure, so every guard and both sides of every branch
+    are exercised (docs/contribute/coverage-standards.md).
+
+    - coverlet.MTP, not coverlet.collector: global.json selects the Microsoft
+      Testing Platform runner, and coverlet.collector is a VSTest data
+      collector - under MTP its documented "XPlat Code Coverage" collect option runs
+      zero tests and exits 5 (invalid arguments), so coverage was silently
+      never measured.
+    - The include filter is derived from the project name (`Xfty.Bogus.Test`
+      measures `Net.NowhereAtAll.Xfty.Bogus`). Without one, every loaded
+      assembly is instrumented - xunit's own included - and the minimum drags
+      the threshold check to 0%.
+    - Xfty.NetStandardCompat.Test is a net472 smoke test across several
+      packages, not a unit suite for one; it is not measured.
+    - Running a filtered subset (one class, or the Performance category)
+      cannot reach 100%: pass `-p:XftyCoverage=false` to `dotnet test` for
+      those runs.
+  -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Test')) And '$(MSBuildProjectName)' != 'Xfty.NetStandardCompat.Test'">
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <XftyCoverage Condition="'$(XftyCoverage)' == ''">true</XftyCoverage>
+    <XftyCoveredAssembly>Net.NowhereAtAll.$(MSBuildProjectName.Substring(0, $(MSBuildProjectName.LastIndexOf('.Test'))))</XftyCoveredAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(XftyCoverage)' == 'true'">
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --coverlet --coverlet-include "[$(XftyCoveredAssembly)]*" --coverlet-output-format cobertura --coverlet-threshold 100 --coverlet-threshold-type line --coverlet-threshold-type branch</TestingPlatformCommandLineArguments>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(XftyCoveredAssembly)' != ''">
+    <PackageReference Include="coverlet.MTP" Version="10.1.0" />
+  </ItemGroup>
 
 </Project>

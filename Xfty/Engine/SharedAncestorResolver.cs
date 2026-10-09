@@ -44,23 +44,23 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// holds without risking a chain deadlocking on a gate it's already inside.
 /// </summary>
 /// <remarks>mode is the triggering call's insert mode; Deferred resolves eagerly, as Now.</remarks>
-public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mode)
+public sealed class SharedAncestorResolver(IProviderLocating lookup, InsertMode mode)
 {
     private static readonly SemaphoreSlim ResolutionGate = new(1, 1);
     private static readonly AsyncLocal<bool> HoldsGate = new();
     private static bool s_running;
     private static readonly HashSet<string> InProgress = [];
 
-    private readonly IProviderLookup _lookup = lookup;
+    private readonly IProviderLocating _lookup = lookup;
     private readonly InsertMode _mode = Eager(mode);
 
     /// <summary>
     /// Every shared ancestor configured this test method, resolved against the triggering call's mode.
     /// </summary>
-    public static Task ResolveAllConfigured(IProviderLookup lookup, InsertMode callMode) =>
+    public static Task ResolveAllConfigured(IProviderLocating lookup, InsertMode callMode) =>
         WithGate(() => ResolveAllConfiguredUnderGate(lookup, callMode));
 
-    private static async Task ResolveAllConfiguredUnderGate(IProviderLookup lookup, InsertMode callMode)
+    private static async Task ResolveAllConfiguredUnderGate(IProviderLocating lookup, InsertMode callMode)
     {
         if (s_running)
         {
@@ -80,10 +80,12 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
         }
     }
 
-    /// <summary>Let a lookup that implements ISharedAncestorDefaults register its shared-ancestor defaults.</summary>
-    public static void ApplyLookupDefaults(IProviderLookup lookup)
+    /// <summary>
+    /// Let a lookup that implements ISharedAncestorRegistering register its shared-ancestor defaults.
+    /// </summary>
+    public static void ApplyLookupDefaults(IProviderLocating lookup)
     {
-        if (lookup is ISharedAncestorDefaults defaults)
+        if (lookup is ISharedAncestorRegistering defaults)
         {
             defaults.RegisterSharedAncestorDefaults();
         }
@@ -203,11 +205,8 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
     private async Task ResolveOne(SharedAncestor ancestor)
     {
         string name = ancestor.SharedName;
-        if (!InProgress.Add(name))
-        {
-            return;
-        }
-
+        // Always a new entry: InDependencyOrder has already rejected an in-progress name as a cycle.
+        _ = InProgress.Add(name);
         try
         {
             await this.BuildAndPersist(ancestor).ConfigureAwait(false);
@@ -250,5 +249,6 @@ public sealed class SharedAncestorResolver(IProviderLookup lookup, InsertMode mo
 
     private static XftyConfigurationException Cycle(string name) =>
         new($"Shared ancestors form a cycle involving \"{name}\". Break it by pre-registering one side with "
-            + $"SharedAncestor.Put(\"{name}\", record).");
+            + $"SharedAncestor.Put(\"{name}\", record)."
+        );
 }

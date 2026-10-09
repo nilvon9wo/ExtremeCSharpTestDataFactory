@@ -5,7 +5,7 @@ using Net.NowhereAtAll.Xfty.Persistence;
 namespace Net.NowhereAtAll.Xfty.EntityFramework6;
 
 /// <summary>
-/// The classic-EF6-backed <see cref="IPersistenceGateway"/> - the piece that
+/// The classic-EF6-backed <see cref="IPersisting"/> - the piece that
 /// makes <c>InsertMode.Now</c> and <c>.DepthBatched()</c> actually persist
 /// through <see cref="System.Data.Entity.DbContext"/> (the <c>EntityFramework</c>
 /// NuGet package, "EF6") rather than <c>Microsoft.EntityFrameworkCore.DbContext</c>
@@ -25,7 +25,7 @@ namespace Net.NowhereAtAll.Xfty.EntityFramework6;
 /// <see cref="System.Data.Entity.DbContext.SaveChangesAsync()"/> call per
 /// depth-batched layer - is identical.
 /// </summary>
-public sealed class Ef6PersistenceGateway(DbContext dbContext) : IPersistenceGateway
+public sealed class Ef6PersistenceGateway(DbContext dbContext) : IPersisting
 {
     public async Task Insert(List<object> records, PropertyInfo idField)
     {

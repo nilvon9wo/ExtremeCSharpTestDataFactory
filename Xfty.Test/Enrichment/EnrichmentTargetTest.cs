@@ -24,7 +24,7 @@ public class EnrichmentTargetTest
         EnrichmentTarget target = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(x => x.Id));
 
         // Assert
-        _ = Assert.Single(target.Records!);
+        _ = Assert.Single(target.Records);
         Assert.False(target.IsGeneratedAncestor);
     }
 
@@ -58,7 +58,7 @@ public class EnrichmentTargetTest
         EnrichmentTarget target = EnrichmentTarget.Locate(bundle, Field.Of<Contact>(x => x.AccountId));
 
         // Assert
-        Assert.Equal(2, target.Records!.Count);
+        Assert.Equal(2, target.Records.Count);
         Assert.False(target.IsGeneratedAncestor);
     }
 
@@ -71,7 +71,8 @@ public class EnrichmentTargetTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => EnrichmentTarget.Locate(bundle, Field.Of<Account>(x => x.Name)));
+            () => EnrichmentTarget.Locate(bundle, Field.Of<Account>(x => x.Name))
+        );
 
         // Assert
         Assert.NotNull(thrown);

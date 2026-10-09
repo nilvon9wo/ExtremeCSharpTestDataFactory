@@ -1,0 +1,35 @@
+# Style canary
+
+Deliberately non-compliant code. **Do not fix it.** It is not part of
+`Xfty.slnx`, and `scripts/check-line-layout.py` skips it, so no ordinary gate
+ever reports it.
+
+Every violation in `Violations.cs` carries an `// expect: <gate>:<rule>` marker
+naming the gate that must report it on that line. `scripts/verify-gates.py`
+runs each gate against this project and fails if any expected report is
+missing, or if a gate has no marker exercising it - so a gate that silently
+stops running, or a rule that silently stops being enforced, breaks CI instead
+of letting violations slip into real code. A gate that stops running looks
+exactly like one that passes; this is what tells them apart.
+
+| Gate | Command `verify-gates.py` runs |
+|---|---|
+| `build` | `dotnet build StyleCanary/StyleCanary.csproj --no-incremental` (errors only: the compiler warning `CS0649` must surface as an error, proving `TreatWarningsAsErrors`) |
+| `format` | `dotnet format StyleCanary/StyleCanary.csproj --verify-no-changes --severity info` |
+| `layout` | `python3 scripts/check-line-layout.py StyleCanary/Violations.cs` |
+| `inspect` | `python3 scripts/inspect-code.py StyleCanary/StyleCanary.csproj` |
+
+The gates that cannot be canaried with a static file are proven by a
+temporary change to the real repository, always undone afterwards:
+
+- **coverage** - an uncovered class is added to `Xfty/`; `Xfty.Test` must then
+  fail its 100% threshold;
+- **INCONCLUSIVE test runs** - one test module's apphost is hidden so it
+  cannot start; `scripts/run-tests.py` must then report `INCONCLUSIVE`
+  instead of `dotnet test`'s "Passed!";
+- **doc links** and **doc examples** - a page with a broken link and a
+  `Runnable:` example no test exercises is added under `docs/use/`; both
+  verifiers must then fail.
+
+When you add a rule to `.editorconfig` or a new gate to CI, add a violation for
+it here.

@@ -15,7 +15,7 @@ Builds on `GenerationContext`
 
 ## The need
 
-A plain value expression (`IValueExpression.Get()`) takes no arguments and
+A plain value expression (`IValueYielding.Get()`) takes no arguments and
 knows nothing about anything around it. Real data models routinely need more:
 
 - **sibling read** — a field derived from another field on the *same* record;
@@ -35,8 +35,8 @@ exist** when its parent's value pass runs, so it needs a deferred pass.
 
 ## Key decisions (as shipped)
 
-1. **`IContextAwareExpression` is a separate interface**, not a subtype of
-   `IValueExpression` — a context-aware value handed to code expecting a
+1. **`IContextAware` is a separate interface**, not a subtype of
+   `IValueYielding` — a context-aware value handed to code expecting a
    plain one would violate Liskov substitution if it extended it and threw
    from the no-arg method instead. `MasterTemplate.Put(field, object?)` routes
    by runtime type: context-aware → its own map; plain → its map; a
@@ -77,5 +77,5 @@ exist** when its parent's value pass runs, so it needs a deferred pass.
   `ctx.BundleSoFar` down each relationship.
 
 Anything with actual transformation logic is a small consumer
-`IContextAwareExpression` implementation — XFTY ships the plumbing, not a
+`IContextAware` implementation — XFTY ships the plumbing, not a
 mini-expression-language.

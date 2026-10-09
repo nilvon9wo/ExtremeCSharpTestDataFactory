@@ -20,8 +20,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Relationships;
 /// </summary>
 public class SharedAncestorIntegrationTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -81,15 +81,16 @@ public class SharedAncestorIntegrationTest
     [Fact]
     public async Task Supply_WhenTheLookupRegistersASharedAncestorDefault_ResolvesItWithoutBeingPutExplicitly()
     {
-        // Arrange - the lookup itself supplies the default template (ISharedAncestorDefaults), not the test
+        // Arrange - the lookup itself supplies the default template (ISharedAncestorRegistering), not the test
         const string sharedName = "shared-ancestor-test-lookup-default";
-        IProviderLookup lookup = ProviderLookups.Of(
-            new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(
+            new Dictionary<IRecordIdentifying, IRecordProviding>
             {
                 [LookupKey.Get<Account>()] = new AccountDataProvider(),
                 [LookupKey.Get<Contact>()] = new ContactDataProvider(),
             },
-            new Dictionary<string, object> { [sharedName] = new Account { Name = "Lookup-Default HQ" } });
+            new Dictionary<string, object> { [sharedName] = new Account { Name = "Lookup-Default HQ" } }
+        );
         RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
             .SetInsertMode(InsertMode.Mock)
             .SetInclusivity(InsertInclusivity.Required)

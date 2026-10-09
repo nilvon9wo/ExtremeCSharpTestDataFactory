@@ -29,13 +29,13 @@ internal sealed class RecordProviderTemplateConfig(Func<MasterTemplate> resolveB
     public void Put(PropertyInfo field, object? value) =>
         this.Mutate(() => this.ResolveTemplate().Put(field, value));
 
-    public void PutRequired(PropertyInfo field, IDefaultRelationship relationship) =>
+    public void PutRequired(PropertyInfo field, IRelatable relationship) =>
         this.Mutate(() => this.ResolveTemplate().Remove(field).PutRequired(field, relationship));
 
-    public void SetMockIdGenerator(IMockIdGenerator generator) =>
+    public void SetMockIdGenerator(IMockIdGenerating generator) =>
         this.Mutate(() => this.ResolveTemplate().WithMockIdGenerator(generator));
 
-    public void PutOptional(PropertyInfo field, IDefaultRelationship relationship) =>
+    public void PutOptional(PropertyInfo field, IRelatable relationship) =>
         this.Mutate(() => this.ResolveTemplate().Remove(field).PutOptional(field, relationship));
 
     public void RemoveFromMasterTemplate(PropertyInfo field) =>

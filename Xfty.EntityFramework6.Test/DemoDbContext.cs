@@ -11,7 +11,7 @@ namespace Net.NowhereAtAll.Xfty.EntityFramework6.Test;
 /// EF6's code-based provider registration - the equivalent of the
 /// `&lt;entityFramework&gt;` app.config section, spelled without one (a
 /// net10.0 test host doesn't read classic .NET Framework config anyway).
-/// <see cref="DbConfigurationType"/> on <see cref="DemoDbContext"/> points at
+/// <see cref="DbConfigurationTypeAttribute"/> on <see cref="DemoDbContext"/> points at
 /// this explicitly rather than relying on EF6's own assembly-scanning
 /// auto-discovery, which is unreliable under a modern test host.
 /// </summary>
@@ -23,7 +23,9 @@ internal sealed class SqliteEf6Configuration : DbConfiguration
         this.SetProviderFactory("System.Data.SQLite.EF6", SQLiteProviderFactory.Instance);
         this.SetProviderServices(
             "System.Data.SQLite",
-            (DbProviderServices)SQLiteProviderFactory.Instance.GetService(typeof(DbProviderServices)));
+            SQLiteProviderFactory.Instance.GetService(typeof(DbProviderServices)) as DbProviderServices
+                ?? throw new InvalidOperationException("System.Data.SQLite.EF6 exposes no DbProviderServices.")
+        );
     }
 }
 
@@ -44,6 +46,8 @@ public sealed class DemoDbContext(DbConnection connection, bool contextOwnsConne
 
     public DbSet<Contact> Contacts => this.Set<Contact>();
 
+    public DbSet<Ticket> Tickets => this.Set<Ticket>();
+
     protected override void OnModelCreating(DbModelBuilder modelBuilder)
     {
         _ = modelBuilder.Entity<Account>().HasKey(x => x.Id);
@@ -54,5 +58,7 @@ public sealed class DemoDbContext(DbConnection connection, bool contextOwnsConne
         _ = modelBuilder.Entity<Contact>().HasKey(x => x.Id);
         _ = modelBuilder.Entity<Contact>().Ignore(x => x.Account);
         _ = modelBuilder.Entity<Contact>().Ignore(x => x.Cases);
+
+        _ = modelBuilder.Entity<Ticket>().HasKey(x => x.Id);
     }
 }

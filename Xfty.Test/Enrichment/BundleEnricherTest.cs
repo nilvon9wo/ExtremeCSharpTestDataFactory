@@ -20,8 +20,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Enrichment;
 /// </summary>
 public class BundleEnricherTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountWithParentProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -188,7 +188,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id)));
+            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id))
+        );
 
         // Assert - nothing generated, InjectAll has nothing to inject
         Assert.NotNull(thrown);
@@ -222,7 +223,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Contact>(x => x.Id), config));
+            () => bundle.Inject(Field.Of<Contact>(x => x.Id), config)
+        );
 
         // Assert - the error points at the escape hatch
         Assert.Contains("AllowDeeperGraph", thrown.Message);
@@ -270,7 +272,8 @@ public class BundleEnricherTest
         Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
             .SetInsertMode(InsertMode.Mock)
             .With(ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
-                .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)))
+                .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3))
+            )
             .SupplyBundle().ConfigureAwait(true);
         InjectConfig config = InjectConfig.AllChildren().ChildDepth(2).AllowDeeperGraph();
 
@@ -293,7 +296,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Account>(x => x.Id), config));
+            () => bundle.Inject(Field.Of<Account>(x => x.Id), config)
+        );
 
         // Assert
         Assert.NotNull(thrown);
@@ -393,7 +397,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Account>(x => x.Id), config));
+            () => bundle.Inject(Field.Of<Account>(x => x.Id), config)
+        );
 
         // Assert - the error names the unreached path
         Assert.Contains("InjectChildValue", thrown.Message);
@@ -418,7 +423,8 @@ public class BundleEnricherTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.Inject(Field.Of<Account>(x => x.Id), config));
+            () => bundle.Inject(Field.Of<Account>(x => x.Id), config)
+        );
 
         // Assert - the error points at childDepth
         Assert.Contains("childDepth", thrown.Message);
@@ -441,9 +447,95 @@ public class BundleEnricherTest
         Assert.Equal(2, enriched.Count);
         _ = Assert.IsType<Contact>(enriched[0]);
     }
+
+    [Fact]
+    public async Task InjectAllParents_ForThePrimary_GraftsTheGeneratedAncestor()
+    {
+        // Arrange
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
+            .SetInsertMode(InsertMode.Mock)
+            .SetInclusivity(InsertInclusivity.Required)
+            .SupplyBundle().ConfigureAwait(true);
+
+        // Act
+        List<object> enriched = bundle.InjectAllParents(Field.Of<Contact>(x => x.Id));
+
+        // Assert
+        Contact enrichedContact = (Contact)enriched[0];
+        Assert.NotNull(enrichedContact.Account);
+    }
+
+    // Hand-assembled bundles ------------------------------------------
+
+    [Fact]
+    public void Inject_WhenThereAreNoPrimaries_ReturnsAnEmptyList()
+    {
+        // Arrange
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), []);
+
+        // Act
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), InjectConfig.Everything());
+
+        // Assert
+        Assert.Empty(enriched);
+    }
+
+    [Fact]
+    public void Inject_WhenAnAncestorSubBundleHasNoRecordList_GraftsNothingForIt()
+    {
+        // Arrange - the Account sub-bundle is there, its row list is not
+        Contact contact = new();
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [contact]);
+        _ = bundle.Put<Contact>(x => x.AccountId, AccountSubBundle());
+
+        // Act
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.Id), InjectConfig.AllParents());
+
+        // Assert
+        Assert.Null(((Contact)enriched[0]).Account);
+    }
+
+    [Fact]
+    public void Inject_ForAnAncestorFieldWithNoRecordList_ReturnsAnEmptyList()
+    {
+        // Arrange
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
+        _ = bundle.Put<Contact>(x => x.AccountId, AccountSubBundle());
+
+        // Act
+        List<object> enriched = bundle.Inject(Field.Of<Contact>(x => x.AccountId), InjectConfig.AllParents());
+
+        // Assert
+        Assert.Empty(enriched);
+    }
+
+    [Fact]
+    public void InjectAllChildren_WhenAChildBundleHasNoRecords_GivesTheParentAnEmptyCollection()
+    {
+        // Arrange
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account()]);
+        _ = bundle.PutChild(Field.Of<Contact>(x => x.AccountId), new Bundle(), []);
+
+        // Act
+        List<object> enriched = bundle.InjectAllChildren(Field.Of<Account>(x => x.Id));
+
+        // Assert
+        Assert.Empty(((Account)enriched[0]).Contacts!);
+    }
+
+    private static Bundle AccountSubBundle()
+    {
+        Bundle accounts = new();
+        accounts.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Id = "A-1" }]);
+        return accounts;
+    }
 }
 
-file sealed class CaseProvider : IRecordProvider
+file sealed class CaseProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
         .Put<Case>(x => x.Subject, new IncrementingStringExpression("Enricher Case"));
@@ -454,7 +546,7 @@ file sealed class CaseProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-file sealed class AccountWithParentProvider : IRecordProvider
+file sealed class AccountWithParentProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
         .Put<Account>(x => x.Name, new IncrementingStringExpression("Enricher Account"))

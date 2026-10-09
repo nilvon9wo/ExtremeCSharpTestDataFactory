@@ -4,7 +4,7 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 
 /// <summary>
 /// The up-flow value pass: runs over the whole DEFERRED forest, just before
-/// the depth-batched insert, and fills every field an IDeferredExpression
+/// the depth-batched insert, and fills every field an IDeferred
 /// left unresolved by reading it from that record's generated descendants.
 /// </summary>
 public sealed class DescendantValuePass(

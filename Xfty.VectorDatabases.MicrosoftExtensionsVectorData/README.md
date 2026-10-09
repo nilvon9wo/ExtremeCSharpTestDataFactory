@@ -12,7 +12,7 @@ dotnet add package Xfty.VectorDatabases.MicrosoftExtensionsVectorData
 
 ## What it does
 
-`MevdPersistenceGateway` implements XFTY's `IPersistenceGateway` by
+`MevdPersistenceGateway` implements XFTY's `IPersisting` by
 inserting `RecordProvider`-generated records into
 [`Microsoft.Extensions.VectorData`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.vectordata)'s
 abstract `VectorStore` - **any** `VectorStore`. It depends on nothing but
@@ -58,7 +58,7 @@ has with the record types it generates.
   share one vector dimensionality**, read from the *first* record in the
   group.
 - **One collection per CLR type name** (`recordType.Name`, unqualified).
-- **Insert-only.** Matches `IPersistenceGateway`'s own single-method
+- **Insert-only.** Matches `IPersisting`'s own single-method
   contract - no read, search, or delete surface.
 - **Tested against exactly one connector (Qdrant), not the several this
   package claims to support.** `Xfty.VectorDatabases.MicrosoftExtensionsVectorData.Test`

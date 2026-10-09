@@ -9,14 +9,14 @@ namespace Net.NowhereAtAll.Xfty.Lookup;
 /// (<see cref="FlavouredLookupKey"/>), or a custom implementation.
 ///
 /// A single record can match several registered keys, so
-/// <see cref="IProviderLookup.KeysFor"/> returns a set; the most specific
+/// <see cref="IProviderLocating.KeysFor"/> returns a set; the most specific
 /// match (<see cref="Specificity"/>) wins.
 ///
 /// Keys are compared by <see cref="HashKey"/> rather than by identity, so two
 /// different instances describing the same variant resolve to the same
 /// Provider.
 /// </summary>
-public interface ILookupKey
+public interface IRecordIdentifying
 {
     /// <summary>The record type this key selects a Provider for.</summary>
     Type RecordType { get; }

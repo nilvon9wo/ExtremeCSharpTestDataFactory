@@ -3,7 +3,7 @@ using System.Reflection;
 namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
-/// An <see cref="IRecordPredicate"/> satisfied when a record's field equals a
+/// An <see cref="IRecordMatching"/> satisfied when a record's field equals a
 /// fixed value - null included, so <c>EqualTo(field, null)</c> is an "is
 /// null" check. Wrap it in <see cref="NegationPredicate"/> for "not equal" /
 /// "is not null".
@@ -11,7 +11,7 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 /// Obtain one through <see cref="Of"/> or the <see cref="FieldPredicateFactory"/>
 /// facade.
 /// </summary>
-public sealed class FieldEqualToPredicate : IRecordPredicate
+public sealed class FieldEqualToPredicate : IRecordMatching
 {
     private readonly PropertyInfo _field;
     private readonly object? _comparisonValue;

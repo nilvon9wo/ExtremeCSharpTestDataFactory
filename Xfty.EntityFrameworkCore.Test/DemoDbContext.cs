@@ -18,6 +18,8 @@ public sealed class DemoDbContext(DbContextOptions<DemoDbContext> options) : DbC
 
     public DbSet<Contact> Contacts => this.Set<Contact>();
 
+    public DbSet<Ticket> Tickets => this.Set<Ticket>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         _ = modelBuilder.Entity<Account>(account =>
@@ -33,5 +35,6 @@ public sealed class DemoDbContext(DbContextOptions<DemoDbContext> options) : DbC
             _ = contact.Ignore(x => x.Account);
             _ = contact.Ignore(x => x.Cases);
         });
+        _ = modelBuilder.Entity<Ticket>(ticket => ticket.HasKey(x => x.Id));
     }
 }

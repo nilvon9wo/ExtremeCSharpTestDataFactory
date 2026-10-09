@@ -1,6 +1,6 @@
 # Design: Deferred Persistence
 
-Status: **done.** `IPersistenceGateway` (`Xfty.Persistence`) is the seam every
+Status: **done.** `IPersisting` (`Xfty.Persistence`) is the seam every
 insert path runs through; `Xfty.EntityFrameworkCore` ships a real
 implementation, proven against SQLite and (when Docker is available) a real
 Postgres container in `Xfty.EntityFrameworkCore.Test`. `Xfty.EntityFramework6`

@@ -9,15 +9,15 @@ under `Net.NowhereAtAll.Xfty.*`; field tokens throughout are
 ## Generating — `RecordProvider`
 
 Both forms live in `Net.NowhereAtAll.Xfty.Core.RecordProviders`, alongside
-`IRecordProvider`.
+`IRecordProviding`.
 
 | Constructor | |
 |-------------|--|
-| `new RecordProvider<TRecord>(IProviderLookup)` | **typed** — `Supply()` returns `TRecord`, `SupplyList()` returns `List<TRecord>`, no cast; same fluent surface, plus a `[x => x.Field] = value` indexer |
-| `new RecordProvider(Type, IProviderLookup)` | non-generic base form — `Supply()` returns `object` |
-| `new RecordProvider(object template, IProviderLookup)` | derives type + variant from the template |
-| `new RecordProvider(List<object> templates, IProviderLookup)` | derives type from the first |
-| `new RecordProvider(ILookupKey key, IProviderLookup)` | derives type from the key, pins that variant |
+| `new RecordProvider<TRecord>(IProviderLocating)` | **typed** — `Supply()` returns `TRecord`, `SupplyList()` returns `List<TRecord>`, no cast; same fluent surface, plus a `[x => x.Field] = value` indexer |
+| `new RecordProvider(Type, IProviderLocating)` | non-generic base form — `Supply()` returns `object` |
+| `new RecordProvider(object template, IProviderLocating)` | derives type + variant from the template |
+| `new RecordProvider(List<object> templates, IProviderLocating)` | derives type from the first |
+| `new RecordProvider(IRecordIdentifying key, IProviderLocating)` | derives type from the key, pins that variant |
 
 | Fluent setup | |
 |--------------|--|
@@ -25,9 +25,9 @@ Both forms live in `Net.NowhereAtAll.Xfty.Core.RecordProviders`, alongside
 | `.SetOverrideTemplateList(List<object>)` | one record per template |
 | `.SetQuantityPerTemplate(int)` | N copies of each template |
 | `.SetInsertMode(InsertMode)` | [insert modes](../use/insert-modes.md) — `Now` needs `.SetPersistenceGateway(...)`, else throws |
-| `.SetMockIdGenerator(IMockIdGenerator)` | override the placeholder-Id shape under `Mock`, this call's primaries only ([mock-id-generators](../extend/mock-id-generators.md)) |
+| `.SetMockIdGenerator(IMockIdGenerating)` | override the placeholder-Id shape under `Mock`, this call's primaries only ([mock-id-generators](../extend/mock-id-generators.md)) |
 | `.SetInclusivity(InsertInclusivity)` | [relationship inclusivity](../use/relationships.md#inclusivity) |
-| `.WithVariant(ILookupKey)` | pick a Provider variant (before any `Put`) |
+| `.WithVariant(IRecordIdentifying)` | pick a Provider variant (before any `Put`) |
 | `.Put(field, expression \| literal \| contextAwareExpression \| deferredExpression)` | change generation of one field |
 | `.PutRequired(field, relationship)` / `.PutOptional(...)` | add a relationship |
 | `.RemoveFromMasterTemplate(field)` | drop a value field's generation |
@@ -75,7 +75,7 @@ Both forms live in `Net.NowhereAtAll.Xfty.Core.RecordProviders`, alongside
 | `.InjectChild(childLookupField)` / `.ExcludeChild(childLookupField)` | one child collection, by its lookup field |
 | `.ExcludeParent(path)` | prune a subtree from a breadth start (prefix match) |
 | `.InjectValue(field, value)` / `.InjectValue(path, value)` | force a scalar on the target record / on a record `path` reaches **upward** |
-| `.InjectChildValue(childField, leafField, value)` / `.InjectChildValue(path, value)` | force a scalar on every record of a child collection **downward** — `value` is a literal, a `List<object>` (per child), or an `IValueExpression` (fresh per child) |
+| `.InjectChildValue(childField, leafField, value)` / `.InjectChildValue(path, value)` | force a scalar on every record of a child collection **downward** — `value` is a literal, a `List<object>` (per child), or an `IValueYielding` (fresh per child) |
 | `.ParentDepth(n)` / `.ChildDepth(n)` / `.AllowDeeperGraph()` | cap the ancestor climb (default 5) · nested-child levels (default 1, `n>1` needs `AllowDeeperGraph`) · lift both ceilings |
 | `RecordInjector.Inject(records).Relationship(navField, parents).ChildRelationship(navField, perRow).Value(field, v).ValuePerRow(field, vs).Result()` | the standalone graft, no bundle — see [record-injector](../use/record-injector.md) |
 
@@ -93,7 +93,7 @@ persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integratio
 | `UniqueEmailExpression(prefix)` | unique emails |
 | `IncrementingDecimalExpression()` | incrementing decimals |
 | `UniqueAcrossRunsExpression(prefix, suffix)` | unique even across separate process runs |
-| implement `IValueExpression` | `object? Get()` — your own ([docs](../extend/custom-value-expressions.md)) |
+| implement `IValueYielding` | `object? Get()` — your own ([docs](../extend/custom-value-expressions.md)) |
 
 ## Context-aware and deferred values
 
@@ -101,13 +101,13 @@ persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integratio
 | `CopyFromAncestorExpression(PropertyInfo rel, PropertyInfo source)` | copy from a generated parent |
 | `CopyFromAncestorExpression(List<PropertyInfo> path)` | multi-hop |
 | `CopyFromDescendantExpression(PropertyInfo childLookupField, PropertyInfo source)` | copy **up** from a generated child — `Deferred` / `.DepthBatched()` only |
-| implement `IContextAwareExpression` | `object? Get(GenerationContext)`; read siblings via `context.SiblingValue(field)` |
-| implement `IDeferredExpression` | `object? Get(DeferredGraph, int recordIndex)` — an up-flow value; `graph.ChildrenOf(index, field)` |
+| implement `IContextAware` | `object? Get(GenerationContext)`; read siblings via `context.SiblingValue(field)` |
+| implement `IDeferred` | `object? Get(DeferredGraph, int recordIndex)` — an up-flow value; `graph.ChildrenOf(index, field)` |
 
 ## Relationships
 
 | `DefaultRelationship(object? template)` | generate a parent |
-| `DefaultRelationship(ILookupKey key, object? template)` | …of a specific variant |
+| `DefaultRelationship(IRecordIdentifying key, object? template)` | …of a specific variant |
 | `SharedAncestor.Get(name)` | retrieve — the token for `PutRequired`, the handle for `ResolveNow` / `GetId` |
 | `SharedAncestor.Put(name, object? record)` | register — Id present → fixed value, no Id → override template (`PutAsTemplate` / `PutAsValue` force it) |
 | `SharedAncestor.Put(name, key)` · `.FromVariant(key)` · `.CopyingRelatedField(field)` | pin the variant / chain a variant onto a template / copy a field instead of the Id |
@@ -115,7 +115,7 @@ persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integratio
 | `SharedAncestor.PutIfAbsent(name, record \| key)` | register only if `name` is not registered yet |
 | `SharedAncestor.GetId(name)` · `.Get(name).ResolveNow(lookup, mode)` · `.ResolveNow(lookup, mode, names)` | read the Id / resolve one (+ chain) / resolve a named set, before any `Supply*()` |
 | `SharedAncestor.Disable(name)` · `.ManualResolutionOnly()` | never resolve this one (FK left null) / turn off the pre-phase — see the process-lifetime warning in [known-issues](known-issues.md) |
-| implement `ISharedAncestorDefaults` on a lookup (`RegisterSharedAncestorDefaults()`) | ship a shared ancestor's default so consuming tests need not register it — or `ProviderLookups.Of(providerMap, Dictionary<string,object> defaults)` |
+| implement `ISharedAncestorRegistering` on a lookup (`RegisterSharedAncestorDefaults()`) | ship a shared ancestor's default so consuming tests need not register it — or `ProviderLookups.Of(providerMap, Dictionary<string,object> defaults)` |
 
 ---
 
@@ -124,25 +124,26 @@ persisted for real (see [unit-vs-integration](../use/advanced/unit-vs-integratio
 | `LookupKey.Get(Type)` | plain type key |
 | `FlavouredLookupKey.Get(Type, flavour).Matching(predicate)` | + arbitrary conditions (repeat `.Matching(...)` = AND) |
 | `FieldPredicateFactory.EqualTo/NotEqualTo/GreaterThan/LessThan/IsNull/IsNotNull/InSet(field, value)` | ready-made single-field conditions |
-| `PredicateFactory.AllOf(list)/AnyOf(list)/Negate(one)` | AND / OR / NOT over `IRecordPredicate` |
-| implement `IRecordPredicate` (`IsSatisfiedBy(object?)`) | any condition the ready-made ones do not express |
-| implement `ILookupKey` | a variant discriminator of your own (`RecordType` · `IsInstanceOf` · `HashKey` · `Specificity`) |
+| `PredicateFactory.AllOf(list)/AnyOf(list)/Negate(one)` | AND / OR / NOT over `IRecordMatching` |
+| implement `IRecordMatching` (`IsSatisfiedBy(object?)`) | any condition the ready-made ones do not express |
+| implement `IRecordIdentifying` | a variant discriminator of your own (`RecordType` · `IsInstanceOf` · `HashKey` · `Specificity`) |
 
 ## Provider extension points
 
-| implement `IRecordProvider` | `PrimaryTargetField` · `MasterTemplate` · `CreateBundle(context, templates)` |
-| implement `IProviderLookup` | `Get(Type)` · `Get(ILookupKey)` · `KeysFor(object?)` |
+| implement `IRecordProviding` | `PrimaryTargetField` · `MasterTemplate` · `CreateBundle(context, templates)` |
+| implement `IProviderLocating` | `Get(Type)` · `Get(IRecordIdentifying)` · `KeysFor(object?)` |
 | `ProviderLookups.Get/KeysFor/Resolve/Of/Of(map, defaults)/OfTypes` | the lookup mechanics; `Of(map, defaults)` also ships shared-ancestor defaults |
 | `new MasterTemplate(primaryTargetField)` | `.Put` · `.PutRequired` · `.PutOptional` · `.Remove` · `.WithMockIdGenerator` · `.Copy()` |
-| implement `IMockIdGenerator` (`NextId(MockIdContext)`) | placeholder-Id shape under `Mock`; `DefaultMockIdGenerator` covers string/int/long/Guid |
+| implement `IMockIdGenerating` (`NextId(MockIdContext)`) | placeholder-Id shape under `Mock`; `DefaultMockIdGenerator` covers string/int/long/Guid |
 | `RecordFactory.CreateBundle(context, masterTemplate, templates)` | the engine entry point |
 
 ## Deferred insert
 
 | `DeferredInserter.Register(bundle)` | add a bundle's graph to the pending registry |
 | `DeferredInserter.PendingCount()` | registered-but-unresolved record count |
-| `DeferredInserter.Flush(gateway)` | one pass, in dependency order, through the given `IPersistenceGateway`; throws with none given |
+| `DeferredInserter.Flush(gateway)` | one pass, in dependency order, through the given `IPersisting`; throws with none given |
 | `DeferredInsertBuffer.Flatten(bundle)` → flattened graph + resolved up-flow values | inspect a deferred graph without inserting anything — see [deferred-insert](../use/deferred-insert.md) |
+| `.Records()` / `.ParentLinks()` / `.IdFieldByType()` on the flattened buffer | every flattened record, each lookup as a (child, parent, field) link by index, and each record type's real key field — enough to persist the graph your own way |
 | `DepthBatchedInserter.ResolveAll(records, links, InsertMode.Mock)` | the depth-batching algorithm, provable without a real database |
 
 ## Not ported — see [known-issues](known-issues.md)

@@ -3,13 +3,13 @@ using System.Reflection;
 namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
-/// An <see cref="IRecordPredicate"/> satisfied when a field's value is one of
+/// An <see cref="IRecordMatching"/> satisfied when a field's value is one of
 /// a fixed set. A null set is treated as empty (nothing matches).
 ///
 /// Obtain one through <see cref="Of"/> or the <see cref="FieldPredicateFactory"/>
 /// facade.
 /// </summary>
-public sealed class FieldInSetPredicate : IRecordPredicate
+public sealed class FieldInSetPredicate : IRecordMatching
 {
     private readonly PropertyInfo _field;
     private readonly HashSet<object?> _acceptedValues;

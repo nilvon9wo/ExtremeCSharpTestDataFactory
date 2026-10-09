@@ -24,23 +24,23 @@ public class PathValueTest
 {
     private const string SharedAcctName = "path-value-test-shared-acct";
 
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactWithOptionalManagerProvider(),
             [LookupKey.Get<User>()] = new LeafUserProvider(),
         });
 
-    private static IProviderLookup DeepAccountLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating DeepAccountLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountWithOptionalParentProvider(),
             [LookupKey.Get<Contact>()] = new ContactWithOptionalManagerProvider(),
         });
 
-    private static IProviderLookup SharedParentLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating SharedParentLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactUnderSharedAccountProvider(),
@@ -74,7 +74,8 @@ public class PathValueTest
             .SetInclusivity(InsertInclusivity.Required)
             .Put(
                 [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)],
-                new IncrementingStringExpression("Path Account"));
+                new IncrementingStringExpression("Path Account")
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -95,7 +96,8 @@ public class PathValueTest
             .SetInsertMode(InsertMode.Mock)
             .Put(
                 [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Site)],
-                CopyFromSiblingExpression.From<Account>(x => x.Name));
+                CopyFromSiblingExpression.From<Account>(x => x.Name)
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -114,7 +116,8 @@ public class PathValueTest
             .SetInsertMode(InsertMode.Mock)
             .PutRequired(
                 [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)],
-                new DefaultRelationship(new User()));
+                new DefaultRelationship(new User())
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -175,9 +178,9 @@ public class PathValueTest
         // Arrange - Contact -> Account (path) -> Account.OwnerId := User (path value) -> that User's
         // own required Manager (distinct Provider) -> that Manager's required skip-level Manager.
         // Every level generates at the default (None) inclusivity because each step is named.
-        ILookupKey mgrKey = FlavouredLookupKey.Get<User>("mgr");
-        ILookupKey skipKey = FlavouredLookupKey.Get<User>("skip");
-        IProviderLookup deepLookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IRecordIdentifying mgrKey = FlavouredLookupKey.Get<User>("mgr");
+        IRecordIdentifying skipKey = FlavouredLookupKey.Get<User>("skip");
+        IProviderLocating deepLookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactWithOptionalManagerProvider(),
@@ -189,7 +192,8 @@ public class PathValueTest
             .SetInsertMode(InsertMode.Mock)
             .PutRequired(
                 [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)],
-                new DefaultRelationship(new User()));
+                new DefaultRelationship(new User())
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -270,16 +274,48 @@ public class PathValueTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => provider.Put([Field.Of<Account>(x => x.Industry)], "x"));
+            () => provider.Put([Field.Of<Account>(x => x.Industry)], "x")
+        );
 
         // Assert - a one-element path has no relationship to walk
         Assert.Contains("at least one relationship", thrown.Message);
+    }
+
+    [Fact]
+    public void Put_WhenThePathIsNull_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new(typeof(Contact), Lookup());
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => provider.Put((List<PropertyInfo>)null!, "x")
+        );
+
+        // Assert
+        Assert.Contains("at least one relationship", thrown.Message);
+    }
+
+    [Fact]
+    public void Put_WhenAPathStepIsNull_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new(typeof(Contact), Lookup());
+        List<PropertyInfo> pathWithAGap = [null!, Field.Of<Account>(x => x.Industry)];
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => provider.Put(pathWithAGap, "x")
+        );
+
+        // Assert
+        Assert.Contains("cannot contain a null field", thrown.Message);
     }
 }
 
 // In-test Providers ------------------------------------------
 
-file sealed class ContactWithOptionalManagerProvider : IRecordProvider
+file sealed class ContactWithOptionalManagerProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
         .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Contact"))
@@ -293,7 +329,7 @@ file sealed class ContactWithOptionalManagerProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-file sealed class ContactUnderSharedAccountProvider : IRecordProvider
+file sealed class ContactUnderSharedAccountProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Contact>(x => x.Id))
         .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Contact"))
@@ -309,7 +345,7 @@ file sealed class ContactUnderSharedAccountProvider : IRecordProvider
 /// An Account that generates its own optional parent (self-referencing ParentId) - only needed for the deep-two-hop
 /// test.
 /// </summary>
-file sealed class AccountWithOptionalParentProvider : IRecordProvider
+file sealed class AccountWithOptionalParentProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
         .Put<Account>(x => x.Name, new IncrementingStringExpression("Account"))
@@ -322,7 +358,7 @@ file sealed class AccountWithOptionalParentProvider : IRecordProvider
 }
 
 /// <summary>A User that requires a Manager generated by nextKey.</summary>
-file sealed class ChainedUserProvider(ILookupKey nextKey) : IRecordProvider
+file sealed class ChainedUserProvider(IRecordIdentifying nextKey) : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = LeafUserTemplate()
             .PutRequired<User>(x => x.ManagerId, new DefaultRelationship(nextKey, new User()));
@@ -338,7 +374,7 @@ file sealed class ChainedUserProvider(ILookupKey nextKey) : IRecordProvider
             .Put<User>(x => x.Email, new UniqueEmailExpression("test.user"));
 }
 
-file sealed class LeafUserProvider : IRecordProvider
+file sealed class LeafUserProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = ChainedUserProvider.LeafUserTemplate();
 

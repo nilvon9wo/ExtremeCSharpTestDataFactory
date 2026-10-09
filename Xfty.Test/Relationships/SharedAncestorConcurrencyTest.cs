@@ -21,8 +21,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Relationships;
 /// </summary>
 public class SharedAncestorConcurrencyTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -33,7 +33,7 @@ public class SharedAncestorConcurrencyTest
     {
         // Arrange
         const int attemptCount = 200;
-        IProviderLookup lookup = Lookup();
+        IProviderLocating lookup = Lookup();
 
         // Act - every index uses its own never-colliding name, all racing the shared static registry at once
         List<Exception> failures = [.. Enumerable.Range(0, attemptCount)
@@ -52,7 +52,7 @@ public class SharedAncestorConcurrencyTest
         // Arrange
         const string name = "concurrency-test-shared-name";
         const int callerCount = 200;
-        IProviderLookup lookup = Lookup();
+        IProviderLocating lookup = Lookup();
         _ = SharedAncestor.Put(name, new Account { Name = "Shared" });
 
         // Act - every caller races to resolve the SAME shared ancestor at once
@@ -65,7 +65,7 @@ public class SharedAncestorConcurrencyTest
         Assert.All(accountIds, Assert.NotNull);
     }
 
-    private static Exception? TryPutAndSupply(IProviderLookup lookup, int index)
+    private static Exception? TryPutAndSupply(IProviderLocating lookup, int index)
     {
         try
         {
@@ -85,7 +85,7 @@ public class SharedAncestorConcurrencyTest
     // happens to schedule async continuations. Same sync-over-async bridge (and
     // the same caveat) as XftySpecimenBuilder/XftyAutoBogusOverride: safe here
     // because xUnit's test threads carry no captured SynchronizationContext.
-    private static string? SupplyOneContact(IProviderLookup lookup, string name) =>
+    private static string? SupplyOneContact(IProviderLocating lookup, string name) =>
         ((Contact)new RecordProvider(typeof(Contact), lookup)
             .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
             .SetInclusivity(InsertInclusivity.Required)

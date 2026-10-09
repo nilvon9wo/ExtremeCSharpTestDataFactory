@@ -1,12 +1,12 @@
 using System.Reflection;
-using global::AutoFixture;
-using global::AutoFixture.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
 using Net.NowhereAtAll.Xfty.Core;
 
 namespace Net.NowhereAtAll.Xfty.AutoFixture;
 
 /// <summary>
-/// The bundled <see cref="IUnsetFieldFiller"/>: resolves each field XFTY's
+/// The bundled <see cref="IUnsetFieldFilling"/>: resolves each field XFTY's
 /// Master Template never configured through the given <see cref="IFixture"/>,
 /// via the same specimen-builder pipeline <c>fixture.Create&lt;T&gt;()</c>
 /// itself uses - so the fixture's own customizations, and its own recursion
@@ -30,7 +30,7 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture;
 /// unrelated value neither the template nor an enrichment pass asked it for
 /// - see this package's README for the fuller explanation of that gap.
 /// </summary>
-public sealed class AutoFixtureUnsetFieldFiller(IFixture fixture) : IUnsetFieldFiller
+public sealed class AutoFixtureUnsetFieldFiller(IFixture fixture) : IUnsetFieldFilling
 {
     private readonly HashSet<PropertyInfo> _excludedFields = [];
 

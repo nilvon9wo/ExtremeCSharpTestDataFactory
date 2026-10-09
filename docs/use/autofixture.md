@@ -17,7 +17,7 @@ dotnet add package Xfty.AutoFixture
 `fixture.Create<T>()` normally builds `T` from AutoFixture's own recursive
 auto-property population, which knows nothing about XFTY's relationships,
 shared ancestors, or cycle guards. `XftyCustomization` intercepts requests
-for any type with a Provider registered in your `IProviderLookup` and
+for any type with a Provider registered in your `IProviderLocating` and
 answers them with a real, fully-formed XFTY-generated record instead:
 
 ```csharp
@@ -102,7 +102,7 @@ its own Provider's own unset fields, not just the top-level record's.
 **What counts as "unset":** a field with no default value, no override
 template value, no `Put(...)`, and no required/optional relationship on
 it - not a field XFTY resolved *to* `null` or some other value on purpose.
-`IUnsetFieldFiller` (the extension point this is built on, in core `Xfty`)
+`IUnsetFieldFilling` (the extension point this is built on, in core `Xfty`)
 runs after every one of XFTY's own value/relationship passes, so it never
 fights a Provider for a field the Provider actually cares about, and before
 `InsertMode.Now` hands the record to a real database - a NOT NULL column
@@ -116,7 +116,7 @@ populated only by `Bundle.Inject(...)`/`InjectAll` (see
 [enrichment.md](enrichment.md)), never by any Master Template. Nothing
 about the Master Template distinguishes "a scalar field nothing set" from
 "a navigation property enrichment populates separately" - both look
-identical to `IUnsetFieldFiller`, so left alone, this filler will
+identical to `IUnsetFieldFilling`, so left alone, this filler will
 dutifully hand `Contact.Account` a fake, unrelated `Account` neither the
 template nor an enrichment pass asked it for. If you enrich navigation
 properties afterward, this is harmless - `BundleEnricher` returns *new*

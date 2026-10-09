@@ -13,21 +13,24 @@ public class PredicateFactoryTest
     public void AllOf_WhenAMemberIsNotSatisfied_ReturnsFalse() =>
         AssertIsSatisfiedBy(
             PredicateFactory.AllOf([FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology")]),
-            new Account { Industry = "Retail" }, false);
+            new Account { Industry = "Retail" }, false
+        );
 
     [Fact]
     public void AnyOf_WhenAMemberIsSatisfied_ReturnsTrue() =>
         AssertIsSatisfiedBy(
             PredicateFactory.AnyOf([FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology")]),
-            new Account { Industry = "Technology" }, true);
+            new Account { Industry = "Technology" }, true
+        );
 
     [Fact]
     public void Negate_WhenTheInnerPredicateIsNotSatisfied_ReturnsTrue() =>
         AssertIsSatisfiedBy(
             PredicateFactory.Negate(FieldPredicateFactory.EqualTo<Account>(x => x.Type, "Prospect")),
-            new Account { Type = "Customer" }, true);
+            new Account { Type = "Customer" }, true
+        );
 
-    private static void AssertIsSatisfiedBy(IRecordPredicate predicate, Account? record, bool expectedResult)
+    private static void AssertIsSatisfiedBy(IRecordMatching predicate, Account? record, bool expectedResult)
     {
         // Arrange - the caller supplies the facade-built predicate and the record
 

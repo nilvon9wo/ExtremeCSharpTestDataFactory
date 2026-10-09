@@ -52,7 +52,7 @@ public class ExContextAwareValuesTest
     public async Task CopyAFieldFromAGeneratedAncestor_MultiHop()
     {
         // from docs/use/context-aware-values.md "Copy a field from a generated ancestor" (several hops)
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Case>()] = new CaseUnderAccountProvider(),
             [LookupKey.Get<Account>()] = new AccountWithOwnerProvider(),
@@ -106,7 +106,8 @@ public class ExContextAwareValuesTest
             [parent, child],
             [new DepthBatchedInserterParentLink(childIndex: 1, parentIndex: 0, Field.Of<Contact>(x => x.AccountId))]);
         CopyFromDescendantExpression expression = new(
-            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department));
+            Field.Of<Contact>(x => x.AccountId), Field.Of<Contact>(x => x.Department)
+        );
 
         object? actualResult = expression.Get(graph, 0);
 
@@ -139,7 +140,7 @@ public class ExContextAwareValuesTest
     public async Task ReadingUpFromAChild_NeedsDeferredMode()
     {
         // from docs/use/context-aware-values.md - "it only works under Deferred (or .DepthBatched())"
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountReadingChildDepartmentProvider(),
             [LookupKey.Get<Contact>()] = new ContactUnderAccountProvider(),
@@ -151,7 +152,7 @@ public class ExContextAwareValuesTest
 
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
         DeferredInsertBuffer graph = DeferredInsertBuffer.Flatten(bundle);
-        Account account = (Account)graph.Records().OfType<Account>().First();
+        Account account = graph.Records().OfType<Account>().First();
 
         Assert.Equal("Field Ops", account.Site);
 
@@ -161,16 +162,16 @@ public class ExContextAwareValuesTest
     }
 }
 
-file sealed class IsMinorFlag : IContextAwareExpression
+file sealed class IsMinorFlag : IContextAware
 {
-    public object? Get(GenerationContext context)
+    public object Get(GenerationContext context)
     {
         DateTime? birthdate = (DateTime?)context.SiblingValue(Field.Of<Contact>(x => x.Birthdate));
         return birthdate is not null && birthdate.Value.AddYears(18) > DateTime.Today ? "MINOR" : "ADULT";
     }
 }
 
-file sealed class CaseUnderAccountProvider : IRecordProvider
+file sealed class CaseUnderAccountProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Case>(x => x.Id)
         .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
@@ -181,7 +182,7 @@ file sealed class CaseUnderAccountProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-file sealed class AccountWithOwnerProvider : IRecordProvider
+file sealed class AccountWithOwnerProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id)
     {
@@ -194,7 +195,7 @@ file sealed class AccountWithOwnerProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-file sealed class LeafUserProvider : IRecordProvider
+file sealed class LeafUserProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<User>(x => x.Id)
     {
@@ -211,16 +212,17 @@ file sealed class LeafUserProvider : IRecordProvider
 /// A lookup whose Account provider carries no pre-existing field defaults, so a test controls the value-field order
 /// entirely itself.
 /// </summary>
-file sealed class BlankAccountProviderLookup : IProviderLookup
+file sealed class BlankAccountProviderLookup : IProviderLocating
 {
-    public IRecordProvider Get(Type recordType) => new BlankAccountProvider();
+    public IRecordProviding Get(Type recordType) => new BlankAccountProvider();
 
-    public IRecordProvider Get(ILookupKey lookupKey) => new BlankAccountProvider();
+    public IRecordProviding Get(IRecordIdentifying lookupKey) => new BlankAccountProvider();
 
-    public ISet<ILookupKey> KeysFor(object? record) => new HashSet<ILookupKey> { LookupKey.Get<Account>() };
+    public ISet<IRecordIdentifying> KeysFor(object? record) =>
+        new HashSet<IRecordIdentifying> { LookupKey.Get<Account>() };
 }
 
-file sealed class BlankAccountProvider : IRecordProvider
+file sealed class BlankAccountProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id);
 
@@ -231,7 +233,7 @@ file sealed class BlankAccountProvider : IRecordProvider
 }
 
 /// <summary>An Account whose Site is copied up from the Contact that references it.</summary>
-file sealed class AccountReadingChildDepartmentProvider : IRecordProvider
+file sealed class AccountReadingChildDepartmentProvider : IRecordProviding
 {
     // on the Account Provider - from docs/use/context-aware-values.md "Reading up from a child"
     // and docs/use/advanced/matching-values.md "Child value up onto a parent" - the doc's own
@@ -240,13 +242,13 @@ file sealed class AccountReadingChildDepartmentProvider : IRecordProvider
         .Put<Account>(x => x.Name, new IncrementingStringExpression("Acct"))
         .Put<Account>(x => x.Site, CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department));
 
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
+    public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-file sealed class ContactUnderAccountProvider : IRecordProvider
+file sealed class ContactUnderAccountProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Contact>(x => x.Id)
         .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));

@@ -65,7 +65,8 @@ public sealed class EnrichmentSelection
             : [];
         named.UnionWith(this._config.ChildValues
             .Select(childValue => NextHopAfter(childPathHere, childValue.RelationshipPrefix()))
-            .Where(nextHop => nextHop is not null && present.Contains(nextHop))!);
+            .Where(nextHop => nextHop is not null && present.Contains(nextHop))!
+        );
         return named;
     }
 
@@ -80,5 +81,6 @@ public sealed class EnrichmentSelection
 
     private bool HasExcludedPrefix(List<PropertyInfo> path) =>
         Enumerable.Range(1, path.Count).Any(length =>
-            this._excludedParentKeys.Contains(PathKey.Of([.. path.Take(length)])));
+            this._excludedParentKeys.Contains(PathKey.Of([.. path.Take(length)]))
+        );
 }

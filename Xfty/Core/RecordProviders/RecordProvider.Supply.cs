@@ -32,5 +32,6 @@ public sealed partial class RecordProvider
             this._depthBatched,
             this._forceStructuralChildGeneration,
             this._templateConfig,
-            this._childConfig);
+            this._childConfig
+        );
 }

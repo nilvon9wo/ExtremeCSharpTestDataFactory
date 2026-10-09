@@ -16,18 +16,18 @@ namespace Net.NowhereAtAll.Xfty.Relationships;
 /// Flyweight - state is static, and safe under concurrent access:
 /// <see cref="ByName"/>/<see cref="Disabled"/> are concurrent collections,
 /// <see cref="s_manualResolution"/> is <c>volatile</c>, and the actual
-/// resolve-and-mutate work is serialized through <see cref="SharedAncestorResolver"/>'s
+/// resolve-and-mutate work is serialized through <see cref="Engine.SharedAncestorResolver"/>'s
 /// own lock (not this class's concern - every entry point that can trigger
 /// resolution ends up calling into that resolver). This matters because
 /// xUnit's *default* behaviour (unlike this port's own test suite, which
 /// opts out) is to run different test classes in parallel - a real,
 /// previously-uncaught crash risk, not a theoretical one; see
-/// reference/known-issues.md. <see cref="SharedAncestorResolver"/> resolves
+/// reference/known-issues.md. <see cref="Engine.SharedAncestorResolver"/> resolves
 /// every registered ancestor before the first Supply*() call. This file is
 /// identity and the flyweight registry; the other partials are named for the
 /// surface they carry.
 /// </summary>
-public sealed partial class SharedAncestor : ISharedRelationship
+public sealed partial class SharedAncestor : ISharedRelatable
 {
     private static readonly ConcurrentDictionary<string, SharedAncestor> ByName = new();
     private static readonly ConcurrentDictionary<string, byte> Disabled = new();
@@ -41,7 +41,7 @@ public sealed partial class SharedAncestor : ISharedRelationship
     private object? _resolvedRecord;
     private Bundle? _resolvedBundle;
     private PropertyInfo? _resolvedPrimaryField;
-    private Persistence.IMockIdGenerator? _resolvedMockIdGenerator;
+    private Persistence.IMockIdGenerating? _resolvedMockIdGenerator;
     public bool IsResolvedRecordPersisted { get; private set; }
 
     private SharedAncestor(string name) => this.SharedName = name;
@@ -71,16 +71,30 @@ public sealed partial class SharedAncestor : ISharedRelationship
     }
 
     /// <summary>
-    /// The resolved record's primary-key value, read through the field the
-    /// Provider declares (see <see cref="_resolvedPrimaryField"/>).
+    /// The resolved record's primary-key value, read through
+    /// <see cref="KnownPrimaryField"/>. Only called once
+    /// <see cref="_resolvedRecord"/> is known to be set.
     /// </summary>
-    private object? PrimaryKeyValue()
-    {
-        PropertyInfo? keyField =
-            this._resolvedPrimaryField
-            ?? this._resolvedRecord?.GetType().GetProperty(ConventionalIdFieldName);
-        return keyField?.GetValue(this._resolvedRecord);
-    }
+    private object? PrimaryKeyValue() => this.KnownPrimaryField().GetValue(this._resolvedRecord);
+
+    /// <summary>
+    /// The field the Provider declares as the resolved record's key (see
+    /// <see cref="_resolvedPrimaryField"/>) - or, for a PutAsValue record,
+    /// which has no Provider to learn it from, a property literally named
+    /// <c>Id</c>. Only called once <see cref="_resolvedRecord"/> is set.
+    /// </summary>
+    private PropertyInfo KnownPrimaryField() =>
+        this._resolvedPrimaryField
+        ?? this._resolvedRecord!.GetType().GetProperty(ConventionalIdFieldName)
+        ?? throw this.NoKnownPrimaryKey();
+
+    private XftyConfigurationException NoKnownPrimaryKey() =>
+        new(
+            $"Shared ancestor \"{this.SharedName}\" has no known primary-key field: its "
+            + $"{this._resolvedRecord!.GetType().Name} has no '{ConventionalIdFieldName}' property, and "
+            + "PutAsValue gives XFTY no Provider to learn the real key field from. Register it with "
+            + "PutAsTemplate(...) instead - a template whose key is already set is used as-is."
+        );
 
     private static void AssertNotDisabled(string name)
     {
@@ -93,7 +107,8 @@ public sealed partial class SharedAncestor : ISharedRelationship
     private static XftyConfigurationException NotYetResolved(string name) =>
         new(
             $"Shared ancestor \"{name}\" is not resolved yet. Reference it in a Supply*() call first, or call "
-            + $"SharedAncestor.Get(\"{name}\").ResolveNow(lookup, mode).");
+            + $"SharedAncestor.Get(\"{name}\").ResolveNow(lookup, mode)."
+        );
 
     // Registration-time only: Put(name, record) has no Provider/lookup yet to ask for the real key field,
     // so it disambiguates "already-saved value" from "override template" by a property literally named "Id".

@@ -57,7 +57,8 @@ public class RecordProviderScenarioTest
         AssertAccountGenerated(bundle);
         Assert.Equal(
             ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId,
-            ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id); // mock Ids still wire the FK
+            ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id
+        ); // mock Ids still wire the FK
     }
 
     [Fact]
@@ -100,7 +101,7 @@ public class RecordProviderScenarioTest
         List<object>? accounts = bundle.GetList<Contact>(x => x.AccountId);
         Assert.NotNull(accounts);
 
-        Account generatedAccount = (Account)accounts![0];
+        Account generatedAccount = (Account)accounts[0];
         Assert.NotNull(generatedAccount.Id);
         Assert.Contains(AccountDataProvider.DefaultNamePrefix, generatedAccount.Name);
         Assert.Equal(ContactDataProvider.DefaultAccountDescription, generatedAccount.Description);
@@ -110,7 +111,7 @@ public class RecordProviderScenarioTest
     {
         List<object>? contacts = bundle.GetList<Contact>(x => x.Id);
         Assert.NotNull(contacts);
-        AssertContactGenerated((Contact)contacts![0]);
+        AssertContactGenerated((Contact)contacts[0]);
     }
 
     private static void AssertContactGenerated(Contact generatedContact)

@@ -20,7 +20,7 @@ namespace Net.NowhereAtAll.Xfty.Core;
 /// </summary>
 public sealed class GenerationContext
 {
-    public IProviderLookup ProviderLookup { get; init; }
+    public IProviderLocating ProviderLookup { get; init; }
 
     public InsertMode InsertMode { get; init; }
 
@@ -29,12 +29,12 @@ public sealed class GenerationContext
     /// <summary>
     /// The real backing store for InsertMode.Now, if one is configured. Null throws at the point of use.
     /// </summary>
-    public IPersistenceGateway? PersistenceGateway { get; init; }
+    public IPersisting? PersistenceGateway { get; init; }
 
     /// <summary>
     /// The optional collaborator that fills in fields the Master Template never configured. Null: nothing does.
     /// </summary>
-    public IUnsetFieldFiller? UnsetFieldFiller { get; init; }
+    public IUnsetFieldFilling? UnsetFieldFiller { get; init; }
 
     /// <summary>The record whose value is being generated - only set during the context-aware pass.</summary>
     public object? RecordBeingBuilt { get; init; }
@@ -66,7 +66,7 @@ public sealed class GenerationContext
     /// never for an ancestor, regardless of how it was set. Excludes those
     /// specific records from persistence (Mock-Id assignment or a real
     /// insert) however the rest of the graph is being persisted; see
-    /// <see cref="RecordProvider.ExcludePrimaryIds"/>.
+    /// <see cref="RecordProviders.RecordProvider.ExcludePrimaryIds"/>.
     /// </summary>
     public bool ExcludePrimaryIds { get; init; }
 
@@ -74,7 +74,7 @@ public sealed class GenerationContext
     public AncestorCycleGuard CycleGuard { get; init; }
 
     public GenerationContext(
-        IProviderLookup providerLookup,
+        IProviderLocating providerLookup,
         InsertMode? insertMode,
         InsertInclusivity? inclusivity
     )
@@ -110,11 +110,11 @@ public sealed class GenerationContext
     }
 
     /// <summary>A copy carrying the given persistence gateway (top-level entry point).</summary>
-    public GenerationContext WithPersistenceGateway(IPersistenceGateway? gateway) =>
+    public GenerationContext WithPersistenceGateway(IPersisting? gateway) =>
         new(this) { PersistenceGateway = gateway };
 
     /// <summary>A copy carrying the given unset-field filler (top-level entry point).</summary>
-    public GenerationContext WithUnsetFieldFiller(IUnsetFieldFiller? filler) =>
+    public GenerationContext WithUnsetFieldFiller(IUnsetFieldFilling? filler) =>
         new(this) { UnsetFieldFiller = filler };
 
     /// <summary>A copy carrying the given IncludeOptional(...) paths (top-level entry point).</summary>
@@ -184,7 +184,8 @@ public sealed class GenerationContext
             .Where(each =>
                 relationshipField is not null
                 && !each.IsAtTarget()
-                && each.Head() == relationshipField)
+                && each.Head() == relationshipField
+            )
             .Select(each => each.Tail())];
         return new GenerationContext(this)
         {
@@ -237,15 +238,16 @@ public sealed class GenerationContext
     public object? SiblingValue(PropertyInfo siblingField) =>
         this.ValueFieldPass switch
         {
-            null => throw new XftyConfigurationException(
-                $"SiblingValue({siblingField.Name}) can only be read while a context-aware value is being generated."),
             { } pass when pass.PendingContextAwareValues.Contains(siblingField) => throw new XftyConfigurationException(
                 $"The context-aware value for {pass.FieldBeingBuilt.Name} reads sibling field {siblingField.Name}, "
                 + "which is itself a context-aware value that has not been generated yet. Context-aware values are "
                 + $"generated in the order they are put, so .Put({siblingField.Name}, ...) must come before "
-                + $".Put({pass.FieldBeingBuilt.Name}, ...)."),
-            _ => this.RecordBeingBuilt is null
-                ? null
-                : siblingField.GetValue(this.RecordBeingBuilt),
+                + $".Put({pass.FieldBeingBuilt.Name}, ...)."
+            ),
+            // A value pass with no record (ForValueField without ForRecord) is as unreadable as no pass at all.
+            { } when this.RecordBeingBuilt is { } record => siblingField.GetValue(record),
+            _ => throw new XftyConfigurationException(
+                $"SiblingValue({siblingField.Name}) can only be read while a context-aware value is being generated."
+            ),
         };
 }

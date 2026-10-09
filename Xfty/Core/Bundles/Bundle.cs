@@ -24,7 +24,7 @@ public sealed class Bundle
     /// The Provider's placeholder-Id generator for these primaries, so the depth-batched insert honours it too. Null:
     /// <see cref="DefaultMockIdGenerator"/>.
     /// </summary>
-    public IMockIdGenerator? MockIdGenerator { get; private set; }
+    public IMockIdGenerating? MockIdGenerator { get; private set; }
 
     public Bundle Put(PropertyInfo field, List<object> records)
     {
@@ -73,7 +73,7 @@ public sealed class Bundle
     public void PutPrimaries(
         PropertyInfo primaryTargetField,
         List<object> records,
-        IMockIdGenerator? mockIdGenerator = null
+        IMockIdGenerating? mockIdGenerator = null
     )
     {
         this.PrimaryTargetField = primaryTargetField;
@@ -118,7 +118,7 @@ public sealed class Bundle
     }
 
     /// <summary>Record that each primary row's byField entries are still to be resolved up from descendants.</summary>
-    public void DeferValues(IEnumerable<KeyValuePair<PropertyInfo, IDeferredExpression>> byField) =>
+    public void DeferValues(IEnumerable<KeyValuePair<PropertyInfo, IDeferred>> byField) =>
         this._deferredValueQueue.AddForEachRow(this.PrimaryRecords()!.Count, byField);
 
     public List<BundleDeferredEntry> DeferredValues() =>
@@ -185,7 +185,8 @@ public sealed class Bundle
     public List<object> ChildRecordsOf(int parentRowIndex, PropertyInfo childRelationshipField) =>
         [.. this.ChildEntries(childRelationshipField)
             .SelectMany(entry => (entry.Bundle.PrimaryRecords() ?? [])
-                .Where((_, childRow) => entry.ParentRowByChildRow[childRow] == parentRowIndex))];
+                .Where((_, childRow) => entry.ParentRowByChildRow[childRow] == parentRowIndex)
+            )];
 
     /// <summary>
     /// A single bundle of every child for childRelationshipField - merged primaries plus each child's own generated

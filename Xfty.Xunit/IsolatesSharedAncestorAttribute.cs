@@ -32,7 +32,7 @@ namespace Net.NowhereAtAll.Xfty.Xunit;
 /// genuinely fire per test method, including when the attribute is applied
 /// at the class level rather than repeated on every method.
 /// </summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class IsolatesSharedAncestorAttribute : BeforeAfterTestAttribute
 {
     public override void Before(MethodInfo methodUnderTest, IXunitTest test) => SharedAncestor.ResetAllForTesting();

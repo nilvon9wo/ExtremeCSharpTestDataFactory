@@ -170,17 +170,18 @@ public class MockIdGeneratorTest
     // Helpers -------------------------------------------------------
 
     private static MockIdContext ContextFor<TRecord>(
-        System.Linq.Expressions.Expression<Func<TRecord, object?>> idField, object record) =>
+        System.Linq.Expressions.Expression<Func<TRecord, object?>> idField, object record
+    ) =>
         new(typeof(TRecord), Field.Of(idField), record);
 
-    private static IProviderLookup LookupOf(IRecordProvider provider) =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating LookupOf(IRecordProviding provider) =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get(provider.PrimaryTargetField.DeclaringType!)] = provider,
         });
 
-    private static IProviderLookup RelatedLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating RelatedLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<StringKeyed>()] = new RelatedStringKeyedProvider(),
             [LookupKey.Get<StringParent>()] = new StringParentProvider(),
@@ -228,7 +229,7 @@ file sealed record StringParent
     public string? Id { get; init; }
 }
 
-file sealed class PrefixIdGenerator(string prefix) : IMockIdGenerator
+file sealed class PrefixIdGenerator(string prefix) : IMockIdGenerating
 {
     private int _count;
 
@@ -238,16 +239,16 @@ file sealed class PrefixIdGenerator(string prefix) : IMockIdGenerator
 /// <summary>
 /// The shape from the discussion: a letter, a running number, a stamp - built without touching the record's own fields.
 /// </summary>
-file sealed class AccountStyleIdGenerator : IMockIdGenerator
+file sealed class AccountStyleIdGenerator : IMockIdGenerating
 {
     private int _count;
 
     public object NextId(MockIdContext context) => $"ACC-{++this._count}-{context.RecordType.Name}";
 }
 
-file abstract class MockIdProviderBase : IRecordProvider
+file abstract class MockIdProviderBase : IRecordProviding
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 

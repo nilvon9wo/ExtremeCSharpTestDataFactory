@@ -20,7 +20,8 @@ internal static class QdrantRecordReflection
             throw new NotSupportedException(
                 $"This PoC only supports a Guid-typed id field - Qdrant's own connector rejects "
                 + $"string keys outright (discovered by running this test, not assumed - see README.md). "
-                + $"'{idField.Name}' is {idField.PropertyType.Name}.");
+                + $"'{idField.Name}' is {idField.PropertyType.Name}."
+            );
         }
     }
 

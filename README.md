@@ -9,7 +9,7 @@ Instead of manually constructing complete object graphs for every test, you
 describe only the values your test actually cares about. XFTY supplies
 sensible defaults, automatically creates related records, and either mocks
 persistence entirely or actually inserts through a pluggable
-`IPersistenceGateway` — the same Provider definitions serve a pure in-memory
+`IPersisting` — the same Provider definitions serve a pure in-memory
 unit test and a real database integration test.
 
 By centralizing test data definitions, XFTY dramatically reduces boilerplate
@@ -31,12 +31,12 @@ what each one actually does:
 <tbody>
 <tr><th colspan="4" align="left">Core</th></tr>
 <tr><td><strong>Xfty</strong></td><td>Declarative generation, relationships, persistence seam</td><td align="center"><a href="https://www.nuget.org/packages/Xfty/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
-<tr><th colspan="4" align="left">Persistence — <code>IPersistenceGateway</code> implementations</th></tr>
+<tr><th colspan="4" align="left">Persistence — <code>IPersisting</code> implementations</th></tr>
 <tr><td><a href="Xfty.EntityFrameworkCore/README.md"><strong>Xfty.EntityFrameworkCore</strong></a></td><td>Real, database-backed persistence via EF Core</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.EntityFrameworkCore/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.EntityFrameworkCore.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
 <tr><td><a href="Xfty.EntityFramework6/README.md"><strong>Xfty.EntityFramework6</strong></a></td><td>Real, database-backed persistence via classic EF6</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.EntityFramework6/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.EntityFramework6.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
 <tr><td><a href="Xfty.VectorDatabases.Qdrant/README.md"><strong>Xfty<wbr>.VectorDatabases<wbr>.Qdrant</strong></a> 🧪</td><td>PREVIEW: persistence via Qdrant's own client directly</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.VectorDatabases.Qdrant/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.VectorDatabases.Qdrant.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
 <tr><td><a href="Xfty.VectorDatabases.MicrosoftExtensionsVectorData/README.md"><strong>Xfty<wbr>.VectorDatabases<wbr>.MicrosoftExtensionsVectorData</strong></a> 🧪</td><td>PREVIEW: persistence via any Microsoft.Extensions.VectorData connector</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.VectorDatabases.MicrosoftExtensionsVectorData/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.VectorDatabases.MicrosoftExtensionsVectorData.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
-<tr><th colspan="4" align="left">Value Generation — bundled <code>IValueExpression</code>s</th></tr>
+<tr><th colspan="4" align="left">Value Generation — bundled <code>IValueYielding</code>s</th></tr>
 <tr><td><a href="Xfty.Bogus/README.md"><strong>Xfty.Bogus</strong></a></td><td>Realistic fake data - names, emails, addresses, paragraphs</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.Bogus/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.Bogus.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
 <tr><td><a href="Xfty.VectorDatabases/README.md"><strong>Xfty.VectorDatabases</strong></a></td><td>A random-vector value expression for an embedding field</td><td align="center"><a href="https://www.nuget.org/packages/Xfty.VectorDatabases/"><img alt="NuGet" src="https://img.shields.io/nuget/v/Xfty.VectorDatabases.svg"></a></td><td align="center"><a href="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/actions/workflows/ci.yml/badge.svg"></a></td></tr>
 <tr><th colspan="4" align="left">Auto-Population Pairings</th></tr>
@@ -100,7 +100,7 @@ The result is test code that is:
 
 ## Persistence
 
-- Real persistence through `IPersistenceGateway` — `Xfty.EntityFrameworkCore`
+- Real persistence through `IPersisting` — `Xfty.EntityFrameworkCore`
   ships an EF Core implementation, proven against SQLite and a real Postgres
   container — or mock Ids with no database touched at all
 - Deferred and depth-batched insert: build a graph across several calls, then
@@ -110,7 +110,7 @@ The result is test code that is:
 
 ## Provider Architecture
 
-- Extensible Provider architecture — a Provider implements `IRecordProvider`
+- Extensible Provider architecture — a Provider implements `IRecordProviding`
   directly, holding its `MasterTemplate` as a field and delegating
   `CreateBundle` to `RecordFactory` (composition, no base class to inherit)
 - Multi-variant Providers (`FlavouredLookupKey`, `DiscriminatorLookupKey`) —
@@ -209,7 +209,7 @@ that they don't:
   guarded automatically — not one object at a time.
 - Has an actual opinion about **persistence**: the same Provider definitions
   run as a pure in-memory `Mock` in a unit test, or insert for real through
-  `IPersistenceGateway` in an integration test, with no rewrite.
+  `IPersisting` in an integration test, with no rewrite.
 - Resolves a different Provider **variant** for the same type by a runtime
   key or predicate, and supports **context-aware values** — a field derived
   from a sibling, ancestor, or generated child, with a loud guard against
@@ -248,7 +248,7 @@ including everything since the 1.0.0-beta.1 tag):
   before/after a test class or method automatically
 - `Xfty.FSharpAsync` — `Async<'T>` wrappers for F# code still built on
   `async { }` rather than the newer `task { }`, which needs no wrapper at all
-- `Xfty.EntityFramework6` — the same `IPersistenceGateway` convenience as
+- `Xfty.EntityFramework6` — the same `IPersisting` convenience as
   `Xfty.EntityFrameworkCore`, for a project on classic EF6
   (`System.Data.Entity.DbContext`) rather than EF Core
 
@@ -259,7 +259,7 @@ including everything since the 1.0.0-beta.1 tag):
 - Typed `RecordProvider<TRecord>`/`ChildProvider<TChild>` wrappers — no cast
   at the `Supply()` call site, plus a `MasterTemplate<TRecord>`-style
   object-initializer indexer
-- Real persistence via `IPersistenceGateway` (`Xfty.EntityFrameworkCore`,
+- Real persistence via `IPersisting` (`Xfty.EntityFrameworkCore`,
   proven against SQLite and a real Postgres container)
 - Persistence is fully `async` end to end — every `Supply`/`SupplyList`/
   `SupplyBundle` call, and everything reachable from it, is now genuinely

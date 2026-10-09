@@ -64,8 +64,10 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
             .Select(path => path[0])];
         heads.UnionWith(this._context.PathValues
             .Where(pathValue => this.IsRelationshipHere(pathValue.Head())
-                && (!pathValue.IsAtTarget() || pathValue.IsRelationshipKind()))
-            .Select(pathValue => pathValue.Head()));
+                && (!pathValue.IsAtTarget() || pathValue.IsRelationshipKind())
+            )
+            .Select(pathValue => pathValue.Head())
+        );
         return heads;
     }
 
@@ -74,8 +76,8 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
 
     private Task AddAncestor(Bundle bundle, PropertyInfo field, bool isForced)
     {
-        IDefaultRelationship relationship = this.RelationshipOn(field)!;
-        if (relationship is ISharedRelationship shared)
+        IRelatable relationship = this.RelationshipOn(field);
+        if (relationship is ISharedRelatable shared)
         {
             this.AssertNoPathValueInto(field);
             return this.WireSharedAncestor(bundle, field, shared);
@@ -98,23 +100,24 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         {
             throw new XftyConfigurationException(
                 $"Put(...) with a path through {field.Name} sets a value on a shared ancestor. Configure the "
-                + "shared record with SharedAncestor.Put(name, ...) instead.");
+                + "shared record with SharedAncestor.Put(name, ...) instead."
+            );
         }
     }
 
-    private Task WireSharedAncestor(Bundle bundle, PropertyInfo field, ISharedRelationship shared) =>
+    private Task WireSharedAncestor(Bundle bundle, PropertyInfo field, ISharedRelatable shared) =>
         new SharedRelationshipWiring(this._context, shared).Wire(bundle, field, this._quantity);
 
     private async Task GenerateAncestor(
         Bundle bundle,
         PropertyInfo field,
-        IDefaultRelationship relationship,
+        IRelatable relationship,
         bool isForced
     )
     {
-        ILookupKey childKey = relationship.ResolveLookupKey(this._context.ProviderLookup)!;
+        IRecordIdentifying childKey = relationship.ResolveLookupKey(this._context.ProviderLookup)!;
         this.AssertNoAncestorCycle(field, childKey);
-        IRecordProvider provider = this._context.ProviderLookup.Get(childKey);
+        IRecordProviding provider = this._context.ProviderLookup.Get(childKey);
         GenerationContext childContext = ForcedChildContext(this._context.ForRelated(field), isForced)
             .EnteringProviderFor(childKey.HashKey);
         List<object> templates = ClonedTemplatesFor(relationship, this._quantity);
@@ -138,7 +141,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
             : childContext;
     }
 
-    private void AssertNoAncestorCycle(PropertyInfo field, ILookupKey childKey)
+    private void AssertNoAncestorCycle(PropertyInfo field, IRecordIdentifying childKey)
     {
         if (!this._context.CycleGuard.WouldCycleOn(childKey.HashKey))
         {
@@ -148,12 +151,13 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
         throw new XftyConfigurationException(
             $"Relationship {field.Name} would generate another {childKey.RecordType}, but one is already being "
             + "generated further up this graph - a cycle. Use distinct per-level Providers (different lookup "
-            + "keys), PreventCascade, or allow ancestor cycles when the chain terminates on its own.");
+            + "keys), PreventCascade, or allow ancestor cycles when the chain terminates on its own."
+        );
     }
 
-    private static List<object> ClonedTemplatesFor(IDefaultRelationship relationship, int quantity) =>
+    private static List<object> ClonedTemplatesFor(IRelatable relationship, int quantity) =>
         RecordCloneFactory.DeepClones(relationship.OverrideTemplate!, quantity);
 
-    private IDefaultRelationship? RelationshipOn(PropertyInfo field) =>
-        this._template.RelationshipByField.GetValueOrDefault(field)?.Relationship;
+    /// <summary>Only ever asked about a field taken from RelationshipByField's own keys.</summary>
+    private IRelatable RelationshipOn(PropertyInfo field) => this._template.RelationshipByField[field].Relationship;
 }

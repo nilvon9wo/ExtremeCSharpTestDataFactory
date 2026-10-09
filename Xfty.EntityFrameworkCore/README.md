@@ -2,7 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Xfty.EntityFrameworkCore.svg)](https://www.nuget.org/packages/Xfty.EntityFrameworkCore/)
 
-The real, database-backed `IPersistenceGateway` for
+The real, database-backed `IPersisting` for
 [`Xfty`](https://www.nuget.org/packages/Xfty) - the piece that makes
 `InsertMode.Now` and `.DepthBatched()` actually persist, proven against a
 real Entity Framework Core `DbContext` (SQLite and a real Postgres
@@ -34,7 +34,7 @@ call per depth-batched layer when used with `.DepthBatched()`.
 
 ## Full documentation
 
-- [Insert modes](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/insert-modes.md) - `Mock` vs `Now`, and what a configured `IPersistenceGateway` changes
+- [Insert modes](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/insert-modes.md) - `Mock` vs `Now`, and what a configured `IPersisting` changes
 - [Deferred insert](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/deferred-insert.md) - `.DepthBatched()`, dependency-ordered inserts across mixed record types
 - [Unit vs. integration tests](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory/blob/master/docs/use/advanced/unit-vs-integration.md) - the same Provider definitions serving both
 - [Everything else `Xfty` does](https://github.com/nilvon9wo/ExtremeCSharpTestDataFactory#readme)

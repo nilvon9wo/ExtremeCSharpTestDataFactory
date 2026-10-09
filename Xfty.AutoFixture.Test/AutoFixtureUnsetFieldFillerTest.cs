@@ -1,4 +1,4 @@
-using global::AutoFixture;
+using AutoFixture;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
@@ -7,13 +7,13 @@ using Net.NowhereAtAll.Xfty.Lookup;
 namespace Net.NowhereAtAll.Xfty.AutoFixture.Test;
 
 /// <summary>
-/// Proves AutoFixtureUnsetFieldFiller - the bundled IUnsetFieldFiller. See UnsetFieldFillerTest (Xfty.Test) for the
+/// Proves AutoFixtureUnsetFieldFiller - the bundled IUnsetFieldFilling. See UnsetFieldFillerTest (Xfty.Test) for the
 /// core contract it relies on.
 /// </summary>
 public class AutoFixtureUnsetFieldFillerTest
 {
-    private static readonly IProviderLookup Lookup =
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static readonly IProviderLocating Lookup =
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),

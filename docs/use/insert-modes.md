@@ -9,7 +9,7 @@ controls how much of the graph is generated. The two are independent.
 ```
 
 > `InsertMode.Now` inserts every generated record for real, through an
-> `IPersistenceGateway` you supply with `.SetPersistenceGateway(...)`
+> `IPersisting` you supply with `.SetPersistenceGateway(...)`
 > (`Xfty.EntityFrameworkCore` ships one backed by EF Core, `Xfty.EntityFramework6`
 > the same for classic EF6 - see
 > [PersistenceGatewayTest](../../Xfty.Test/Persistence/PersistenceGatewayTest.cs)
@@ -26,7 +26,7 @@ controls how much of the graph is generated. The two are independent.
 |------|-----------|
 | `Never` | Generate records without Ids. |
 | `Mock` | Generate realistic-looking Ids **without any persistence**. |
-| `Now` | Insert every generated record through the configured `IPersistenceGateway`. **Throws `NotSupportedException` if none is configured.** |
+| `Now` | Insert every generated record through the configured `IPersisting`. **Throws `NotSupportedException` if none is configured.** |
 | `Later` | Behaves exactly like `Never`; documents that the caller will insert later. |
 | `Deferred` | Generate like `Never`, but register every record so one flush handles the whole set — see [deferred-insert](deferred-insert.md). Flushing also needs a configured gateway, same as `Now`. |
 
@@ -50,7 +50,7 @@ Assert.NotNull(result.Id);
 Realistic-looking Ids, no persistence layer touched. **Never treat a `Mock`
 record as if it were saved** — those Ids do not point at anything real.
 
-The Id's shape is an `IMockIdGenerator` — `"mock-N"` for a string key, `N`
+The Id's shape is an `IMockIdGenerating` — `"mock-N"` for a string key, `N`
 for an integer, a `Guid` for a Guid; swap it per record type
 (`MasterTemplate.WithMockIdGenerator`) or per call
 (`RecordProvider.SetMockIdGenerator`) for a project-specific format. See
@@ -74,7 +74,7 @@ Contact result = await new RecordProvider<Contact>(lookup)
     .Supply();
 ```
 
-`IPersistenceGateway` is a one-method seam
+`IPersisting` is a one-method seam
 (`Task Insert(List<object> records, PropertyInfo idField)`), so it works with EF
 Core, Dapper, raw ADO.NET, or a hand-rolled fake in a test - `Xfty.Test`
 proves the mechanism against an `NSubstitute` mock, and

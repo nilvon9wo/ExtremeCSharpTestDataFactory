@@ -7,9 +7,10 @@ repo — human or AI. When a change is reviewed, this is the checklist.
 
 - **`.editorconfig`**, at the repo root. Every rule in it is `severity = error`
   on purpose — see [Everything is `error`](#everything-is-error) below.
-  `EnforceCodeStyleInBuild=true`, so `dotnet build` fails on most of them;
-  the two it does not run (IDE1006 naming, IDE0130 namespace-folder) are caught
-  by `dotnet format` in CI — see [Quality gates](#quality-gates). Notable rules:
+  `EnforceCodeStyleInBuild=true`, so `dotnet build` fails on almost all of
+  them — IDE1006 naming included. What it misses (IDE0005 unnecessary usings,
+  line length, wrapped-`)` placement) has its own CI gate — see
+  [Quality gates](#quality-gates). Notable rules:
   IDE0058 (discard unused fluent-return values with `_ =`), IDE0032 (where a
   private field is exposed by a *trivial* public property, collapse the pair to
   a public auto-property), IDE0022 (expression-bodied members where possible),
@@ -34,7 +35,11 @@ repo — human or AI. When a change is reviewed, this is the checklist.
      intentions — never a single letter or abbreviation.
   9. Always use nouns to name objects.
   10. Always use verbs to name methods.
-  11. Always use adjectives to name interfaces.
+  11. Always use adjectives to name interfaces, prefixed with `I` as C#
+      convention requires (`IDisposable`, `IComparable`): an interface says
+      what its implementers are *able to do* (`IRecordProviding`,
+      `IPersisting`, `IContextAware`); nouns name the classes that do it
+      (`RecordProvider`, `EfPersistenceGateway`).
   12. Always name booleans like `isSomething`, `wasSomething`, `hasSomething`,
       etc.
   13. Always use the keyword `this`, except to reference static members.
@@ -59,7 +64,10 @@ testing conventions.
 
 Every diagnostic in `.editorconfig` is `severity = error`, deliberately. A
 diagnostic is *fixed*, never demoted to `warning` or `suggestion` to sit on a
-growing list that then gets ignored. There is no "we'll get to it" tier.
+growing list that then gets ignored. There is no "we'll get to it" tier. The
+compiler's own warnings (nullable `CS86xx`, unassigned fields, obsolete
+APIs) and NuGet's are no exception: `TreatWarningsAsErrors` is on for every
+project (`Directory.Build.props`).
 
 If a rule genuinely cannot be satisfied at one site (a `file`-local type in a
 public signature that CA1859 wants concrete, say), restructure the code so the
@@ -91,17 +99,18 @@ have. The exception is IDE0032's own fix: where a *trivial* public property
 already exposes the field (`public string Name => this._name;`), collapse the
 pair to `public string Name { get; }`.
 
-`dotnet build` does **not** run the naming analyzer (IDE1006) even with
-`EnforceCodeStyleInBuild`; nor IDE0130 (namespace matches folder), which only
-fires for `partial` types split across files. `dotnet format` in CI is the gate
-for both — see [Quality gates](#quality-gates).
+`dotnet build` reports the naming analyzer (IDE1006) and IDE0130 (namespace
+matches folder) with `EnforceCodeStyleInBuild` — verified on the .NET 10 SDK;
+older SDKs did not, which is why `dotnet format` in CI checks them too. See
+[Quality gates](#quality-gates).
 
 ---
 
 ## Formatting
 
 - **Line length: 80 soft, 120 hard.** Never over 120 (`.editorconfig`
-  `max_line_length = 120`; CI checks with `awk 'length>120'`). There is
+  `max_line_length = 120`). Roslyn reads that setting but never reports on
+  it, so CI enforces it with `scripts/check-line-layout.py`. There is
   essentially always a clearer way to express a line that long.
 - **One expression per line; one variable declaration per line.**
 - **Long strings** are broken and `+`-concatenated across lines, never left to
@@ -110,7 +119,10 @@ for both — see [Quality gates](#quality-gates).
   the statement that opened it — symmetric with the opener, never dangling after
   the last argument. (`.editorconfig`
   `csharp_wrap_before_invocation_rpar` / `_declaration_rpar`, plus the
-  ReSharper equivalents.)
+  ReSharper equivalents. Only Rider/ReSharper honour those, and
+  `jb cleanupcode` does not fix them, so `scripts/check-line-layout.py`
+  enforces them in CI.) A trailing lambda block or collection expression
+  does not count as wrapping the list: `Foo(x =>` / `{ ... });` is fine.
 
   ```csharp
   // no
@@ -163,13 +175,16 @@ CI (`.github/workflows/ci.yml`) fails the build on any of:
 
 | Gate | Covers |
 |---|---|
-| `dotnet build` (`EnforceCodeStyleInBuild`) | compilation; every `.editorconfig` analyzer that runs in-build (IDE00xx, CA1xxx, …) |
-| `dotnet format Xfty.slnx --verify-no-changes --severity info` | whitespace/formatting; **IDE1006 naming and IDE0130 namespace-folder**, which the build does not run |
-| `dotnet test` (cross-platform slnf) | the full suite, all TFMs |
+| `dotnet build` (`EnforceCodeStyleInBuild`, `TreatWarningsAsErrors`) | compilation, with every compiler warning an error; every `.editorconfig` analyzer that runs in-build (IDE00xx including IDE1006 naming, CA1xxx, …) |
+| `dotnet format Xfty.slnx --verify-no-changes --severity info` | whitespace/formatting, plus a second pass over the style analyzers |
+| `scripts/inspect-code.py` (ReSharper `inspectcode`) | what Roslyn misses: **IDE0005-style unnecessary usings never fail `dotnet build`**, plus redundant casts/qualifiers/suppressions and unresolvable doc-comment references. Every finding fails; the few inspections that contradict these standards are switched off, with reasons, in `.editorconfig` |
+| `scripts/check-line-layout.py` | the 120-character ceiling and wrapped-`)` placement, which no Roslyn analyzer reports on |
+| `scripts/run-tests.py` (`dotnet test`, cross-platform slnf) | the full suite, all TFMs - and **100% line and branch coverage** of each package, which every test run enforces. A module that never ran makes the run `INCONCLUSIVE`, not "Passed!" |
 | `windows-net472` job | the netstandard2.0 build actually runs (net472) |
 | `verify-doc-examples.py` / `verify-doc-links.py` | every documented code call is exercised by a test; every relative doc link resolves |
+| `verify-gates.py` | every gate above still fires: each must report the tagged violations in `StyleCanary/`, a temporary uncovered class, a test module that cannot start, and a temporary broken doc page - see [ci](ci.md#proving-the-gates-fire) |
 
-Run the same `dotnet format` check locally before pushing — see
+Run the same checks locally before pushing — see
 [local-development](local-development.md).
 
 ---
@@ -224,10 +239,9 @@ Run the same `dotnet format` check locally before pushing — see
 
 ## Testing and coverage
 
-- **Line coverage ~100%**, measured with `coverlet.collector` (see
-  [local-development](local-development.md#measuring-coverage)).
-- **Branch coverage is the real goal** — every guard, `switch`, and ternary,
-  both sides, checked by hand.
+- **100% line and 100% branch coverage**, enforced on every `dotnet test`
+  (see [coverage-standards](coverage-standards.md)) — every guard, `switch`,
+  and ternary, both sides. Dead code is removed, not covered.
 - **The framework must never make a consumer debug it.** Any error that could
   trace back to XFTY is loud: a clear `XftyConfigurationException` naming the
   misconfiguration and the fix — never a silent `null` or an opaque downstream
@@ -258,6 +272,6 @@ Run the same `dotnet format` check locally before pushing — see
   throw: `Assert.Throws<TheSpecificException>(() => act())` — the *exact*
   type, never a bare `Exception`.
 - **Test doubles are code too.** Don't paste near-identical
-  `IRecordProvider`/`IProviderLookup` implementations across test files — a
+  `IRecordProviding`/`IProviderLocating` implementations across test files — a
   `file sealed class` fixture per file is fine, but reuse a shared helper
   method for anything reused within one file.

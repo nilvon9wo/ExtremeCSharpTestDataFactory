@@ -17,7 +17,7 @@ dotnet add package Xfty.VectorDatabases.Qdrant
 
 ## What it does
 
-`QdrantPersistenceGateway` implements XFTY's `IPersistenceGateway`,
+`QdrantPersistenceGateway` implements XFTY's `IPersisting`,
 inserting `RecordProvider`-generated records into a real Qdrant collection
 through `Qdrant.Client` directly - no Microsoft.Extensions.VectorData
 (MEVD), no Semantic Kernel connector at all. It builds `PointStruct`s and a
@@ -61,7 +61,7 @@ to the MEVD path).
   data properties (a plain `switch` on the CLR value) - anything else
   throws a clear `NotSupportedException` rather than failing inside
   Qdrant's client with a less obvious error.
-- **Insert-only.** Matches `IPersistenceGateway`'s own single-method
+- **Insert-only.** Matches `IPersisting`'s own single-method
   contract - no read, search, or delete surface.
 - **Only covered by CI when a Docker-capable runner is present**
   (`[Trait("Category", "Docker")]`, same opt-in pattern as the Postgres tier

@@ -50,7 +50,7 @@ async {
 |---|---|
 | `RecordProviderAsync` | The plain `RecordProvider`'s `Supply`/`SupplyList`/`SupplyBundle` |
 | `TypedRecordProviderAsync` | The typed `RecordProvider<'TRecord>`'s `Supply`/`SupplyList`/`SupplyBundle` - kept as its own module rather than same-named overloads, since F#'s `let`-bound module functions don't support ad-hoc overloading by parameter type the way type members do |
-| `DeferredInserterAsync` | `DeferredInserter.Flush` - takes an `IPersistenceGateway option` rather than a nullable reference, matching F#'s own idiom |
+| `DeferredInserterAsync` | `DeferredInserter.Flush` - takes an `IPersisting option` rather than a nullable reference, matching F#'s own idiom |
 
 Every function is a thin `Async.AwaitTask` bridge - the awaited work, and
 everything it does, is identical to calling the wrapped `Xfty` member

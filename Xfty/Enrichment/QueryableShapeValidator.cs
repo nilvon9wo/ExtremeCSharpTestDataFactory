@@ -39,7 +39,8 @@ public static class QueryableShapeValidator
                 $"an InjectParent path of {path.Count} hops",
                 path.Count,
                 InjectConfig.DefaultParentDepthLimit
-            ));
+            )
+        );
     }
 
     /// <summary>
@@ -70,6 +71,7 @@ public static class QueryableShapeValidator
 
         throw new XftyConfigurationException(
             $"Inject: {label} exceeds the {defaultLimit} a single query round-trip should reasonably return. "
-            + "Call AllowDeeperGraph() on the config to allow it.");
+            + "Call AllowDeeperGraph() on the config to allow it."
+        );
     }
 }

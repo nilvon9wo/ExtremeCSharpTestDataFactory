@@ -10,7 +10,7 @@ namespace Net.NowhereAtAll.Xfty.Lookup;
 /// Instances are flyweights - obtain them with <see cref="Get(Type?)"/>,
 /// never <c>new</c> (the constructor is private).
 /// </summary>
-public sealed class LookupKey : ILookupKey
+public sealed class LookupKey : IRecordIdentifying
 {
     private static readonly ConcurrentDictionary<Type, LookupKey> InstanceByType = [];
 
@@ -45,7 +45,7 @@ public sealed class LookupKey : ILookupKey
     public int Specificity => 0;
 
     public override bool Equals(object? other) =>
-        other is ILookupKey otherKey && otherKey.HashKey == this.HashKey;
+        other is IRecordIdentifying otherKey && otherKey.HashKey == this.HashKey;
 
     public override int GetHashCode() => this.HashKey.GetHashCode();
 }

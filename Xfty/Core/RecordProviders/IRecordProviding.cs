@@ -4,7 +4,7 @@ using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 
 namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 
-public interface IRecordProvider
+public interface IRecordProviding
 {
     PropertyInfo PrimaryTargetField { get; }
 

@@ -14,7 +14,7 @@ dotnet add package Xfty.AutoFixture
 
 `fixture.Create<T>()` normally knows nothing about XFTY's relationships,
 shared ancestors, or cycle guards. `XftyCustomization` intercepts requests
-for any type with a Provider registered in your `IProviderLookup` and
+for any type with a Provider registered in your `IProviderLocating` and
 answers them with a real, fully-formed XFTY-generated record instead:
 
 ```csharp

@@ -15,7 +15,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Values;
 /// Proves context-aware value generation driven end to end through
 /// RecordProvider.Supply() - the second value pass RecordFactory runs,
 /// CopyFromSiblingExpression, CopyFromAncestorExpression, and a custom
-/// IContextAwareExpression. Complements CopyFromSiblingExpressionTest /
+/// IContextAware. Complements CopyFromSiblingExpressionTest /
 /// CopyFromAncestorExpressionTest, which exercise the same expressions by
 /// building GenerationContext directly - these instead prove them wired
 /// through Put(...)/Supply(), where sibling ordering and ancestor generation
@@ -179,7 +179,7 @@ public class ContextAwareExpressionTest
     public async Task Supply_ForACopyFromAncestor_FollowsAMultiHopPath()
     {
         // Arrange - Contact -> Account -> Owner(User); copy the generated Owner's LastName onto the Contact
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
             [LookupKey.Get<Account>()] = new AccountWithOwnerProvider(),
@@ -235,7 +235,7 @@ public class ContextAwareExpressionTest
 }
 
 /// <summary>An Account whose Owner is generated, so multi-hop tests have a second level.</summary>
-file sealed class AccountWithOwnerProvider : IRecordProvider
+file sealed class AccountWithOwnerProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id)
         .Put(x => x.Name, new IncrementingStringExpression("Acct"))
@@ -247,7 +247,7 @@ file sealed class AccountWithOwnerProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-file sealed class LeafUserProvider : IRecordProvider
+file sealed class LeafUserProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<User>(x => x.Id)
         .Put(x => x.LastName, new IncrementingStringExpression("User"));
@@ -261,9 +261,9 @@ file sealed class LeafUserProvider : IRecordProvider
 /// <summary>
 /// Derives a MINOR / ADULT flag from a Birthdate sibling - the kind of logic XFTY leaves to consumers.
 /// </summary>
-file sealed class IsMinorFlag(System.Reflection.PropertyInfo birthdateField) : IContextAwareExpression
+file sealed class IsMinorFlag(PropertyInfo birthdateField) : IContextAware
 {
-    public object? Get(GenerationContext context)
+    public object Get(GenerationContext context)
     {
         DateTime? birthdate = (DateTime?)birthdateField.GetValue(context.RecordBeingBuilt);
         return birthdate is not null && birthdate.Value.AddYears(18) > DateTime.Today ? "MINOR" : "ADULT";
@@ -271,9 +271,9 @@ file sealed class IsMinorFlag(System.Reflection.PropertyInfo birthdateField) : I
 }
 
 /// <summary>Reads the whole batch of sibling primary records out of BundleSoFar.</summary>
-file sealed class SiblingCountLabel : IContextAwareExpression
+file sealed class SiblingCountLabel : IContextAware
 {
-    public object? Get(GenerationContext context)
+    public object Get(GenerationContext context)
     {
         int siblingCount = context.BundleSoFar!.GetList<Account>(x => x.Id)!.Count;
         return $"{context.RowIndex + 1} of {siblingCount}";

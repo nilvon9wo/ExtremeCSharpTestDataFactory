@@ -45,7 +45,7 @@ public class IncrementingStringExpressionTest
         _ = first.Get();
 
         // Act
-        object? secondsFirstValue = second.Get();
+        object secondsFirstValue = second.Get();
 
         // Assert - each instance counts independently
         Assert.Equal("P 1", secondsFirstValue);

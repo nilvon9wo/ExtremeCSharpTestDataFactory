@@ -27,8 +27,8 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     private readonly List<PathValue> _pathValues = [];
 
     private object? _overrideTemplate;
-    private ILookupKey? _explicitKey;
-    private ILookupKey? _resolvedKey;
+    private IRecordIdentifying? _explicitKey;
+    private IRecordIdentifying? _resolvedKey;
     private PropertyInfo? _relatedField;
     private InsertInclusivity? _inclusivity;
 
@@ -42,7 +42,7 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     }
 
     /// <summary>Pin the Provider variant that generates this shared record.</summary>
-    public SharedAncestorProvider FromVariant(ILookupKey key)
+    public SharedAncestorProvider FromVariant(IRecordIdentifying key)
     {
         this._owner.AssertUnresolved("FromVariant(...)");
         this._explicitKey = key;
@@ -68,13 +68,13 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
         return this;
     }
 
-    public SharedAncestorProvider Put(PropertyInfo field, IValueExpression expression) =>
+    public SharedAncestorProvider Put(PropertyInfo field, IValueYielding expression) =>
         this.AddValue(
             field,
             expression
         );
 
-    public SharedAncestorProvider Put(PropertyInfo field, IContextAwareExpression expression) =>
+    public SharedAncestorProvider Put(PropertyInfo field, IContextAware expression) =>
         this.AddValue(
             field,
             expression
@@ -82,14 +82,14 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
 
     public SharedAncestorProvider Put(PropertyInfo field, object? literal) => this.AddValue(field, literal);
 
-    public SharedAncestorProvider PutRequired(PropertyInfo field, IDefaultRelationship relationship)
+    public SharedAncestorProvider PutRequired(PropertyInfo field, IRelatable relationship)
     {
         this._owner.AssertUnresolved("PutRequired(...)");
         this._requiredRelationships.Add(new SharedAncestorFieldValue(field, relationship));
         return this;
     }
 
-    public SharedAncestorProvider PutOptional(PropertyInfo field, IDefaultRelationship relationship)
+    public SharedAncestorProvider PutOptional(PropertyInfo field, IRelatable relationship)
     {
         this._owner.AssertUnresolved("PutOptional(...)");
         this._optionalRelationships.Add(new SharedAncestorFieldValue(field, relationship));
@@ -109,29 +109,29 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     public SharedAncestorProvider IncludeOptional<TRecord>(Expression<Func<TRecord, object?>> relationshipField) =>
         this.IncludeOptional(Field.Of(relationshipField));
 
-    public SharedAncestorProvider Put(List<PropertyInfo> path, IValueExpression expression) =>
+    public SharedAncestorProvider Put(List<PropertyInfo> path, IValueYielding expression) =>
         this.AddPathValue(PathValue.OfExpression(path, expression));
 
-    public SharedAncestorProvider Put(List<PropertyInfo> path, IContextAwareExpression expression) =>
+    public SharedAncestorProvider Put(List<PropertyInfo> path, IContextAware expression) =>
         this.AddPathValue(PathValue.OfContextAware(path, expression));
 
     public SharedAncestorProvider Put(List<PropertyInfo> path, object? literal) =>
         this.AddPathValue(PathValue.OfLiteral(path, literal));
 
-    public SharedAncestorProvider PutRequired(List<PropertyInfo> path, IDefaultRelationship relationship) =>
+    public SharedAncestorProvider PutRequired(List<PropertyInfo> path, IRelatable relationship) =>
         this.AddPathValue(PathValue.OfRequiredRelationship(path, relationship));
 
-    public SharedAncestorProvider PutOptional(List<PropertyInfo> path, IDefaultRelationship relationship) =>
+    public SharedAncestorProvider PutOptional(List<PropertyInfo> path, IRelatable relationship) =>
         this.AddPathValue(PathValue.OfOptionalRelationship(path, relationship));
 
     // Lambda overloads (single field) - naming field by lambda instead of Field.Of<TRecord>(...) --------
 
-    public SharedAncestorProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression expression) =>
+    public SharedAncestorProvider Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueYielding expression) =>
         this.Put(Field.Of(field), expression);
 
     public SharedAncestorProvider Put<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IContextAwareExpression expression
+        IContextAware expression
     ) =>
         this.Put(Field.Of(field), expression);
 
@@ -140,13 +140,13 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
 
     public SharedAncestorProvider PutRequired<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationship
+        IRelatable relationship
     ) =>
         this.PutRequired(Field.Of(field), relationship);
 
     public SharedAncestorProvider PutOptional<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationship
+        IRelatable relationship
     ) =>
         this.PutOptional(Field.Of(field), relationship);
 
@@ -169,13 +169,13 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     /// <summary>The field copied from the shared record into the child's lookup, or null.</summary>
     public PropertyInfo? RelatedField() => this._relatedField;
 
-    /// <summary>The override template, if one was given - for IDefaultRelationship.</summary>
+    /// <summary>The override template, if one was given - for IRelatable.</summary>
     public object? OverrideTemplate() => this._overrideTemplate;
 
     /// <summary>
     /// This ancestor's whole graph, generated with no persistence, ready for the depth-batched insert.
     /// </summary>
-    public Task<Bundle> BuildInMemory(IProviderLookup lookup)
+    public Task<Bundle> BuildInMemory(IProviderLocating lookup)
     {
         InsertInclusivity effectiveInclusivity = this._inclusivity ?? InsertInclusivity.Required;
         GenerationContext context = new GenerationContext(lookup, InsertMode.Never, effectiveInclusivity)
@@ -186,7 +186,7 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     }
 
     /// <summary>The primary target field of the shared record type.</summary>
-    public PropertyInfo PrimaryField(IProviderLookup lookup) => this.BaseProvider(lookup).PrimaryTargetField;
+    public PropertyInfo PrimaryField(IProviderLocating lookup) => this.BaseProvider(lookup).PrimaryTargetField;
 
     /// <summary>
     /// Whether <see cref="PrimaryField"/> can be resolved - it needs a template or a pinned variant to work from (a
@@ -198,17 +198,17 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     /// <summary>
     /// The Master Template the pre-phase scans for nested shared ancestors - with this ancestor's puts applied.
     /// </summary>
-    public MasterTemplate MasterTemplate(IProviderLookup lookup)
+    public MasterTemplate MasterTemplate(IProviderLocating lookup)
     {
         MasterTemplate template = this.BaseProvider(lookup).MasterTemplate.Copy();
         this._valuePuts.ForEach(put => template.Put(put.Field, put.Value));
-        this._requiredRelationships.ForEach(put => template.PutRequired(put.Field, (IDefaultRelationship)put.Value!));
-        this._optionalRelationships.ForEach(put => template.PutOptional(put.Field, (IDefaultRelationship)put.Value!));
+        this._requiredRelationships.ForEach(put => template.PutRequired(put.Field, (IRelatable)put.Value!));
+        this._optionalRelationships.ForEach(put => template.PutOptional(put.Field, (IRelatable)put.Value!));
         return template;
     }
 
     /// <summary>True when the shared record is a single row with no sub-graph of its own.</summary>
-    public bool IsLightweight(IProviderLookup lookup)
+    public bool IsLightweight(IProviderLocating lookup)
     {
         if (this._requiredRelationships.Count > 0
             || this._optionalRelationships.Count > 0
@@ -227,14 +227,14 @@ public sealed class SharedAncestorProvider(SharedAncestor owner)
     }
 
     /// <summary>The lookup key this ancestor resolves under.</summary>
-    public ILookupKey LookupKey(IProviderLookup lookup) =>
+    public IRecordIdentifying LookupKey(IProviderLocating lookup) =>
         this._resolvedKey ??= this._explicitKey ?? ProviderLookups.Resolve(lookup, this.RequireTemplate());
 
     // ---------------------------------------------------------------
 
-    private IRecordProvider BaseProvider(IProviderLookup lookup) => lookup.Get(this.LookupKey(lookup));
+    private IRecordProviding BaseProvider(IProviderLocating lookup) => lookup.Get(this.LookupKey(lookup));
 
-    private object RecordTemplate(IProviderLookup lookup) =>
+    private object RecordTemplate(IProviderLocating lookup) =>
         this._overrideTemplate ?? BlankInstances.Of(this.LookupKey(lookup).RecordType);
 
     private object RequireTemplate() =>

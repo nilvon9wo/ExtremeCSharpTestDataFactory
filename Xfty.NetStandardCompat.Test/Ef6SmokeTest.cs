@@ -24,7 +24,8 @@ internal sealed class Ef6SqliteConfiguration : DbConfiguration
         this.SetProviderFactory("System.Data.SQLite.EF6", SQLiteProviderFactory.Instance);
         this.SetProviderServices(
             "System.Data.SQLite",
-            (DbProviderServices)SQLiteProviderFactory.Instance.GetService(typeof(DbProviderServices)));
+            (DbProviderServices)SQLiteProviderFactory.Instance.GetService(typeof(DbProviderServices))
+        );
     }
 }
 
@@ -116,6 +117,6 @@ public sealed class Ef6SmokeTest : IDisposable
         Assert.NotNull(result.Id);
         Account? reread = this._dbContext.Accounts.AsNoTracking().FirstOrDefault(a => a.Id == result.Id);
         Assert.NotNull(reread);
-        Assert.Equal(result.Name, reread!.Name);
+        Assert.Equal(result.Name, reread.Name);
     }
 }

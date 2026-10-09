@@ -10,9 +10,9 @@ namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 /// onto a pgvector column - composing the two already-built packages
 /// instead of writing a third random-vector generator.
 /// </summary>
-public sealed class RandomPgVectorExpression(int dimensions) : IValueExpression
+public sealed class RandomPgVectorExpression(int dimensions) : IValueYielding
 {
     private readonly RandomVectorExpression _inner = new(dimensions);
 
-    public object Get() => new Vector((float[])this._inner.Get()!);
+    public object Get() => new Vector((float[])this._inner.Get());
 }

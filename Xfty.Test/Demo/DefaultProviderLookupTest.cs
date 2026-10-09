@@ -17,7 +17,7 @@ public class DefaultProviderLookupTest
         DefaultProviderLookup lookup = new();
 
         // Act
-        IRecordProvider provider = lookup.Get(typeof(Account));
+        IRecordProviding provider = lookup.Get(typeof(Account));
 
         // Assert
         _ = Assert.IsType<AccountDataProvider>(provider);
@@ -30,7 +30,7 @@ public class DefaultProviderLookupTest
         DefaultProviderLookup lookup = new();
 
         // Act
-        IRecordProvider provider = lookup.Get(typeof(Contact));
+        IRecordProviding provider = lookup.Get(typeof(Contact));
 
         // Assert
         _ = Assert.IsType<ContactDataProvider>(provider);
@@ -43,8 +43,8 @@ public class DefaultProviderLookupTest
         DefaultProviderLookup lookup = new();
 
         // Act
-        IRecordProvider first = lookup.Get(typeof(Account));
-        IRecordProvider second = lookup.Get(typeof(Account));
+        IRecordProviding first = lookup.Get(typeof(Account));
+        IRecordProviding second = lookup.Get(typeof(Account));
 
         // Assert
         Assert.Same(first, second);
@@ -59,10 +59,10 @@ public class DefaultProviderLookupTest
         Contact record = new();
 
         // Act
-        ISet<ILookupKey> keys = lookup.KeysFor(record);
+        ISet<IRecordIdentifying> keys = lookup.KeysFor(record);
 
         // Assert
-        ILookupKey key = Assert.Single(keys);
+        IRecordIdentifying key = Assert.Single(keys);
         Assert.Equal(typeof(Contact), key.RecordType);
     }
 

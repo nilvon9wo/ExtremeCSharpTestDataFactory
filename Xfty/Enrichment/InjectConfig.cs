@@ -20,7 +20,7 @@ namespace Net.NowhereAtAll.Xfty.Enrichment;
 ///   a scalar on the records of a child collection (or grandchild), path being
 ///   the child-lookup hops read downward then the field to set. value is a
 ///   literal (every child gets it), a List&lt;object&gt; (one per child, in
-///   GetChildList order), or an IValueExpression (resolved fresh per child);
+///   GetChildList order), or an IValueYielding (resolved fresh per child);
 /// - ParentDepth(n) - cap the ancestor climb (default 5, a sane query-shape limit);
 /// - ChildDepth(n) - how many levels of nested child collections (default 1;
 ///   n &gt; 1 needs AllowDeeperGraph());
@@ -121,7 +121,7 @@ public sealed class InjectConfig
     /// <summary>
     /// A scalar on every record of the child collection childField defines
     /// (Contact.AccountId -&gt; the target's Contacts). value is a literal, a
-    /// List&lt;object&gt; (one per child), or an IValueExpression.
+    /// List&lt;object&gt; (one per child), or an IValueYielding.
     /// </summary>
     public InjectConfig InjectChildValue(PropertyInfo childField, PropertyInfo leafField, object? value) =>
         this.InjectChildValue([childField, leafField], value);

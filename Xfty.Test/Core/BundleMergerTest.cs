@@ -92,6 +92,27 @@ public class BundleMergerTest
         Assert.Equal(2, parents.Count);
     }
 
+    [Fact]
+    public void Combine_WhenAParentFieldIsInBothBundles_KeepsTheParentsOwnGeneratedParents()
+    {
+        // Arrange - each Contact's Account was generated with its own Owner
+        Bundle firstAccount = AccountBundle([new Account { Name = "Acme" }]);
+        _ = firstAccount.Put<Account>(x => x.OwnerId, UserBundle([new User { LastName = "First Owner" }]));
+        Bundle secondAccount = AccountBundle([new Account { Name = "Globex" }]);
+        _ = secondAccount.Put<Account>(x => x.OwnerId, UserBundle([new User { LastName = "Second Owner" }]));
+        Bundle first = ContactBundle([new Contact { LastName = "One" }]);
+        _ = first.Put<Contact>(x => x.AccountId, firstAccount);
+        Bundle second = ContactBundle([new Contact { LastName = "Two" }]);
+        _ = second.Put<Contact>(x => x.AccountId, secondAccount);
+
+        // Act
+        Bundle merged = BundleMerger.Combine([first, second]);
+
+        // Assert
+        Bundle owners = merged.GetBundle<Contact>(x => x.AccountId)!.GetBundle<Account>(x => x.OwnerId)!;
+        Assert.Equal(2, owners.PrimaryRecords()!.Count);
+    }
+
     private static Bundle ContactBundle(List<object> contacts)
     {
         Bundle bundle = new();
@@ -103,6 +124,13 @@ public class BundleMergerTest
     {
         Bundle bundle = new();
         bundle.PutPrimaries(Field.Of<Account>(x => x.Id), accounts);
+        return bundle;
+    }
+
+    private static Bundle UserBundle(List<object> users)
+    {
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<User>(x => x.Id), users);
         return bundle;
     }
 }

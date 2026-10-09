@@ -1,4 +1,4 @@
-using global::AutoBogus;
+using AutoBogus;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -6,7 +6,7 @@ using Net.NowhereAtAll.Xfty.Lookup;
 namespace Net.NowhereAtAll.Xfty.AutoBogus;
 
 /// <summary>
-/// Intercepts a request for a type with a registered <see cref="IRecordProvider"/>
+/// Intercepts a request for a type with a registered <see cref="IRecordProviding"/>
 /// and answers it with
 /// <c>new RecordProvider(type, lookup).SetInsertMode(insertMode).SetInclusivity(inclusivity).Supply()</c>
 /// instead of AutoBogus's own generation - so <c>faker.Generate&lt;Contact&gt;()</c>
@@ -39,7 +39,7 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus;
 /// <see cref="XftyAutoBogus.CreateFaker"/> for the one-line form.
 /// </summary>
 public sealed class XftyAutoBogusOverride(
-    IProviderLookup lookup,
+    IProviderLocating lookup,
     InsertMode insertMode,
     InsertInclusivity inclusivity
 ) : AutoGeneratorOverride
@@ -50,7 +50,8 @@ public sealed class XftyAutoBogusOverride(
 
     public override void Generate(AutoGenerateOverrideContext context) =>
         context.Instance = Task.Run(() => new RecordProvider(context.GenerateType, lookup)
-            .SetInsertMode(insertMode).SetInclusivity(inclusivity).Supply()).GetAwaiter().GetResult();
+            .SetInsertMode(insertMode).SetInclusivity(inclusivity).Supply()
+        ).GetAwaiter().GetResult();
 
     private bool IsRegistered(Type type)
     {

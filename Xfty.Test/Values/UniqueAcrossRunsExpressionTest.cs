@@ -31,11 +31,24 @@ public class UniqueAcrossRunsExpressionTest
         UniqueAcrossRunsExpression expression = new("User Federation Id ", "");
 
         // Act
-        object? value = expression.Get();
+        object value = expression.Get();
 
         // Assert - prefix, then digits from the token + counter (no "User Federation Id 1" literal)
         string stringValue = Assert.IsType<string>(value);
         Assert.StartsWith("User Federation Id ", stringValue);
         Assert.True(stringValue.Length > "User Federation Id 1".Length);
+    }
+
+    [Fact]
+    public void Get_WhenPrefixAndSuffixAreNull_TreatsThemAsEmpty()
+    {
+        // Arrange
+        UniqueAcrossRunsExpression expression = new(null, null);
+
+        // Act
+        object value = expression.Get();
+
+        // Assert - only the hex run token and the decimal counter, nothing either side
+        Assert.Matches("^[0-9a-f]+$", Assert.IsType<string>(value));
     }
 }

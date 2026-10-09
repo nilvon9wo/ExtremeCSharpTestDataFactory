@@ -25,7 +25,7 @@ self-tests.
 > [reference/known-issues.md](../reference/known-issues.md). This port's
 > demo `User` (`Id`, `FirstName`, `LastName`, `Email`, `ManagerId`) exists only
 > to exercise deep/hierarchical relationship paths in tests, and has no bundled
-> Provider of its own — register your own `IRecordProvider` for it if your
+> Provider of its own — register your own `IRecordProviding` for it if your
 > tests need one.
 
 ---

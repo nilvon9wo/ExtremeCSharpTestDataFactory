@@ -18,8 +18,8 @@ public class ExChildRecordsTest
 {
     private static readonly DefaultProviderLookup Lookup = new();
 
-    private static IProviderLookup LookupWithCase() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating LookupWithCase() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -79,7 +79,8 @@ public class ExChildRecordsTest
             .SetInsertMode(InsertMode.Mock)
             .With(
                 ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(3)
-                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2)))
+                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2))
+            )
             .SupplyBundle().ConfigureAwait(true);
 
         List<object> cases = bundle.GetChildBundle<Contact>(x => x.AccountId)!
@@ -90,7 +91,7 @@ public class ExChildRecordsTest
     }
 }
 
-file sealed class BlankCaseProvider : IRecordProvider
+file sealed class BlankCaseProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Case>(x => x.Id);
 

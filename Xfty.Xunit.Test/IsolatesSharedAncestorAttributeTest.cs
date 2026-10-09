@@ -20,8 +20,8 @@ public class IsolatesSharedAncestorAttributeTest
 {
     private const string SharedName = "isolation-test-shared-name";
 
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -69,8 +69,8 @@ public class IsolatesSharedAncestorAttributeMethodLevelTest
 {
     private const string SharedName = "isolation-test-method-level-name";
 
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),

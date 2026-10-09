@@ -1,13 +1,13 @@
 namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
-/// An <see cref="IValueExpression"/> producing "prefix 1", "prefix 2", ... per
+/// An <see cref="IValueYielding"/> producing "prefix 1", "prefix 2", ... per
 /// instance - or "prefix1", "prefix2" with <see cref="DontSeparatePrefix"/>.
 /// </summary>
 public sealed class IncrementingStringExpression(
     string prefix,
     bool separatePrefix = IncrementingStringExpression.SeparatePrefix
-) : IValueExpression
+) : IValueYielding
 {
     public const bool SeparatePrefix = true;
     public const bool DontSeparatePrefix = false;

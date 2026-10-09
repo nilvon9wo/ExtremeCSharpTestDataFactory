@@ -1,4 +1,4 @@
-using global::AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Lookup;
@@ -6,7 +6,7 @@ using Net.NowhereAtAll.Xfty.Lookup;
 namespace Net.NowhereAtAll.Xfty.AutoFixture;
 
 /// <summary>
-/// Intercepts a request for a type with a registered <see cref="IRecordProvider"/>
+/// Intercepts a request for a type with a registered <see cref="IRecordProviding"/>
 /// and answers it with <c>new RecordProvider(type, lookup).SetInsertMode(insertMode).Supply()</c>
 /// instead of AutoFixture's own generation - so <c>fixture.Create&lt;Contact&gt;()</c>
 /// gets a fully-formed XFTY graph (required relationships resolved, shared
@@ -34,7 +34,7 @@ namespace Net.NowhereAtAll.Xfty.AutoFixture;
 /// Registered via <see cref="XftyCustomization"/>, not used directly.
 /// </summary>
 public sealed class XftySpecimenBuilder(
-    IProviderLookup lookup,
+    IProviderLocating lookup,
     InsertMode insertMode,
     InsertInclusivity inclusivity
 ) : ISpecimenBuilder
@@ -48,7 +48,8 @@ public sealed class XftySpecimenBuilder(
         Task.Run(() => new RecordProvider(type, lookup)
                 .SetInsertMode(insertMode)
                 .SetInclusivity(inclusivity)
-                .Supply())
+                .Supply()
+        )
             .GetAwaiter()
             .GetResult();
 

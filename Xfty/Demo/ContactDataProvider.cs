@@ -11,7 +11,7 @@ namespace Net.NowhereAtAll.Xfty.Demo;
 /// <summary>
 /// The bundled Contact Provider - AccountId is a required relationship to a generated <see cref="Account"/>.
 /// </summary>
-public sealed class ContactDataProvider : IRecordProvider
+public sealed class ContactDataProvider : IRecordProviding
 {
     public const string DefaultFirstNamePrefix = "Contact First Name";
     public const string DefaultLastNamePrefix = "Contact Last Name";

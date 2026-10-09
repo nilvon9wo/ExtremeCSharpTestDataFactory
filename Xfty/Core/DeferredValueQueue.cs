@@ -17,7 +17,8 @@ public sealed class DeferredValueQueue
     /// <summary>Queue each byField entry for every one of rowCount primary rows.</summary>
     public void AddForEachRow(
         int rowCount,
-        IEnumerable<KeyValuePair<PropertyInfo, IDeferredExpression>> byField) =>
+        IEnumerable<KeyValuePair<PropertyInfo, IDeferred>> byField
+    ) =>
         Enumerable.Range(0, rowCount)
             .SelectMany(row => byField.Select(pair => new BundleDeferredEntry(row, pair.Key, pair.Value)))
             .ToList()

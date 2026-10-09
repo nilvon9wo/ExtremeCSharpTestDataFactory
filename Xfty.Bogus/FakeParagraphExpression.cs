@@ -1,17 +1,17 @@
-using global::Bogus;
+using Bogus;
 using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Bogus;
 
 /// <summary>
-/// An <see cref="IValueExpression"/> producing a lorem-ipsum-style paragraph
+/// An <see cref="IValueYielding"/> producing a lorem-ipsum-style paragraph
 /// via Bogus, for a body-text field that needs to look populated rather than
 /// hold a literal placeholder.
 /// </summary>
 public sealed class FakeParagraphExpression(
     int sentenceCount = FakeParagraphExpression.DefaultSentenceCount,
     string locale = "en"
-) : IValueExpression
+) : IValueYielding
 {
     private const int DefaultSentenceCount = 3;
 

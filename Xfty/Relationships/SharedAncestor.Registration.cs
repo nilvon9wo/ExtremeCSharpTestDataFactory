@@ -28,7 +28,7 @@ public sealed partial class SharedAncestor
     /// generation. Its "already persisted?" flag is a best guess from an
     /// <c>Id</c>-named property until the ancestor is first referenced in a
     /// Supply*() call, at which point the Provider's real key field corrects
-    /// it (<see cref="Resolution"/>).
+    /// it (<c>SharedAncestor.Resolution.cs</c>).
     /// </summary>
     public static SharedAncestorProvider PutAsValue(string name, object record)
     {
@@ -40,7 +40,7 @@ public sealed partial class SharedAncestor
     }
 
     /// <summary>Register just the Provider variant that generates the shared record.</summary>
-    public static SharedAncestorProvider Put(string name, ILookupKey variantKey) =>
+    public static SharedAncestorProvider Put(string name, IRecordIdentifying variantKey) =>
         Get(name).Provider().FromVariant(variantKey);
 
     /// <summary>Put(name, record) (same Id-disambiguation), applied only if name is not registered yet.</summary>
@@ -51,7 +51,7 @@ public sealed partial class SharedAncestor
     }
 
     /// <summary>As PutIfAbsent(string,object), pinning the variant instead of a template.</summary>
-    public static SharedAncestorProvider PutIfAbsent(string name, ILookupKey variantKey)
+    public static SharedAncestorProvider PutIfAbsent(string name, IRecordIdentifying variantKey)
     {
         SharedAncestor ancestor = Get(name);
         return ancestor.IsUnregistered() ? Put(name, variantKey) : ancestor.Provider();

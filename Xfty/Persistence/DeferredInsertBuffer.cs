@@ -23,11 +23,11 @@ public sealed class DeferredInsertBuffer
     private readonly List<PendingDeferredValue> _pendingDeferredValues = [];
     private readonly HashSet<int> _excludedIndices = [];
     private readonly Dictionary<Type, PropertyInfo> _idFieldByType = [];
-    private readonly Dictionary<Type, IMockIdGenerator> _mockIdGeneratorByType = [];
+    private readonly Dictionary<Type, IMockIdGenerating> _mockIdGeneratorByType = [];
 
     public static async Task InsertGraph(
         Bundle? bundle,
-        IPersistenceGateway? gateway = null,
+        IPersisting? gateway = null,
         bool excludePrimaryIds = false
     )
     {
@@ -75,11 +75,12 @@ public sealed class DeferredInsertBuffer
 
     /// <summary>
     /// Each buffered record type's primary-key field, taken from the bundle it came from - so nothing here assumes the
-    /// key is called "Id".
+    /// key is called "Id". With <see cref="Records"/> and <see cref="ParentLinks"/>, everything a consumer persisting a
+    /// flattened graph its own way needs.
     /// </summary>
     public IReadOnlyDictionary<Type, PropertyInfo> IdFieldByType() => this._idFieldByType;
 
-    public Task InsertAll(IPersistenceGateway? gateway = null)
+    public Task InsertAll(IPersisting? gateway = null)
     {
         this.ResolveUpFlowValues();
         return DepthBatchedInserter.InsertAll(
@@ -93,7 +94,7 @@ public sealed class DeferredInsertBuffer
     }
 
     /// <summary>Depth-batched resolution of every buffered bundle honouring mode (Now/Mock/Never).</summary>
-    public Task ResolveAll(InsertMode mode, IPersistenceGateway? gateway = null)
+    public Task ResolveAll(InsertMode mode, IPersisting? gateway = null)
     {
         this.ResolveUpFlowValues();
         return DepthBatchedInserter.ResolveAll(
@@ -128,15 +129,12 @@ public sealed class DeferredInsertBuffer
 
     /// <summary>
     /// Record this bundle's primary-key field and mock-Id generator against its record type, so the depth-batched pass
-    /// never has to guess either.
+    /// never has to guess either. Only called for a bundle with primaries, so it has a primary-key field.
     /// </summary>
     private void RememberIdField(Bundle bundle)
     {
-        if (bundle.PrimaryTargetField is not { DeclaringType: { } recordType } idField)
-        {
-            return;
-        }
-
+        PropertyInfo idField = bundle.PrimaryTargetField!;
+        Type recordType = idField.DeclaringType!;
         this._idFieldByType[recordType] = idField;
         if (bundle.MockIdGenerator is { } generator)
         {
@@ -148,7 +146,9 @@ public sealed class DeferredInsertBuffer
     private void CaptureDeferredValues(Bundle bundle, List<IndexedRecord> primaries) =>
         bundle.DeferredValues().ForEach(deferred =>
             this._pendingDeferredValues.Add(
-                new PendingDeferredValue(primaries[deferred.PrimaryRow].Index, deferred.Field, deferred.Strategy)));
+                new PendingDeferredValue(primaries[deferred.PrimaryRow].Index, deferred.Field, deferred.Strategy)
+            )
+        );
 
     /// <summary>Downward children (With(...)/WithChildren(...)): each child row points at its primary row.</summary>
     private void LinkToChildCollections(Bundle bundle, List<IndexedRecord> primaries)
@@ -165,11 +165,10 @@ public sealed class DeferredInsertBuffer
     private void LinkChildEntry(BundleChildEntry entry, List<IndexedRecord> primaries, PropertyInfo childField)
     {
         List<IndexedRecord> childRecords = this.Collect(entry.Bundle);
-        for (int childRow = 0; childRow < childRecords.Count; childRow++)
-        {
-            IndexedRecord parent = primaries[entry.ParentRowByChildRow[childRow]];
-            this.LinkChild(childRecords[childRow], parent, childField);
-        }
+        childRecords
+            .Select((child, childRow) => (child, parent: primaries[entry.ParentRowByChildRow[childRow]]))
+            .ToList()
+            .ForEach(pair => this.LinkChild(pair.child, pair.parent, childField));
     }
 
     private void LinkToParents(Bundle bundle, List<IndexedRecord> children)
@@ -182,13 +181,8 @@ public sealed class DeferredInsertBuffer
 
     private void LinkToParentsOn(Bundle bundle, List<IndexedRecord> children, PropertyInfo parentField)
     {
-        Bundle? parentBundle = bundle.GetBundle(parentField);
-        if (parentBundle is null)
-        {
-            return;
-        }
-
-        List<IndexedRecord> parents = this.Collect(parentBundle);
+        // parentField came from RelationshipFields(), so its sub-bundle exists.
+        List<IndexedRecord> parents = this.Collect(bundle.GetBundle(parentField));
         this.LinkRows(children, parents, parentField);
     }
 

@@ -17,8 +17,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Enrichment;
 /// </summary>
 public class EnrichmentIntegrationTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -77,7 +77,8 @@ public class EnrichmentIntegrationTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id)));
+            () => bundle.InjectAll(Field.Of<Contact>(x => x.Id))
+        );
 
         // Assert
         Assert.Contains("has no generated ancestor or child collection", thrown.Message);

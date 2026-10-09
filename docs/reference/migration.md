@@ -13,5 +13,33 @@ over and what doesn't, and [known-issues](known-issues.md) for the full list of
 capability gaps (record types, org seeding, a real `Now` persistence layer, and
 more).
 
-Once this port has its own tagged releases, breaking changes between *those*
-will be documented here.
+Breaking changes between this port's own releases are listed below.
+
+---
+
+## Interfaces renamed to adjectives (1.0.0-beta.13)
+
+Coding standard rule 11 names interfaces with adjectives describing what
+implementers are able to do; every public interface was a noun. They were
+renamed before 1.0, while a breaking change is still cheap. Members,
+namespaces and the concrete classes are unchanged - only the interface
+names (and their files) moved. A find-and-replace of whole words, in this
+order-independent table, migrates a consumer:
+
+| Before | After |
+|---|---|
+| `IRecordProvider` | `IRecordProviding` |
+| `IProviderLookup` | `IProviderLocating` |
+| `ILookupKey` | `IRecordIdentifying` |
+| `IPersistenceGateway` | `IPersisting` |
+| `IMockIdGenerator` | `IMockIdGenerating` |
+| `IValueExpression` | `IValueYielding` |
+| `IContextAwareExpression` | `IContextAware` |
+| `IDeferredExpression` | `IDeferred` |
+| `IRecordPredicate` | `IRecordMatching` |
+| `IUnsetFieldFiller` | `IUnsetFieldFilling` |
+| `IPathTargetValue` | `IPathApplicable` |
+| `ISharedAncestorDefaults` | `ISharedAncestorRegistering` |
+| `IDefaultRelationship` | `IRelatable` |
+| `ISharedRelationship` | `ISharedRelatable` |
+

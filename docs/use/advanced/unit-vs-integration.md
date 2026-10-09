@@ -2,7 +2,7 @@
 
 The same Provider definitions serve both an isolated unit test and a real
 database integration test — only the [insert mode](../insert-modes.md) (and,
-for `Now`, the configured `IPersistenceGateway`) changes.
+for `Now`, the configured `IPersisting`) changes.
 
 ---
 

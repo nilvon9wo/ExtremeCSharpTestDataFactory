@@ -31,7 +31,7 @@ public class DeferredValueQueueTest
     {
         // Arrange
         DeferredValueQueue queue = new();
-        Dictionary<PropertyInfo, IDeferredExpression> byField = new()
+        Dictionary<PropertyInfo, IDeferred> byField = new()
         {
             [Field.Of<Account>(x => x.Name)] = null!,
             [Field.Of<Account>(x => x.Site)] = null!,
@@ -49,7 +49,7 @@ public class DeferredValueQueueTest
     {
         // Arrange
         DeferredValueQueue queue = new();
-        Dictionary<PropertyInfo, IDeferredExpression> byField = new() { [Field.Of<Account>(x => x.Name)] = null! };
+        Dictionary<PropertyInfo, IDeferred> byField = new() { [Field.Of<Account>(x => x.Name)] = null! };
 
         // Act
         queue.AddForEachRow(0, byField);
@@ -63,7 +63,7 @@ public class DeferredValueQueueTest
     {
         // Arrange
         DeferredValueQueue queue = new();
-        Dictionary<PropertyInfo, IDeferredExpression> byField = new() { [Field.Of<Account>(x => x.Name)] = null! };
+        Dictionary<PropertyInfo, IDeferred> byField = new() { [Field.Of<Account>(x => x.Name)] = null! };
 
         // Act
         queue.AddForEachRow(2, byField);

@@ -17,7 +17,7 @@ namespace Net.NowhereAtAll.Xfty.Test.Relationships;
 /// Shared ancestors that have hierarchies of their own: automatic deep-vs-flat
 /// resolution, nested shared ancestors, cycle detection (and breaking one by
 /// pre-registering a side), ResolveNow/GetId, PutIfAbsent, lookup-provided
-/// defaults (ISharedAncestorDefaults), Disable/ManualResolutionOnly, chained
+/// defaults (ISharedAncestorRegistering), Disable/ManualResolutionOnly, chained
 /// per-record config on the shared record itself, a path value wiring a
 /// shared ancestor with no special setup, one shared record serving two
 /// different child types, and the end-to-end proof: a three-level all-shared
@@ -54,10 +54,10 @@ public class SharedAncestorHierarchyTest
     public async Task Supply_WhenASharedAncestorIsDeep_ResolvesItAutomatically()
     {
         // Arrange
-        ILookupKey level1Key = FlavouredLookupKey.Get<Account>("hierarchy-level1");
+        IRecordIdentifying level1Key = FlavouredLookupKey.Get<Account>("hierarchy-level1");
         _ = SharedAncestor.Put("hierarchy-root", new Account { Name = "Root" }).FromVariant(LookupKey.Get<Account>());
         _ = SharedAncestor.Put("hierarchy-level1", new Account { Name = "Level 1" }).FromVariant(level1Key);
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [level1Key] = ChildOfSharedProvider.Of<Account>(
@@ -178,7 +178,7 @@ public class SharedAncestorHierarchyTest
     {
         // Arrange - the lookup carries the default; the test registers nothing
         const string name = "hierarchy-lookup-default";
-        IProviderLookup lookup = ContactsUnderWithDefault(name, new Account { Name = "Packaged HQ" });
+        IProviderLocating lookup = ContactsUnderWithDefault(name, new Account { Name = "Packaged HQ" });
 
         // Act
         Contact leaf = (Contact)await new RecordProvider(typeof(Contact), lookup)
@@ -197,7 +197,7 @@ public class SharedAncestorHierarchyTest
         // Arrange - the test registers it first; the lookup default must not clobber it
         const string name = "hierarchy-test-wins-over-default";
         _ = SharedAncestor.Put(name, new Account { Name = "Test Override HQ" });
-        IProviderLookup lookup = ContactsUnderWithDefault(name, new Account { Name = "Packaged HQ" });
+        IProviderLocating lookup = ContactsUnderWithDefault(name, new Account { Name = "Packaged HQ" });
 
         // Act
         _ = await new RecordProvider(typeof(Contact), lookup)
@@ -258,11 +258,11 @@ public class SharedAncestorHierarchyTest
     public async Task Supply_WhenSharedAncestorsFormACycle_Throws()
     {
         // Arrange - 'a' needs 'b', 'b' needs 'a'
-        ILookupKey keyA = FlavouredLookupKey.Get<Account>("hierarchy-cycle-a");
-        ILookupKey keyB = FlavouredLookupKey.Get<Account>("hierarchy-cycle-b");
+        IRecordIdentifying keyA = FlavouredLookupKey.Get<Account>("hierarchy-cycle-a");
+        IRecordIdentifying keyB = FlavouredLookupKey.Get<Account>("hierarchy-cycle-b");
         _ = SharedAncestor.Put("hierarchy-cycle-a", new Account()).FromVariant(keyA);
         _ = SharedAncestor.Put("hierarchy-cycle-b", new Account()).FromVariant(keyB);
-        IProviderLookup lookup = CycleLookup(keyA, keyB, "hierarchy-cycle-a", "hierarchy-cycle-b");
+        IProviderLocating lookup = CycleLookup(keyA, keyB, "hierarchy-cycle-a", "hierarchy-cycle-b");
         RecordProvider provider = new RecordProvider(typeof(Contact), lookup)
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
@@ -283,8 +283,8 @@ public class SharedAncestorHierarchyTest
     public async Task Supply_WhenOneSideOfACycleIsPreRegistered_BreaksTheCycle()
     {
         // Arrange - hand one side a real record so the cycle resolves
-        ILookupKey keyA = FlavouredLookupKey.Get<Account>("hierarchy-broken-cycle-a");
-        ILookupKey keyB = FlavouredLookupKey.Get<Account>("hierarchy-broken-cycle-b");
+        IRecordIdentifying keyA = FlavouredLookupKey.Get<Account>("hierarchy-broken-cycle-a");
+        IRecordIdentifying keyB = FlavouredLookupKey.Get<Account>("hierarchy-broken-cycle-b");
         _ = SharedAncestor.Put("hierarchy-broken-cycle-a", new Account()).FromVariant(keyA);
         _ = SharedAncestor.Put("hierarchy-broken-cycle-b", new Account()).FromVariant(keyB);
         Account premadeB = new() { Name = "Pre-made B", Id = IdMocker.GenerateId() };
@@ -292,7 +292,8 @@ public class SharedAncestorHierarchyTest
 
         // Act
         Contact leaf = (Contact)await new RecordProvider(
-            typeof(Contact), CycleLookup(keyA, keyB, "hierarchy-broken-cycle-a", "hierarchy-broken-cycle-b"))
+            typeof(Contact), CycleLookup(keyA, keyB, "hierarchy-broken-cycle-a", "hierarchy-broken-cycle-b")
+        )
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply().ConfigureAwait(true);
@@ -374,7 +375,7 @@ public class SharedAncestorHierarchyTest
         const string name = "hierarchy-shared-owner-path";
         _ = SharedAncestor.Put(name, new User { LastName = "Owner" });
         List<PropertyInfo> ownerPath = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)];
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -401,7 +402,7 @@ public class SharedAncestorHierarchyTest
         // Arrange - a Contact Provider and a Case Provider, both under the same shared Account
         const string name = "hierarchy-shared-two-child-types";
         _ = SharedAncestor.Put(name, new Account { Name = "Shared HQ" });
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(
@@ -528,8 +529,8 @@ public class SharedAncestorHierarchyTest
 
     // Fixture - lookups + the Provider double ---------------------------
 
-    private static IProviderLookup ContactsUnder(string sharedName) =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating ContactsUnder(string sharedName) =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(
@@ -540,9 +541,9 @@ public class SharedAncestorHierarchyTest
             ),
         });
 
-    private static IProviderLookup ContactsUnderWithDefault(string sharedName, Account theDefault) =>
+    private static IProviderLocating ContactsUnderWithDefault(string sharedName, Account theDefault) =>
         ProviderLookups.Of(
-            new Dictionary<ILookupKey, IRecordProvider>
+            new Dictionary<IRecordIdentifying, IRecordProviding>
             {
                 [LookupKey.Get<Account>()] = new AccountDataProvider(),
                 [LookupKey.Get<Contact>()] = ChildOfSharedProvider.Of<Contact>(
@@ -552,10 +553,16 @@ public class SharedAncestorHierarchyTest
                     sharedName
                 ),
             },
-            new Dictionary<string, object> { [sharedName] = theDefault });
+            new Dictionary<string, object> { [sharedName] = theDefault }
+        );
 
-    private static IProviderLookup CycleLookup(ILookupKey keyA, ILookupKey keyB, string nameA, string nameB) =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating CycleLookup(
+        IRecordIdentifying keyA,
+        IRecordIdentifying keyB,
+        string nameA,
+        string nameB
+    ) =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [keyA] = ChildOfSharedProvider.Of<Account>(
                 nameof(Account.Id),
@@ -578,7 +585,7 @@ public class SharedAncestorHierarchyTest
         });
 }
 
-file sealed class LeafUserProvider : IRecordProvider
+file sealed class LeafUserProvider : IRecordProviding
 {
     public static readonly LeafUserProvider Instance = new();
 
@@ -594,7 +601,7 @@ file sealed class LeafUserProvider : IRecordProvider
 /// <summary>
 /// A Provider with one required lookup to a named shared ancestor, plus an optional label field its generation needs.
 /// </summary>
-file sealed class ChildOfSharedProvider : IRecordProvider
+file sealed class ChildOfSharedProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; }
 

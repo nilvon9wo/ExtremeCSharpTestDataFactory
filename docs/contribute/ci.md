@@ -9,19 +9,33 @@ Two jobs, no secrets.
 ```yaml
 dotnet restore Xfty.ci-cross-platform.slnf
 dotnet build Xfty.ci-cross-platform.slnf --no-restore                        # .editorconfig analyzers enforced - a style violation fails the build
-dotnet format Xfty.slnx --verify-no-changes --severity info                  # whitespace + IDE1006 naming + IDE0130 namespace-folder, which the build itself does not run
-dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass
-dotnet test Xfty.Test/Xfty.Test.csproj --no-build --filter "Category=Performance"     # informational only (continue-on-error)
+dotnet format Xfty.slnx --verify-no-changes --severity info                  # whitespace/formatting, plus a second pass over the style analyzers
+dotnet tool restore && python3 scripts/inspect-code.py Xfty.ci-cross-platform.slnf   # ReSharper inspectcode: unnecessary usings and the rest of what Roslyn misses
+python3 scripts/check-line-layout.py                                         # 120-char ceiling + wrapped ')' on its own line, which no analyzer reports
+python3 scripts/run-tests.py Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass, at 100% line + branch coverage per package
+python3 scripts/run-tests.py Xfty.Test/Xfty.Test.csproj --no-build -p:XftyCoverage=false --filter "Category=Performance"   # informational only (continue-on-error)
 python3 scripts/verify-doc-examples.py                                       # every documented code example is exercised by a real test
 python3 scripts/verify-doc-links.py                                          # every relative doc link and anchor resolves
+python3 scripts/verify-gates.py                                              # proves every gate above still fires - see below
 ```
 
-`dotnet build` with `EnforceCodeStyleInBuild` runs most of `.editorconfig`, but
-not the naming analyzer (IDE1006) or IDE0130 (namespace-matches-folder, which
-only fires for `partial` types). `dotnet format --verify-no-changes` is the gate
-for those two and for every whitespace/formatting rule; it runs against the raw
-`Xfty.slnx` (it only reads source, so the `net472` project is not a problem
-here). See [coding-standards](coding-standards.md#quality-gates).
+`dotnet build` with `EnforceCodeStyleInBuild` runs almost all of
+`.editorconfig` (IDE1006 naming and IDE0130 namespace-folder included, on the
+.NET 10 SDK). `dotnet format --verify-no-changes` is the gate for every
+whitespace/formatting rule; it runs against the raw `Xfty.slnx` (it only reads
+source, so the `net472` project is not a problem here). What no Roslyn gate
+catches gets its own step: IDE0005 unnecessary usings never fail
+`dotnet build`, so ReSharper's `inspectcode` (`scripts/inspect-code.py`) runs
+with every finding fatal; line length and wrapped-`)` placement are checked by
+`scripts/check-line-layout.py`. See
+[coding-standards](coding-standards.md#quality-gates).
+
+Every test step runs through `scripts/run-tests.py` rather than bare
+`dotnet test`: same arguments, same output, plus one guarantee. When a test
+module never starts (or runs zero tests), `dotnet test` still prints
+"Test run summary: Passed!" for the modules that did run; the wrapper ends
+the run with an explicit `INCONCLUSIVE` verdict naming the missing modules,
+and exit code 3.
 
 Runs against [`Xfty.ci-cross-platform.slnf`](../../Xfty.ci-cross-platform.slnf)
 (a solution filter: every project in `Xfty.slnx` except
@@ -36,7 +50,11 @@ other project reported "zero tests ran" (a failure), which
 `continue-on-error` silently swallowed right alongside any real performance
 regression. Scoped this way, the step's outcome actually means something;
 `continue-on-error` stays, since wall-clock-based assertions are expected to
-be flaky across CI runners, which is what it's there to tolerate.
+be flaky across CI runners, which is what it's there to tolerate. It passes
+`-p:XftyCoverage=false`: a run of the `Performance` tests alone can never
+meet the 100% coverage bar every other run enforces (see
+[coverage-standards](coverage-standards.md)), so leaving it on would make
+the step fail for a reason that has nothing to do with performance.
 
 The normal-suite step is not persistence-free: `PersistenceGatewayTest` proves
 `Now`/`.DepthBatched()` against a mocked gateway, and
@@ -45,12 +63,35 @@ and (Docker is preinstalled on `ubuntu-latest`) a real, ephemeral Postgres
 container via Testcontainers - no secrets or external service needed, since
 the container is created and torn down within the job.
 
+#### Proving the gates fire
+
+A gate that silently stops running looks exactly like a gate that passes -
+which is how line length, unnecessary usings and coverage all went
+unenforced while these docs said otherwise. `scripts/verify-gates.py` runs
+last and proves every other gate still catches what it should:
+
+- `build` (errors only - a compiler warning in the canary proves `TreatWarningsAsErrors`), `format`, `layout` and `inspect` run against
+  [`StyleCanary/`](../../StyleCanary/README.md) - deliberately non-compliant
+  code, outside every solution, each violation tagged
+  `// expect: <gate>:<rule>`. A marker no gate reports, or a gate no marker
+  exercises, fails the step.
+- The coverage gate must fail once a throwaway uncovered class is added to
+  `Xfty/` (with every test still passing - the threshold, not a test, is
+  what fails).
+- `verify-doc-links.py` and `verify-doc-examples.py` must both fail on a
+  throwaway page with a broken link and an untested `Runnable:` example.
+- `run-tests.py` must report `INCONCLUSIVE` once one test module's apphost is
+  hidden so it cannot start.
+
+Every temporary file is removed again. When you add an `.editorconfig` rule
+or a new gate, add a canary violation for it.
+
 ### `windows-net472` (`windows-latest`)
 
 ```yaml
 dotnet restore Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj
 dotnet build Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-restore
-dotnet test Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-build
+python scripts/run-tests.py Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-build
 ```
 
 Every package in this solution multi-targets `netstandard2.0;net8.0;net10.0` -
@@ -76,11 +117,8 @@ reasons:
 
 - **A real netstandard2.0-only code branch of its own** — `Xfty` itself
   (`Xfty/Internal/CollectionCompatExtensions.cs`'s `GetValueOrDefault`/
-  `ToHashSet`, and `Internal/SharedRandom.cs`) and `Xfty.VectorDatabases`
-  (its own `<Compile Include>` of that same physical `SharedRandom.cs` file
-  into its own assembly - a separate assembly has no access to `Xfty`'s
-  internal type at the IL level, so compiling the file again is the actual
-  fix, not a copy of it).
+  `ToHashSet`) and `Xfty.VectorDatabases` (`Internal/SharedRandom.cs`, its
+  `Random.Shared` stand-in).
 - **A real dependency pinned at an unusually old version to reach
   netstandard2.0 at all**, where "compiles" is a much weaker guarantee than
   usual — `Xfty.EntityFrameworkCore`'s EF Core 3.1.x pairing, proven with an

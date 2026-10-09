@@ -1,13 +1,13 @@
-using global::Bogus;
+using Bogus;
 using Net.NowhereAtAll.Xfty.Values;
 
 namespace Net.NowhereAtAll.Xfty.Bogus;
 
 /// <summary>
-/// An <see cref="IValueExpression"/> producing a realistic-looking street
+/// An <see cref="IValueYielding"/> producing a realistic-looking street
 /// address via Bogus.
 /// </summary>
-public sealed class FakeStreetAddressExpression(string locale = "en") : IValueExpression
+public sealed class FakeStreetAddressExpression(string locale = "en") : IValueYielding
 {
     private readonly Faker _faker = new(locale);
 

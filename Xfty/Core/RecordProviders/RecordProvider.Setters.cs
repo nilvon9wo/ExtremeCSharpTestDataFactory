@@ -29,7 +29,7 @@ public sealed partial class RecordProvider
     /// <summary>
     /// Pin the Provider variant explicitly, instead of letting it be derived from the override template.
     /// </summary>
-    public RecordProvider WithVariant(ILookupKey variantKey)
+    public RecordProvider WithVariant(IRecordIdentifying variantKey)
     {
         this.AssertTemplateNotYetCustomized();
         AssertVariantKeyMatchesType(variantKey, this._recordType);
@@ -47,9 +47,9 @@ public sealed partial class RecordProvider
         }
     }
 
-    private static void AssertVariantKeyMatchesType(ILookupKey? variantKey, Type recordType)
+    private static void AssertVariantKeyMatchesType(IRecordIdentifying? variantKey, Type recordType)
     {
-        ILookupKey key = variantKey ?? throw new XftyConfigurationException("A variant key is required.");
+        IRecordIdentifying key = variantKey ?? throw new XftyConfigurationException("A variant key is required.");
         if (key.RecordType != recordType)
         {
             throw new RecordProviderConflictException(
@@ -71,7 +71,7 @@ public sealed partial class RecordProvider
     /// the built-in <see cref="Persistence.DefaultMockIdGenerator"/>.
     /// Generated ancestors keep their own.
     /// </summary>
-    public RecordProvider SetMockIdGenerator(IMockIdGenerator mockIdGenerator)
+    public RecordProvider SetMockIdGenerator(IMockIdGenerating mockIdGenerator)
     {
         this._templateConfig.SetMockIdGenerator(mockIdGenerator);
         return this;
@@ -84,7 +84,7 @@ public sealed partial class RecordProvider
     }
 
     /// <summary>The real backing store InsertMode.Now saves through. Without one, Now throws.</summary>
-    public RecordProvider SetPersistenceGateway(IPersistenceGateway gateway)
+    public RecordProvider SetPersistenceGateway(IPersisting gateway)
     {
         this._persistenceGateway = gateway;
         return this;
@@ -92,12 +92,12 @@ public sealed partial class RecordProvider
 
     /// <summary>
     /// Opt in to filling fields this Provider's Master Template never
-    /// configured at all - see <see cref="IUnsetFieldFiller"/>. Applies to
+    /// configured at all - see <see cref="IUnsetFieldFilling"/>. Applies to
     /// every record this call generates, including ancestors pulled in
     /// along the way (each against its own Master Template's own unset
     /// fields). Xfty.AutoFixture bundles an AutoFixture-backed one.
     /// </summary>
-    public RecordProvider SetUnsetFieldFiller(IUnsetFieldFiller filler)
+    public RecordProvider SetUnsetFieldFiller(IUnsetFieldFilling filler)
     {
         this._unsetFieldFiller = filler;
         return this;

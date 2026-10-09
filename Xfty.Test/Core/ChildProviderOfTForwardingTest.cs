@@ -33,8 +33,9 @@ public class ChildProviderOfTForwardingTest
         RecordProvider<Account> provider = new RecordProvider<Account>(Lookup)
             .With(new ChildProvider<Contact>(x => x.AccountId)
                 .Put(Field.Of<Contact>(x => x.FirstName), new LiteralExpression("Alice"))
-                .Put(Field.Of<Contact>(x => x.LastName), (object?)"Smith")
-                .Put(Field.Of<Contact>(x => x.Department), CopyFromSiblingExpression.From<Contact>(x => x.FirstName)))
+                .Put(Field.Of<Contact>(x => x.LastName), "Smith")
+                .Put(Field.Of<Contact>(x => x.Department), CopyFromSiblingExpression.From<Contact>(x => x.FirstName))
+            )
             .SetInsertMode(InsertMode.Mock);
 
         // Act
@@ -55,7 +56,8 @@ public class ChildProviderOfTForwardingTest
             .With(new ChildProvider<Contact>(x => x.AccountId)
                 .Put(x => x.FirstName, new LiteralExpression("Bob"))
                 .Put(x => x.LastName, "Jones")
-                .Put(x => x.Department, CopyFromSiblingExpression.From<Contact>(x => x.LastName)))
+                .Put(x => x.Department, CopyFromSiblingExpression.From<Contact>(x => x.LastName))
+            )
             .SetInsertMode(InsertMode.Mock);
 
         // Act
@@ -74,7 +76,8 @@ public class ChildProviderOfTForwardingTest
         // Arrange
         RecordProvider<Account> provider = new RecordProvider<Account>(Lookup)
             .With(new ChildProvider<Contact>(x => x.AccountId)
-                .PutRequired(Field.Of<Contact>(x => x.ReportsToId), new DefaultRelationship(new Contact())))
+                .PutRequired(Field.Of<Contact>(x => x.ReportsToId), new DefaultRelationship(new Contact()))
+            )
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -92,7 +95,8 @@ public class ChildProviderOfTForwardingTest
         // Arrange - proves the forwarder is not aliased to PutRequired
         RecordProvider<Account> provider = new RecordProvider<Account>(Lookup)
             .With(new ChildProvider<Contact>(x => x.AccountId)
-                .PutOptional(Field.Of<Contact>(x => x.ReportsToId), new DefaultRelationship(new Contact())))
+                .PutOptional(Field.Of<Contact>(x => x.ReportsToId), new DefaultRelationship(new Contact()))
+            )
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -110,7 +114,8 @@ public class ChildProviderOfTForwardingTest
         // Arrange
         RecordProvider<Account> provider = new RecordProvider<Account>(Lookup)
             .With(new ChildProvider<Contact>(x => x.AccountId)
-                .PutRequired(x => x.ReportsToId, new DefaultRelationship(new Contact())))
+                .PutRequired(x => x.ReportsToId, new DefaultRelationship(new Contact()))
+            )
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -128,7 +133,8 @@ public class ChildProviderOfTForwardingTest
         // Arrange
         RecordProvider<Account> provider = new RecordProvider<Account>(Lookup)
             .With(new ChildProvider<Contact>(x => x.AccountId)
-                .PutOptional(x => x.ReportsToId, new DefaultRelationship(new Contact())))
+                .PutOptional(x => x.ReportsToId, new DefaultRelationship(new Contact()))
+            )
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -149,7 +155,8 @@ public class ChildProviderOfTForwardingTest
         RecordProvider<Account> provider = new RecordProvider<Account>(Lookup)
             .With(new ChildProvider<Contact>(x => x.AccountId)
                 .PutOptional(x => x.ReportsToId, new DefaultRelationship(new Contact()))
-                .SetInclusivity(InsertInclusivity.All))
+                .SetInclusivity(InsertInclusivity.All)
+            )
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
 
@@ -165,8 +172,8 @@ public class ChildProviderOfTForwardingTest
     public async Task WithVariant_PinsTheChildProviderVariant()
     {
         // Arrange
-        ILookupKey enterprise = FlavouredLookupKey.Get<Contact>("enterprise");
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IRecordIdentifying enterprise = FlavouredLookupKey.Get<Contact>("enterprise");
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new NamedLastNameContactProvider("Default"),
@@ -190,7 +197,8 @@ public class ChildProviderOfTForwardingTest
         // Arrange - grandchild Contacts hung off each child Contact by ReportsToId
         RecordProvider<Account> provider = new RecordProvider<Account>(Lookup)
             .With(new ChildProvider<Contact>(x => x.AccountId).SetQuantity(2)
-                .With(ChildProvider.For<Contact>(x => x.ReportsToId).SetQuantity(3)))
+                .With(ChildProvider.For<Contact>(x => x.ReportsToId).SetQuantity(3))
+            )
             .SetInsertMode(InsertMode.Mock);
 
         // Act
@@ -203,7 +211,7 @@ public class ChildProviderOfTForwardingTest
     }
 }
 
-file sealed class NamedLastNameContactProvider : IRecordProvider
+file sealed class NamedLastNameContactProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; }
 

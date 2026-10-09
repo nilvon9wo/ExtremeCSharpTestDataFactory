@@ -14,11 +14,11 @@ Related: [provider-lookups](provider-lookups.md) (registering Providers) ·
 
 ## The shape
 
-A Provider implements `IRecordProvider`:
+A Provider implements `IRecordProviding`:
 
 <!-- sketch -->
 ```csharp
-public sealed class MyContactProvider : IRecordProvider
+public sealed class MyContactProvider : IRecordProviding
 {
     public const string DefaultEmailPrefix = "test.contact";
     public const string DefaultAccountDescription = "Account for contact";
@@ -68,7 +68,7 @@ optional relationships. Fluent builders:
 | `PutOptional(field, relationship)` | an optional relationship |
 
 The untyped `Put(field, object? value)` overload routes by the runtime type of
-`value` and **throws** on an `IDefaultRelationship` — it cannot tell required
+`value` and **throws** on an `IRelatable` — it cannot tell required
 from optional, so relationships always need `PutRequired` / `PutOptional`
 explicitly.
 
@@ -103,7 +103,7 @@ public PropertyInfo PrimaryTargetField => Field.Of<Ledger>(x => x.LedgerId);
 The key's **type** is equally open. Under `InsertMode.Mock`,
 `DefaultMockIdGenerator` mints a `string`, `int`, `long`, or `Guid` to match
 the field; any other type needs an
-[`IMockIdGenerator`](mock-id-generators.md). A key already set on the override
+[`IMockIdGenerating`](mock-id-generators.md). A key already set on the override
 template is kept as-is.
 
 ---

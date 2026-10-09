@@ -1,11 +1,11 @@
 namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
-/// An <see cref="IValueExpression"/> unique within one process's lifetime (the
+/// An <see cref="IValueYielding"/> unique within one process's lifetime (the
 /// s_counter is process-static, not per-instance) - not across persisted runs;
 /// see <see cref="UniqueAcrossRunsExpression"/> for that.
 /// </summary>
-public sealed class UniqueStringExpression(string prefix) : IValueExpression
+public sealed class UniqueStringExpression(string prefix) : IValueYielding
 {
     private static int s_counter = 1;
 

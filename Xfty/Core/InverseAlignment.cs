@@ -8,7 +8,7 @@ namespace Net.NowhereAtAll.Xfty.Core;
 /// records whose foreign key points at it. Matched on the parent's primary
 /// key when the parents carry a value for it, otherwise position for position
 /// (the NEVER / pre-flush case). The parent's key field comes from the
-/// Provider (<paramref name="parentPrimaryField"/>); it falls back to a
+/// Provider (<c>parentPrimaryField</c>); it falls back to a
 /// property literally named "Id" only when a caller cannot supply one. Behind
 /// <see cref="Bundle.PrimariesResolvingTo"/>.
 /// </summary>
@@ -20,9 +20,11 @@ public static class InverseAlignment
         List<object> parents,
         List<object> children,
         PropertyInfo relationshipField,
-        PropertyInfo? parentPrimaryField = null) =>
+        PropertyInfo? parentPrimaryField = null
+    ) =>
         [.. parents.Select((parent, parentRow) =>
-            MatchesFor(parent, children, relationshipField, parentRow, parentPrimaryField ?? IdFieldOf(parent)))];
+            MatchesFor(parent, children, relationshipField, parentRow, parentPrimaryField ?? IdFieldOf(parent))
+        )];
 
     private static List<object> MatchesFor(
         object parent,
@@ -35,8 +37,8 @@ public static class InverseAlignment
             ? ForeignKeyMatch(children, relationshipField, parentId)
             : PositionMatch(children, parentRow);
 
-    private static PropertyInfo? IdFieldOf(object? record) =>
-        record?.GetType().GetProperty(IdFieldName);
+    private static PropertyInfo? IdFieldOf(object record) =>
+        record.GetType().GetProperty(IdFieldName);
 
     private static List<object> ForeignKeyMatch(
         List<object> children,

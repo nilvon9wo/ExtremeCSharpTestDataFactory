@@ -7,6 +7,4 @@ namespace Net.NowhereAtAll.Xfty.Core;
 /// possible, the fix, rather than surfacing a silent default or an opaque
 /// downstream error.
 /// </summary>
-public class XftyConfigurationException(string message) : Exception(message)
-{
-}
+public class XftyConfigurationException(string message) : Exception(message);

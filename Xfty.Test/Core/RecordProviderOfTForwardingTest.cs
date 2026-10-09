@@ -45,7 +45,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
         // Arrange
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
             .Put(Field.Of<Contact>(x => x.FirstName), new LiteralExpression("Alice"))
-            .Put(Field.Of<Contact>(x => x.LastName), (object?)"Smith")
+            .Put(Field.Of<Contact>(x => x.LastName), "Smith")
             .Put(Field.Of<Contact>(x => x.Department), CopyFromSiblingExpression.From<Contact>(x => x.FirstName))
             .SetInsertMode(InsertMode.Mock);
 
@@ -72,7 +72,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
 
         // Assert
-        Account account = (Account)DeferredInsertBuffer.Flatten(bundle).Records().OfType<Account>().First();
+        Account account = DeferredInsertBuffer.Flatten(bundle).Records().OfType<Account>().First();
         Assert.Equal("Engineering", account.Site); // read up from the generated child Contact's Department
     }
 
@@ -213,7 +213,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
         List<PropertyInfo> numberOfAccount =
             [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.AccountNumber)];
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
-            .Put(siteOfAccount, (object?)"HQ")
+            .Put(siteOfAccount, "HQ")
             .Put(numberOfAccount, new LiteralExpression("AN-42"))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
@@ -235,7 +235,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
         List<PropertyInfo> billingCityOfAccount =
             [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.BillingCity)];
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
-            .Put(siteOfAccount, (object?)"Berlin")
+            .Put(siteOfAccount, "Berlin")
             .Put(billingCityOfAccount, CopyFromSiblingExpression.From<Account>(x => x.Site))
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock);
@@ -344,8 +344,8 @@ public class RecordProviderOfTForwardingTest : IDisposable
     public async Task WithVariant_PinsTheProviderVariant()
     {
         // Arrange
-        ILookupKey enterprise = FlavouredLookupKey.Get<Account>("enterprise");
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IRecordIdentifying enterprise = FlavouredLookupKey.Get<Account>("enterprise");
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new NamedIndustryAccountProvider("Default"),
             [enterprise] = new NamedIndustryAccountProvider("Enterprise"),
@@ -380,7 +380,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
     public async Task SetPersistenceGateway_RoutesInsertsThroughTheGivenGateway()
     {
         // Arrange - NSubstitute returns a completed Task for Insert(...) by default
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
             .SetInsertMode(InsertMode.Now)
             .SetPersistenceGateway(gateway);
@@ -396,7 +396,7 @@ public class RecordProviderOfTForwardingTest : IDisposable
     public async Task SetUnsetFieldFiller_RunsTheGivenFillerOverEachGeneratedRecord()
     {
         // Arrange
-        IUnsetFieldFiller filler = Substitute.For<IUnsetFieldFiller>();
+        IUnsetFieldFilling filler = Substitute.For<IUnsetFieldFilling>();
         RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
             .SetUnsetFieldFiller(filler)
             .SetInsertMode(InsertMode.Mock);
@@ -462,25 +462,114 @@ public class RecordProviderOfTForwardingTest : IDisposable
 
     // Helpers --------------------------------------------------------
 
-    private static IProviderLookup OwnerAwareLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    // Forwarders not exercised above ---------------------------------
+
+    [Fact]
+    public async Task Put_ByPropertyInfo_ForwardsADeferredExpression()
+    {
+        // Arrange - the PropertyInfo twin of Put_ByLambda_ForwardsADeferredExpression
+        RecordProvider<Account> provider = new RecordProvider<Account>(DepartmentChildLookup())
+            .Put(
+                Field.Of<Account>(x => x.Site),
+                CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department)
+            )
+            .WithChild(Field.Of<Contact>(x => x.AccountId))
+            .SetInsertMode(InsertMode.Deferred);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Account account = DeferredInsertBuffer.Flatten(bundle).Records().OfType<Account>().First();
+        Assert.Equal("Engineering", account.Site);
+    }
+
+    [Fact]
+    public async Task Put_ByLambda_ForwardsAContextAwareExpression()
+    {
+        // Arrange
+        RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
+            .Put(x => x.FirstName, "Alice")
+            .Put(x => x.Department, CopyFromSiblingExpression.From<Contact>(x => x.FirstName))
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Contact result = await provider.Supply().ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal("Alice", result.Department);
+    }
+
+    [Fact]
+    public async Task ExcludeRelationshipIfPresent_ByLambda_ExcludesTheRelationship()
+    {
+        // Arrange
+        RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
+            .ExcludeRelationshipIfPresent(x => x.AccountId)
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Assert.Null(bundle.GetList<Contact>(x => x.AccountId));
+    }
+
+    [Fact]
+    public async Task PutOptional_ByPath_AddsAnOptionalRelationshipToAGeneratedAncestor()
+    {
+        // Arrange - optional, so it only generates once optionals are included
+        List<PropertyInfo> ownerOfAccount = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)];
+        RecordProvider<Contact> provider = new RecordProvider<Contact>(OwnerAwareLookup())
+            .PutOptional(ownerOfAccount, new DefaultRelationship(new User()))
+            .SetInclusivity(InsertInclusivity.All)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Account generatedAccount = (Account)bundle.GetList<Contact>(x => x.AccountId)![0];
+        Assert.NotNull(generatedAccount.OwnerId);
+    }
+
+    [Fact]
+    public async Task DepthBatched_ForwardsToTheInnerProvider()
+    {
+        // Arrange - only the depth-batched inserter's own guard names ResolveAll(...)
+        RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
+            .SetInsertMode(InsertMode.Now)
+            .SetInclusivity(InsertInclusivity.Required)
+            .DepthBatched();
+
+        // Act
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply)
+            .ConfigureAwait(true);
+
+        // Assert
+        Assert.Contains("ResolveAll", thrown.Message);
+    }
+
+    private static IProviderLocating OwnerAwareLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
             [LookupKey.Get<User>()] = new PlainUserProvider(),
         });
 
-    private static IProviderLookup DepartmentChildLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating DepartmentChildLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new DepartmentedContactProvider(),
         });
 }
 
-file abstract class TemplateProvider : IRecordProvider
+file abstract class TemplateProvider : IRecordProviding
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 
@@ -517,7 +606,7 @@ file sealed class NamedIndustryAccountProvider : TemplateProvider
         };
 }
 
-file sealed class PrefixedIdGenerator(string prefix) : IMockIdGenerator
+file sealed class PrefixedIdGenerator(string prefix) : IMockIdGenerating
 {
     private int _count;
 

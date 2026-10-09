@@ -11,7 +11,7 @@ namespace Net.NowhereAtAll.Xfty.Values;
 /// carries one of these in any other mode throws. The resolved value appears
 /// when the deferred flush runs.
 /// </summary>
-public interface IDeferredExpression
+public interface IDeferred
 {
     /// <summary>The value for records[recordIndex]'s field, read from its descendants via graph.</summary>
     object? Get(DeferredGraph graph, int recordIndex);

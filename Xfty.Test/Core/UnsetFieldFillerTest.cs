@@ -1,13 +1,18 @@
 using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
+using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
+using Net.NowhereAtAll.Xfty.Engine;
 using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Values;
+using NSubstitute;
 
 namespace Net.NowhereAtAll.Xfty.Test.Core;
 
 /// <summary>
-/// Proves the IUnsetFieldFiller hook RecordProvider/RecordFactory expose:
+/// Proves the IUnsetFieldFilling hook RecordProvider/RecordFactory expose:
 /// which fields count as "unset" (see also MasterTemplateTest.IsConfigured),
 /// when the hook fires, and that it reaches generated ancestors too. The
 /// bundled AutoFixture-backed implementation is proven separately, in
@@ -17,8 +22,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// </summary>
 public class UnsetFieldFillerTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -112,7 +117,7 @@ public class UnsetFieldFillerTest
 
     // Test doubles -----------------------------------------------------
 
-    private sealed class RecordingFiller : IUnsetFieldFiller
+    private sealed class RecordingFiller : IUnsetFieldFilling
     {
         public List<Type> RecordTypesSeen { get; } = [];
 
@@ -125,7 +130,7 @@ public class UnsetFieldFillerTest
         }
     }
 
-    private sealed class SettingFiller(string fieldName, object? value) : IUnsetFieldFiller
+    private sealed class SettingFiller(string fieldName, object? value) : IUnsetFieldFilling
     {
         public void Fill(object record, IReadOnlyCollection<PropertyInfo> unsetFields)
         {
@@ -133,4 +138,41 @@ public class UnsetFieldFillerTest
             field?.SetValue(record, value);
         }
     }
+
+    [Fact]
+    public async Task Supply_WhenTheMasterTemplateConfiguresEveryWritableField_NeverCallsTheFiller()
+    {
+        // Arrange - Tag has only its key and one Put(...) field: nothing left unset
+        IUnsetFieldFilling filler = Substitute.For<IUnsetFieldFilling>();
+        IProviderLocating tagLookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
+        {
+            [LookupKey.Get<FullyConfiguredTag>()] = new FullyConfiguredTagProvider(),
+        });
+        RecordProvider provider = new RecordProvider(typeof(FullyConfiguredTag), tagLookup)
+            .SetInsertMode(InsertMode.Mock)
+            .SetUnsetFieldFiller(filler);
+
+        // Act
+        _ = await provider.Supply().ConfigureAwait(true);
+
+        // Assert
+        filler.DidNotReceive().Fill(Arg.Any<object>(), Arg.Any<IReadOnlyCollection<PropertyInfo>>());
+    }
+}
+file sealed class FullyConfiguredTag
+{
+    public string? Id { get; set; }
+
+    public string? Label { get; set; }
+}
+
+file sealed class FullyConfiguredTagProvider : IRecordProviding
+{
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<FullyConfiguredTag>(x => x.Id))
+        .Put<FullyConfiguredTag>(x => x.Label, new LiteralExpression("tag"));
+
+    public PropertyInfo PrimaryTargetField => Field.Of<FullyConfiguredTag>(x => x.Id);
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }

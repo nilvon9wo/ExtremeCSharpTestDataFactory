@@ -2,7 +2,7 @@ using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 namespace Net.NowhereAtAll.Xfty.Lookup;
 
 /// <summary>
-/// The reusable mechanics behind an <see cref="IProviderLookup"/>, so a
+/// The reusable mechanics behind an <see cref="IProviderLocating"/>, so a
 /// project's own lookup stays a handful of one-line delegations over an
 /// explicit dictionary. Nothing here is stateful and nothing mutates a
 /// lookup: you pass a complete map in, you get an answer out.
@@ -12,23 +12,24 @@ public static class ProviderLookups
     // Resolving a Provider ---------------------------------------------------
 
     /// <summary>lookup.Get(typeof(TRecord)), without the typeof.</summary>
-    public static IRecordProvider Get<TRecord>(this IProviderLookup lookup) => lookup.Get(typeof(TRecord));
+    public static IRecordProviding Get<TRecord>(this IProviderLocating lookup) => lookup.Get(typeof(TRecord));
 
     /// <summary>Look up (and lazily instantiate + cache) a Provider for key.</summary>
-    public static IRecordProvider Get(
-        Dictionary<ILookupKey, Type> providerTypeByKey,
-        Dictionary<ILookupKey, IRecordProvider> instanceCache,
-        ILookupKey key)
+    public static IRecordProviding Get(
+        Dictionary<IRecordIdentifying, Type> providerTypeByKey,
+        Dictionary<IRecordIdentifying, IRecordProviding> instanceCache,
+        IRecordIdentifying key
+    )
     {
         RequireKey(key);
-        if (!instanceCache.TryGetValue(key, out IRecordProvider? cached))
+        if (!instanceCache.TryGetValue(key, out IRecordProviding? cached))
         {
             if (!providerTypeByKey.TryGetValue(key, out Type? providerType))
             {
                 throw NotRegistered(key);
             }
 
-            cached = (IRecordProvider)Activator.CreateInstance(providerType)!;
+            cached = (IRecordProviding)Activator.CreateInstance(providerType)!;
             instanceCache[key] = cached;
         }
 
@@ -36,10 +37,13 @@ public static class ProviderLookups
     }
 
     /// <summary>Look up an already-constructed Provider for key.</summary>
-    public static IRecordProvider Get(Dictionary<ILookupKey, IRecordProvider> providerByKey, ILookupKey key)
+    public static IRecordProviding Get(
+        Dictionary<IRecordIdentifying, IRecordProviding> providerByKey,
+        IRecordIdentifying key
+    )
     {
         RequireKey(key);
-        return providerByKey.TryGetValue(key, out IRecordProvider? provider)
+        return providerByKey.TryGetValue(key, out IRecordProviding? provider)
             ? provider
             : throw NotRegistered(key);
     }
@@ -47,7 +51,7 @@ public static class ProviderLookups
     // Deriving a key from a record ------------------------------------------
 
     /// <summary>The subset of registeredKeys whose IsInstanceOf(record) is true.</summary>
-    public static ISet<ILookupKey> KeysFor(ISet<ILookupKey> registeredKeys, object? record)
+    public static ISet<IRecordIdentifying> KeysFor(ISet<IRecordIdentifying> registeredKeys, object? record)
     {
         object requiredRecord = record ?? throw new LookupException("A record is required to derive a lookup key.");
         return registeredKeys
@@ -61,18 +65,18 @@ public static class ProviderLookups
     /// refined matched. Two equally-specific matches is an error - the
     /// caller must supply an explicit key.
     /// </summary>
-    public static ILookupKey Resolve(IProviderLookup providerLookup, object? record)
+    public static IRecordIdentifying Resolve(IProviderLocating providerLookup, object? record)
     {
-        ISet<ILookupKey> matches = providerLookup.KeysFor(record);
+        ISet<IRecordIdentifying> matches = providerLookup.KeysFor(record);
         return matches.Count == 0
             ? LookupKey.Get(record?.GetType())
             : BestOf(matches, record);
     }
 
-    private static ILookupKey BestOf(ISet<ILookupKey> matches, object? record)
+    private static IRecordIdentifying BestOf(ISet<IRecordIdentifying> matches, object? record)
     {
         int topSpecificity = matches.Max(key => key.Specificity);
-        List<ILookupKey> topTier = [.. matches.Where(key => key.Specificity == topSpecificity)];
+        List<IRecordIdentifying> topTier = [.. matches.Where(key => key.Specificity == topSpecificity)];
         List<string> topTierHashes = [.. topTier.Select(key => key.HashKey).Distinct()];
         return topTierHashes.Count > 1
             ? throw new LookupException(
@@ -87,9 +91,9 @@ public static class ProviderLookups
     /// key and an optional override template - the two ways a caller can
     /// name a variant.
     /// </summary>
-    public static ILookupKey? Reconcile(
-        IProviderLookup providerLookup,
-        ILookupKey? explicitKey,
+    public static IRecordIdentifying? Reconcile(
+        IProviderLocating providerLookup,
+        IRecordIdentifying? explicitKey,
         object? overrideTemplate
     ) =>
         (explicitKey, overrideTemplate) switch
@@ -102,8 +106,8 @@ public static class ProviderLookups
         };
 
     private static bool ContradictsTemplate(
-        IProviderLookup providerLookup,
-        ILookupKey explicitKey,
+        IProviderLocating providerLookup,
+        IRecordIdentifying explicitKey,
         object? overrideTemplate
     )
     {
@@ -112,43 +116,45 @@ public static class ProviderLookups
             return false;
         }
 
-        ILookupKey fromTemplate = Resolve(providerLookup, overrideTemplate);
+        IRecordIdentifying fromTemplate = Resolve(providerLookup, overrideTemplate);
         return fromTemplate.Specificity > 0 && fromTemplate.HashKey != explicitKey.HashKey;
     }
 
     private static LookupException ContradictionException(
-        IProviderLookup providerLookup,
-        ILookupKey explicitKey,
+        IProviderLocating providerLookup,
+        IRecordIdentifying explicitKey,
         object? overrideTemplate
     )
     {
-        ILookupKey fromTemplate = Resolve(providerLookup, overrideTemplate);
+        IRecordIdentifying fromTemplate = Resolve(providerLookup, overrideTemplate);
         return new LookupException(
             $"Explicit variant {explicitKey.HashKey} contradicts the override template, which matches "
-            + $"{fromTemplate.HashKey}. Supply only one.");
+            + $"{fromTemplate.HashKey}. Supply only one."
+        );
     }
 
     // Ready-made map-backed lookups ---------------------------------------
 
     /// <summary>A lookup over a complete map of already-constructed Providers.</summary>
-    public static IProviderLookup Of(Dictionary<ILookupKey, IRecordProvider> providerByKey) =>
+    public static IProviderLocating Of(Dictionary<IRecordIdentifying, IRecordProviding> providerByKey) =>
         new MapBackedLookup(null, providerByKey, null);
 
     /// <summary>As Of(Map), plus the shared-ancestor defaults the Providers rely on.</summary>
-    public static IProviderLookup Of(
-        Dictionary<ILookupKey, IRecordProvider> providerByKey,
-        Dictionary<string, object> sharedAncestorDefaults) =>
+    public static IProviderLocating Of(
+        Dictionary<IRecordIdentifying, IRecordProviding> providerByKey,
+        Dictionary<string, object> sharedAncestorDefaults
+    ) =>
         new MapBackedLookup(null, providerByKey, sharedAncestorDefaults);
 
     /// <summary>A lookup over a complete map of Provider types (instantiated lazily).</summary>
-    public static IProviderLookup OfTypes(Dictionary<ILookupKey, Type> providerTypeByKey) =>
+    public static IProviderLocating OfTypes(Dictionary<IRecordIdentifying, Type> providerTypeByKey) =>
         new MapBackedLookup(providerTypeByKey, null, null);
 
     // ---------------------------------------------------------------------
 
-    private static void RequireKey(ILookupKey? key) =>
+    private static void RequireKey(IRecordIdentifying? key) =>
         _ = key ?? throw new LookupException("A lookup key is required.");
 
-    private static LookupException NotRegistered(ILookupKey key) =>
+    private static LookupException NotRegistered(IRecordIdentifying key) =>
         new($"No data provider registered for {key.RecordType} (key: {key.HashKey}).");
 }

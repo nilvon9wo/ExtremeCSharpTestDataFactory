@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace Net.NowhereAtAll.Xfty.Persistence;
 
-/// <summary>What an <see cref="IMockIdGenerator"/> is told about the record it is minting an Id for.</summary>
+/// <summary>What an <see cref="IMockIdGenerating"/> is told about the record it is minting an Id for.</summary>
 public sealed class MockIdContext(Type recordType, PropertyInfo idField, object record)
 {
     public Type RecordType { get; } = recordType;

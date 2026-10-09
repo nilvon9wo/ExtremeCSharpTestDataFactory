@@ -33,7 +33,7 @@ care.
 ## What's missing is convenience, not capability
 
 - **A bundled way to produce a plausible vector.** Today, a Provider would
-  supply its own `IValueExpression` returning a `float[]` - straightforward,
+  supply its own `IValueYielding` returning a `float[]` - straightforward,
   but every consumer writing a similar "N random floats" expression from
   scratch is exactly the kind of repeated boilerplate XFTY's bundled value
   expressions (`IncrementingStringExpression`, `UniqueEmailExpression`, …)
@@ -57,7 +57,7 @@ care.
 
 ## Persistence
 
-[`IPersistenceGateway`](deferred-persistence.md) is still the right seam.
+[`IPersisting`](deferred-persistence.md) is still the right seam.
 Both options below are now proven against a real container, not just
 described - `PgVectorPersistenceTest`, `QdrantPersistenceGatewayTest`
 (`Xfty.VectorDatabases.Qdrant.Test`), and `MevdPersistenceGatewayTest`
@@ -84,7 +84,7 @@ real, tested persistence.
 
 ### Qdrant - two separate preview packages, not a considered release
 
-Two independent `IPersistenceGateway`s answer the same question two
+Two independent `IPersisting`s answer the same question two
 different ways, **in two separate packages from the start** - not combined
 even during this comparison phase, after concluding there wasn't a good
 reason to (see [Why two packages, not one](#why-two-packages-not-one)

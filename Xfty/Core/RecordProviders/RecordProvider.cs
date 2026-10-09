@@ -18,12 +18,12 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 public sealed partial class RecordProvider
 {
     private readonly Type _recordType;
-    private readonly IProviderLookup _providerLookup;
+    private readonly IProviderLocating _providerLookup;
     private readonly RecordProviderTemplateConfig _templateConfig;
     private readonly RecordProviderChildConfig _childConfig = new();
 
     private List<object>? _overrideTemplateList;
-    private ILookupKey? _explicitVariantKey;
+    private IRecordIdentifying? _explicitVariantKey;
     private int _quantityPerListedTemplate = 1;
     private InsertMode _insertMode = InsertMode.Never;
     private InsertInclusivity _inclusivity = InsertInclusivity.None;
@@ -31,11 +31,11 @@ public sealed partial class RecordProvider
     private bool _excludePrimaryIds;
     private bool _depthBatched;
     private bool _forceStructuralChildGeneration;
-    private IPersistenceGateway? _persistenceGateway;
-    private IUnsetFieldFiller? _unsetFieldFiller;
-    private IRecordProvider? _factoryOutlet;
+    private IPersisting? _persistenceGateway;
+    private IUnsetFieldFilling? _unsetFieldFiller;
+    private IRecordProviding? _factoryOutlet;
 
-    public RecordProvider(Type recordType, IProviderLookup providerLookup)
+    public RecordProvider(Type recordType, IProviderLocating providerLookup)
     {
         this._recordType = recordType ?? throw new XftyConfigurationException(
             "A record type is required to request data."
@@ -51,12 +51,12 @@ public sealed partial class RecordProvider
     /// <summary>
     /// Convenience: start from a lookup key. The record type is taken from the key, pinned as the variant.
     /// </summary>
-    public RecordProvider(ILookupKey variantKey, IProviderLookup providerLookup)
+    public RecordProvider(IRecordIdentifying variantKey, IProviderLocating providerLookup)
         : this(TypeOf(variantKey), providerLookup) =>
         this._explicitVariantKey = variantKey;
 
     /// <summary>Convenience: start from an override template. The record type is taken from the template.</summary>
-    public RecordProvider(object overrideTemplate, IProviderLookup providerLookup)
+    public RecordProvider(object overrideTemplate, IProviderLocating providerLookup)
         : this([overrideTemplate], providerLookup)
     {
     }
@@ -64,11 +64,11 @@ public sealed partial class RecordProvider
     /// <summary>
     /// Convenience: start from a list of override templates. The record type is taken from the first template.
     /// </summary>
-    public RecordProvider(List<object> overrideTemplateList, IProviderLookup providerLookup)
+    public RecordProvider(List<object> overrideTemplateList, IProviderLocating providerLookup)
         : this(TypeOf(overrideTemplateList), providerLookup) =>
         this.SetOverrideTemplateList(overrideTemplateList);
 
-    private static Type TypeOf(ILookupKey variantKey) =>
+    private static Type TypeOf(IRecordIdentifying variantKey) =>
         (variantKey ?? throw new XftyConfigurationException("A lookup key is required to request data.")).RecordType;
 
     private static Type TypeOf(List<object>? overrideTemplateList)
@@ -80,9 +80,10 @@ public sealed partial class RecordProvider
     private static XftyConfigurationException NoTemplateToDeriveTypeFrom() =>
         new(
             "Cannot derive a record type from an empty or null template list - supply at least one concrete "
-            + "template, or use the (Type, lookup) constructor.");
+            + "template, or use the (Type, lookup) constructor."
+        );
 
-    private IRecordProvider ResolveFactoryOutlet() =>
+    private IRecordProviding ResolveFactoryOutlet() =>
         this._factoryOutlet ??= this._providerLookup.Get(this.ResolveVariantKey());
 
     /// <summary>
@@ -91,10 +92,10 @@ public sealed partial class RecordProvider
     /// record-type key. Only consulted the first time the Provider is
     /// resolved.
     /// </summary>
-    private ILookupKey ResolveVariantKey()
+    private IRecordIdentifying ResolveVariantKey()
     {
         object? firstTemplate = this._overrideTemplateList is { Count: > 0 } ? this._overrideTemplateList[0] : null;
-        ILookupKey? reconciled =
+        IRecordIdentifying? reconciled =
             ProviderLookups.Reconcile(this._providerLookup, this._explicitVariantKey, firstTemplate);
         return reconciled ?? LookupKey.Get(this._recordType);
     }

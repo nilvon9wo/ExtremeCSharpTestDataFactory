@@ -3,7 +3,7 @@ using System.Reflection;
 namespace Net.NowhereAtAll.Xfty.Predicates;
 
 /// <summary>
-/// An <see cref="IRecordPredicate"/> satisfied when a record's field orders
+/// An <see cref="IRecordMatching"/> satisfied when a record's field orders
 /// strictly after a fixed value - numbers numerically, dates/times
 /// chronologically, everything else lexicographically (see
 /// <see cref="ValueComparison"/>). A null record, null field value, or null
@@ -12,7 +12,7 @@ namespace Net.NowhereAtAll.Xfty.Predicates;
 /// Obtain one through <see cref="Of"/> or the <see cref="FieldPredicateFactory"/>
 /// facade.
 /// </summary>
-public sealed class FieldGreaterThanPredicate : IRecordPredicate
+public sealed class FieldGreaterThanPredicate : IRecordMatching
 {
     private readonly PropertyInfo _field;
     private readonly object? _comparisonValue;

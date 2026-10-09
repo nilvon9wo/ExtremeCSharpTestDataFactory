@@ -6,7 +6,7 @@ namespace Net.NowhereAtAll.Xfty.Engine;
 /// <summary>
 /// The whole in-memory forest a DEFERRED flush has collected - every
 /// generated record and every parent link - presented for an
-/// <see cref="Values.IDeferredExpression"/> to read a value up from a
+/// <see cref="Values.IDeferred"/> to read a value up from a
 /// descendant.
 /// </summary>
 public sealed class DeferredGraph(List<object> records, List<DepthBatchedInserterParentLink> links)

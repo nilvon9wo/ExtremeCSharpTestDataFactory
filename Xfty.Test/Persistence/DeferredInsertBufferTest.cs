@@ -135,6 +135,51 @@ public class DeferredInsertBufferTest
         Assert.Null(child.Id); // nothing was resolved
     }
 
+    [Fact]
+    public void Flatten_WhenAParentSubBundleHasNoRecords_LinksNothingToIt()
+    {
+        // Arrange - a hand-assembled bundle whose Account sub-bundle never got primaries
+        Bundle bundle = BundleOf(Field.Of<Contact>(x => x.Id), new Contact { LastName = "Orphan" });
+        _ = bundle.Put<Contact>(x => x.AccountId, new Bundle());
+
+        // Act
+        DeferredInsertBuffer buffer = DeferredInsertBuffer.Flatten(bundle);
+
+        // Assert
+        Assert.Empty(buffer.ParentLinks());
+    }
+
+    [Fact]
+    public void Flatten_WhenEachChildHasItsOwnParent_LinksThemRowForRow()
+    {
+        // Arrange - two Contacts, each with its own generated Account
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact(), new Contact()]);
+        Bundle accounts = new();
+        accounts.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account(), new Account()]);
+        _ = bundle.Put<Contact>(x => x.AccountId, accounts);
+
+        // Act
+        DeferredInsertBuffer buffer = DeferredInsertBuffer.Flatten(bundle);
+
+        // Assert - two links, to two different parents
+        List<DepthBatchedInserterParentLink> links = buffer.ParentLinks();
+        Assert.Equal(2, links.Select(link => link.ParentIndex).Distinct().Count());
+    }
+
+    [Fact]
+    public void IdFieldByType_AfterFlatten_NamesEachRecordTypesRealKeyField()
+    {
+        // Arrange
+        Bundle bundle = BundleOf(Field.Of<Contact>(x => x.Id), new Contact());
+
+        // Act
+        DeferredInsertBuffer buffer = DeferredInsertBuffer.Flatten(bundle);
+
+        // Assert
+        Assert.Equal(Field.Of<Contact>(x => x.Id), buffer.IdFieldByType()[typeof(Contact)]);
+    }
+
     // Helpers -----------------------------------------------
 
     private static Bundle BundleOf(System.Reflection.PropertyInfo primaryField, object record)

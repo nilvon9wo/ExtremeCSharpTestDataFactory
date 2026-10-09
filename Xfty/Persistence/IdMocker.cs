@@ -7,7 +7,7 @@ namespace Net.NowhereAtAll.Xfty.Persistence;
 /// insert - <see cref="Core.InsertMode.Mock"/>'s whole job, and useful for
 /// pure in-memory unit tests generally, since they never get a real
 /// identity-column round-trip. The value's shape is the
-/// <see cref="IMockIdGenerator"/>'s call; <see cref="DefaultMockIdGenerator"/>
+/// <see cref="IMockIdGenerating"/>'s call; <see cref="DefaultMockIdGenerator"/>
 /// is used when none is supplied.
 /// </summary>
 public static class IdMocker
@@ -15,7 +15,7 @@ public static class IdMocker
     public static List<object> AddIds(List<object> records, PropertyInfo idField) =>
         AddIds(records, idField, DefaultMockIdGenerator.Instance);
 
-    public static List<object> AddIds(List<object> records, PropertyInfo idField, IMockIdGenerator generator)
+    public static List<object> AddIds(List<object> records, PropertyInfo idField, IMockIdGenerating generator)
     {
         records.ForEach(record => AddId(record, idField, generator));
         return records;
@@ -24,7 +24,7 @@ public static class IdMocker
     public static object AddId(object record, PropertyInfo idField) =>
         AddId(record, idField, DefaultMockIdGenerator.Instance);
 
-    public static object AddId(object record, PropertyInfo idField, IMockIdGenerator generator)
+    public static object AddId(object record, PropertyInfo idField, IMockIdGenerating generator)
     {
         idField.SetValue(record, generator.NextId(new MockIdContext(record.GetType(), idField, record)));
         return record;

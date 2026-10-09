@@ -2,7 +2,7 @@
 
 Under [`InsertMode.Mock`](../use/insert-modes.md) XFTY assigns each record a
 placeholder identifier instead of doing a real persistence round-trip. What
-that identifier *looks like* is an `IMockIdGenerator` — swap it when your
+that identifier *looks like* is an `IMockIdGenerating` — swap it when your
 project's keys aren't one of the built-in shapes, or aren't strings at all.
 
 ---
@@ -30,7 +30,7 @@ One method. Keep any sequence state on the instance.
 
 <!-- sketch -->
 ```csharp
-public sealed class AccountIdGenerator : IMockIdGenerator
+public sealed class AccountIdGenerator : IMockIdGenerating
 {
     private int count;
 
@@ -85,7 +85,7 @@ the Master Template's `WithMockIdGenerator` → `DefaultMockIdGenerator`.
 - A **key already set on the template is kept** under `Mock` — the generator
   fills only an unset key, so `new Order { OrderRef = "known-1" }` stays
   `"known-1"`.
-- `IMockIdGenerator` applies to `InsertMode.Mock` only (the depth-batched and
+- `IMockIdGenerating` applies to `InsertMode.Mock` only (the depth-batched and
   deferred paths included — each type's `WithMockIdGenerator` is honoured
   there too). Under `InsertMode.Now` the real backing store assigns the
   identifier: the `EfPersistenceGateway` fills an empty **string** key with a

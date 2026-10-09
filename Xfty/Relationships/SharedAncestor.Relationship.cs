@@ -6,7 +6,7 @@ using Net.NowhereAtAll.Xfty.Lookup;
 namespace Net.NowhereAtAll.Xfty.Relationships;
 
 /// <summary>
-/// SharedAncestor - the IDefaultRelationship/ISharedRelationship surface a Master Template puts it as.
+/// SharedAncestor - the IRelatable/ISharedRelatable surface a Master Template puts it as.
 /// </summary>
 public sealed partial class SharedAncestor
 {
@@ -14,7 +14,8 @@ public sealed partial class SharedAncestor
 
     public PropertyInfo? RelatedField => this._source?.RelatedField();
 
-    public ILookupKey? ResolveLookupKey(IProviderLookup providerLookup) => this.Source().LookupKey(providerLookup);
+    public IRecordIdentifying ResolveLookupKey(IProviderLocating providerLookup) =>
+        this.Source().LookupKey(providerLookup);
 
     public bool IsResolved => this._resolvedRecord is not null;
 

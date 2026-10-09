@@ -122,8 +122,8 @@ SharedAncestor.Put("region", new Account { Name = "Region HQ" })
 | `SharedAncestor.Put(name, object? record)` | register `record`. **Id present** → a fixed value; **no Id** → an override template. Use the explicit forms to be sure |
 | `SharedAncestor.PutAsTemplate(name, object? template)` | always an override template (generated in the pre-phase; also sets the type) |
 | `SharedAncestor.PutAsValue(name, object record)` | always used as-is |
-| `SharedAncestor.Put(name, ILookupKey key)` | register just the Provider variant that generates it ([provider-variants](provider-variants.md)) |
-| `.FromVariant(ILookupKey key)` | chained off `Put(name, …)` — pin the variant *and* keep the template |
+| `SharedAncestor.Put(name, IRecordIdentifying key)` | register just the Provider variant that generates it ([provider-variants](provider-variants.md)) |
+| `.FromVariant(IRecordIdentifying key)` | chained off `Put(name, …)` — pin the variant *and* keep the template |
 | `.Put(field, …)` · `.PutRequired(field, rel)` · `.PutOptional(…)` · `.IncludeOptional(…)` · `.Put(path, …)` · `.SetInclusivity(…)` | chained onto `Put(name, …)` — shape the shared record's own generation, exactly the API a generated parent takes (see below) |
 | `.CopyingRelatedField(field)` | copy `field` from the shared record into the child's field instead of its Id |
 | `SharedAncestor.PutIfAbsent(name, template)` | `PutAsTemplate`, only if `name` is not registered yet — for a shared setup helper that may run more than once, or that registers more ancestors than one test uses |
@@ -174,7 +174,7 @@ The quick form: pass them alongside the Provider map.
 <!-- sketch -->
 ```csharp
 ProviderLookups.Of(
-    new Dictionary<ILookupKey, IRecordProvider>
+    new Dictionary<IRecordIdentifying, IRecordProviding>
     {
         [LookupKey.Get<Account>()] = new MyAccountProvider(),
         [LookupKey.Get<Contact>()] = new MyContactProvider(),   // references Get("acme-hq")
@@ -183,11 +183,11 @@ ProviderLookups.Of(
 ```
 
 A hand-written lookup implements the companion interface
-**`ISharedAncestorDefaults`** — one method:
+**`ISharedAncestorRegistering`** — one method:
 
 <!-- sketch -->
 ```csharp
-public sealed class MyProjectLookup : IProviderLookup, ISharedAncestorDefaults
+public sealed class MyProjectLookup : IProviderLocating, ISharedAncestorRegistering
 {
     // ... the usual Get / KeysFor ...
     public void RegisterSharedAncestorDefaults()

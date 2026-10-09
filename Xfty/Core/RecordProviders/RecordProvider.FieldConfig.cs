@@ -10,20 +10,20 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// </summary>
 public sealed partial class RecordProvider
 {
-    public RecordProvider Put(PropertyInfo field, IValueExpression valueTemplate) =>
+    public RecordProvider Put(PropertyInfo field, IValueYielding valueTemplate) =>
         this.PutValue(
             field,
             valueTemplate
         );
 
-    public RecordProvider Put(PropertyInfo field, IContextAwareExpression contextAwareExpression) =>
+    public RecordProvider Put(PropertyInfo field, IContextAware contextAwareExpression) =>
         this.PutValue(
             field,
             contextAwareExpression
         );
 
     /// <summary>An up-flowing value; needs the DEFERRED insert mode.</summary>
-    public RecordProvider Put(PropertyInfo field, IDeferredExpression deferredValue) =>
+    public RecordProvider Put(PropertyInfo field, IDeferred deferredValue) =>
         this.PutValue(
             field,
             deferredValue
@@ -38,13 +38,13 @@ public sealed partial class RecordProvider
         return this;
     }
 
-    public RecordProvider PutRequired(PropertyInfo field, IDefaultRelationship relationshipTemplate)
+    public RecordProvider PutRequired(PropertyInfo field, IRelatable relationshipTemplate)
     {
         this._templateConfig.PutRequired(field, relationshipTemplate);
         return this;
     }
 
-    public RecordProvider PutOptional(PropertyInfo field, IDefaultRelationship relationshipTemplate)
+    public RecordProvider PutOptional(PropertyInfo field, IRelatable relationshipTemplate)
     {
         this._templateConfig.PutOptional(field, relationshipTemplate);
         return this;
@@ -86,19 +86,19 @@ public sealed partial class RecordProvider
 
     // Path-scoped value overrides -------------------------------------
 
-    public RecordProvider Put(List<PropertyInfo> path, IValueExpression valueExpression) =>
+    public RecordProvider Put(List<PropertyInfo> path, IValueYielding valueExpression) =>
         this.PutPathValue(PathValue.OfExpression(path, valueExpression));
 
-    public RecordProvider Put(List<PropertyInfo> path, IContextAwareExpression contextAwareExpression) =>
+    public RecordProvider Put(List<PropertyInfo> path, IContextAware contextAwareExpression) =>
         this.PutPathValue(PathValue.OfContextAware(path, contextAwareExpression));
 
     public RecordProvider Put(List<PropertyInfo> path, object? literal) =>
         this.PutPathValue(PathValue.OfLiteral(path, literal));
 
-    public RecordProvider PutRequired(List<PropertyInfo> path, IDefaultRelationship relationship) =>
+    public RecordProvider PutRequired(List<PropertyInfo> path, IRelatable relationship) =>
         this.PutPathValue(PathValue.OfRequiredRelationship(path, relationship));
 
-    public RecordProvider PutOptional(List<PropertyInfo> path, IDefaultRelationship relationship) =>
+    public RecordProvider PutOptional(List<PropertyInfo> path, IRelatable relationship) =>
         this.PutPathValue(PathValue.OfOptionalRelationship(path, relationship));
 
     private RecordProvider PutPathValue(PathValue pathValue)

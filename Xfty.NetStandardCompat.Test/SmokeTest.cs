@@ -21,10 +21,8 @@ namespace Net.NowhereAtAll.Xfty.NetStandardCompat.Test;
 /// already-installed-locally runtime that implements it - is what actually
 /// executes them here, through public XFTY behavior that happens to depend
 /// on each one, rather than reaching into the internal polyfill types
-/// directly. Xfty/Internal/SharedRandom.cs is proven separately, in
-/// VectorDatabasesSmokeTest - nothing in core Xfty itself calls it any more
-/// (see UniqueAcrossRunsExpression's own docstring for why it moved off
-/// SharedRandom entirely).
+/// directly. Xfty.VectorDatabases' SharedRandom is proven separately, in
+/// VectorDatabasesSmokeTest.
 /// </summary>
 public class SmokeTest
 {
@@ -58,12 +56,12 @@ public class SmokeTest
         DefaultProviderLookup lookup = new();
 
         // Act
-        ISet<Lookup.ILookupKey> keys = lookup.KeysFor(new Account());
+        ISet<IRecordIdentifying> keys = lookup.KeysFor(new Account());
 
         // Assert - ToHashSet's polyfill produced a real set, correctly populated with every registered key,
         // for ProviderLookups.KeysFor to then filter down to the one matching Account
         _ = Assert.Single(keys);
-        Assert.Contains(Lookup.LookupKey.Get<Account>(), keys);
+        Assert.Contains(LookupKey.Get<Account>(), keys);
     }
 
     // BlankInstances.Of -> FormatterServices.GetUninitializedObject (netstandard2.0 branch) --
@@ -73,9 +71,9 @@ public class SmokeTest
     {
         // Arrange - Voucher has only a parameterized constructor, so BlankInstances.Of must fall back
         // to FormatterServices.GetUninitializedObject, the netstandard2.0-only branch #if'd out on net8.0+
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<Lookup.ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
-            [Lookup.LookupKey.Get<Voucher>()] = new VoucherProvider(),
+            [LookupKey.Get<Voucher>()] = new VoucherProvider(),
         });
 
         // Act
@@ -97,7 +95,7 @@ file sealed class Voucher(string kind)
     public string? Kind { get; set; } = kind;
 }
 
-file sealed class VoucherProvider : IRecordProvider
+file sealed class VoucherProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Voucher>(x => x.Code)
         .Put(x => x.Kind, new LiteralExpression("Gift"));

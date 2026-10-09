@@ -39,13 +39,13 @@ public class AnyOfPredicateTest
         Assert.Contains("predicate list is required", thrown.Message);
     }
 
-    private static List<IRecordPredicate> BigOrTechPredicates() =>
+    private static List<IRecordMatching> BigOrTechPredicates() =>
     [
         FieldPredicateFactory.GreaterThan<Account>(x => x.NumberOfEmployees, 5000),
         FieldPredicateFactory.EqualTo<Account>(x => x.Industry, "Technology")
     ];
 
-    private static void AssertIsSatisfiedBy(List<IRecordPredicate> members, Account? record, bool expectedResult)
+    private static void AssertIsSatisfiedBy(List<IRecordMatching> members, Account? record, bool expectedResult)
     {
         // Arrange
         AnyOfPredicate predicate = AnyOfPredicate.Of(members);

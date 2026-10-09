@@ -9,7 +9,7 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData;
 /// of known assumptions and accepted risks before relying on this in a real
 /// test suite.
 ///
-/// An <see cref="IPersistenceGateway"/> that inserts XFTY-generated records
+/// An <see cref="IPersisting"/> that inserts XFTY-generated records
 /// into any <see cref="VectorStore"/> Microsoft.Extensions.VectorData has a
 /// connector for (Qdrant, Redis, Azure AI Search, pgvector, and more) - this
 /// class has no dependency on, or knowledge of, which one. It uses MEVD's
@@ -24,7 +24,7 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.MicrosoftExtensionsVectorData;
 /// from an unsupported field shape surface from whatever concrete
 /// <see cref="VectorStore"/> is plugged in, not from this class.
 /// </summary>
-public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersistenceGateway
+public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisting
 {
     public Task Insert(List<object> records, PropertyInfo idField) =>
         InsertGroups(this, [.. records.GroupBy(record => record.GetType())], idField);
@@ -86,7 +86,8 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
             ? Guid.NewGuid().ToString()
             : throw new NotSupportedException(
                 $"This PoC can only auto-generate a Guid or string id for a field left unset - "
-                + $"'{underlyingType.Name}' needs to be set by the Provider template itself. See README.md.");
+                + $"'{underlyingType.Name}' needs to be set by the Provider template itself. See README.md."
+            );
 
     private static PropertyInfo FindVectorField(Type recordType)
     {
@@ -102,7 +103,8 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
     }
 
     private static VectorStoreCollectionDefinition BuildDefinition(
-        Type recordType, PropertyInfo idField, PropertyInfo vectorField, object sampleRecord)
+        Type recordType, PropertyInfo idField, PropertyInfo vectorField, object sampleRecord
+    )
     {
         int dimensions = ((float[])vectorField.GetValue(sampleRecord)!).Length;
         Type keyType = Nullable.GetUnderlyingType(idField.PropertyType) ?? idField.PropertyType;
@@ -130,5 +132,8 @@ public sealed class MevdPersistenceGateway(VectorStore vectorStore) : IPersisten
         // there and inference alone lands on Dictionary<string, object> - a mismatch against this
         // method's declared Dictionary<string, object?> return type on that TFM only.
         recordType.GetProperties()
-            .ToDictionary<PropertyInfo, string, object?>(property => property.Name, property => property.GetValue(record));
+            .ToDictionary<PropertyInfo, string, object?>(
+                property => property.Name,
+                property => property.GetValue(record)
+            );
 }

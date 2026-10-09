@@ -1,4 +1,4 @@
-using global::AutoBogus;
+using AutoBogus;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Lookup;
 
@@ -18,7 +18,7 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus;
 ///
 /// insertMode defaults to <see cref="InsertMode.Mock"/> - in-memory Ids, no
 /// real DML - matching AutoBogus's own offline scope. inclusivity defaults
-/// to <see cref="InsertInclusivity.Required"/>, not <see cref="RecordProvider"/>'s
+/// to <see cref="InsertInclusivity.Required"/>, not <see cref="Core.RecordProviders.RecordProvider"/>'s
 /// own default of <see cref="InsertInclusivity.None"/> - matching
 /// AutoBogus's own "hand back a complete object" philosophy, the same
 /// reasoning the AutoFixture pairing's own <c>XftyCustomization</c>
@@ -27,8 +27,9 @@ namespace Net.NowhereAtAll.Xfty.AutoBogus;
 public static class XftyAutoBogus
 {
     public static IAutoFaker CreateFaker(
-        IProviderLookup lookup,
+        IProviderLocating lookup,
         InsertMode insertMode = InsertMode.Mock,
-        InsertInclusivity inclusivity = InsertInclusivity.Required) =>
+        InsertInclusivity inclusivity = InsertInclusivity.Required
+    ) =>
         AutoFaker.Create(builder => builder.WithOverride(new XftyAutoBogusOverride(lookup, insertMode, inclusivity)));
 }

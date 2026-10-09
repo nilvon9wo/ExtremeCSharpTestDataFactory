@@ -23,8 +23,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Persistence;
 /// </summary>
 public class FlavouredMockIdHierarchyTest
 {
-    private static IProviderLookup ChainLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating ChainLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Node>()] = new RootNodeProvider(),                    // plain key - default Id gen
             [KindKey("alpha")] = new AlphaNodeProvider(),                        // custom: "ALPHA-N"
@@ -66,7 +66,7 @@ public class FlavouredMockIdHierarchyTest
         Assert.Matches("^mock-[0-9]+$", beta.NodeRef!);        // discriminated variant, no custom generator
         Assert.Matches("^g:EMEA:[0-9]+$", gamma.NodeRef!);     // built from the record's own Region
         Assert.Matches("^mock-[0-9]+$", delta.NodeRef!);
-        Assert.Matches(@"^EPS-[0-9]{8}-[0-9]+$", epsilon.NodeRef!);
+        Assert.Matches("^EPS-[0-9]{8}-[0-9]+$", epsilon.NodeRef!);
         Assert.Matches("^z_[0-9]{6}$", zeta.NodeRef!);
         Assert.Matches("^end-[0-9]+$", terminal.NodeRef!);
 
@@ -125,28 +125,28 @@ file sealed record Node
     public string? ParentRef { get; init; }
 }
 
-file sealed class PrefixCounterIdGenerator(string prefix) : IMockIdGenerator
+file sealed class PrefixCounterIdGenerator(string prefix) : IMockIdGenerating
 {
     private int _count;
 
     public object NextId(MockIdContext context) => $"{prefix}{++this._count}";
 }
 
-file sealed class DatestampedIdGenerator(string prefix) : IMockIdGenerator
+file sealed class DatestampedIdGenerator(string prefix) : IMockIdGenerating
 {
     private int _count;
 
     public object NextId(MockIdContext context) => $"{prefix}-{new DateTime(2024, 5, 6):yyyyMMdd}-{++this._count}";
 }
 
-file sealed class ZeroPaddedIdGenerator : IMockIdGenerator
+file sealed class ZeroPaddedIdGenerator : IMockIdGenerating
 {
     private int _count;
 
     public object NextId(MockIdContext context) => $"z_{++this._count:D6}";
 }
 
-file sealed class RegionScopedIdGenerator : IMockIdGenerator
+file sealed class RegionScopedIdGenerator : IMockIdGenerating
 {
     private int _count;
 
@@ -157,9 +157,9 @@ file sealed class RegionScopedIdGenerator : IMockIdGenerator
     }
 }
 
-file abstract class NodeProviderBase : IRecordProvider
+file abstract class NodeProviderBase : IRecordProviding
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 

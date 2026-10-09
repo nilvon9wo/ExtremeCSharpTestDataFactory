@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.Children;
@@ -29,8 +30,10 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// </summary>
 public class ChildProviderTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private const string ChildDepartment = "Buying";
+
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -224,7 +227,8 @@ public class ChildProviderTest
             .SetInsertMode(InsertMode.Mock)
             .With(
                 ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
-                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3)));
+                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(3))
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -247,7 +251,8 @@ public class ChildProviderTest
             .SetInsertMode(InsertMode.Deferred)
             .With(
                 ChildProvider.For<Contact>(x => x.AccountId).SetQuantity(2)
-                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2)));
+                    .With(ChildProvider.For<Case>(x => x.ContactId).SetQuantity(2))
+            );
 
         // Act
         Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
@@ -409,18 +414,209 @@ public class ChildProviderTest
         Assert.Equal(department, childContact.Department);
         Assert.Equal(accountId, childContact.AccountId);
     }
+
+    // Construction guards ---------------------------------------------
+
+    [Fact]
+    public void Constructor_WhenTheRelationshipFieldIsNull_Throws()
+    {
+        // Arrange
+        // nothing to arrange
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => new ChildProvider(null!));
+
+        // Assert
+        Assert.Contains("relationship field", thrown.Message);
+    }
+
+    [Fact]
+    public void Constructor_WhenTheTemplateIsAnotherRecordType_Throws()
+    {
+        // Arrange
+        PropertyInfo contactsAccount = Field.Of<Contact>(x => x.AccountId);
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => new ChildProvider(contactsAccount, new Account())
+        );
+
+        // Assert
+        Assert.Contains(nameof(Account), thrown.Message);
+    }
+
+    [Fact]
+    public void With_WhenGivenNull_Throws()
+    {
+        // Arrange
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId);
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => childProvider.With(null)
+        );
+
+        // Assert
+        Assert.Contains("needs a ChildProvider", thrown.Message);
+    }
+
+    [Fact]
+    public void EffectiveInsertMode_WhenANowParentHasAMockChild_Throws()
+    {
+        // Arrange
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId).SetInsertMode(InsertMode.Mock);
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => childProvider.EffectiveInsertMode(InsertMode.Now)
+        );
+
+        // Assert
+        Assert.Contains("cannot mix mock Ids with real DML", thrown.Message);
+    }
+
+    // Put(field, object) routing --------------------------------------
+
+    [Fact]
+    public async Task Put_WhenGivenAValueExpressionAsObject_EvaluatesIt()
+    {
+        // Arrange
+        object expression = new LiteralExpression(ChildDepartment);
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId)
+            .Put(Field.Of<Contact>(x => x.Department), expression);
+
+        // Act
+        Contact child = await SupplyOneChild(childProvider).ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal(ChildDepartment, child.Department);
+    }
+
+    [Fact]
+    public async Task Put_WhenGivenAContextAwareExpressionAsObject_EvaluatesItInContext()
+    {
+        // Arrange
+        object expression = CopyFromSiblingExpression.From<Contact>(x => x.FirstName);
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId)
+            .Put(Field.Of<Contact>(x => x.Department), expression);
+
+        // Act
+        Contact child = await SupplyOneChild(childProvider).ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal(child.FirstName, child.Department);
+    }
+
+    [Fact]
+    public void Put_WhenGivenARelationshipAsObject_Throws()
+    {
+        // Arrange
+        object relationship = new DefaultRelationship(new Contact());
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId);
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => childProvider.Put(Field.Of<Contact>(x => x.ReportsToId), relationship)
+        );
+
+        // Assert
+        Assert.Contains("PutRequired", thrown.Message);
+    }
+
+    // Lambda overloads ------------------------------------------------
+
+    [Fact]
+    public async Task Put_ByLambdaWithAValueExpression_SetsTheChildField()
+    {
+        // Arrange
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId)
+            .Put<Contact>(x => x.Department, new LiteralExpression(ChildDepartment));
+
+        // Act
+        Contact child = await SupplyOneChild(childProvider).ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal(ChildDepartment, child.Department);
+    }
+
+    [Fact]
+    public async Task Put_ByLambdaWithAContextAwareExpression_SetsTheChildField()
+    {
+        // Arrange
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId)
+            .Put<Contact>(x => x.Department, CopyFromSiblingExpression.From<Contact>(x => x.LastName));
+
+        // Act
+        Contact child = await SupplyOneChild(childProvider).ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal(child.LastName, child.Department);
+    }
+
+    [Fact]
+    public async Task Put_ByLambdaWithALiteral_SetsTheChildField()
+    {
+        // Arrange
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId)
+            .Put<Contact>(x => x.Department, ChildDepartment);
+
+        // Act
+        Contact child = await SupplyOneChild(childProvider).ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal(ChildDepartment, child.Department);
+    }
+
+    [Fact]
+    public async Task PutRequired_ByLambda_GeneratesTheChildsParentAtRequiredInclusivity()
+    {
+        // Arrange
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId)
+            .PutRequired<Contact>(x => x.ReportsToId, new DefaultRelationship(new Contact()))
+            .SetInclusivity(InsertInclusivity.Required);
+
+        // Act
+        Contact child = await SupplyOneChild(childProvider).ConfigureAwait(true);
+
+        // Assert
+        Assert.NotNull(child.ReportsToId);
+    }
+
+    [Fact]
+    public async Task PutOptional_ByLambda_GeneratesTheChildsParentWhenOptionalsAreIncluded()
+    {
+        // Arrange
+        ChildProvider childProvider = ChildProvider.For<Contact>(x => x.AccountId)
+            .PutOptional<Contact>(x => x.ReportsToId, new DefaultRelationship(new Contact()))
+            .SetInclusivity(InsertInclusivity.All);
+
+        // Act
+        Contact child = await SupplyOneChild(childProvider).ConfigureAwait(true);
+
+        // Assert
+        Assert.NotNull(child.ReportsToId);
+    }
+
+    private static async Task<Contact> SupplyOneChild(ChildProvider childProvider)
+    {
+        Bundle bundle = await new RecordProvider(typeof(Account), Lookup())
+            .SetInsertMode(InsertMode.Mock)
+            .With(childProvider)
+            .SupplyBundle().ConfigureAwait(false);
+        return (Contact)bundle.GetChildList<Contact>(x => x.AccountId)[0];
+    }
 }
 
 /// <summary>
 /// Case that needs a Contact (which in turn needs its own Account) - an in-test Provider only used here.
 /// </summary>
-file sealed class CaseProvider : IRecordProvider
+file sealed class CaseProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Case>(x => x.Id))
         .Put<Case>(x => x.Subject, new IncrementingStringExpression("Case"))
         .PutRequired<Case>(x => x.ContactId, new DefaultRelationship(new Contact()));
 
-    public System.Reflection.PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
+    public PropertyInfo PrimaryTargetField => Field.Of<Case>(x => x.Id);
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);

@@ -65,7 +65,8 @@ public class DepthBatchedInserterTest
         await DepthBatchedInserter.ResolveAll(
             records,
             [Link(0, 1, Field.Of<Case>(x => x.AccountId)), Link(0, 2, Field.Of<Case>(x => x.ContactId))],
-            InsertMode.Mock).ConfigureAwait(true);
+            InsertMode.Mock
+        ).ConfigureAwait(true);
 
         // Assert - both parents at layer 0, the Case alone at layer 1
         Assert.Equal(account.Id, ((Case)records[0]).AccountId);
@@ -85,7 +86,8 @@ public class DepthBatchedInserterTest
         await DepthBatchedInserter.ResolveAll(
             records,
             [Link(1, 0, Field.Of<Contact>(x => x.AccountId)), Link(2, 1, Field.Of<Contact>(x => x.ReportsToId))],
-            InsertMode.Mock).ConfigureAwait(true);
+            InsertMode.Mock
+        ).ConfigureAwait(true);
 
         // Assert
         Assert.Equal(gen1.Id, gen2.AccountId);
@@ -105,7 +107,8 @@ public class DepthBatchedInserterTest
         await DepthBatchedInserter.ResolveAll(
             records,
             [Link(1, 0, Field.Of<Contact>(x => x.AccountId)), Link(2, 0, Field.Of<Contact>(x => x.AccountId))],
-            InsertMode.Mock).ConfigureAwait(true);
+            InsertMode.Mock
+        ).ConfigureAwait(true);
 
         // Assert
         Assert.Equal(parent.Id, first.AccountId);
@@ -140,6 +143,48 @@ public class DepthBatchedInserterTest
 
     // Runners + helpers -------------------------------------
 
+    [Fact]
+    public async Task ResolveAll_InNeverMode_AssignsNoIds()
+    {
+        // Arrange
+        List<object> records = [new Account { Name = "Untouched" }];
+
+        // Act
+        await DepthBatchedInserter.ResolveAll(records, null, InsertMode.Never).ConfigureAwait(true);
+
+        // Assert
+        Assert.Null(((Account)records[0]).Id);
+    }
+
+    [Fact]
+    public async Task ResolveAll_WhenTheParentHasNoKeyField_LeavesTheChildsLookupUnset()
+    {
+        // Arrange - nothing names the parent's key, and it has no "Id" to fall back on
+        Contact child = new() { LastName = "Child" };
+        List<object> records = [child, new KeylessParentRecord()];
+
+        // Act
+        await DepthBatchedInserter
+            .ResolveAll(records, [Link(0, 1, Field.Of<Contact>(x => x.AccountId))], InsertMode.Mock)
+            .ConfigureAwait(true);
+
+        // Assert
+        Assert.Null(child.AccountId);
+    }
+
+    [Fact]
+    public async Task ResolveAll_InAModeWithNothingToDoAtThisStage_AssignsNoIds()
+    {
+        // Arrange - Later (and Deferred) persist elsewhere, not in this pass
+        List<object> records = [new Account { Name = "Untouched" }];
+
+        // Act
+        await DepthBatchedInserter.ResolveAll(records, null, InsertMode.Later).ConfigureAwait(true);
+
+        // Assert
+        Assert.Null(((Account)records[0]).Id);
+    }
+
     private static async Task AssertCyclic(List<object> records, List<DepthBatchedInserterParentLink> parentLinks)
     {
         // Act
@@ -158,4 +203,7 @@ public class DepthBatchedInserterTest
             parentIndex,
             field
         );
+
 }
+/// <summary>A record type with no <c>Id</c> property at all.</summary>
+file sealed class KeylessParentRecord;

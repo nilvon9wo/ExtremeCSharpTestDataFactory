@@ -12,6 +12,85 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+## [1.0.0-beta.13] – 2026-10-09
+
+> **Theme: quality gates that provably fire, and adjective interface names.**
+> Every public interface is renamed (breaking - see
+> [docs/reference/migration.md](docs/reference/migration.md)). Line layout,
+> unnecessary usings, compiler warnings and 100% line + branch coverage are
+> now enforced, and a canary proves every gate still fires. Reaching full
+> coverage surfaced a handful of quiet failures, now loud or fixed. The two
+> preview packages, `Xfty.VectorDatabases.Qdrant` and
+> `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`, move to
+> `0.1.0-preview.4` for the `IPersisting` rename.
+
+### Changed (breaking)
+
+- **Every public interface is renamed to an adjective** (coding standard
+  rule 11: an interface names what implementers are able to do; nouns
+  name the classes). Members and namespaces are unchanged. See
+  [docs/reference/migration.md](docs/reference/migration.md):
+
+  | Before | After |
+  |---|---|
+  | `IRecordProvider` | `IRecordProviding` |
+  | `IProviderLookup` | `IProviderLocating` |
+  | `ILookupKey` | `IRecordIdentifying` |
+  | `IPersistenceGateway` | `IPersisting` |
+  | `IMockIdGenerator` | `IMockIdGenerating` |
+  | `IValueExpression` | `IValueYielding` |
+  | `IContextAwareExpression` | `IContextAware` |
+  | `IDeferredExpression` | `IDeferred` |
+  | `IRecordPredicate` | `IRecordMatching` |
+  | `IUnsetFieldFiller` | `IUnsetFieldFilling` |
+  | `IPathTargetValue` | `IPathApplicable` |
+  | `ISharedAncestorDefaults` | `ISharedAncestorRegistering` |
+  | `IDefaultRelationship` | `IRelatable` |
+  | `ISharedRelationship` | `ISharedRelatable` |
+- **Accessors that used to miss quietly now throw**, per the "never make a
+  consumer debug it" standard:
+  - `SharedAncestor.GetId(name)` - and any `Supply*()` referencing the
+    ancestor - for a `PutAsValue` record with no `Id` property throws an
+    `XftyConfigurationException` pointing at `PutAsTemplate(...)`, instead of
+    returning `null` (or, in `Supply*()`, an opaque `ArgumentNullException`).
+  - `GenerationContext.SiblingValue(field)` throws when there is no record
+    being built (a `ForValueField` context made without `ForRecord`),
+    instead of returning a `null` indistinguishable from a sibling
+    genuinely generated to null.
+- `LookupWiring`'s constructor drops its `GenerationContext` parameter, unused since the inclusivity re-check it fed was removed (an engine phase `RecordFactory` constructs, not a consumer API).
+
+### Fixed
+
+- `BundleMerger.Combine` keeps the merged parents' own generated parents
+  (it used to drop them when two child configs generated parents for the
+  same field), and no longer throws on a parent sub-bundle with no records.
+- `Bundle.Inject(...)` on an ancestor field whose sub-bundle carries no
+  record list (a hand-assembled `Bundle`) no longer throws a
+  `NullReferenceException`; there is simply nothing to inject.
+
+### Internal
+
+- **Every quality gate now provably runs** (#3, #4, #5, #6): a line-length /
+  wrapped-`)` check (`scripts/check-line-layout.py`), ReSharper `inspectcode`
+  with every finding fatal (`scripts/inspect-code.py` - IDE0005 unnecessary
+  usings never failed `dotnet build`), and 100% line **and** branch coverage
+  enforced on every `dotnet test` via `coverlet.MTP` (`coverlet.collector`
+  silently measured nothing under the Microsoft Testing Platform runner).
+  Reaching 100% removed a dozen unreachable branches and added ~130 tests.
+  `scripts/verify-gates.py` (last CI step) then proves each gate still
+  fires: against `StyleCanary/` - deliberately non-compliant code, each
+  violation tagged with the gate that must report it - plus a temporary
+  uncovered class and a temporary broken doc page.
+- `TreatWarningsAsErrors` is on for every project: compiler and NuGet
+  warnings now fail the build like every analyzer diagnostic already did.
+- Every test step runs through `scripts/run-tests.py`: `dotnet test` plus an
+  explicit `INCONCLUSIVE` verdict (exit code 3) when a test module never
+  started - `dotnet test` itself prints "Passed!" for whatever did run.
+- `DeferredInsertBuffer` links child entries without a `for` loop (house
+  rule 1).
+- `SharedRandom` moves from core `Xfty` (which no longer used it) into
+  `Xfty.VectorDatabases`, its only user.
+
 ## [1.0.0-beta.12] – 2026-09-18
 
 > **Theme: multi-targeting reaches every package, plus classic EF6.** Every

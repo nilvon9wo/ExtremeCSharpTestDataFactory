@@ -9,7 +9,7 @@ using Net.NowhereAtAll.Xfty.Values;
 namespace Net.NowhereAtAll.Xfty.VectorDatabases.Qdrant.Test;
 
 /// <summary>A demo Provider pairing a `Content` field with a `RandomVectorExpression`-generated embedding.</summary>
-public sealed class DocumentChunkProvider : IRecordProvider
+public sealed class DocumentChunkProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<DocumentChunk>(x => x.Id)
         .Put(x => x.Content, new IncrementingStringExpression("chunk"))

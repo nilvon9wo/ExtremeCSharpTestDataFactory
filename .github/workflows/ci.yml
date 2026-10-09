@@ -28,15 +28,33 @@ jobs:
       - name: Build (strict .editorconfig analyzers enforced)
         run: dotnet build Xfty.ci-cross-platform.slnf --no-restore
 
-      # The build enforces most of .editorconfig, but a few style/naming analyzers
-      # (IDE1006 naming, IDE0130 namespace-folder for partial types) do not run
-      # under `dotnet build` even with EnforceCodeStyleInBuild. This is the gate
-      # that runs them - and every whitespace/formatting rule - so they stay fixed.
+      # Every whitespace/formatting rule, and a second pass over the style and
+      # naming analyzers the build already runs.
       - name: Verify code style, naming, and formatting (dotnet format)
         run: dotnet format Xfty.slnx --verify-no-changes --severity info
 
+      # IDE0005 (unnecessary using) never fails `dotnet build`, even with
+      # EnforceCodeStyleInBuild. ReSharper's inspectcode catches it and more;
+      # every finding fails. --no-build is deliberate (see the script): the
+      # build step above owns compilation.
+      - name: Restore local tools
+        run: dotnet tool restore
+
+      - name: ReSharper inspections (inspectcode)
+        run: python3 scripts/inspect-code.py Xfty.ci-cross-platform.slnf
+
+      # Roslyn reads max_line_length but never reports on it, and only
+      # Rider/ReSharper honour the wrapped-')' rules - so neither the build nor
+      # dotnet format above enforces them. This scripted check does.
+      - name: Verify line length and wrapped ')' placement
+        run: python3 scripts/check-line-layout.py
+
+      # Every test project also enforces 100% line and branch coverage of its
+      # package (coverlet.MTP, wired in Directory.Build.props). run-tests.py is
+      # dotnet test plus one guarantee: a module that never started (or ran
+      # nothing) is reported INCONCLUSIVE, never hidden behind "Passed!".
       - name: Test (excluding the informational performance suite)
-        run: dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"
+        run: python3 scripts/run-tests.py Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"
 
       # Xfty.Test is the only project with any Category=Performance tests - targeting
       # the whole solution filter here made every other project report "zero tests
@@ -45,15 +63,25 @@ jobs:
       # actually has these tests means this step's outcome means something again;
       # continue-on-error stays, for the reason the step's name already says -
       # wall-clock-based assertions are expected to be flaky across CI runners.
+      # -p:XftyCoverage=false: the Performance tests alone can never meet the
+      # 100% coverage bar every other test run enforces (Directory.Build.props).
       - name: Performance suite (informational - wall-clock ceilings are generous but CI runners vary)
         continue-on-error: true
-        run: dotnet test Xfty.Test/Xfty.Test.csproj --no-build --filter "Category=Performance"
+        run: python3 scripts/run-tests.py Xfty.Test/Xfty.Test.csproj --no-build -p:XftyCoverage=false --filter "Category=Performance"
 
       - name: Verify every documented code example is exercised by a real test
         run: python3 scripts/verify-doc-examples.py
 
       - name: Verify every relative doc link and anchor resolves
         run: python3 scripts/verify-doc-links.py
+
+      # A gate that silently stops running looks exactly like one that passes.
+      # Runs every gate above against StyleCanary/ (deliberately non-compliant
+      # code, each violation tagged with the gate that must report it), plus a
+      # temporary uncovered class and a temporary broken doc page, and fails if
+      # any gate no longer catches them. See StyleCanary/README.md.
+      - name: Prove every gate still catches its canary violations
+        run: python3 scripts/verify-gates.py
 
   windows-net472:
     name: netstandard2.0 compat (net472)
@@ -76,5 +104,11 @@ jobs:
       - name: Build
         run: dotnet build Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-restore
 
+      # The Linux job inspects everything else; this project only restores here.
+      - name: ReSharper inspections (inspectcode)
+        run: |
+          dotnet tool restore
+          python scripts/inspect-code.py Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj
+
       - name: Test
-        run: dotnet test Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-build
+        run: python scripts/run-tests.py Xfty.NetStandardCompat.Test/Xfty.NetStandardCompat.Test.csproj --no-build

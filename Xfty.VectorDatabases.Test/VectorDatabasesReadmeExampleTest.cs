@@ -15,7 +15,7 @@ namespace Net.NowhereAtAll.Xfty.VectorDatabases.Test;
 /// constant, not just the expression in isolation (see
 /// RandomVectorExpressionTest for that).
 /// </summary>
-file sealed class DocumentChunkProvider : IRecordProvider
+file sealed class DocumentChunkProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<DocumentChunk>(x => x.Id)
     {
@@ -30,8 +30,8 @@ file sealed class DocumentChunkProvider : IRecordProvider
 
 public class VectorDatabasesReadmeExampleTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<DocumentChunk>()] = new DocumentChunkProvider(),
         });
@@ -40,7 +40,7 @@ public class VectorDatabasesReadmeExampleTest
     public async Task Supply_UsingRandomVectorExpressionInAMasterTemplate_ProducesAVectorOfTheDeclaredDimension()
     {
         // Arrange
-        IProviderLookup lookup = Lookup();
+        IProviderLocating lookup = Lookup();
 
         // Act
         DocumentChunk result = (DocumentChunk)await new RecordProvider(typeof(DocumentChunk), lookup)

@@ -3,7 +3,7 @@ using System.Reflection;
 namespace Net.NowhereAtAll.Xfty.Persistence;
 
 /// <summary>
-/// <see cref="IPersistenceGateway.Insert"/> takes one record type at a time;
+/// <see cref="IPersisting.Insert"/> takes one record type at a time;
 /// a depth-batched layer can mix several. This groups a mixed layer by record
 /// type and calls the gateway once per type - still one call per type, never
 /// one call per record. Each type's primary-key field comes from
@@ -21,7 +21,7 @@ public static class PersistenceGatewayExtensions
     /// that cannot service two concurrent calls.
     /// </summary>
     public static Task InsertMixed(
-        this IPersistenceGateway gateway,
+        this IPersisting gateway,
         List<object> records,
         IReadOnlyDictionary<Type, PropertyInfo>? idFieldByType = null
     ) =>
@@ -32,17 +32,19 @@ public static class PersistenceGatewayExtensions
         );
 
     private static Task InsertGroups(
-        IPersistenceGateway gateway,
+        IPersisting gateway,
         List<IGrouping<Type, object>> groups,
-        IReadOnlyDictionary<Type, PropertyInfo> idFieldByType) =>
+        IReadOnlyDictionary<Type, PropertyInfo> idFieldByType
+    ) =>
         groups.Count == 0
             ? Task.CompletedTask
             : InsertRemainingGroups(gateway, groups, idFieldByType);
 
     private static async Task InsertRemainingGroups(
-        IPersistenceGateway gateway,
+        IPersisting gateway,
         List<IGrouping<Type, object>> groups,
-        IReadOnlyDictionary<Type, PropertyInfo> idFieldByType)
+        IReadOnlyDictionary<Type, PropertyInfo> idFieldByType
+    )
     {
         IGrouping<Type, object> group = groups[0];
         await gateway.Insert([.. group], IdFieldOf(group.Key, idFieldByType)).ConfigureAwait(false);

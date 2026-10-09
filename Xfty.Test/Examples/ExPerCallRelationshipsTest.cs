@@ -16,8 +16,8 @@ namespace Net.NowhereAtAll.Xfty.Test.Examples;
 /// </summary>
 public class ExPerCallRelationshipsTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new ContactRequiringAccountProvider(),
             [LookupKey.Get<Account>()] = new AccountWithOptionalOwnerAndParentProvider(),
@@ -52,7 +52,7 @@ public class ExPerCallRelationshipsTest
     }
 }
 
-file sealed class ContactRequiringAccountProvider : IRecordProvider
+file sealed class ContactRequiringAccountProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Contact>(x => x.Id)
         .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));
@@ -63,7 +63,7 @@ file sealed class ContactRequiringAccountProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-file sealed class AccountWithOptionalOwnerAndParentProvider : IRecordProvider
+file sealed class AccountWithOptionalOwnerAndParentProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Account>(x => x.Id)
         .PutOptional(x => x.OwnerId, new DefaultRelationship(new User()))
@@ -75,7 +75,7 @@ file sealed class AccountWithOptionalOwnerAndParentProvider : IRecordProvider
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
 }
 
-file sealed class LeafUserProvider : IRecordProvider
+file sealed class LeafUserProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<User>(x => x.Id);
 

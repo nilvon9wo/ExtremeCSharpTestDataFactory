@@ -20,7 +20,7 @@ namespace Net.NowhereAtAll.Xfty.Core.RecordProviders;
 /// </summary>
 public sealed partial class RecordProvider<TRecord>
 {
-    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IValueExpression valueTemplate)
+    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IValueYielding valueTemplate)
     {
         _ = this._inner.Put(Field.Of(field), valueTemplate);
         return this;
@@ -28,14 +28,14 @@ public sealed partial class RecordProvider<TRecord>
 
     public RecordProvider<TRecord> Put(
         Expression<Func<TRecord, object?>> field,
-        IContextAwareExpression contextAwareExpression
+        IContextAware contextAwareExpression
     )
     {
         _ = this._inner.Put(Field.Of(field), contextAwareExpression);
         return this;
     }
 
-    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IDeferredExpression deferredValue)
+    public RecordProvider<TRecord> Put(Expression<Func<TRecord, object?>> field, IDeferred deferredValue)
     {
         _ = this._inner.Put(Field.Of(field), deferredValue);
         return this;
@@ -49,7 +49,7 @@ public sealed partial class RecordProvider<TRecord>
 
     public RecordProvider<TRecord> PutRequired(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationshipTemplate
+        IRelatable relationshipTemplate
     )
     {
         _ = this._inner.PutRequired(Field.Of(field), relationshipTemplate);
@@ -58,7 +58,7 @@ public sealed partial class RecordProvider<TRecord>
 
     public RecordProvider<TRecord> PutOptional(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationshipTemplate
+        IRelatable relationshipTemplate
     )
     {
         _ = this._inner.PutOptional(Field.Of(field), relationshipTemplate);

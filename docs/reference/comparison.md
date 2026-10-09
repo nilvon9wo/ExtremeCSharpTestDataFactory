@@ -86,7 +86,7 @@ group, by how many of the five tools have it.
   None of the alternatives have an equivalent to `SharedAncestor` or to
   `InsertInclusivity`.
 - **It has an opinion about persistence, without committing to one
-  technology.** `InsertMode` + `IPersistenceGateway` mean the same Provider
+  technology.** `InsertMode` + `IPersisting` mean the same Provider
   definitions serve a pure-in-memory unit test (`Mock`) and a real database
   integration test (`Now`, through EF Core, Dapper, or anything else) with
   no rewrite. The other four tools stop at "here's your populated object";
@@ -168,7 +168,7 @@ combining a tool from the first three with XFTY, not alternatives to it.
   constraint-valid — and you want the exact same test to run against a mock
   and a real database:** XFTY, optionally with `Xfty.Bogus` for the
   realistic-value gap (`FakeFullNameExpression`, `FakeEmailAddressExpression`,
-  and friends compose fine as ordinary `IValueExpression`s).
+  and friends compose fine as ordinary `IValueYielding`s).
 - **That same graph, but you don't want to hand-declare every field on
   every Provider - only the ones your test actually cares about:** XFTY
   paired with `Xfty.AutoFixture` or `Xfty.AutoBogus`. Either lets AutoFixture/
@@ -186,7 +186,7 @@ Bogus, AutoFixture, and AutoBogus, each as its own opt-in package
 core `Xfty` or of each other.
 
 - **Bogus, for realistic values — done, as a separate package.** An
-  `IValueExpression` is just an interface; nothing stops it from calling a
+  `IValueYielding` is just an interface; nothing stops it from calling a
   `Faker<T>` and returning the result. `Xfty.Bogus` bundles the common cases
   (`FakeFullNameExpression`, `FakeEmailAddressExpression`,
   `FakeStreetAddressExpression`, `FakeParagraphExpression`) so most Providers
@@ -199,7 +199,7 @@ core `Xfty` or of each other.
   `XftyCustomization` points `fixture.Create<T>()` at a registered
   `RecordProvider` instead of AutoFixture's own generation (so XFTY's
   relationship/ancestor/cycle logic is what actually runs, not AutoFixture's
-  own recursive auto-property population); `IUnsetFieldFiller`/
+  own recursive auto-property population); `IUnsetFieldFilling`/
   `AutoFixtureUnsetFieldFiller` is the other direction - a fallback hook
   `RecordProvider` consults for any field neither a Master Template, an
   override template, `Put(...)`, nor a relationship configured, backed by an
@@ -215,7 +215,7 @@ core `Xfty` or of each other.
   pairing.** `Xfty.AutoBogus` mirrors `Xfty.AutoFixture` exactly:
   `XftyAutoBogus.CreateFaker(lookup)` points `faker.Generate<T>()` at a
   registered `RecordProvider`; `AutoBogusUnsetFieldFiller` is the same
-  `IUnsetFieldFiller` fallback hook, backed by an `IAutoFaker` instead of an
+  `IUnsetFieldFilling` fallback hook, backed by an `IAutoFaker` instead of an
   `IFixture`. One real difference worth knowing: AutoBogus never throws for
   a field that circles back on its own type (it self-limits recursion
   depth instead), where AutoFixture's default behavior does - see

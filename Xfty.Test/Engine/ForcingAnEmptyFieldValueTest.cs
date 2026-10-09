@@ -112,8 +112,8 @@ public class ForcingAnEmptyFieldValueTest
 
     // Helper -------------------------------------------------------
 
-    private static IProviderLookup CrateLookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating CrateLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Crate>()] = new CrateProvider(),
         });
@@ -128,7 +128,7 @@ file sealed record Crate
     public int Count { get; init; }
 }
 
-file sealed class CrateProvider : IRecordProvider
+file sealed class CrateProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Crate>(x => x.Reference)
         .Put(x => x.Label, new LiteralExpression("stock"))

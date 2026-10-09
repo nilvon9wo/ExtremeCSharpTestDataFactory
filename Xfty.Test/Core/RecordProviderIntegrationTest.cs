@@ -10,14 +10,14 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// <summary>
 /// End-to-end proof that the ported engine actually works together:
 /// RecordProvider -&gt; RecordFactory -&gt; AncestorGenerator -&gt; LookupWiring -&gt;
-/// PlainValueFiller -&gt; IdMocker, driven by two real IRecordProvider
+/// PlainValueFiller -&gt; IdMocker, driven by two real IRecordProviding
 /// implementations and a required relationship between them - not a unit
 /// test of one class in isolation.
 /// </summary>
 public class RecordProviderIntegrationTest
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),

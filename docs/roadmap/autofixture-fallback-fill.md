@@ -34,7 +34,7 @@ Two independent, non-mutually-exclusive integrations - both proven in
    `ISpecimenBuilder` is exactly the right shape (`object Create(object
    request, ISpecimenContext context)`; return `NoSpecimen` to fall through
    to AutoFixture's default generation for anything unregistered).
-2. **`IUnsetFieldFiller`/`AutoFixtureUnsetFieldFiller`** - the fallback-fill
+2. **`IUnsetFieldFilling`/`AutoFixtureUnsetFieldFiller`** - the fallback-fill
    direction this page originally sketched. This one *did* need a real core
    change:
    - `MasterTemplate.IsConfigured(PropertyInfo)` - whether a field has a
@@ -43,7 +43,7 @@ Two independent, non-mutually-exclusive integrations - both proven in
      piece of new information the rest of the design depends on: a field
      nothing configured is distinguishable from a field XFTY resolved *to*
      null or some other value on purpose.
-   - `IUnsetFieldFiller`, a new interface in core `Xfty` (`Core/`,
+   - `IUnsetFieldFilling`, a new interface in core `Xfty` (`Core/`,
      no dependency on AutoFixture or anything else) with one method,
      `Fill(object record, IReadOnlyCollection<PropertyInfo> unsetFields)`.
    - `RecordProvider.SetUnsetFieldFiller(...)`, threaded through
@@ -56,7 +56,7 @@ Two independent, non-mutually-exclusive integrations - both proven in
      value/relationship pass (`ContextAwareValuePass`, deferred-value
      registration) but before `Persist(...)` - matching this page's
      original sketch of "late enough... but before the record is handed to
-     `IPersistenceGateway`" exactly.
+     `IPersisting`" exactly.
    - `AutoFixtureUnsetFieldFiller` (in `Xfty.AutoFixture`) resolves each
      unset field through the given `IFixture`'s own specimen-builder
      pipeline (`new SpecimenContext(fixture).Resolve(field.PropertyType)`),
@@ -70,7 +70,7 @@ Two independent, non-mutually-exclusive integrations - both proven in
      `Account.Contacts` - populated by `Bundle.Inject(...)`, never by a
      Master Template) is the case that comes up in practice.
 
-## Why the original sketch's `IUnsetFieldFiller` shape survived unchanged
+## Why the original sketch's `IUnsetFieldFilling` shape survived unchanged
 
 The original sketch's own wording - "given a record instance and the set of
 `PropertyInfo`s XFTY did *not* set, fill in the rest" - turned out to need

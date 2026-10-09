@@ -1,10 +1,10 @@
 namespace Net.NowhereAtAll.Xfty.Values;
 
 /// <summary>
-/// An <see cref="IValueExpression"/> producing well-formed, unique-within-one-
+/// An <see cref="IValueYielding"/> producing well-formed, unique-within-one-
 /// process "prefix1@example.com" style addresses.
 /// </summary>
-public sealed class UniqueEmailExpression(string prefix) : IValueExpression
+public sealed class UniqueEmailExpression(string prefix) : IValueYielding
 {
     private static int s_counter = 1;
 

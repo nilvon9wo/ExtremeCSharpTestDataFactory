@@ -24,7 +24,7 @@ public sealed partial class SharedAncestor
     public static bool IsManualResolutionOnly() => s_manualResolution;
 
     /// <summary>Resolve a named set of shared ancestors up front, in one depth-batched pass.</summary>
-    public static Task ResolveNow(IProviderLookup lookup, InsertMode insertMode, List<string> names)
+    public static Task ResolveNow(IProviderLocating lookup, InsertMode insertMode, List<string> names)
     {
         SharedAncestorResolver.ApplyLookupDefaults(lookup);
         List<SharedAncestor> toResolve = [.. names.Select(Get).Where(ancestor => ancestor._resolvedRecord is null)];

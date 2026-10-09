@@ -29,7 +29,7 @@ public class UniqueStringExpressionTest
         UniqueStringExpression expression = new("Widget");
 
         // Act
-        object? value = expression.Get();
+        object value = expression.Get();
 
         // Assert
         Assert.StartsWith("Widget ", Assert.IsType<string>(value));

@@ -8,7 +8,7 @@ using Net.NowhereAtAll.Xfty.Values;
 namespace Net.NowhereAtAll.Xfty.Demo;
 
 /// <summary>The bundled Account Provider - a starter-kit example of a declarative Master Template.</summary>
-public sealed class AccountDataProvider : IRecordProvider
+public sealed class AccountDataProvider : IRecordProviding
 {
     public const string DefaultNamePrefix = "Test Account Name";
     public const string DefaultIndustry = "Test Account Industry";

@@ -6,17 +6,17 @@ namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 
 public sealed partial class MasterTemplate
 {
-    public MasterTemplate Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueExpression valueTemplate) =>
+    public MasterTemplate Put<TRecord>(Expression<Func<TRecord, object?>> field, IValueYielding valueTemplate) =>
         this.Put(Field.Of(field), valueTemplate);
 
     public MasterTemplate Put<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IContextAwareExpression contextAwareExpression
+        IContextAware contextAwareExpression
     ) =>
         this.Put(Field.Of(field), contextAwareExpression);
 
     /// <summary>An up-flowing value - resolved during the DEFERRED flush.</summary>
-    public MasterTemplate Put<TRecord>(Expression<Func<TRecord, object?>> field, IDeferredExpression deferredValue) =>
+    public MasterTemplate Put<TRecord>(Expression<Func<TRecord, object?>> field, IDeferred deferredValue) =>
         this.Put(Field.Of(field), deferredValue);
 
     public MasterTemplate Put<TRecord>(Expression<Func<TRecord, object?>> field, object? value) =>
@@ -24,13 +24,13 @@ public sealed partial class MasterTemplate
 
     public MasterTemplate PutRequired<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationshipTemplate
+        IRelatable relationshipTemplate
     ) =>
         this.PutRequired(Field.Of(field), relationshipTemplate);
 
     public MasterTemplate PutOptional<TRecord>(
         Expression<Func<TRecord, object?>> field,
-        IDefaultRelationship relationshipTemplate
+        IRelatable relationshipTemplate
     ) =>
         this.PutOptional(Field.Of(field), relationshipTemplate);
 }

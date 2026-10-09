@@ -24,11 +24,11 @@ public class RecordFactoryTest
 {
     private static readonly DefaultProviderLookup DefaultLookup = new();
 
-    private static IProviderLookup LookupOf(Dictionary<ILookupKey, IRecordProvider> providers) =>
+    private static IProviderLocating LookupOf(Dictionary<IRecordIdentifying, IRecordProviding> providers) =>
         ProviderLookups.Of(providers);
 
-    private static IProviderLookup OptionalChainLookup() =>
-        LookupOf(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating OptionalChainLookup() =>
+        LookupOf(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new OptionalParentContactProvider(),
             [LookupKey.Get<Account>()] = new OptionalOwnerAccountProvider(),
@@ -135,11 +135,12 @@ public class RecordFactoryTest
         // Arrange
         RecordProvider provider = new RecordProvider(
             typeof(Contact),
-            LookupOf(new Dictionary<ILookupKey, IRecordProvider>
+            LookupOf(new Dictionary<IRecordIdentifying, IRecordProviding>
             {
                 [LookupKey.Get<Contact>()] = new RelatedFieldContactProvider(),
                 [LookupKey.Get<Account>()] = new LeafAccountProvider(),
-            }))
+            })
+        )
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Never);
 
@@ -187,7 +188,8 @@ public class RecordFactoryTest
         Assert.Equal(3, contacts.Count);
         Assert.Equal(3, accounts.Count);
         Assert.All(Enumerable.Range(0, 3), i =>
-            Assert.Equal(accounts[i].Id, contacts[i].AccountId)); // row i wired to its own parent
+            Assert.Equal(accounts[i].Id, contacts[i].AccountId)
+        ); // row i wired to its own parent
         // each Contact gets a distinct Account
         Assert.Equal(3, accounts.Select(account => account.Id).Distinct().Count());
     }
@@ -306,11 +308,11 @@ public class RecordFactoryTest
 
     // Runners + helpers -------------------------------------
 
-    private static RecordProvider ContactProvider(IProviderLookup lookup) =>
+    private static RecordProvider ContactProvider(IProviderLocating lookup) =>
         new RecordProvider(typeof(Contact), lookup).SetOverrideTemplate(new Contact { LastName = "Factory Test" });
 
-    private static IProviderLookup DeepChainLookup() =>
-        LookupOf(new Dictionary<ILookupKey, IRecordProvider>
+    private static IProviderLocating DeepChainLookup() =>
+        LookupOf(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new DeepContactProvider(),
             [LookupKey.Get<Account>()] = new DeepAccountProvider(),
@@ -318,7 +320,7 @@ public class RecordFactoryTest
         });
 
     private static RecordProvider OptionalParentContactProvider(InsertInclusivity inclusivity) =>
-        ContactProvider(LookupOf(new Dictionary<ILookupKey, IRecordProvider>
+        ContactProvider(LookupOf(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Contact>()] = new OptionalParentContactProvider(),
             [LookupKey.Get<Account>()] = new LeafAccountProvider(),
@@ -350,11 +352,27 @@ public class RecordFactoryTest
         // Assert
         Assert.Contains(expectedMessagePart, thrown.Message);
     }
+
+    [Fact]
+    public async Task Supply_WhenAValueReadsUpFromAChildOutsideABatchedInsert_Throws()
+    {
+        // Arrange - Mock builds and returns in one go; there is no generated child to read yet
+        RecordProvider provider = new RecordProvider(typeof(Account), DefaultLookup)
+            .Put<Account>(x => x.Site, CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department))
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
+
+        // Assert
+        Assert.Contains("needs the DEFERRED insert mode", thrown.Message);
+    }
 }
 
-file abstract class BaseProvider : IRecordProvider
+file abstract class BaseProvider : IRecordProviding
 {
-    protected MasterTemplate Template { get; set; } = null!;
+    protected MasterTemplate Template { get; init; } = null!;
 
     public PropertyInfo PrimaryTargetField => this.Template.PrimaryTargetField;
 
@@ -406,7 +424,8 @@ file sealed class RelatedFieldContactProvider : BaseProvider
             .Put<Contact>(x => x.LastName, new IncrementingStringExpression("Related Field Contact"))
             .PutRequired(
                 Field.Of<Contact>(x => x.Department),
-                new DefaultRelationship(new Account { Name = "Wired From Parent" }, Field.Of<Account>(x => x.Name)));
+                new DefaultRelationship(new Account { Name = "Wired From Parent" }, Field.Of<Account>(x => x.Name))
+            );
 }
 
 file sealed class OptionalOwnerAccountProvider : BaseProvider

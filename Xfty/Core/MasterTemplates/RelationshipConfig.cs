@@ -9,4 +9,4 @@ namespace Net.NowhereAtAll.Xfty.Core.MasterTemplates;
 /// <c>IncludeOptional</c>). A field carries one relationship, never both
 /// requirednesses.
 /// </summary>
-internal sealed record RelationshipConfig(IDefaultRelationship Relationship, bool IsRequired);
+internal sealed record RelationshipConfig(IRelatable Relationship, bool IsRequired);

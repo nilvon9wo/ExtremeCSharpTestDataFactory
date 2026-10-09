@@ -4,13 +4,13 @@ using Net.NowhereAtAll.Xfty.Relationships;
 
 namespace Net.NowhereAtAll.Xfty.Core.PathValues;
 
-public record class RequiredRelationPathTarget(IDefaultRelationship Relationship) : IPathTargetValue
+public record RequiredRelationPathTarget(IRelatable Relationship) : IPathApplicable
 {
     public bool IsRelationship()
         => true;
 
     public bool IsSharedRelationship()
-        => this.Relationship is ISharedRelationship;
+        => this.Relationship is ISharedRelatable;
 
     public void ApplyTo(MasterTemplate template, PropertyInfo targetField)
         => template.PutRequired(targetField, this.Relationship);

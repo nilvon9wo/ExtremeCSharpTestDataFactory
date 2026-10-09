@@ -18,22 +18,22 @@ public sealed class PathValue
 {
     public List<PropertyInfo> Path { get; }
 
-    public IPathTargetValue Value { get; }
+    public IPathApplicable Value { get; }
 
-    private PathValue(List<PropertyInfo> path, IPathTargetValue value)
+    private PathValue(List<PropertyInfo> path, IPathApplicable value)
     {
-        AssertPath(path);
+        AssertNoNullSteps(path);
         this.Path = path;
         this.Value = value;
     }
 
-    public static PathValue OfExpression(List<PropertyInfo> path, IValueExpression expression)
+    public static PathValue OfExpression(List<PropertyInfo> path, IValueYielding expression)
     {
         AssertUsablePath(path);
         return new PathValue(path, new ValueExpressionPathTarget(expression));
     }
 
-    public static PathValue OfContextAware(List<PropertyInfo> path, IContextAwareExpression contextAware)
+    public static PathValue OfContextAware(List<PropertyInfo> path, IContextAware contextAware)
     {
         AssertUsablePath(path);
         return new PathValue(path, new ContextAwarePathTarget(contextAware));
@@ -45,13 +45,13 @@ public sealed class PathValue
         return new PathValue(path, new LiteralPathTarget(literal));
     }
 
-    public static PathValue OfRequiredRelationship(List<PropertyInfo> path, IDefaultRelationship relationship)
+    public static PathValue OfRequiredRelationship(List<PropertyInfo> path, IRelatable relationship)
     {
         AssertUsablePath(path);
         return new PathValue(path, new RequiredRelationPathTarget(relationship));
     }
 
-    public static PathValue OfOptionalRelationship(List<PropertyInfo> path, IDefaultRelationship relationship)
+    public static PathValue OfOptionalRelationship(List<PropertyInfo> path, IRelatable relationship)
     {
         AssertUsablePath(path);
         return new PathValue(path, new OptionalRelationPathTarget(relationship));
@@ -84,13 +84,12 @@ public sealed class PathValue
         this.Value.ApplyTo(template, targetField);
     }
 
-    private static void AssertPath(List<PropertyInfo>? path)
+    /// <summary>
+    /// Every path reaching here has passed <see cref="AssertUsablePath"/> (two or more steps) or is the
+    /// <see cref="Tail"/> of one that has, so it is never empty - but its steps are not yet checked.
+    /// </summary>
+    private static void AssertNoNullSteps(List<PropertyInfo> path)
     {
-        if (path is null || path.Count == 0)
-        {
-            throw new XftyConfigurationException("A path value cannot have an empty path.");
-        }
-
         if (path.Any(step => step is null))
         {
             throw new XftyConfigurationException("A path value cannot contain a null field.");
@@ -104,7 +103,8 @@ public sealed class PathValue
         {
             throw new XftyConfigurationException(
                 "A path value needs at least one relationship field plus the target field - use plain "
-                + "Put(field, value) for a field on the record itself.");
+                + "Put(field, value) for a field on the record itself."
+            );
         }
     }
 }

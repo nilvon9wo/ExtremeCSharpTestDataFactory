@@ -23,7 +23,7 @@ public class PersistenceGatewayTest : IDisposable
     public async Task Supply_InNowMode_WithAGateway_InsertsThroughItAndKeepsTheAssignedId()
     {
         // Arrange - the gateway assigns an Id the way a real database would
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
             .Do(call =>
             {
@@ -65,7 +65,7 @@ public class PersistenceGatewayTest : IDisposable
     public async Task SupplyBundle_InNowMode_WithAGateway_InsertsTheRequiredParentToo()
     {
         // Arrange
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
             .Do(call =>
             {
@@ -94,7 +94,7 @@ public class PersistenceGatewayTest : IDisposable
     public async Task SupplyBundle_NowWithExcludePrimaryIds_WithAGateway_InsertsTheAncestorButLeavesThePrimaryUnId()
     {
         // Arrange - ExcludePrimaryIds relates a not-yet-inserted Contact to a real, persisted Account
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
             .Do(call =>
             {
@@ -201,7 +201,7 @@ public class PersistenceGatewayTest : IDisposable
         // Arrange - the capability RelatedOnly/MockRelatedOnly could never express: a whole 10-level-deep
         // ancestor tree (Account here stands in for one) built efficiently under Deferred, flushed for
         // real, while the primary that relates to it stays un-Id'd the entire time
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         int insertCalls = 0;
         gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
             .Do(call =>
@@ -235,7 +235,7 @@ public class PersistenceGatewayTest : IDisposable
     {
         // Arrange - a Contact requiring an Account: depth-batched should insert the Account layer,
         // then the Contact layer, as two separate gateway calls, parent Id already wired by the second.
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         List<Type> insertedLayers = [];
         gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
             .Do(call =>
@@ -264,7 +264,7 @@ public class PersistenceGatewayTest : IDisposable
     public async Task DeferredInserterFlush_WithAGateway_InsertsEverythingRegisteredAndBackFillsIds()
     {
         // Arrange
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
             .Do(call =>
             {
@@ -291,5 +291,54 @@ public class PersistenceGatewayTest : IDisposable
     {
         DeferredInserter.ResetForTesting();
         GC.SuppressFinalize(this);
+    }
+
+    [Fact]
+    public async Task SupplyBundle_InNowMode_WithChildren_InsertsTheChildrenThroughTheParentsGateway()
+    {
+        // Arrange - the children are never given a gateway of their own
+        IPersisting gateway = Substitute.For<IPersisting>();
+        gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
+            .Do(call =>
+            {
+                System.Reflection.PropertyInfo idField = call.ArgAt<System.Reflection.PropertyInfo>(1);
+                call.ArgAt<List<object>>(0).ForEach(record => idField.SetValue(record, $"real-{Guid.NewGuid()}"));
+            });
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
+            .SetInsertMode(InsertMode.Now)
+            .SetPersistenceGateway(gateway)
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        List<object> contacts = bundle.GetChildList<Contact>(x => x.AccountId);
+        _ = gateway.Received(1).Insert(
+            Arg.Is<List<object>>(list => list.Count == 2 && list.All(contacts.Contains)),
+            Arg.Any<System.Reflection.PropertyInfo>()
+        );
+    }
+
+    [Fact]
+    public async Task InsertMixed_WithNoIdFieldMap_InsertsEachTypeOnItsConventionalIdField()
+    {
+        // Arrange
+        IPersisting gateway = Substitute.For<IPersisting>();
+        Account account = new();
+        Contact contact = new();
+
+        // Act
+        await gateway.InsertMixed([account, contact]).ConfigureAwait(true);
+
+        // Assert - one Insert per record type, each keyed on its own "Id"
+        await gateway.Received(1).Insert(
+            Arg.Is<List<object>>(list => list.Count == 1 && ReferenceEquals(list[0], account)),
+            Field.Of<Account>(x => x.Id)
+        ).ConfigureAwait(true);
+        await gateway.Received(1).Insert(
+            Arg.Is<List<object>>(list => list.Count == 1 && ReferenceEquals(list[0], contact)),
+            Field.Of<Contact>(x => x.Id)
+        ).ConfigureAwait(true);
     }
 }

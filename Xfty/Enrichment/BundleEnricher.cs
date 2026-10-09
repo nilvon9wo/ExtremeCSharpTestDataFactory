@@ -54,7 +54,8 @@ public sealed class BundleEnricher
             ? Enrich(bundle, field, InjectConfig.Everything())
             : throw new XftyConfigurationException(
                 $"InjectAll({field.Name}): the graph has no generated ancestor or child collection to inject. "
-                + "Generate related records, or use Inject(field, config) with explicit values.");
+                + "Generate related records, or use Inject(field, config) with explicit values."
+            );
 
     private List<object> Run()
     {
@@ -92,7 +93,7 @@ public sealed class BundleEnricher
             this._forcedValues.ApplyAncestorValues(injector, pos.PathFromEntry, rowCount);
         }
 
-        if (pos.ChildPathFromEntry is { Count: > 0 })
+        if (pos.ChildPathFromEntry.Count > 0)
         {
             this._forcedValues.ApplyChildValues(injector, pos.ChildPathFromEntry, rowCount);
         }
@@ -100,7 +101,7 @@ public sealed class BundleEnricher
 
     private void GraftAncestors(RecordInjector injector, EnrichmentPosition pos)
     {
-        if (pos.SubBundle is null || pos.ParentDepthLeft <= 0)
+        if (pos.ParentDepthLeft <= 0)
         {
             return;
         }
@@ -118,7 +119,7 @@ public sealed class BundleEnricher
             return;
         }
 
-        List<object>? parents = pos.SubBundle!.GetList(lookupField);
+        List<object>? parents = pos.SubBundle.GetList(lookupField);
         if (parents is null)
         {
             return;
@@ -126,7 +127,8 @@ public sealed class BundleEnricher
 
         _ = injector.Relationship(
             InjectionPathResolver.ParentRelationshipField(lookupField),
-            this.EnrichPosition(this.AncestorPosition(pos, lookupField, parents)));
+            this.EnrichPosition(this.AncestorPosition(pos, lookupField, parents))
+        );
     }
 
     private static void GraftInverse(RecordInjector injector, EnrichmentPosition pos)
@@ -137,43 +139,40 @@ public sealed class BundleEnricher
         }
 
         _ = injector.ChildRelationship(
-            InjectionPathResolver.ChildRelationshipField(pos.PositionType()!, pos.InverseChildField),
-            pos.InverseChildrenPerRow!);
+            InjectionPathResolver.ChildRelationshipField(pos.PositionType(), pos.InverseChildField),
+            pos.InverseChildrenPerRow!
+        );
     }
 
     private void GraftChildren(RecordInjector injector, EnrichmentPosition pos)
     {
-        if (pos.SubBundle is null || pos.ChildDepthLeft <= 0)
+        if (pos.ChildDepthLeft <= 0)
         {
             return;
         }
 
-        this._selection.ChildFieldsOn(pos.SubBundle, ChildPathOf(pos)).ToList().ForEach(childField =>
+        this._selection.ChildFieldsOn(pos.SubBundle, pos.ChildPathFromEntry).ToList().ForEach(childField =>
             injector.ChildRelationship(
-                InjectionPathResolver.ChildRelationshipField(pos.PositionType()!, childField),
-                this.ChildrenPerRow(pos, childField)));
+                InjectionPathResolver.ChildRelationshipField(pos.PositionType(), childField),
+                this.ChildrenPerRow(pos, childField)
+            )
+        );
     }
 
     private List<List<object>> ChildrenPerRow(EnrichmentPosition pos, PropertyInfo childField)
     {
         List<List<object>> perRow = EmptyListsFor(pos.Records!.Count);
-        pos.SubBundle!.ChildEntries(childField)
+        pos.SubBundle.ChildEntries(childField)
             .ForEach(entry => this.EnrichEntryInto(perRow, this.ChildrenPosition(pos, entry, childField), entry));
         return perRow;
     }
 
-    private void EnrichEntryInto(List<List<object>> perRow, EnrichmentPosition childPos, BundleChildEntry entry)
-    {
-        if (childPos.Records is not { Count: > 0 })
-        {
-            return;
-        }
-
+    /// <summary>A child bundle with no records enriches to nothing, so it adds nothing to any row.</summary>
+    private void EnrichEntryInto(List<List<object>> perRow, EnrichmentPosition childPos, BundleChildEntry entry) =>
         this.EnrichPosition(childPos)
             .Select((child, childRow) => (child, childRow))
             .ToList()
             .ForEach(pair => perRow[entry.ParentRowByChildRow[pair.childRow]].Add(pair.child));
-    }
 
     private EnrichmentPosition RootPosition(EnrichmentTarget target)
     {
@@ -190,10 +189,10 @@ public sealed class BundleEnricher
             root.CarryInverse(
                 this._entryField,
                 InverseAlignment.ChildrenPerParent(
-                    target.Records!,
+                    target.Records,
                     this._entryBundle.PrimaryRecords()!,
                     this._entryField,
-                    target.SubBundle?.PrimaryTargetField
+                    target.SubBundle.PrimaryTargetField
                 )
             );
         }
@@ -203,7 +202,9 @@ public sealed class BundleEnricher
 
     private EnrichmentPosition AncestorPosition(EnrichmentPosition pos, PropertyInfo lookupField, List<object> parents)
     {
-        EnrichmentPosition up = new(pos.SubBundle!.GetBundle(lookupField), parents)
+        // lookupField came from SubBundle.RelationshipFields(), so its sub-bundle exists.
+        Bundle parentBundle = pos.SubBundle.GetBundle(lookupField)!;
+        EnrichmentPosition up = new(parentBundle, parents)
         {
             PathFromEntry = AncestorPath(pos, lookupField),
             ParentDepthLeft = pos.ParentDepthLeft - 1,
@@ -213,7 +214,9 @@ public sealed class BundleEnricher
             up.CarryInverse(
                 lookupField,
                 InverseAlignment.ChildrenPerParent(
-                    parents, pos.Records!, lookupField, pos.SubBundle!.GetBundle(lookupField)?.PrimaryTargetField));
+                    parents, pos.Records!, lookupField, parentBundle.PrimaryTargetField
+                )
+            );
         }
 
         return up;
@@ -228,10 +231,8 @@ public sealed class BundleEnricher
         {
             ParentDepthLeft = this._config.ParentDepthLimit,
             ChildDepthLeft = pos.ChildDepthLeft - 1,
-            ChildPathFromEntry = Append(ChildPathOf(pos), childField),
+            ChildPathFromEntry = Append(pos.ChildPathFromEntry, childField),
         };
-
-    private static List<PropertyInfo> ChildPathOf(EnrichmentPosition pos) => pos.ChildPathFromEntry ?? [];
 
     private static List<PropertyInfo>? AncestorPath(EnrichmentPosition pos, PropertyInfo lookupField) =>
         pos.PathFromEntry is null

@@ -26,12 +26,16 @@ namespace Net.NowhereAtAll.Xfty.Test.Relationships;
 ///
 /// SharedAncestor's registry is process-static; each test below uses its own
 /// never-reused shared-ancestor name to stay isolated (see the class's own
-/// doc comment).
+/// doc comment), and the registry is reset after every test, so one that
+/// deliberately leaves an ancestor registered but unresolved cannot leak into
+/// the next test's pre-phase.
 /// </summary>
-public class SharedAncestorTest
+public sealed class SharedAncestorTest : IDisposable
 {
-    private static IProviderLookup Lookup() =>
-        ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+    public void Dispose() => SharedAncestor.ResetAllForTesting();
+
+    private static IProviderLocating Lookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -187,7 +191,7 @@ public class SharedAncestorTest
         // Assert - GetBundle is populated even for a Put(...) record
         Bundle? accountBundle = bundle.GetBundle<Contact>(x => x.AccountId);
         Assert.NotNull(accountBundle);
-        Assert.Equal("Supplied HQ", ((Account)accountBundle!.GetList<Account>(x => x.Id)![0]).Name);
+        Assert.Equal("Supplied HQ", ((Account)accountBundle.GetList<Account>(x => x.Id)![0]).Name);
         // GetList and GetBundle expose the same shared instance
         Assert.Same(bundle.GetList<Contact>(x => x.AccountId)![0], accountBundle.GetList<Account>(x => x.Id)![0]);
     }
@@ -370,7 +374,8 @@ public class SharedAncestorTest
 
         // Act
         XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
-            () => SharedAncestor.PutAsTemplate(name, new Account { Name = "Second" }));
+            () => SharedAncestor.PutAsTemplate(name, new Account { Name = "Second" })
+        );
 
         // Assert - reconfiguring a resolved shared ancestor must throw
         Assert.Contains("already resolved", thrown.Message);
@@ -382,7 +387,7 @@ public class SharedAncestorTest
         // Arrange - the 'loop' Account's own ParentId is the 'loop' shared ancestor
         const string name = "shared-ancestor-test-loop";
         _ = SharedAncestor.Put(name, new Account { Name = "Loop" });
-        IProviderLookup loopy = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating loopy = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Account>()] = new SelfReferencingAccountProvider(name),
             [LookupKey.Get<Contact>()] = new ContactDataProvider(),
@@ -408,13 +413,13 @@ public class SharedAncestorTest
     public async Task Supply_WhenThreeSharedAncestorsFormAnIndirectCycle_Throws()
     {
         // Arrange - tom -> dick -> harry -> tom
-        ILookupKey tomKey = FlavouredLookupKey.Get<Account>("tom");
-        ILookupKey dickKey = FlavouredLookupKey.Get<Account>("dick");
-        ILookupKey harryKey = FlavouredLookupKey.Get<Account>("harry");
+        IRecordIdentifying tomKey = FlavouredLookupKey.Get<Account>("tom");
+        IRecordIdentifying dickKey = FlavouredLookupKey.Get<Account>("dick");
+        IRecordIdentifying harryKey = FlavouredLookupKey.Get<Account>("harry");
         _ = SharedAncestor.Put("tom", new Account { Name = "Tom" }).FromVariant(tomKey);
         _ = SharedAncestor.Put("dick", new Account { Name = "Dick" }).FromVariant(dickKey);
         _ = SharedAncestor.Put("harry", new Account { Name = "Harry" }).FromVariant(harryKey);
-        IProviderLookup ring = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating ring = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [tomKey] = new ParentedAccountProvider("dick"),
             [dickKey] = new ParentedAccountProvider("harry"),
@@ -463,9 +468,254 @@ public class SharedAncestorTest
             .SetInclusivity(InsertInclusivity.Required)
             .SetInsertMode(InsertMode.Mock)
             .Supply().ConfigureAwait(false);
+
+    // GetId before any Supply*() ---------------------------------------
+
+    [Fact]
+    public void GetId_ForAPutAsValueRecordNotYetReferenced_ReadsItsIdProperty()
+    {
+        // Arrange
+        const string name = "shared-ancestor-test-getid-conventional";
+        _ = SharedAncestor.PutAsValue(name, new Account { Id = "ACC-1" });
+
+        // Act
+        object id = SharedAncestor.GetId(name);
+
+        // Assert
+        Assert.Equal("ACC-1", id);
+    }
+
+    [Fact]
+    public void GetId_ForAKeylessPutAsValueRecordNotYetReferenced_Throws()
+    {
+        // Arrange
+        const string name = "shared-ancestor-test-getid-keyless";
+        _ = SharedAncestor.PutAsValue(name, new KeylessRecord());
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => SharedAncestor.GetId(name));
+
+        // Assert
+        Assert.Contains("PutAsTemplate", thrown.Message);
+    }
+
+    // PutIfAbsent by variant ------------------------------------------
+
+    [Fact]
+    public async Task PutIfAbsent_ByVariantKey_WhenTheNameIsUnregistered_RegistersTheVariant()
+    {
+        // Arrange
+        const string name = "shared-ancestor-test-putifabsent-variant-new";
+        _ = SharedAncestor.PutIfAbsent(name, LookupKey.Get<Account>());
+
+        // Act
+        Account account = await SupplySharedAccount(name).ConfigureAwait(true);
+
+        // Assert - generated by the variant's Provider from a blank template
+        Assert.StartsWith(AccountDataProvider.DefaultNamePrefix, account.Name);
+    }
+
+    [Fact]
+    public async Task PutIfAbsent_ByVariantKey_WhenTheNameIsRegistered_KeepsTheExistingRegistration()
+    {
+        // Arrange
+        const string name = "shared-ancestor-test-putifabsent-variant-existing";
+        _ = SharedAncestor.Put(name, new Account { Name = "Original" });
+        _ = SharedAncestor.PutIfAbsent(name, LookupKey.Get<Account>());
+
+        // Act
+        Account account = await SupplySharedAccount(name).ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal("Original", account.Name);
+    }
+
+    // ResolveNow by name ------------------------------------------------
+
+    [Fact]
+    public async Task ResolveNow_ByName_ResolvesAnUnresolvedAncestorUpFront()
+    {
+        // Arrange
+        const string name = "shared-ancestor-test-resolvenow-unresolved";
+        _ = SharedAncestor.Put(name, new Account { Name = "Early" });
+
+        // Sanity Check
+        Assert.False(SharedAncestor.Get(name).IsResolved);
+
+        // Act
+        await SharedAncestor.ResolveNow(Lookup(), InsertMode.Mock, [name]).ConfigureAwait(true);
+
+        // Assert
+        Assert.True(SharedAncestor.Get(name).IsResolved);
+    }
+
+    [Fact]
+    public async Task ResolveNow_ByName_WhenAlreadyResolved_KeepsTheResolvedRecord()
+    {
+        // Arrange
+        const string name = "shared-ancestor-test-resolvenow-resolved";
+        _ = SharedAncestor.PutAsValue(name, new Account { Id = "ACC-2" });
+
+        // Sanity Check
+        Assert.True(SharedAncestor.Get(name).IsResolved);
+
+        // Act
+        await SharedAncestor.ResolveNow(Lookup(), InsertMode.Mock, [name]).ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal("ACC-2", SharedAncestor.GetId(name));
+    }
+
+    // The IRelatable surface --------------------------------------------
+
+    [Fact]
+    public void OverrideTemplate_ForAnUnregisteredName_IsNull()
+    {
+        // Arrange
+        SharedAncestor ancestor = SharedAncestor.Get("shared-ancestor-test-unregistered-template");
+
+        // Act
+        object? overrideTemplate = ancestor.OverrideTemplate;
+
+        // Assert
+        Assert.Null(overrideTemplate);
+    }
+
+    [Fact]
+    public void RelatedField_ForAnUnregisteredName_IsNull()
+    {
+        // Arrange
+        SharedAncestor ancestor = SharedAncestor.Get("shared-ancestor-test-unregistered-related-field");
+
+        // Act
+        PropertyInfo? relatedField = ancestor.RelatedField;
+
+        // Assert
+        Assert.Null(relatedField);
+    }
+
+    [Fact]
+    public void ResolveLookupKey_ForATemplateRegistration_IsTheTemplatesRecordType()
+    {
+        // Arrange
+        const string name = "shared-ancestor-test-resolve-lookup-key";
+        _ = SharedAncestor.Put(name, new Account { Name = "Template" });
+
+        // Act
+        IRecordIdentifying key = SharedAncestor.Get(name).ResolveLookupKey(Lookup());
+
+        // Assert
+        Assert.Equal(LookupKey.Get<Account>(), key);
+    }
+
+    [Fact]
+    public async Task Supply_WhenATemplateIsRegisteredWithItsKeyAlreadySet_UsesItAsIs()
+    {
+        // Arrange - PutAsTemplate, not PutAsValue: the resolver itself notices the key is set
+        const string name = "shared-ancestor-test-template-with-key";
+        _ = SharedAncestor.PutAsTemplate(name, new Account { Id = "ACC-3", Name = "Pre-saved" });
+
+        // Act
+        Account account = await SupplySharedAccount(name).ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal("ACC-3", account.Id);
+    }
+
+    private static async Task<Account> SupplySharedAccount(string name)
+    {
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock)
+            .SupplyBundle().ConfigureAwait(false);
+        return (Account)bundle.GetList<Contact>(x => x.AccountId)![0];
+    }
+
+    // Resolution reached indirectly --------------------------------------
+
+    [Fact]
+    public async Task ResolveNow_WhenAnotherSharedAncestorIsReachedOnlyThroughAGeneratedParent_ResolvesItOnDemand()
+    {
+        // Arrange - the shared Contact's generated Account is owned by another shared ancestor, which
+        // the Contact's own template doesn't name, so it is not resolved ahead of the Contact
+        _ = SharedAncestor.Put(OwnedAccountProvider.SharedOwnerName, new User { LastName = "Shared Owner" });
+        const string contactName = "shared-ancestor-test-indirect-contact";
+        _ = SharedAncestor.Put(contactName, new Contact());
+
+        // Act
+        await SharedAncestor.ResolveNow(IndirectOwnerLookup(), InsertMode.Mock, [contactName]).ConfigureAwait(true);
+
+        // Assert
+        Assert.True(SharedAncestor.Get(OwnedAccountProvider.SharedOwnerName).IsResolved);
+    }
+
+    [Fact]
+    public async Task Supply_UnderManualResolution_WhenAPathPutGivesTheAncestorASubGraph_Throws()
+    {
+        // Arrange - no relationship of its own, but a path put adds one: not lightweight
+        const string name = "shared-ancestor-test-manual-path-relationship";
+        _ = SharedAncestor.Put(name, new Account())
+            .PutRequired(
+                [Field.Of<Account>(x => x.ParentId), Field.Of<Account>(x => x.OwnerId)],
+                new DefaultRelationship(new User())
+            );
+        SharedAncestor.ManualResolutionOnly();
+
+        // Act
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(
+            () => SupplySharedAccount(name)
+        ).ConfigureAwait(true);
+
+        // Assert
+        Assert.Contains("has a sub-graph of its own and auto-resolution is off", thrown.Message);
+    }
+
+    private static IProviderLocating IndirectOwnerLookup() =>
+        ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
+        {
+            [LookupKey.Get<Account>()] = new OwnedAccountProvider(),
+            [LookupKey.Get<Contact>()] = new ContactDataProvider(),
+            [LookupKey.Get<User>()] = new SharedOwnerProvider(),
+        });
+
+    [Fact]
+    public async Task Supply_WhenAKeylessPutAsValueAncestorIsReferenced_Throws()
+    {
+        // Arrange - nothing names the shared record's key, so no child lookup could point at it
+        const string name = "shared-ancestor-test-supply-keyless";
+        _ = SharedAncestor.PutAsValue(name, new KeylessRecord());
+
+        // Act
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(
+            () => SupplySharedAccount(name)
+        ).ConfigureAwait(true);
+
+        // Assert
+        Assert.Contains("PutAsTemplate", thrown.Message);
+    }
+
+    [Fact]
+    public async Task Supply_WhenAPutAsValueAncestorIsReferencedAgain_StillPointsAtTheSameRecord()
+    {
+        // Arrange - the first Supply resolves it; the second must not lose track of its key
+        const string name = "shared-ancestor-test-put-as-value-twice";
+        _ = SharedAncestor.PutAsValue(name, new Account { Id = "ACC-7", Name = "Pre-saved" });
+        _ = await SupplySharedAccount(name).ConfigureAwait(true);
+
+        // Act
+        Bundle bundle = await new RecordProvider(typeof(Contact), Lookup())
+            .PutRequired<Contact>(x => x.AccountId, SharedAncestor.Get(name))
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock)
+            .SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal("ACC-7", ((Contact)bundle.PrimaryRecords()![0]).AccountId);
+    }
 }
 
-file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecordProvider
+file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Loop"))
@@ -478,13 +728,41 @@ file sealed class SelfReferencingAccountProvider(string loopSharedName) : IRecor
 }
 
 /// <summary>An Account Provider whose ParentId is the named shared ancestor - for the cycle tests.</summary>
-file sealed class ParentedAccountProvider(string parentSharedName) : IRecordProvider
+file sealed class ParentedAccountProvider(string parentSharedName) : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
             .Put<Account>(x => x.Name, new IncrementingStringExpression("Ring"))
             .PutRequired<Account>(x => x.ParentId, SharedAncestor.Get(parentSharedName));
 
     public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
+}
+
+/// <summary>A record type with no <c>Id</c> property at all.</summary>
+file sealed class KeylessRecord;
+
+file sealed class OwnedAccountProvider : IRecordProviding
+{
+    public const string SharedOwnerName = "shared-ancestor-test-indirect-owner";
+
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<Account>(x => x.Id))
+        .Put<Account>(x => x.Name, new LiteralExpression("Owned"))
+        .PutRequired<Account>(x => x.OwnerId, SharedAncestor.Get(SharedOwnerName));
+
+    public PropertyInfo PrimaryTargetField => Field.Of<Account>(x => x.Id);
+
+    public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
+        RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);
+}
+
+file sealed class SharedOwnerProvider : IRecordProviding
+{
+    public MasterTemplate MasterTemplate { get; } = new MasterTemplate(Field.Of<User>(x => x.Id))
+        .Put<User>(x => x.LastName, new LiteralExpression("Owner"));
+
+    public PropertyInfo PrimaryTargetField => Field.Of<User>(x => x.Id);
 
     public Task<Bundle> CreateBundle(GenerationContext context, List<object> templateRecords) =>
         RecordFactory.CreateBundle(context, this.MasterTemplate, templateRecords);

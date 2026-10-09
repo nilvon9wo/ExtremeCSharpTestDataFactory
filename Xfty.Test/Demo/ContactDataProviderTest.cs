@@ -73,7 +73,8 @@ public class ContactDataProviderTest
         Assert.NotNull(((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id); // the Account got a mock Id
         Assert.Equal(
             ((Account)bundle.GetList<Contact>(x => x.AccountId)![0]).Id,
-            ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId); // mock Ids still wire the FK
+            ((Contact)bundle.GetList<Contact>(x => x.Id)![0]).AccountId
+        ); // mock Ids still wire the FK
     }
 
     // Master Template ------------------------------------

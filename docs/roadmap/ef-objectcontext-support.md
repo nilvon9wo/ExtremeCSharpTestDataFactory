@@ -43,7 +43,7 @@ Two different reasons, not one:
     reflectively?).
   - **No async at all** - not missing from this one API, missing from the
     *language*. .NET Framework 4.0 (2010) predates C# 5/async-await (2012)
-    entirely. `IPersistenceGateway.Insert` returns `Task`; a gateway here
+    entirely. `IPersisting.Insert` returns `Task`; a gateway here
     would need to wrap a genuinely synchronous `ObjectContext.SaveChanges()`
     in `Task.CompletedTask`, not await anything real.
   - **No NuGet package to depend on.** EF 1.0-4.0 shipped inside the .NET
@@ -69,7 +69,7 @@ Sketched, not committed to:
   this way - not established here.
 - A synchronous-wrapped `Insert` implementation, and a decision on whether
   that's acceptable to present through the same `Task`-returning
-  `IPersistenceGateway` seam everything else uses, or whether it needs its
+  `IPersisting` seam everything else uses, or whether it needs its
   own contract.
 
 ## Worth it?

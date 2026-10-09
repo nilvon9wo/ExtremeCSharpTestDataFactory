@@ -19,11 +19,7 @@ public sealed class RecordProviderExecutionTest : IDisposable
     private static readonly DefaultProviderLookup Lookup = new();
     private static readonly AccountDataProvider AccountOutlet = new();
 
-    public void Dispose()
-    {
-        DeferredInserter.ResetForTesting();
-        GC.SuppressFinalize(this);
-    }
+    public void Dispose() => DeferredInserter.ResetForTesting();
 
     [Fact]
     public async Task SupplyBundle_WithABarePlan_GeneratesTheOnePrimary()
@@ -95,7 +91,7 @@ public sealed class RecordProviderExecutionTest : IDisposable
     public async Task SupplyBundle_InNowModeWithDepthBatching_InsertsThroughTheGateway()
     {
         // Arrange
-        IPersistenceGateway gateway = Substitute.For<IPersistenceGateway>();
+        IPersisting gateway = Substitute.For<IPersisting>();
         RecordProviderPlan plan = PlanFor(InsertMode.Now) with
         {
             DepthBatched = true,
@@ -139,5 +135,6 @@ public sealed class RecordProviderExecutionTest : IDisposable
             DepthBatched: false,
             ForceStructuralChildGeneration: false,
             new RecordProviderTemplateConfig(AccountOutlet.MasterTemplate.Copy),
-            new RecordProviderChildConfig());
+            new RecordProviderChildConfig()
+        );
 }

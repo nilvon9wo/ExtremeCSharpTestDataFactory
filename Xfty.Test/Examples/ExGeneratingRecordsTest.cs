@@ -96,7 +96,7 @@ public class ExGeneratingRecordsTest
     public async Task GettingStarted_UnderstandingBundles()
     {
         // from docs/use/getting-started.md "Understanding Bundles" - a Case pulling in an Account
-        IProviderLookup lookup = ProviderLookups.Of(new Dictionary<ILookupKey, IRecordProvider>
+        IProviderLocating lookup = ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {
             [LookupKey.Get<Case>()] = new CaseWithAccountProvider(),
             [LookupKey.Get<Account>()] = new AccountDataProvider(),
@@ -114,7 +114,7 @@ public class ExGeneratingRecordsTest
     }
 }
 
-file sealed class CaseWithAccountProvider : IRecordProvider
+file sealed class CaseWithAccountProvider : IRecordProviding
 {
     public MasterTemplate MasterTemplate { get; } = new MasterTemplate<Case>(x => x.Id)
         .PutRequired(x => x.AccountId, new DefaultRelationship(new Account()));

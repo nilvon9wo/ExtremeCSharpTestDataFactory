@@ -9,7 +9,7 @@ namespace Net.NowhereAtAll.Xfty.Demo;
 /// exactly like any other property - nothing needs special-casing for it
 /// anywhere else in the library.
 /// </summary>
-public sealed record class Contact
+public sealed record Contact
 {
     public string? Id { get; init; }
 
