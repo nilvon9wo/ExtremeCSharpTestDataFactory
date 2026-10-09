@@ -63,6 +63,16 @@ jobs:
       # actually has these tests means this step's outcome means something again;
       # continue-on-error stays, for the reason the step's name already says -
       # wall-clock-based assertions are expected to be flaky across CI runners.
+      # publish.yml builds, tests and packs in Release. Optimized IL branches
+      # differently from Debug, so 100% coverage in one configuration does not
+      # imply it in the other (1.0.0-beta.13's first publish failed exactly
+      # that way). Testing Release here means CI validates what ships.
+      - name: Build (Release, as publish.yml packs it)
+        run: dotnet build Xfty.ci-cross-platform.slnf -c Release --no-restore
+
+      - name: Test (Release, as publish.yml tests it)
+        run: python3 scripts/run-tests.py Xfty.ci-cross-platform.slnf -c Release --no-build --filter "Category!=Performance"
+
       # -p:XftyCoverage=false: the Performance tests alone can never meet the
       # 100% coverage bar every other test run enforces (Directory.Build.props).
       - name: Performance suite (informational - wall-clock ceilings are generous but CI runners vary)

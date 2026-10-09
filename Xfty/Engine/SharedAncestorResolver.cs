@@ -240,12 +240,10 @@ public sealed class SharedAncestorResolver(IProviderLocating lookup, InsertMode 
         ancestor.AcceptResolved(record, graph, this._mode == InsertMode.Now);
     }
 
-    private static InsertMode Eager(InsertMode? callMode) =>
-        callMode switch
-        {
-            null or InsertMode.Deferred => InsertMode.Now,
-            _ => callMode.Value,
-        };
+    private static InsertMode Eager(InsertMode callMode) =>
+        callMode == InsertMode.Deferred
+            ? InsertMode.Now
+            : callMode;
 
     private static XftyConfigurationException Cycle(string name) =>
         new($"Shared ancestors form a cycle involving \"{name}\". Break it by pre-registering one side with "
