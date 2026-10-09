@@ -76,7 +76,7 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
 
     private Task AddAncestor(Bundle bundle, PropertyInfo field, bool isForced)
     {
-        IRelatable relationship = this.RelationshipOn(field)!;
+        IRelatable relationship = this.RelationshipOn(field);
         if (relationship is ISharedRelatable shared)
         {
             this.AssertNoPathValueInto(field);
@@ -158,6 +158,6 @@ public sealed class AncestorGenerator(GenerationContext context, int quantity, M
     private static List<object> ClonedTemplatesFor(IRelatable relationship, int quantity) =>
         RecordCloneFactory.DeepClones(relationship.OverrideTemplate!, quantity);
 
-    private IRelatable? RelationshipOn(PropertyInfo field) =>
-        this._template.RelationshipByField.GetValueOrDefault(field)?.Relationship;
+    /// <summary>Only ever asked about a field taken from RelationshipByField's own keys.</summary>
+    private IRelatable RelationshipOn(PropertyInfo field) => this._template.RelationshipByField[field].Relationship;
 }

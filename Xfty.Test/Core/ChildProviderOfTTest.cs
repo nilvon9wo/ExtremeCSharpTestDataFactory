@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
 using Net.NowhereAtAll.Xfty.Core.Children;
@@ -68,5 +69,61 @@ public class ChildProviderOfTTest
 
         // Assert
         Assert.NotNull(result.Id);
+    }
+
+    [Fact]
+    public async Task Constructor_WithATemplate_AppliesItToEveryChild()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup())
+            .SetInsertMode(InsertMode.Mock)
+            .With(new ChildProvider<Contact>(x => x.AccountId, new Contact { Department = "Templated" }));
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Contact child = (Contact)bundle.GetChildList<Contact>(x => x.AccountId)[0];
+        Assert.Equal("Templated", child.Department);
+    }
+
+    [Fact]
+    public void RelationshipField_IsTheFieldNamedByTheLambda()
+    {
+        // Arrange
+        ChildProvider<Contact> typed = new(x => x.AccountId);
+
+        // Act
+        PropertyInfo relationshipField = typed.RelationshipField;
+
+        // Assert
+        Assert.Equal(Field.Of<Contact>(x => x.AccountId), relationshipField);
+    }
+
+    [Fact]
+    public void ChildType_IsTheTypeArgument()
+    {
+        // Arrange
+        ChildProvider<Contact> typed = new(x => x.AccountId);
+
+        // Act
+        Type childType = typed.ChildType;
+
+        // Assert
+        Assert.Equal(typeof(Contact), childType);
+    }
+
+    [Fact]
+    public void SetInsertMode_ForwardsToTheInnerChildProvider()
+    {
+        // Arrange
+        ChildProvider<Contact> typed = new ChildProvider<Contact>(x => x.AccountId).SetInsertMode(InsertMode.Never);
+        ChildProvider plain = typed;
+
+        // Act
+        InsertMode effective = plain.EffectiveInsertMode(InsertMode.Deferred);
+
+        // Assert
+        Assert.Equal(InsertMode.Never, effective);
     }
 }

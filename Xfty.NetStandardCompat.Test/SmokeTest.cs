@@ -21,10 +21,8 @@ namespace Net.NowhereAtAll.Xfty.NetStandardCompat.Test;
 /// already-installed-locally runtime that implements it - is what actually
 /// executes them here, through public XFTY behavior that happens to depend
 /// on each one, rather than reaching into the internal polyfill types
-/// directly. Xfty/Internal/SharedRandom.cs is proven separately, in
-/// VectorDatabasesSmokeTest - nothing in core Xfty itself calls it any more
-/// (see UniqueAcrossRunsExpression's own docstring for why it moved off
-/// SharedRandom entirely).
+/// directly. Xfty.VectorDatabases' SharedRandom is proven separately, in
+/// VectorDatabasesSmokeTest.
 /// </summary>
 public class SmokeTest
 {

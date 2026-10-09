@@ -122,4 +122,35 @@ public class AncestorPathWalkerTest
         // Assert - a null path step is rejected
         Assert.NotNull(thrown);
     }
+
+    [Fact]
+    public void Read_WhenAnIntermediateHopWasNotGenerated_ReturnsNull()
+    {
+        // Arrange - a two-hop path whose first relationship was never put
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<Case>(x => x.Id), [new Case()]);
+        List<PropertyInfo> path =
+            [Field.Of<Case>(x => x.ContactId), Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.Name)];
+
+        // Act
+        object? missing = AncestorPathWalker.Read(bundle, path, 0);
+
+        // Assert
+        Assert.Null(missing);
+    }
+
+    [Fact]
+    public void Read_WhenThePathIsNull_Throws()
+    {
+        // Arrange
+        Bundle bundle = new();
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => AncestorPathWalker.Read(bundle, null!, 0)
+        );
+
+        // Assert
+        Assert.Contains("at least one relationship field", thrown.Message);
+    }
 }

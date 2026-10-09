@@ -12,8 +12,8 @@ dotnet build Xfty.ci-cross-platform.slnf --no-restore                        # .
 dotnet format Xfty.slnx --verify-no-changes --severity info                  # whitespace/formatting, plus a second pass over the style analyzers
 dotnet tool restore && python3 scripts/inspect-code.py Xfty.ci-cross-platform.slnf   # ReSharper inspectcode: unnecessary usings and the rest of what Roslyn misses
 python3 scripts/check-line-layout.py                                         # 120-char ceiling + wrapped ')' on its own line, which no analyzer reports
-dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass
-dotnet test Xfty.Test/Xfty.Test.csproj --no-build --filter "Category=Performance"     # informational only (continue-on-error)
+dotnet test Xfty.ci-cross-platform.slnf --no-build --filter "Category!=Performance"   # the normal suite - must pass, at 100% line + branch coverage per package
+dotnet test Xfty.Test/Xfty.Test.csproj --no-build -p:XftyCoverage=false --filter "Category=Performance"   # informational only (continue-on-error)
 python3 scripts/verify-doc-examples.py                                       # every documented code example is exercised by a real test
 python3 scripts/verify-doc-links.py                                          # every relative doc link and anchor resolves
 ```
@@ -42,7 +42,11 @@ other project reported "zero tests ran" (a failure), which
 `continue-on-error` silently swallowed right alongside any real performance
 regression. Scoped this way, the step's outcome actually means something;
 `continue-on-error` stays, since wall-clock-based assertions are expected to
-be flaky across CI runners, which is what it's there to tolerate.
+be flaky across CI runners, which is what it's there to tolerate. It passes
+`-p:XftyCoverage=false`: a run of the `Performance` tests alone can never
+meet the 100% coverage bar every other run enforces (see
+[coverage-standards](coverage-standards.md)), so leaving it on would make
+the step fail for a reason that has nothing to do with performance.
 
 The normal-suite step is not persistence-free: `PersistenceGatewayTest` proves
 `Now`/`.DepthBatched()` against a mocked gateway, and
@@ -82,11 +86,8 @@ reasons:
 
 - **A real netstandard2.0-only code branch of its own** — `Xfty` itself
   (`Xfty/Internal/CollectionCompatExtensions.cs`'s `GetValueOrDefault`/
-  `ToHashSet`, and `Internal/SharedRandom.cs`) and `Xfty.VectorDatabases`
-  (its own `<Compile Include>` of that same physical `SharedRandom.cs` file
-  into its own assembly - a separate assembly has no access to `Xfty`'s
-  internal type at the IL level, so compiling the file again is the actual
-  fix, not a copy of it).
+  `ToHashSet`) and `Xfty.VectorDatabases` (`Internal/SharedRandom.cs`, its
+  `Random.Shared` stand-in).
 - **A real dependency pinned at an unusually old version to reach
   netstandard2.0 at all**, where "compiles" is a much weaker guarantee than
   usual — `Xfty.EntityFrameworkCore`'s EF Core 3.1.x pairing, proven with an

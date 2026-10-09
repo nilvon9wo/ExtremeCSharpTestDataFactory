@@ -35,6 +35,42 @@ because those entries describe a change made in *this* repository.
   | `ISharedAncestorDefaults` | `ISharedAncestorRegistering` |
   | `IDefaultRelationship` | `IRelatable` |
   | `ISharedRelationship` | `ISharedRelatable` |
+- **Accessors that used to miss quietly now throw**, per the "never make a
+  consumer debug it" standard:
+  - `SharedAncestor.GetId(name)` - and any `Supply*()` referencing the
+    ancestor - for a `PutAsValue` record with no `Id` property throws an
+    `XftyConfigurationException` pointing at `PutAsTemplate(...)`, instead of
+    returning `null` (or, in `Supply*()`, an opaque `ArgumentNullException`).
+  - `GenerationContext.SiblingValue(field)` throws when there is no record
+    being built (a `ForValueField` context made without `ForRecord`),
+    instead of returning a `null` indistinguishable from a sibling
+    genuinely generated to null.
+- `LookupWiring`'s constructor drops its unused `GenerationContext` parameter.
+
+### Removed
+
+- `DeferredInsertBuffer.IdFieldByType()` - nothing called it.
+
+### Fixed
+
+- `BundleMerger.Combine` keeps the merged parents' own generated parents
+  (it used to drop them when two child configs generated parents for the
+  same field), and no longer throws on a parent sub-bundle with no records.
+- `Bundle.Inject(...)` on an ancestor field whose sub-bundle carries no
+  record list (a hand-assembled `Bundle`) no longer throws a
+  `NullReferenceException`; there is simply nothing to inject.
+
+### Internal
+
+- **Every quality gate now provably runs** (#3, #4, #5): a line-length /
+  wrapped-`)` check (`scripts/check-line-layout.py`), ReSharper `inspectcode`
+  with every finding fatal (`scripts/inspect-code.py` - IDE0005 unnecessary
+  usings never failed `dotnet build`), and 100% line **and** branch coverage
+  enforced on every `dotnet test` via `coverlet.MTP` (`coverlet.collector`
+  silently measured nothing under the Microsoft Testing Platform runner).
+  Reaching 100% removed a dozen unreachable branches and added ~130 tests.
+- `SharedRandom` moves from core `Xfty` (which no longer used it) into
+  `Xfty.VectorDatabases`, its only user.
 
 ## [1.0.0-beta.12] – 2026-09-18
 

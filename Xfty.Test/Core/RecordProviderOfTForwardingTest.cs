@@ -462,6 +462,95 @@ public class RecordProviderOfTForwardingTest : IDisposable
 
     // Helpers --------------------------------------------------------
 
+    // Forwarders not exercised above ---------------------------------
+
+    [Fact]
+    public async Task Put_ByPropertyInfo_ForwardsADeferredExpression()
+    {
+        // Arrange - the PropertyInfo twin of Put_ByLambda_ForwardsADeferredExpression
+        RecordProvider<Account> provider = new RecordProvider<Account>(DepartmentChildLookup())
+            .Put(
+                Field.Of<Account>(x => x.Site),
+                CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department)
+            )
+            .WithChild(Field.Of<Contact>(x => x.AccountId))
+            .SetInsertMode(InsertMode.Deferred);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Account account = DeferredInsertBuffer.Flatten(bundle).Records().OfType<Account>().First();
+        Assert.Equal("Engineering", account.Site);
+    }
+
+    [Fact]
+    public async Task Put_ByLambda_ForwardsAContextAwareExpression()
+    {
+        // Arrange
+        RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
+            .Put(x => x.FirstName, "Alice")
+            .Put(x => x.Department, CopyFromSiblingExpression.From<Contact>(x => x.FirstName))
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Contact result = await provider.Supply().ConfigureAwait(true);
+
+        // Assert
+        Assert.Equal("Alice", result.Department);
+    }
+
+    [Fact]
+    public async Task ExcludeRelationshipIfPresent_ByLambda_ExcludesTheRelationship()
+    {
+        // Arrange
+        RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
+            .ExcludeRelationshipIfPresent(x => x.AccountId)
+            .SetInclusivity(InsertInclusivity.Required)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Assert.Null(bundle.GetList<Contact>(x => x.AccountId));
+    }
+
+    [Fact]
+    public async Task PutOptional_ByPath_AddsAnOptionalRelationshipToAGeneratedAncestor()
+    {
+        // Arrange - optional, so it only generates once optionals are included
+        List<PropertyInfo> ownerOfAccount = [Field.Of<Contact>(x => x.AccountId), Field.Of<Account>(x => x.OwnerId)];
+        RecordProvider<Contact> provider = new RecordProvider<Contact>(OwnerAwareLookup())
+            .PutOptional(ownerOfAccount, new DefaultRelationship(new User()))
+            .SetInclusivity(InsertInclusivity.All)
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Account generatedAccount = (Account)bundle.GetList<Contact>(x => x.AccountId)![0];
+        Assert.NotNull(generatedAccount.OwnerId);
+    }
+
+    [Fact]
+    public async Task DepthBatched_ForwardsToTheInnerProvider()
+    {
+        // Arrange - only the depth-batched inserter's own guard names ResolveAll(...)
+        RecordProvider<Contact> provider = new RecordProvider<Contact>(Lookup)
+            .SetInsertMode(InsertMode.Now)
+            .SetInclusivity(InsertInclusivity.Required)
+            .DepthBatched();
+
+        // Act
+        NotSupportedException thrown = await Assert.ThrowsAsync<NotSupportedException>(provider.Supply)
+            .ConfigureAwait(true);
+
+        // Assert
+        Assert.Contains("ResolveAll", thrown.Message);
+    }
+
     private static IProviderLocating OwnerAwareLookup() =>
         ProviderLookups.Of(new Dictionary<IRecordIdentifying, IRecordProviding>
         {

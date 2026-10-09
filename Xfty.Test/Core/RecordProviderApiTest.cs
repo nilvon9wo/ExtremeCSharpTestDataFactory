@@ -1,9 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
+using Net.NowhereAtAll.Xfty.Core.Children;
 using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
+using Net.NowhereAtAll.Xfty.Persistence;
 using Net.NowhereAtAll.Xfty.Relationships;
 using Net.NowhereAtAll.Xfty.Values;
 
@@ -16,9 +18,12 @@ namespace Net.NowhereAtAll.Xfty.Test.Core;
 /// mode throughout - no persistence. End-to-end scenarios live in
 /// RecordProviderScenarioTest.
 /// </summary>
-public class RecordProviderApiTest
+public sealed class RecordProviderApiTest : IDisposable
 {
     private static readonly DefaultProviderLookup Lookup = new();
+
+    /// <summary>The one Deferred test registers into the process-wide DeferredInserter; clear it.</summary>
+    public void Dispose() => DeferredInserter.ResetForTesting();
 
     private static RecordProvider ContactProvider() =>
         new RecordProvider(typeof(Contact), Lookup).SetInsertMode(InsertMode.Mock);
@@ -566,5 +571,78 @@ public class RecordProviderApiTest
         Assert.Equal(4, results.Count);
         List<string?> firstNames = [.. results.Cast<Contact>().Select(contact => contact.FirstName)];
         Assert.Equal(["Alice", "Bob", "Alice", "Bob"], firstNames); // A, B, A, B - not A, A, B, B
+    }
+
+    // Lambda forms not exercised above -------------------------------
+
+    [Fact]
+    public async Task Put_ByLambda_ForADeferredExpression_ReadsUpFromTheGeneratedChild()
+    {
+        // Arrange
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
+            .Put<Account>(x => x.Site, CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department))
+            .With(ChildProvider.For<Contact>(x => x.AccountId).Put<Contact>(x => x.Department, "Engineering"))
+            .SetInsertMode(InsertMode.Deferred);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Account account = DeferredInsertBuffer.Flatten(bundle).Records().OfType<Account>().First();
+        Assert.Equal("Engineering", account.Site);
+    }
+
+    [Fact]
+    public async Task ExcludeRelationshipIfPresent_ByLambda_ExcludesTheRelationship()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider()
+            .ExcludeRelationshipIfPresent<Contact>(x => x.AccountId)
+            .SetInclusivity(InsertInclusivity.Required);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        Assert.Null(bundle.GetList<Contact>(x => x.AccountId));
+    }
+
+    [Fact]
+    public async Task SetOverrideTemplateList_WhenEmpty_GeneratesFromTheProviderAlone()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider().SetOverrideTemplateList([]);
+
+        // Act
+        List<object> contacts = await provider.SupplyList().ConfigureAwait(true);
+
+        // Assert - one record from the Provider's own template, exactly as with no list at all
+        Assert.StartsWith(ContactDataProvider.DefaultLastNamePrefix, ((Contact)Assert.Single(contacts)).LastName);
+    }
+
+    [Fact]
+    public async Task SetOverrideTemplateList_WhenNull_GeneratesFromTheProviderAlone()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider().SetOverrideTemplateList(null!);
+
+        // Act
+        List<object> contacts = await provider.SupplyList().ConfigureAwait(true);
+
+        // Assert
+        Assert.StartsWith(ContactDataProvider.DefaultLastNamePrefix, ((Contact)Assert.Single(contacts)).LastName);
+    }
+
+    [Fact]
+    public void With_WhenGivenNull_Throws()
+    {
+        // Arrange
+        RecordProvider provider = ContactProvider();
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => provider.With(null!));
+
+        // Assert
+        Assert.Contains("needs a ChildProvider", thrown.Message);
     }
 }

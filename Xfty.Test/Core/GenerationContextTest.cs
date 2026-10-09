@@ -136,6 +136,21 @@ public class GenerationContextTest
         Assert.Contains("context-aware value is being generated", thrown.Message);
     }
 
+    [Fact]
+    public void SiblingValue_WhenTheValuePassHasNoRecord_Throws()
+    {
+        // Arrange - ForValueField straight off a base context, skipping ForRecord
+        GenerationContext atField = Context(InsertMode.Mock, InsertInclusivity.None)
+            .ForValueField(DescriptionField, new HashSet<PropertyInfo>());
+
+        // Act
+        XftyConfigurationException thrown =
+            Assert.Throws<XftyConfigurationException>(() => atField.SiblingValue(SiteField));
+
+        // Assert - not a null that would read as "the sibling was generated to null"
+        Assert.Contains("context-aware value is being generated", thrown.Message);
+    }
+
     // ForRelated() --------------------------------------------------
 
     [Fact]

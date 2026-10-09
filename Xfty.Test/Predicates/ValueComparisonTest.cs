@@ -63,6 +63,10 @@ public class ValueComparisonTest
     public void FieldToValue_WhenBothSidesArePresent_ReturnsTheirOrdering() =>
         AssertFieldToValue(new Account { NumberOfEmployees = 900 }, 100, 1);
 
+    [Fact]
+    public void Compare_WhenAValuesTextIsNull_TreatsItAsEmpty() =>
+        AssertCompare(new TextlessValue(), "a", -1);
+
     // Helpers ----------------------------------------------------------
 
     private static void AssertCompare(object left, object right, int expectedSign)
@@ -86,4 +90,10 @@ public class ValueComparisonTest
         // Assert
         Assert.Equal(expectedResult, actualResult);
     }
+}
+
+/// <summary>A value whose ToString() returns null - legal, if unusual.</summary>
+file sealed class TextlessValue
+{
+    public override string? ToString() => null;
 }

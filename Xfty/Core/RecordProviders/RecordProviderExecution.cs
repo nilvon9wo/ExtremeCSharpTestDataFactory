@@ -65,6 +65,10 @@ internal sealed class RecordProviderExecution(RecordProviderPlan plan)
             ? RecordFactory.CreateBundle(context, plan.TemplateConfig.ResolveTemplate(), templates)
             : plan.Outlet.CreateBundle(context, templates);
 
+    /// <summary>
+    /// Only called for a batched build (<see cref="BuildsStructurallyForBatchedInsert"/>): either this call flushes
+    /// the graph itself, or it defers it to the registry.
+    /// </summary>
     private Task Persist(Bundle bundle)
     {
         if (this.FlushesGraphWhenThisCallEnds())
@@ -76,11 +80,7 @@ internal sealed class RecordProviderExecution(RecordProviderPlan plan)
             );
         }
 
-        if (this.DeferredToRegistry())
-        {
-            DeferredInserter.Register(bundle, plan.ExcludePrimaryIds);
-        }
-
+        DeferredInserter.Register(bundle, plan.ExcludePrimaryIds);
         return Task.CompletedTask;
     }
 

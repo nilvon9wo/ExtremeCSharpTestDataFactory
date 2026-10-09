@@ -43,11 +43,11 @@ public sealed partial class SharedAncestor
 
     /// <summary>
     /// The Provider's primary-key field, when the source has a template or variant key to resolve one from; null for a
-    /// bare PutAsValue registration.
+    /// bare PutAsValue registration. Every caller has a registered source by now.
     /// </summary>
     private PropertyInfo? PrimaryFieldFromProvider(IProviderLocating lookup) =>
-        this._source is { CanResolvePrimaryField: true } theSource
-            ? theSource.PrimaryField(lookup)
+        this.Source().CanResolvePrimaryField
+            ? this.Source().PrimaryField(lookup)
             : null;
 
     public SharedAncestorProvider Source() =>
@@ -93,10 +93,8 @@ public sealed partial class SharedAncestor
 
     private Bundle SingleRecordBundle()
     {
-        PropertyInfo idField =
-            this._resolvedPrimaryField ?? this._resolvedRecord!.GetType().GetProperty(ConventionalIdFieldName)!;
         Bundle bundle = new();
-        bundle.PutPrimaries(idField, [this._resolvedRecord!], this._resolvedMockIdGenerator);
+        bundle.PutPrimaries(this.KnownPrimaryField(), [this._resolvedRecord!], this._resolvedMockIdGenerator);
         return bundle;
     }
 }

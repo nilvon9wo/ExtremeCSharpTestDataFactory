@@ -87,4 +87,41 @@ public class InjectionPathResolverTest
         // Assert
         Assert.NotNull(thrown);
     }
+
+    [Fact]
+    public void ParentRelationshipField_WhenTheTypeHasNoNavigationProperty_Throws()
+    {
+        // Arrange - Case.ContactId follows the <Name>Id convention, but Case has no Contact property
+        PropertyInfo lookupWithoutNavigation = Field.Of<Case>(x => x.ContactId);
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => InjectionPathResolver.ParentRelationshipField(lookupWithoutNavigation)
+        );
+
+        // Assert
+        Assert.Contains("Case has no Contact property", thrown.Message);
+    }
+
+    [Fact]
+    public void ChildRelationshipField_WhenTwoCollectionsMatch_Throws()
+    {
+        // Arrange
+        PropertyInfo contactsAccount = Field.Of<Contact>(x => x.AccountId);
+        object parent = new AccountWithTwoContactLists { Contacts = [], FormerContacts = [] };
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => InjectionPathResolver.ChildRelationshipField(parent.GetType(), contactsAccount)
+        );
+
+        // Assert
+        Assert.Contains("2 collection properties of Contact", thrown.Message);
+    }
+}
+file sealed class AccountWithTwoContactLists
+{
+    public List<Contact>? Contacts { get; set; }
+
+    public List<Contact>? FormerContacts { get; set; }
 }

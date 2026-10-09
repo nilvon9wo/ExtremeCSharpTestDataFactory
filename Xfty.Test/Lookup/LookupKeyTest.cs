@@ -4,6 +4,7 @@ using Net.NowhereAtAll.Xfty.Core.RecordProviders;
 using Net.NowhereAtAll.Xfty.Demo;
 using Net.NowhereAtAll.Xfty.Lookup;
 using Net.NowhereAtAll.Xfty.Predicates;
+using NSubstitute;
 
 namespace Net.NowhereAtAll.Xfty.Test.Lookup;
 
@@ -477,5 +478,75 @@ public class LookupKeyTest
 
         // Assert
         Assert.Equal(expectedCount, matches.Count);
+    }
+
+    [Fact]
+    public void Equals_WhenComparedWithSomethingThatIsNotAKey_IsFalse()
+    {
+        // Arrange
+        LookupKey key = LookupKey.Get<Account>();
+        object notAKey = new();
+
+        // Act
+        bool isEqual = key.Equals(notAKey);
+
+        // Assert
+        Assert.False(isEqual);
+    }
+
+    [Fact]
+    public void Equals_ForAFlavouredKeyComparedWithSomethingThatIsNotAKey_IsFalse()
+    {
+        // Arrange
+        object notAKey = new();
+
+        // Act
+        bool isEqual = EnterpriseFlavour.Equals(notAKey);
+
+        // Assert
+        Assert.False(isEqual);
+    }
+
+    [Fact]
+    public void Get_ForANullRecord_Throws()
+    {
+        // Arrange
+        object? noRecord = null;
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(() => LookupKey.Get(noRecord));
+
+        // Assert
+        Assert.Contains("requires a record type", thrown.Message);
+    }
+
+    [Fact]
+    public void Resolve_WhenNoKeyMatchesANullRecord_Throws()
+    {
+        // Arrange - a custom lookup that, unlike the built-in ones, answers a null record with no keys
+        IProviderLocating lookup = Substitute.For<IProviderLocating>();
+        _ = lookup.KeysFor(null).Returns(new HashSet<IRecordIdentifying>());
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => ProviderLookups.Resolve(lookup, null)
+        );
+
+        // Assert
+        Assert.Contains("requires a record type", thrown.Message);
+    }
+
+    [Fact]
+    public void Resolve_WhenALookupReturnsTiedKeysForANullRecord_ThrowsNamingThem()
+    {
+        // Arrange - a custom lookup that (wrongly) matches a null record twice, equally specifically
+        IProviderLocating lookup = Substitute.For<IProviderLocating>();
+        _ = lookup.KeysFor(null).Returns(new HashSet<IRecordIdentifying> { EnterpriseFlavour, NamedFlavour });
+
+        // Act
+        LookupException thrown = Assert.Throws<LookupException>(() => ProviderLookups.Resolve(lookup, null));
+
+        // Assert
+        Assert.Contains("Ambiguous Provider variant", thrown.Message);
     }
 }

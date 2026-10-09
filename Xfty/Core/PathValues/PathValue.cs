@@ -22,7 +22,7 @@ public sealed class PathValue
 
     private PathValue(List<PropertyInfo> path, IPathApplicable value)
     {
-        AssertPath(path);
+        AssertNoNullSteps(path);
         this.Path = path;
         this.Value = value;
     }
@@ -84,13 +84,12 @@ public sealed class PathValue
         this.Value.ApplyTo(template, targetField);
     }
 
-    private static void AssertPath(List<PropertyInfo>? path)
+    /// <summary>
+    /// Every path reaching here has passed <see cref="AssertUsablePath"/> (two or more steps) or is the
+    /// <see cref="Tail"/> of one that has, so it is never empty - but its steps are not yet checked.
+    /// </summary>
+    private static void AssertNoNullSteps(List<PropertyInfo> path)
     {
-        if (path is null || path.Count == 0)
-        {
-            throw new XftyConfigurationException("A path value cannot have an empty path.");
-        }
-
         if (path.Any(step => step is null))
         {
             throw new XftyConfigurationException("A path value cannot contain a null field.");

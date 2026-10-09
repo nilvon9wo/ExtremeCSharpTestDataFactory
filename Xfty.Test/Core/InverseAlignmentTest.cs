@@ -77,4 +77,21 @@ public class InverseAlignmentTest
         _ = Assert.Single(perParent[0]);
         Assert.Empty(perParent[1]); // no child at that position
     }
+
+    [Fact]
+    public void ChildrenPerParent_WhenTheParentTypeHasNoIdProperty_MatchesByPosition()
+    {
+        // Arrange - no key field given, and none named "Id" to fall back on
+        List<object> parents = [new KeylessParent(), new KeylessParent()];
+        List<object> children = [new Contact { LastName = "A" }, new Contact { LastName = "B" }];
+
+        // Act
+        List<List<object>> perParent =
+            InverseAlignment.ChildrenPerParent(parents, children, Field.Of<Contact>(x => x.AccountId));
+
+        // Assert
+        Assert.Equal("B", ((Contact)perParent[1][0]).LastName);
+    }
 }
+/// <summary>A record type with no <c>Id</c> property at all.</summary>
+file sealed class KeylessParent;

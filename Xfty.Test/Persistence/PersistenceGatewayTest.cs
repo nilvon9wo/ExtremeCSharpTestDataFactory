@@ -292,4 +292,53 @@ public class PersistenceGatewayTest : IDisposable
         DeferredInserter.ResetForTesting();
         GC.SuppressFinalize(this);
     }
+
+    [Fact]
+    public async Task SupplyBundle_InNowMode_WithChildren_InsertsTheChildrenThroughTheParentsGateway()
+    {
+        // Arrange - the children are never given a gateway of their own
+        IPersisting gateway = Substitute.For<IPersisting>();
+        gateway.When(g => g.Insert(Arg.Any<List<object>>(), Arg.Any<System.Reflection.PropertyInfo>()))
+            .Do(call =>
+            {
+                System.Reflection.PropertyInfo idField = call.ArgAt<System.Reflection.PropertyInfo>(1);
+                call.ArgAt<List<object>>(0).ForEach(record => idField.SetValue(record, $"real-{Guid.NewGuid()}"));
+            });
+        RecordProvider provider = new RecordProvider(typeof(Account), Lookup)
+            .SetInsertMode(InsertMode.Now)
+            .SetPersistenceGateway(gateway)
+            .WithChildren(Field.Of<Contact>(x => x.AccountId), 2);
+
+        // Act
+        Bundle bundle = await provider.SupplyBundle().ConfigureAwait(true);
+
+        // Assert
+        List<object> contacts = bundle.GetChildList<Contact>(x => x.AccountId);
+        _ = gateway.Received(1).Insert(
+            Arg.Is<List<object>>(list => list.Count == 2 && list.All(contacts.Contains)),
+            Arg.Any<System.Reflection.PropertyInfo>()
+        );
+    }
+
+    [Fact]
+    public async Task InsertMixed_WithNoIdFieldMap_InsertsEachTypeOnItsConventionalIdField()
+    {
+        // Arrange
+        IPersisting gateway = Substitute.For<IPersisting>();
+        Account account = new();
+        Contact contact = new();
+
+        // Act
+        await gateway.InsertMixed([account, contact]).ConfigureAwait(true);
+
+        // Assert - one Insert per record type, each keyed on its own "Id"
+        await gateway.Received(1).Insert(
+            Arg.Is<List<object>>(list => list.Count == 1 && ReferenceEquals(list[0], account)),
+            Field.Of<Account>(x => x.Id)
+        ).ConfigureAwait(true);
+        await gateway.Received(1).Insert(
+            Arg.Is<List<object>>(list => list.Count == 1 && ReferenceEquals(list[0], contact)),
+            Field.Of<Contact>(x => x.Id)
+        ).ConfigureAwait(true);
+    }
 }

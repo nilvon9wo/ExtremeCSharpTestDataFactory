@@ -27,17 +27,11 @@ public static class BundleMerger
     {
         Bundle? soFar = merged.GetBundle(parentField);
         Bundle incoming = source.GetBundle(parentField)!;
+        // Two configs' generated parents for the same field merge exactly like the children did - primaries
+        // concatenated, and the parents' own generated parents carried along rather than dropped.
         return soFar is null
             ? incoming
-            : CombinedPrimaries(soFar, incoming);
-    }
-
-    private static Bundle CombinedPrimaries(Bundle soFar, Bundle incoming)
-    {
-        List<object> records = [.. soFar.PrimaryRecords() ?? [], .. incoming.PrimaryRecords() ?? []];
-        Bundle rebuilt = new();
-        rebuilt.PutPrimaries(incoming.PrimaryTargetField!, records);
-        return rebuilt;
+            : Combine([soFar, incoming]);
     }
 
     private static void PutMergedPrimaries(Bundle merged, List<Bundle> bundles)

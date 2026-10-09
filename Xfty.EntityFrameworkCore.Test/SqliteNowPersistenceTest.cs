@@ -1,4 +1,3 @@
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Net.NowhereAtAll.Xfty.Core;
 using Net.NowhereAtAll.Xfty.Core.Bundles;
@@ -16,26 +15,12 @@ namespace Net.NowhereAtAll.Xfty.EntityFrameworkCore.Test;
 /// </summary>
 public sealed class SqliteNowPersistenceTest : IDisposable
 {
-    private readonly SqliteConnection _connection;
+    private readonly SqliteDemoDatabase _database = new();
     private readonly DemoDbContext _dbContext;
 
-    public SqliteNowPersistenceTest()
-    {
-        // an in-memory SQLite database needs one open connection kept alive for its lifetime
-        this._connection = new SqliteConnection("DataSource=:memory:");
-        this._connection.Open();
-        DbContextOptions<DemoDbContext> options = new DbContextOptionsBuilder<DemoDbContext>()
-            .UseSqlite(this._connection)
-            .Options;
-        this._dbContext = new DemoDbContext(options);
-        _ = this._dbContext.Database.EnsureCreated();
-    }
+    public SqliteNowPersistenceTest() => this._dbContext = this._database.Context;
 
-    public void Dispose()
-    {
-        this._dbContext.Dispose();
-        this._connection.Dispose();
-    }
+    public void Dispose() => this._database.Dispose();
 
     [Fact]
     public async Task Supply_InNowMode_ActuallyInsertsARowIntoTheDatabase()

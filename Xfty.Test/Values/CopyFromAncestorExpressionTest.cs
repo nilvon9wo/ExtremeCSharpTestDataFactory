@@ -83,4 +83,19 @@ public class CopyFromAncestorExpressionTest
         // Assert
         Assert.Contains("at least one relationship field", thrown.Message);
     }
+
+    [Fact]
+    public void Constructor_WhenThePathIsNull_Throws()
+    {
+        // Arrange
+        // nothing to arrange
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => new CopyFromAncestorExpression(null)
+        );
+
+        // Assert
+        Assert.Contains("needs a path of at least one", thrown.Message);
+    }
 }

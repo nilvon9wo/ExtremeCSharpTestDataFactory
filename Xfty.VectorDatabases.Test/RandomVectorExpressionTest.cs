@@ -75,6 +75,19 @@ public class RandomVectorExpressionTest
     }
 
     [Fact]
+    public void Get_WithNormalizeAndAZeroVector_ReturnsItUnscaledRatherThanDividingByZero()
+    {
+        // Arrange
+        RandomVectorExpression expression = new(dimensions: 4, min: 0f, max: 0f, normalize: true);
+
+        // Act
+        float[] vector = (float[])expression.Get();
+
+        // Assert
+        Assert.All(vector, component => Assert.Equal(0f, component));
+    }
+
+    [Fact]
     public void Get_WithKnownEmbeddingDimensions_ProducesTheDocumentedLength()
     {
         // Arrange

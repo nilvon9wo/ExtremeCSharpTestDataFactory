@@ -13,13 +13,13 @@ namespace Net.NowhereAtAll.Xfty.Enrichment;
 /// </summary>
 public sealed class EnrichmentTarget
 {
-    public List<object>? Records { get; }
+    public List<object> Records { get; }
 
-    public Bundle? SubBundle { get; }
+    public Bundle SubBundle { get; }
 
     public bool IsGeneratedAncestor { get; }
 
-    private EnrichmentTarget(List<object>? records, Bundle? subBundle, bool isGeneratedAncestor)
+    private EnrichmentTarget(List<object> records, Bundle subBundle, bool isGeneratedAncestor)
     {
         this.Records = records;
         this.SubBundle = subBundle;
@@ -27,12 +27,14 @@ public sealed class EnrichmentTarget
     }
 
     public static EnrichmentTarget Locate(Bundle bundle, PropertyInfo field) =>
+        // Each branch's field is a key of the map it reads, so its sub-bundle exists - but a bundle
+        // assembled by hand can carry an ancestor's sub-bundle without its record list.
         field == bundle.PrimaryTargetField
-            ? new EnrichmentTarget(bundle.PrimaryRecords(), bundle, false)
+            ? new EnrichmentTarget(bundle.PrimaryRecords()!, bundle, false)
             : bundle.RelationshipFields().Contains(field)
-                ? new EnrichmentTarget(bundle.GetList(field), bundle.GetBundle(field), true)
+                ? new EnrichmentTarget(bundle.GetList(field) ?? [], bundle.GetBundle(field)!, true)
                 : bundle.ChildRelationshipFields().Contains(field)
-                    ? new EnrichmentTarget(bundle.GetChildList(field), bundle.GetChildBundle(field), false)
+                    ? new EnrichmentTarget(bundle.GetChildList(field), bundle.GetChildBundle(field)!, false)
                     : throw new XftyConfigurationException(
                         $"Inject: {field.Name} is not this bundle's primary field, a generated ancestor field "
                         + $"[{string.Join(", ", bundle.RelationshipFields().Select(f => f.Name))}], or a child field "
@@ -42,10 +44,8 @@ public sealed class EnrichmentTarget
     /// <summary>True when the graph has any generated ancestor or child collection to inject.</summary>
     public bool HasAnythingToInject()
     {
-        bool hasParents = this.SubBundle is not null && this.SubBundle.RelationshipFields().Count > 0;
-        bool hasChildren =
-            (this.SubBundle is not null && this.SubBundle.ChildRelationshipFields().Count > 0)
-            || this.IsGeneratedAncestor;
+        bool hasParents = this.SubBundle.RelationshipFields().Count > 0;
+        bool hasChildren = this.SubBundle.ChildRelationshipFields().Count > 0 || this.IsGeneratedAncestor;
         return hasParents || hasChildren;
     }
 }

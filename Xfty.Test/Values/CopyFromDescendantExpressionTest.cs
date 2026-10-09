@@ -147,4 +147,19 @@ public class CopyFromDescendantExpressionTest
         // Assert
         Assert.Null(actualResult);
     }
+
+    [Fact]
+    public void Constructor_WhenThePathIsNull_Throws()
+    {
+        // Arrange
+        // nothing to arrange
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => new CopyFromDescendantExpression(null)
+        );
+
+        // Assert
+        Assert.Contains("needs a path of at least one", thrown.Message);
+    }
 }

@@ -9,9 +9,9 @@ namespace Net.NowhereAtAll.Xfty.Enrichment;
 /// top-level class rather than a nested one - this library keeps no nested
 /// types.
 /// </summary>
-internal sealed class EnrichmentPosition(Bundle? subBundle, List<object>? records)
+internal sealed class EnrichmentPosition(Bundle subBundle, List<object>? records)
 {
-    public Bundle? SubBundle { get; } = subBundle;
+    public Bundle SubBundle { get; } = subBundle;
 
     public List<object>? Records { get; } = records;
 
@@ -19,7 +19,7 @@ internal sealed class EnrichmentPosition(Bundle? subBundle, List<object>? record
     public List<PropertyInfo>? PathFromEntry { get; set; }
 
     /// <summary>The child hops walked so far; null on an ancestor.</summary>
-    public List<PropertyInfo>? ChildPathFromEntry { get; set; }
+    public List<PropertyInfo> ChildPathFromEntry { get; set; } = [];
 
     public int ParentDepthLeft { get; set; }
 
@@ -37,8 +37,6 @@ internal sealed class EnrichmentPosition(Bundle? subBundle, List<object>? record
         this.InverseChildrenPerRow = perRow;
     }
 
-    public Type? PositionType() =>
-        this.Records is not { Count: > 0 }
-            ? null
-            : this.Records[0].GetType();
+    /// <summary>The records' type - only asked once the position is known to hold records.</summary>
+    public Type PositionType() => this.Records![0].GetType();
 }

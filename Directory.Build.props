@@ -50,4 +50,38 @@
     <Version>0.0.0-dev</Version>
   </PropertyGroup>
 
+  <!--
+    Coverage is not an optional extra: every `dotnet test` of a `*.Test`
+    project, local or CI, measures the one package that project tests and
+    fails below 100% line AND branch coverage. XFTY must never be the cause of
+    a consumer's test failure, so every guard and both sides of every branch
+    are exercised (docs/contribute/coverage-standards.md).
+
+    - coverlet.MTP, not coverlet.collector: global.json selects the Microsoft
+      Testing Platform runner, and coverlet.collector is a VSTest data
+      collector - under MTP its documented "XPlat Code Coverage" collect option runs
+      zero tests and exits 5 (invalid arguments), so coverage was silently
+      never measured.
+    - The include filter is derived from the project name (`Xfty.Bogus.Test`
+      measures `Net.NowhereAtAll.Xfty.Bogus`). Without one, every loaded
+      assembly is instrumented - xunit's own included - and the minimum drags
+      the threshold check to 0%.
+    - Xfty.NetStandardCompat.Test is a net472 smoke test across several
+      packages, not a unit suite for one; it is not measured.
+    - Running a filtered subset (one class, or the Performance category)
+      cannot reach 100%: pass `-p:XftyCoverage=false` to `dotnet test` for
+      those runs.
+  -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Test')) And '$(MSBuildProjectName)' != 'Xfty.NetStandardCompat.Test'">
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <XftyCoverage Condition="'$(XftyCoverage)' == ''">true</XftyCoverage>
+    <XftyCoveredAssembly>Net.NowhereAtAll.$(MSBuildProjectName.Substring(0, $(MSBuildProjectName.LastIndexOf('.Test'))))</XftyCoveredAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(XftyCoverage)' == 'true'">
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --coverlet --coverlet-include "[$(XftyCoveredAssembly)]*" --coverlet-output-format cobertura --coverlet-threshold 100 --coverlet-threshold-type line --coverlet-threshold-type branch</TestingPlatformCommandLineArguments>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(XftyCoveredAssembly)' != ''">
+    <PackageReference Include="coverlet.MTP" Version="10.1.0" />
+  </ItemGroup>
+
 </Project>

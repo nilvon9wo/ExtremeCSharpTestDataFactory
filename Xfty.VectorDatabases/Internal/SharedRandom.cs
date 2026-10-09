@@ -1,4 +1,4 @@
-namespace Net.NowhereAtAll.Xfty.Internal;
+namespace Net.NowhereAtAll.Xfty.VectorDatabases.Internal;
 
 /// <summary>
 /// Stands in for <c>System.Random.Shared</c> (.NET 6+), which netstandard2.0
@@ -7,15 +7,11 @@ namespace Net.NowhereAtAll.Xfty.Internal;
 /// Random.Shared's actual thread-safety guarantee - plain <see cref="Random"/>
 /// itself isn't thread-safe on the older runtimes netstandard2.0 targets, not
 /// just its call syntax). One name, used unconditionally everywhere else in
-/// this codebase - the #if lives here, once, not at every call site.
+/// this package - the #if lives here, once, not at every call site.
 ///
-/// Split into its own file (separate from the netstandard2.0-only
-/// DictionaryCompatExtensions/EnumerableCompatExtensions in
-/// CollectionCompatExtensions.cs) so another package with the same gap can
-/// link this one file directly via `&lt;Compile Include&gt;` - see
-/// Xfty.VectorDatabases.csproj - without also pulling in polyfills it
-/// doesn't use. One physical file, compiled again into each assembly that
-/// links it; still internal to each, so no cross-assembly coupling.
+/// Lives in this package, not core Xfty: this package is its only user since
+/// UniqueAcrossRunsExpression moved off it, and a type core never calls is
+/// dead code there.
 /// </summary>
 internal static class SharedRandom
 {

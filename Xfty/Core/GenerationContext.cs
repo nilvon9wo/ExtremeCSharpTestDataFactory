@@ -238,16 +238,16 @@ public sealed class GenerationContext
     public object? SiblingValue(PropertyInfo siblingField) =>
         this.ValueFieldPass switch
         {
-            null => throw new XftyConfigurationException(
-                $"SiblingValue({siblingField.Name}) can only be read while a context-aware value is being generated."),
             { } pass when pass.PendingContextAwareValues.Contains(siblingField) => throw new XftyConfigurationException(
                 $"The context-aware value for {pass.FieldBeingBuilt.Name} reads sibling field {siblingField.Name}, "
                 + "which is itself a context-aware value that has not been generated yet. Context-aware values are "
                 + $"generated in the order they are put, so .Put({siblingField.Name}, ...) must come before "
                 + $".Put({pass.FieldBeingBuilt.Name}, ...)."
             ),
-            _ => this.RecordBeingBuilt is null
-                ? null
-                : siblingField.GetValue(this.RecordBeingBuilt),
+            // A value pass with no record (ForValueField without ForRecord) is as unreadable as no pass at all.
+            { } when this.RecordBeingBuilt is { } record => siblingField.GetValue(record),
+            _ => throw new XftyConfigurationException(
+                $"SiblingValue({siblingField.Name}) can only be read while a context-aware value is being generated."
+            ),
         };
 }

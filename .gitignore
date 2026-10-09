@@ -49,3 +49,5 @@ obj/
 *.Backup.tmp
 
 .fake
+# Coverage and test-run output (coverlet.MTP writes cobertura reports here)
+[Tt]est[Rr]esults/

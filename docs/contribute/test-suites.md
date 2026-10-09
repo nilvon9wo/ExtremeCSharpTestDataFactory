@@ -23,7 +23,7 @@ covered in Apex: run everything, run one class, run one namespace.
 
 ```bash
 dotnet test Xfty.slnx --filter "Category!=Performance"                        # everything except performance
-dotnet test Xfty.slnx --filter "FullyQualifiedName~Xfty.Test.Relationships"   # one namespace
+dotnet test Xfty.slnx -p:XftyCoverage=false --filter "FullyQualifiedName~Xfty.Test.Relationships"   # one namespace
 ```
 
 ---

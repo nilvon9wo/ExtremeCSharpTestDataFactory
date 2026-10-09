@@ -280,6 +280,37 @@ public class PathValueTest
         // Assert - a one-element path has no relationship to walk
         Assert.Contains("at least one relationship", thrown.Message);
     }
+
+    [Fact]
+    public void Put_WhenThePathIsNull_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new(typeof(Contact), Lookup());
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => provider.Put((List<PropertyInfo>)null!, "x")
+        );
+
+        // Assert
+        Assert.Contains("at least one relationship", thrown.Message);
+    }
+
+    [Fact]
+    public void Put_WhenAPathStepIsNull_Throws()
+    {
+        // Arrange
+        RecordProvider provider = new(typeof(Contact), Lookup());
+        List<PropertyInfo> pathWithAGap = [null!, Field.Of<Account>(x => x.Industry)];
+
+        // Act
+        XftyConfigurationException thrown = Assert.Throws<XftyConfigurationException>(
+            () => provider.Put(pathWithAGap, "x")
+        );
+
+        // Assert
+        Assert.Contains("cannot contain a null field", thrown.Message);
+    }
 }
 
 // In-test Providers ------------------------------------------

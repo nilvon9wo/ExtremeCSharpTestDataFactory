@@ -37,8 +37,8 @@ public static class InverseAlignment
             ? ForeignKeyMatch(children, relationshipField, parentId)
             : PositionMatch(children, parentRow);
 
-    private static PropertyInfo? IdFieldOf(object? record) =>
-        record?.GetType().GetProperty(IdFieldName);
+    private static PropertyInfo? IdFieldOf(object record) =>
+        record.GetType().GetProperty(IdFieldName);
 
     private static List<object> ForeignKeyMatch(
         List<object> children,

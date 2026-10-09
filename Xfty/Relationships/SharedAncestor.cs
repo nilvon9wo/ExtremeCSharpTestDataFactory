@@ -71,16 +71,30 @@ public sealed partial class SharedAncestor : ISharedRelatable
     }
 
     /// <summary>
-    /// The resolved record's primary-key value, read through the field the
-    /// Provider declares (see <see cref="_resolvedPrimaryField"/>).
+    /// The resolved record's primary-key value, read through
+    /// <see cref="KnownPrimaryField"/>. Only called once
+    /// <see cref="_resolvedRecord"/> is known to be set.
     /// </summary>
-    private object? PrimaryKeyValue()
-    {
-        PropertyInfo? keyField =
-            this._resolvedPrimaryField
-            ?? this._resolvedRecord?.GetType().GetProperty(ConventionalIdFieldName);
-        return keyField?.GetValue(this._resolvedRecord);
-    }
+    private object? PrimaryKeyValue() => this.KnownPrimaryField().GetValue(this._resolvedRecord);
+
+    /// <summary>
+    /// The field the Provider declares as the resolved record's key (see
+    /// <see cref="_resolvedPrimaryField"/>) - or, for a PutAsValue record,
+    /// which has no Provider to learn it from, a property literally named
+    /// <c>Id</c>. Only called once <see cref="_resolvedRecord"/> is set.
+    /// </summary>
+    private PropertyInfo KnownPrimaryField() =>
+        this._resolvedPrimaryField
+        ?? this._resolvedRecord!.GetType().GetProperty(ConventionalIdFieldName)
+        ?? throw this.NoKnownPrimaryKey();
+
+    private XftyConfigurationException NoKnownPrimaryKey() =>
+        new(
+            $"Shared ancestor \"{this.SharedName}\" has no known primary-key field: its "
+            + $"{this._resolvedRecord!.GetType().Name} has no '{ConventionalIdFieldName}' property, and "
+            + "PutAsValue gives XFTY no Provider to learn the real key field from. Register it with "
+            + "PutAsTemplate(...) instead - a template whose key is already set is used as-is."
+        );
 
     private static void AssertNotDisabled(string name)
     {

@@ -64,10 +64,10 @@ public static class InjectionPathResolver
             ? propertyType.GetGenericArguments().FirstOrDefault()
             : null;
 
-    private static Type DeclaringTypeOf(PropertyInfo field) =>
-        field.DeclaringType ?? throw BadHop($"{field.Name} has no declaring type.");
+    /// <summary>A property reflected off a type - every field XFTY is handed - always has one.</summary>
+    private static Type DeclaringTypeOf(PropertyInfo field) => field.DeclaringType!;
 
-    private static string DescribeOf(PropertyInfo field) => $"{field.DeclaringType?.Name}.{field.Name}";
+    private static string DescribeOf(PropertyInfo field) => $"{DeclaringTypeOf(field).Name}.{field.Name}";
 
     private static XftyConfigurationException BadHop(string detail) => new($"Injection path: {detail}");
 }

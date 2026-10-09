@@ -128,6 +128,33 @@ public class EnrichmentSelectionTest
             true
         );
 
+    [Fact]
+    public void ChildFieldsOn_ForAnInjectChildValuePathOnceItsHopsAreWalked_ExcludesIt() =>
+        AssertChildFieldsOnContains(
+            InjectConfig.Nothing().InjectChildValue(
+                Field.Of<Contact>(x => x.AccountId),
+                Field.Of<Contact>(x => x.Department),
+                "x"
+            ),
+            OneChildHop(),
+            false
+        );
+
+    [Fact]
+    public void ChildFieldsOn_ForAnInjectChildValuePathAlongAnotherBranch_ExcludesIt() =>
+        AssertChildFieldsOnContains(
+            InjectConfig.Nothing().InjectChildValue(
+                [
+                    Field.Of<Case>(x => x.AccountId),
+                    Field.Of<Contact>(x => x.AccountId),
+                    Field.Of<Contact>(x => x.Department),
+                ],
+                "x"
+            ),
+            OneChildHop(),
+            false
+        );
+
     private static void AssertChildFieldsOnContains(
         InjectConfig config,
         List<PropertyInfo> childPathHere,

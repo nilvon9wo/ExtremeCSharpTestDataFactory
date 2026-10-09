@@ -70,6 +70,28 @@ public class FieldPredicateFactoryTest
             new Account { Industry = "Technology" }, true
         );
 
+    // Lambda forms ----------------------------------------------------
+
+    [Fact]
+    public void NotEqualTo_ByLambda_WhenTheFieldDiffers_ReturnsTrue() =>
+        AssertIsSatisfiedBy(
+            FieldPredicateFactory.NotEqualTo<Account>(x => x.Industry, "Retail"),
+            new Account { Industry = "Technology" },
+            true
+        );
+
+    [Fact]
+    public void IsNull_ByLambda_WhenTheFieldIsBlank_ReturnsTrue() =>
+        AssertIsSatisfiedBy(FieldPredicateFactory.IsNull<Account>(x => x.Industry), new Account(), true);
+
+    [Fact]
+    public void InSet_ByLambda_WhenTheFieldIsAMember_ReturnsTrue() =>
+        AssertIsSatisfiedBy(
+            FieldPredicateFactory.InSet<Account>(x => x.Industry, ["Technology"]),
+            new Account { Industry = "Technology" },
+            true
+        );
+
     private static void AssertIsSatisfiedBy(IRecordMatching predicate, Account? record, bool expectedResult)
     {
         // Arrange - the caller supplies the facade-built predicate and the record

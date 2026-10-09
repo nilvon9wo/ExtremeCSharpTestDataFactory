@@ -73,12 +73,6 @@ public sealed class DeferredInsertBuffer
     /// <summary>Each record's lookup to another record in Records(), by index.</summary>
     public List<DepthBatchedInserterParentLink> ParentLinks() => this._pendingLinks;
 
-    /// <summary>
-    /// Each buffered record type's primary-key field, taken from the bundle it came from - so nothing here assumes the
-    /// key is called "Id".
-    /// </summary>
-    public IReadOnlyDictionary<Type, PropertyInfo> IdFieldByType() => this._idFieldByType;
-
     public Task InsertAll(IPersisting? gateway = null)
     {
         this.ResolveUpFlowValues();
@@ -128,15 +122,12 @@ public sealed class DeferredInsertBuffer
 
     /// <summary>
     /// Record this bundle's primary-key field and mock-Id generator against its record type, so the depth-batched pass
-    /// never has to guess either.
+    /// never has to guess either. Only called for a bundle with primaries, so it has a primary-key field.
     /// </summary>
     private void RememberIdField(Bundle bundle)
     {
-        if (bundle.PrimaryTargetField is not { DeclaringType: { } recordType } idField)
-        {
-            return;
-        }
-
+        PropertyInfo idField = bundle.PrimaryTargetField!;
+        Type recordType = idField.DeclaringType!;
         this._idFieldByType[recordType] = idField;
         if (bundle.MockIdGenerator is { } generator)
         {
@@ -184,13 +175,8 @@ public sealed class DeferredInsertBuffer
 
     private void LinkToParentsOn(Bundle bundle, List<IndexedRecord> children, PropertyInfo parentField)
     {
-        Bundle? parentBundle = bundle.GetBundle(parentField);
-        if (parentBundle is null)
-        {
-            return;
-        }
-
-        List<IndexedRecord> parents = this.Collect(parentBundle);
+        // parentField came from RelationshipFields(), so its sub-bundle exists.
+        List<IndexedRecord> parents = this.Collect(bundle.GetBundle(parentField));
         this.LinkRows(children, parents, parentField);
     }
 

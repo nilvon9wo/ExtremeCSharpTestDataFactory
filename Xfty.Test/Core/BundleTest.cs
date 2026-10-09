@@ -236,4 +236,94 @@ public class BundleTest
         // Assert
         Assert.Empty(none);
     }
+
+    [Fact]
+    public void PrimariesResolvingTo_WhenTheBundleHasNoPrimaries_ReturnsAnEmptyList()
+    {
+        // Arrange
+        Bundle bundle = new();
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account()]);
+
+        // Act
+        List<object> none = bundle.PrimariesResolvingTo(Field.Of<Contact>(x => x.AccountId), 0);
+
+        // Assert
+        Assert.Empty(none);
+    }
+
+    [Fact]
+    public void PrimariesResolvingTo_WhenTheRelationshipWasNotGenerated_ReturnsAnEmptyList()
+    {
+        // Arrange
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
+
+        // Act
+        List<object> none = bundle.PrimariesResolvingTo(Field.Of<Contact>(x => x.AccountId), 0);
+
+        // Assert
+        Assert.Empty(none);
+    }
+
+    [Fact]
+    public void PrimariesResolvingTo_WhenTheAncestorRowIsNegative_ReturnsAnEmptyList()
+    {
+        // Arrange
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [new Contact()]);
+        _ = bundle.Put<Contact>(x => x.AccountId, [new Account()]);
+
+        // Act
+        List<object> none = bundle.PrimariesResolvingTo(Field.Of<Contact>(x => x.AccountId), -1);
+
+        // Assert
+        Assert.Empty(none);
+    }
+
+    [Fact]
+    public void PrimariesResolvingTo_WhenTheAncestorsSubBundleIsKnown_MatchesOnItsPrimaryKey()
+    {
+        // Arrange - the ancestors' sub-bundle names their key field, so matching is by key, not position
+        Bundle accounts = new();
+        accounts.PutPrimaries(Field.Of<Account>(x => x.Id), [new Account { Id = "A0" }, new Account { Id = "A1" }]);
+        Bundle bundle = new();
+        bundle.PutPrimaries(Field.Of<Contact>(x => x.Id), [
+            new Contact { LastName = "On A1", AccountId = "A1" },
+            new Contact { LastName = "On A0", AccountId = "A0" },
+        ]);
+        _ = bundle.Put<Contact>(x => x.AccountId, accounts.PrimaryRecords()!);
+        _ = bundle.Put<Contact>(x => x.AccountId, accounts);
+
+        // Act
+        List<object> onAccountOne = bundle.PrimariesResolvingTo(Field.Of<Contact>(x => x.AccountId), 1);
+
+        // Assert
+        Assert.Equal("On A1", ((Contact)Assert.Single(onAccountOne)).LastName);
+    }
+
+    [Fact]
+    public void GetChild_WhenNoChildrenWereGenerated_ReturnsNull()
+    {
+        // Arrange
+        Bundle bundle = new();
+
+        // Act
+        object? child = bundle.GetChild(Field.Of<Contact>(x => x.AccountId));
+
+        // Assert
+        Assert.Null(child);
+    }
+
+    [Fact]
+    public void GetChildBundle_WhenNoChildrenWereGenerated_ReturnsNull()
+    {
+        // Arrange
+        Bundle bundle = new();
+
+        // Act
+        Bundle? children = bundle.GetChildBundle(Field.Of<Contact>(x => x.AccountId));
+
+        // Assert
+        Assert.Null(children);
+    }
 }

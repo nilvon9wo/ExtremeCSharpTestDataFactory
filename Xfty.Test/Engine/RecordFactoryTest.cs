@@ -352,6 +352,22 @@ public class RecordFactoryTest
         // Assert
         Assert.Contains(expectedMessagePart, thrown.Message);
     }
+
+    [Fact]
+    public async Task Supply_WhenAValueReadsUpFromAChildOutsideABatchedInsert_Throws()
+    {
+        // Arrange - Mock builds and returns in one go; there is no generated child to read yet
+        RecordProvider provider = new RecordProvider(typeof(Account), DefaultLookup)
+            .Put<Account>(x => x.Site, CopyFromDescendantExpression.From<Contact>(x => x.AccountId, x => x.Department))
+            .SetInsertMode(InsertMode.Mock);
+
+        // Act
+        XftyConfigurationException thrown = await Assert.ThrowsAsync<XftyConfigurationException>(provider.Supply)
+            .ConfigureAwait(true);
+
+        // Assert
+        Assert.Contains("needs the DEFERRED insert mode", thrown.Message);
+    }
 }
 
 file abstract class BaseProvider : IRecordProviding

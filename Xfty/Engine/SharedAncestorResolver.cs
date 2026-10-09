@@ -205,11 +205,8 @@ public sealed class SharedAncestorResolver(IProviderLocating lookup, InsertMode 
     private async Task ResolveOne(SharedAncestor ancestor)
     {
         string name = ancestor.SharedName;
-        if (!InProgress.Add(name))
-        {
-            return;
-        }
-
+        // Always a new entry: InDependencyOrder has already rejected an in-progress name as a cycle.
+        _ = InProgress.Add(name);
         try
         {
             await this.BuildAndPersist(ancestor).ConfigureAwait(false);

@@ -46,6 +46,8 @@ public sealed class DemoDbContext(DbConnection connection, bool contextOwnsConne
 
     public DbSet<Contact> Contacts => this.Set<Contact>();
 
+    public DbSet<Ticket> Tickets => this.Set<Ticket>();
+
     protected override void OnModelCreating(DbModelBuilder modelBuilder)
     {
         _ = modelBuilder.Entity<Account>().HasKey(x => x.Id);
@@ -56,5 +58,7 @@ public sealed class DemoDbContext(DbConnection connection, bool contextOwnsConne
         _ = modelBuilder.Entity<Contact>().HasKey(x => x.Id);
         _ = modelBuilder.Entity<Contact>().Ignore(x => x.Account);
         _ = modelBuilder.Entity<Contact>().Ignore(x => x.Cases);
+
+        _ = modelBuilder.Entity<Ticket>().HasKey(x => x.Id);
     }
 }

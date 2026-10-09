@@ -83,4 +83,47 @@ public class PathTargetValueTest
         // Assert
         Assert.True(template.ContextAwareByField.ContainsKey(Field.Of<Account>(x => x.Site)));
     }
+
+    public static TheoryData<IPathApplicable, bool> RelationshipKinds => new()
+    {
+        { new ValueExpressionPathTarget(new LiteralExpression("X")), false },
+        { new ContextAwarePathTarget(CopyFromSiblingExpression.From<Account>(x => x.Name)), false },
+        { new OptionalRelationPathTarget(new DefaultRelationship(new Account())), true },
+    };
+
+    public static TheoryData<IPathApplicable, bool> SharedRelationshipKinds => new()
+    {
+        { new ValueExpressionPathTarget(new LiteralExpression("X")), false },
+        { new ContextAwarePathTarget(CopyFromSiblingExpression.From<Account>(x => x.Name)), false },
+        { new OptionalRelationPathTarget(new DefaultRelationship(new Account())), false },
+        { new OptionalRelationPathTarget(SharedAncestor.Get("path-target-value-test-shared")), true },
+    };
+
+    [Theory]
+    [MemberData(nameof(RelationshipKinds), DisableDiscoveryEnumeration = true)]
+    public void IsRelationship_IsTrueOnlyForARelationshipValue(IPathApplicable value, bool expected)
+    {
+        // Arrange
+        // the value is the theory row
+
+        // Act
+        bool isRelationship = value.IsRelationship();
+
+        // Assert
+        Assert.Equal(expected, isRelationship);
+    }
+
+    [Theory]
+    [MemberData(nameof(SharedRelationshipKinds), DisableDiscoveryEnumeration = true)]
+    public void IsSharedRelationship_IsTrueOnlyForASharedAncestor(IPathApplicable value, bool expected)
+    {
+        // Arrange
+        // the value is the theory row
+
+        // Act
+        bool isSharedRelationship = value.IsSharedRelationship();
+
+        // Assert
+        Assert.Equal(expected, isSharedRelationship);
+    }
 }

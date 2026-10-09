@@ -176,7 +176,7 @@ CI (`.github/workflows/ci.yml`) fails the build on any of:
 | `dotnet format Xfty.slnx --verify-no-changes --severity info` | whitespace/formatting, plus a second pass over the style analyzers |
 | `scripts/inspect-code.py` (ReSharper `inspectcode`) | what Roslyn misses: **IDE0005-style unnecessary usings never fail `dotnet build`**, plus redundant casts/qualifiers/suppressions and unresolvable doc-comment references. Every finding fails; the few inspections that contradict these standards are switched off, with reasons, in `.editorconfig` |
 | `scripts/check-line-layout.py` | the 120-character ceiling and wrapped-`)` placement, which no Roslyn analyzer reports on |
-| `dotnet test` (cross-platform slnf) | the full suite, all TFMs |
+| `dotnet test` (cross-platform slnf) | the full suite, all TFMs - and **100% line and branch coverage** of each package, which every test run enforces |
 | `windows-net472` job | the netstandard2.0 build actually runs (net472) |
 | `verify-doc-examples.py` / `verify-doc-links.py` | every documented code call is exercised by a test; every relative doc link resolves |
 
@@ -235,10 +235,9 @@ Run the same checks locally before pushing — see
 
 ## Testing and coverage
 
-- **Line coverage ~100%**, measured with `coverlet.collector` (see
-  [local-development](local-development.md#measuring-coverage)).
-- **Branch coverage is the real goal** — every guard, `switch`, and ternary,
-  both sides, checked by hand.
+- **100% line and 100% branch coverage**, enforced on every `dotnet test`
+  (see [coverage-standards](coverage-standards.md)) — every guard, `switch`,
+  and ternary, both sides. Dead code is removed, not covered.
 - **The framework must never make a consumer debug it.** Any error that could
   trace back to XFTY is loud: a clear `XftyConfigurationException` naming the
   misconfiguration and the fix — never a silent `null` or an opaque downstream
