@@ -12,6 +12,18 @@ because those entries describe a change made in *this* repository.
 
 ## [Unreleased]
 
+## [1.0.0-beta.13] – 2026-10-09
+
+> **Theme: quality gates that provably fire, and adjective interface names.**
+> Every public interface is renamed (breaking - see
+> [docs/reference/migration.md](docs/reference/migration.md)). Line layout,
+> unnecessary usings, compiler warnings and 100% line + branch coverage are
+> now enforced, and a canary proves every gate still fires. Reaching full
+> coverage surfaced a handful of quiet failures, now loud or fixed. The two
+> preview packages, `Xfty.VectorDatabases.Qdrant` and
+> `Xfty.VectorDatabases.MicrosoftExtensionsVectorData`, move to
+> `0.1.0-preview.4` for the `IPersisting` rename.
+
 ### Changed (breaking)
 
 - **Every public interface is renamed to an adjective** (coding standard
